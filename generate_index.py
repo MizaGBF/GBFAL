@@ -116,7 +116,6 @@ class Generator():
         print("Done")
         self.save()
         self.update()
-        self.jsonGenerator()
 
     def update(self):
         with open("base.js", mode="r", encoding="utf-8") as f:
@@ -407,11 +406,14 @@ class Generator():
 
 if __name__ == '__main__':
     g = Generator()
-    if len(sys.argv) > 2 and sys.argv[1] == '-update':
+    if 'full' in sys.argv:
+        g.run()
+        self.jsonGenerator()
+    elif len(sys.argv) > 2 and sys.argv[1] == '-update':
         g.new = sys.argv[2:]
         g.manualUpdate()
-        g.update()
         g.save()
+        g.update()
     elif len(sys.argv) > 2 and sys.argv[1] == '-jsonupdate':
         g.new = sys.argv[2:]
         g.manualUpdate()
