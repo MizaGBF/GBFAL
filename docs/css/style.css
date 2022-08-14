@@ -119,13 +119,13 @@ a:link {
 }
 
 a:visited {
-    color: green;
+    color: pink;
 }
 
 a:hover {
-    color: hotpink;
+    color: white;
 }
 
 a:active {
-    color: blue;
+    color: yellow;
 }

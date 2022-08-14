@@ -189,6 +189,7 @@ function newArea(name, id, include_link)
         
         if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371")
         {
+            div.appendChild(document.createElement('br'));
             l = document.createElement('a');
             l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
             l.appendChild(document.createTextNode("Animation"));
