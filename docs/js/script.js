@@ -186,6 +186,14 @@ function newArea(name, id, include_link)
         l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
         l.appendChild(document.createTextNode("Wiki"));
         div.appendChild(l);
+        
+        if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371")
+        {
+            l = document.createElement('a');
+            l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
+            l.appendChild(document.createTextNode("Animation"));
+            div.appendChild(l);
+        }
     }
 }
 
@@ -472,7 +480,7 @@ function lookupWeapon(weapon_id)
                 sheets = ["", "_a", "_b", "_c", "_d", "_e"];
                 break;
             case "Charge Attack Sheets":
-                appends = ["", "_f1", "_1", "_1_f1", "_2", "_2_f1", "_s2", "_f1_s2", "_1_s2", "_1_f1_s2", "_2_s2", "_2_f1_s2"];
+                appends = ["", "_f1", "_1", "_1_f1", "_2", "_2_f1", "_0_s2", "_s2", "_f1_s2", "_1_s2", "_1_f1_s2", "_2_s2", "_2_f1_s2"];
                 sheets = ["", "_a", "_b", "_c", "_d", "_e"];
                 break;
             default:
