@@ -29,20 +29,6 @@ class Generator():
             "prd-game-a4-granbluefantasy.akamaized.net/",
             "prd-game-a5-granbluefantasy.akamaized.net/"
         ]
-        self.version = str(self.getGameVersion())
-        if self.version == "None":
-            print("Can't retrieve the game version")
-            exit(0)
-
-    def getGameVersion(self):
-        vregex = re.compile("Game\.version = \"(\d+)\";")
-        handler = self.req('https://game.granbluefantasy.jp/', headers={'User-Agent':"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36", 'Accept-Language':'en', 'Accept-Encoding':'gzip, deflate', 'Host':'game.granbluefantasy.jp', 'Connection':'keep-alive'})
-        try:
-            res = zlib.decompress(handler.read(), 16+zlib.MAX_WBITS)
-            handler.close()
-            return int(vregex.findall(str(res))[0])
-        except:
-            return None
 
     def load(self): # load data.json
         try:
@@ -77,7 +63,7 @@ class Generator():
 
     def run(self):
         self.load()
-        count = 0        
+        count = 0
         errs = []
         possibles = []
         
@@ -370,7 +356,7 @@ class Generator():
             for sub1 in a[4]:
                 for sub2 in a[5]:
                     try:
-                        f = "http://" + endpoint + "assets_en/" + self.version + "/js_low/model/manifest/" + a[3] + id + sub1 + sub2 + ".js"
+                        f = "http://" + endpoint + "assets_en/js_low/model/manifest/" + a[3] + id + sub1 + sub2 + ".js"
                         url_handle = self.req(f)
                         data = url_handle.read().decode("utf-8")
                         url_handle.close()
@@ -406,7 +392,7 @@ class Generator():
 
 if __name__ == '__main__':
     g = Generator()
-    if 'full' in sys.argv:
+    if '-full' in sys.argv:
         g.run()
         self.jsonGenerator()
     elif len(sys.argv) > 2 and sys.argv[1] == '-update':
