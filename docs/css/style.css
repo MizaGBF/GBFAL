@@ -23,6 +23,10 @@ summary {
     text-shadow: #000000 1px 0 10px;
 }
 
+footer {
+    font-size: 15x;
+}
+
 img {
     object-fit: contain;
 }
