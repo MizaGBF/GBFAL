@@ -227,7 +227,7 @@ function lookupCharacter(character_id)
         ["AOE Skill Sheets", "sp/cjs/ab_all_", "png", "img_low/", false, false, true, false],
         ["Single Target Skill Sheets", "sp/cjs/ab_", "png", "img_low/", false, false, true, false]
     ];
-    uncaps = ["_01", "_01_st2", "_02", "_03", "_04"];
+    uncaps = ["_01", "_02", "_03", "_04"];
     styles = ["", "_st2"];
     bonus = ["_81", "_82", "_83"];
     alts = ["", "_f", "_f1", "_f_01"];
@@ -308,7 +308,7 @@ function lookupCharacter(character_id)
                                             // sky compass band aid
                                             if(asset[0] === "Main Arts")
                                             {
-                                                var path = character_id + uncap + alt + gender + unit + s_a + sh + "." + asset[2];
+                                                var path = character_id + uncap + style + alt + gender + unit + s_a + sh + "." + asset[2];
                                                 img = document.createElement("img");
                                                 ref = document.createElement('a');
                                                 ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
