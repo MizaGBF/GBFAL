@@ -271,6 +271,7 @@ function lookupCharacter(character_id)
         result_area.appendChild(div);
         for(let uncap of uncap_append)
         {
+            if(uncap != "_01") style_append = [""]; // style limited to _01 for now
             for(let style of style_append)
             {
                 for(let alt of alt_append)
