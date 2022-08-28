@@ -227,7 +227,8 @@ function lookupCharacter(character_id)
         ["AOE Skill Sheets", "sp/cjs/ab_all_", "png", "img_low/", false, false, true, false],
         ["Single Target Skill Sheets", "sp/cjs/ab_", "png", "img_low/", false, false, true, false]
     ];
-    uncaps = ["_01", "_02", "_03", "_04"];
+    uncaps = ["_01", "_01_st2", "_02", "_03", "_04"];
+    styles = ["", "_st2"];
     bonus = ["_81", "_82", "_83"];
     alts = ["", "_f", "_f1", "_f_01"];
     
@@ -237,6 +238,7 @@ function lookupCharacter(character_id)
     for(let asset of assets)
     {
         var uncap_append = asset[7] ? uncaps.concat(bonus) : uncaps;
+        var style_append = asset[0].includes("Sheets") ? ["", "_st2", "_st2_2", "_st2_3"] : styles;
         var alt_append = asset[0].includes("Sheets") ? alts : [""];
         var skin_folders = (is_character_skin && asset[4]) ? ["", "skin/"] : [""];
         var skin_appends = (is_character_skin && asset[4]) ? ["", "_s1", "_s2", "_s3", "_s4", "_s5", "_s6"] : [""];
@@ -259,55 +261,40 @@ function lookupCharacter(character_id)
         if(asset[0] === "Attack Effect Sheets") uncap_append = [""];
         
         // skill fix
-        if(asset[0].includes("Skill")) uncap_append = ["_01", "_02", "_03", "_04"];
+        if(asset[0].includes("Skill"))
+        {
+            uncap_append = [""];
+            alt_append = ["_01", "_02", "_03", "_04"];
+        }
         
         var div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
         for(let uncap of uncap_append)
         {
-            for(let alt of alt_append)
+            for(let style of style_append)
             {
-                for(let gender of gendered)
+                for(let alt of alt_append)
                 {
-                    for(let unit of multi)
+                    for(let gender of gendered)
                     {
-                        for(let ex of extra)
+                        for(let unit of multi)
                         {
-                            for(let s_f of skin_folders)
+                            for(let ex of extra)
                             {
-                                for(let s_a of skin_appends)
+                                for(let s_f of skin_folders)
                                 {
-                                    for(let sh of sheet)
+                                    for(let s_a of skin_appends)
                                     {
-                                        if(s_a != "" && s_f == "") continue;
-                                        var path = asset[1] + s_f + character_id + uncap + alt + gender + unit + ex + s_a + sh + "." + asset[2];
-                                        var img = document.createElement("img");
-                                        var ref = document.createElement('a');
-                                        ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-                                        div.appendChild(ref);
-                                        ref.appendChild(img);
-                                        img.id  = "loading";
-                                        img.onerror = function() {
-                                            var result = this.parentNode.parentNode;
-                                            this.parentNode.remove();
-                                            this.remove();
-                                            if(result.childNodes.length <= 2) result.remove();
-                                        }
-                                        img.onload = function() {
-                                            this.id = "done"
-                                        }
-                                        img.src = protocol + getEndpoint() + language + asset[3] + path;
-                                        // sky compass band aid
-                                        if(asset[0] === "Main Arts")
+                                        for(let sh of sheet)
                                         {
-                                            var path = character_id + uncap + alt + gender + unit + s_a + sh + "." + asset[2];
-                                            img = document.createElement("img");
-                                            ref = document.createElement('a');
-                                            ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
+                                            if(s_a != "" && s_f == "") continue;
+                                            var path = asset[1] + s_f + character_id + uncap + style + alt + gender + unit + ex + s_a + sh + "." + asset[2];
+                                            var img = document.createElement("img");
+                                            var ref = document.createElement('a');
+                                            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                                             div.appendChild(ref);
                                             ref.appendChild(img);
                                             img.id  = "loading";
-                                            img.className  = "skycompass";
                                             img.onerror = function() {
                                                 var result = this.parentNode.parentNode;
                                                 this.parentNode.remove();
@@ -315,9 +302,31 @@ function lookupCharacter(character_id)
                                                 if(result.childNodes.length <= 2) result.remove();
                                             }
                                             img.onload = function() {
-                                                this.id = ""
+                                                this.id = "done"
                                             }
-                                            img.src = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path;
+                                            img.src = protocol + getEndpoint() + language + asset[3] + path;
+                                            // sky compass band aid
+                                            if(asset[0] === "Main Arts")
+                                            {
+                                                var path = character_id + uncap + alt + gender + unit + s_a + sh + "." + asset[2];
+                                                img = document.createElement("img");
+                                                ref = document.createElement('a');
+                                                ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
+                                                div.appendChild(ref);
+                                                ref.appendChild(img);
+                                                img.id  = "loading";
+                                                img.className  = "skycompass";
+                                                img.onerror = function() {
+                                                    var result = this.parentNode.parentNode;
+                                                    this.parentNode.remove();
+                                                    this.remove();
+                                                    if(result.childNodes.length <= 2) result.remove();
+                                                }
+                                                img.onload = function() {
+                                                    this.id = ""
+                                                }
+                                                img.src = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path;
+                                            }
                                         }
                                     }
                                 }
