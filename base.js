@@ -51,7 +51,11 @@ function displayCharacters(elem)
     var node = document.getElementById('areacharacters');  
     for(let id of characters)
     {
-        addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
+        var el = id.split("_");
+        if(el.length == 2)
+            addImage(node, "sp/assets/npc/m/" + el[0] + "_01" + el[1] + ".jpg", id);
+        else
+            addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
     }
 }
 
