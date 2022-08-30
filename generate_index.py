@@ -19,8 +19,6 @@ class Generator():
             "skins":set()
         }
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
-        self.new = self.null_characters
-        self.new.append("3840396000")
         self.endpoints = [
             "prd-game-a-granbluefantasy.akamaized.net/",
             "prd-game-a1-granbluefantasy.akamaized.net/",
@@ -70,8 +68,7 @@ class Generator():
         # characters
         self.newShared(errs)
         for i in range(4):
-            possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01.jpg"))
-            possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01_st2.jpg"))
+            possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
         # summons
         self.newShared(errs)
         for i in range(4):
@@ -119,267 +116,39 @@ class Generator():
     def req(self, url, headers={}):
         return request.urlopen(request.Request(url, headers=headers), timeout=50)
 
-    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext):
+    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles = [""]):
         id = start
         while err[0] < 20 and err[1]:
-            try:
-                f = file.format(str(id).zfill(zfill))
-                if f in self.data[index]:
-                    with err[2]:
-                        err[0] = 0
-                    id += step
-                    continue
-                url_handle = self.req("http://" + endpoint + path + f + ext)
-                url_handle.read()
-                url_handle.close()
+            f = file.format(str(id).zfill(zfill))
+            if f in self.data[index]:
                 with err[2]:
                     err[0] = 0
-                    self.data[index].add(f)
-                    self.new.append(f)
-            except Exception as e:
-                try: url_handle.close()
-                except: pass
-                with err[2]:
-                    err[0] += 1
-                    if err[0] >= 20:
-                        if err[1]: print("Threads", index+":"+file, "are done")
-                        err[1] = False
-                        return
-            id += step
-
-    def jsonGenerator(self):
-        print("Generating JSON for new IDs...")
-        max_thread = 70
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread) as executor:
-            futures = []
-            for i in range(max_thread):
-                futures.append(executor.submit(self.genSub, i, max_thread, self.endpoints[i%len(self.endpoints)]))
-        for future in concurrent.futures.as_completed(futures):
-            future.result()
-        print("Done")
-
-    def genSub(self, start, step, endpoint):
-        i = start
-        while i < len(self.new):
-            id = self.new[i]
-            if len(id) == 7:
-                #self.processEnemy(id, endpoint)
-                pass
-            elif len(id) == 10:
-                match id[0]:
-                    case '1':
-                        #self.processWeapon(id, endpoint)
-                        pass
-                    case '2':
-                        #self.processSummon(id, endpoint)
-                        pass
-                    case '3':
-                        self.processCharacter(id, endpoint)
-            i += step
-
-    def processEnemy(self, id, endpoint):
-        if os.path.exists("docs/data/" + id + ".json"): return
-        assets = [
-            ["Big Icon", "sp/assets/enemy/m/", "png", "img/", [""], [""]],
-            ["Small Icon", "sp/assets/enemy/s/", "png", "img/", [""], [""]],
-            ["Sprite Sheets", "sp/cjs/enemy_", "png", "img_low/", [""], [""]],
-            ["Raid Appear Sheets", "sp/cjs/raid_appear_", "png", "img_low/", ["", "_a", "_b", "_c", "_d", "_e"], [""]],
-            ["Attack Effect Sheets", "sp/cjs/ehit_", "png", "img_low/", ["", "_a", "_b", "_c", "_d", "_e"], [""]],
-            ["Charge Attack Sheets", "sp/cjs/esp_", "png", "img_low/", ["", "_a", "_b", "_c", "_d", "_e"], ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10", "_11", "_12", "_13", "_14", "_15", "_16", "_17", "_18", "_19", "_20"]]
-        ]
-        jsoncontent = {}
-        for a in assets:
-            for sub1 in a[4]:
-                for sub2 in a[5]:
-                    try:
-                        f = "http://" + endpoint + "assets_en/" + a[3] + a[1] + id + sub1 + sub2 + "." + a[2]
-                        url_handle = self.req(f)
-                        url_handle.read()
-                        url_handle.close()
-                        if a[0] not in jsoncontent:
-                            jsoncontent[a[0]] = []
-                        jsoncontent[a[0]].append(f)
-                    except:
-                        pass
-        if len(jsoncontent.keys()) != 0:
-            with open("docs/data/" + id + ".json", "w") as out:
-                json.dump(jsoncontent, out)
-            print("Saved", id + ".json")
-        else:
-            print("Warning:", id, "didn't return any positive result")
-
-    def processWeapon(self, id, endpoint):
-        if os.path.exists("docs/data/" + id + ".json"): return
-        assets = [
-            ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/", [""], [""]],
-            ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", [""], [""]],
-            ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", [""], [""]],
-            ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", [""], [""]],
-            ["Battle Sprites", "sp/cjs/", "png", "img/", ["", "_1", "_2"], [""]],
-            ["Attack Effects", "sp/cjs/phit_", "png", "img/", ["", "_f1", "_1", "_1_f1", "_2", "_2_f1"], ["", "_a", "_b", "_c", "_d", "_e"]],
-            ["Charge Attack Sheets", "sp/cjs/sp_", "png", "img_low/", ["", "_f1", "_1", "_1_f1", "_2", "_2_f1", "_s2", "_f1_s2", "_1_s2", "_1_f1_s2", "_2_s2", "_2_f1_s2"], ["", "_a", "_b", "_c", "_d", "_e"]]
-        ]
-        jsoncontent = {}
-        for a in assets:
-            for sub1 in a[4]:
-                for sub2 in a[5]:
-                    try:
-                        f = "http://" + endpoint + "assets_en/" + a[3] + a[1] + id + sub1 + sub2 + "." + a[2]
-                        url_handle = self.req(f)
-                        url_handle.read()
-                        url_handle.close()
-                        if a[0] not in jsoncontent:
-                            jsoncontent[a[0]] = []
-                        jsoncontent[a[0]].append(f)
-                    except:
-                        pass
-        if len(jsoncontent.keys()) != 0:
-            with open("docs/data/" + id + ".json", "w") as out:
-                json.dump(jsoncontent, out)
-            print("Saved", id + ".json")
-        else:
-            print("Warning:", id, "didn't return any positive result")
-
-    def processSummon(self, id, endpoint):
-        if os.path.exists("docs/data/" + id + ".json"): return
-        assets = [
-            ["Main Arts", "sp/assets/summon/b/", "png", "img_low/", ["", "_01", "_02"], [""]],
-            ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/", ["", "_01", "_02"], [""]],
-            ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/", ["", "_01", "_02"], [""]],
-            ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/", ["", "_01", "_02"], [""]],
-            ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/", ["", "_01", "_02"], [""]],
-            ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/", ["", "_01", "_02"], [""]],
-            ["Summon Call Sheets", "sp/cjs/summon_", "png", "img_low/", ["_attack", "_01_attack", "_02_attack"], ["", "_a", "_b", "_c", "_d", "_e", "_f", "_bg", "_bg1", "_bg2", "_bg3"]],
-            ["Summon Damage Sheets", "sp/cjs/summon_", "png", "img_low/", ["_damage", "_01_damage", "_02_damage"], ["", "_a", "_b", "_c", "_d", "_e", "_f", "_bg", "_bg1", "_bg2", "_bg3"]]
-        ]
-        jsoncontent = {}
-        for a in assets:
-            for sub1 in a[4]:
-                for sub2 in a[5]:
-                    try:
-                        f = "http://" + endpoint + "assets_en/" + a[3] + a[1] + id + sub1 + sub2 + "." + a[2]
-                        url_handle = self.req(f)
-                        url_handle.read()
-                        url_handle.close()
-                        if a[0] not in jsoncontent:
-                            jsoncontent[a[0]] = []
-                        jsoncontent[a[0]].append(f)
-                    except:
-                        pass
-            if a[0] == "Main Arts":
+                id += step
+                continue
+            for s in styles:
                 try:
-                    f = "https://media.skycompass.io/assets/archives/summons/" + id + "/detail_l.png"
-                    url_handle = self.req(f)
+                    url_handle = self.req("http://" + endpoint + path + f + ext.replace("{}", s))
                     url_handle.read()
                     url_handle.close()
-                    if a[0] not in jsoncontent:
-                        jsoncontent[a[0]] = []
-                    jsoncontent[a[0]].append(f)
-                except:
-                    pass
-        if len(jsoncontent.keys()) != 0:
-            with open("docs/data/" + id + ".json", "w") as out:
-                json.dump(jsoncontent, out)
-            print("Saved", id + ".json")
-        else:
-            print("Warning:", id, "didn't return any positive result")
-        
-    def processCharacter(self, id, endpoint):
-        if os.path.exists("docs/data/" + id + ".json"): return
-        skinFolder = ["", "skin/"] if id[1] == '7' else [""]
-        skinAppend = ["", "_s1", "_s2", "_s3", "_s4", "_s5", "_s6"] if id[1] == '7' else [""]
-        assets = [
-            ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", [""], [""], ["", "_0", "_1"], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", [""], [""], ["", "_0", "_1"], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", skinFolder, skinAppend, ["", "_0", "_1"], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", skinFolder, skinAppend, ["", "_0", "_1"], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Sprites", "sp/assets/npc/sd/", "png", "img/", [""], [""], [""], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Raid", "sp/assets/npc/raid_normal/", "jpg", "img/", [""], [""], ["", "_0", "_1"], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Twitter Arts", "sp/assets/npc/sns/", "jpg", "img_low/", [""], [""], ["", "_0", "_1"], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", "img_low/", [""], [""], ["", "_0", "_1"], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", "img_low/", [""], [""], ["", "_0", "_1"], [""], ["_01", "_02", "_03", "_04", "_81", "_82", "_83"], [""]],
-            ["Character Sheets", "sheet", "img_low/", "npc_", ["_01", "_02", "_03", "_04"], ["", "_f1"]],
-            ["Attack Effect Sheets", "sheet", "img_low/", "phit_", [""], ["", "_f1", "_1", "_1_f1", "_2", "_2_f1"]],
-            ["Charge Attack Sheets", "sheet", "img_low/", "nsp_", ["_01", "_02", "_03", "_04"], ["", "_f1", "_1", "_1_f1", "_2", "_2_f1", "_s2", "_f1_s2", "_1_s2", "_1_f1_s2", "_2_s2", "_2_f1_s2"]],
-            ["AOE Skill Sheets", "sheet","img_low/", "ab_all_", ["_01", "_02", "_03", "_04"], [""]],
-            ["Single Target Skill Sheets", "sheet", "img_low/", "ab_", ["_01", "_02", "_03", "_04"], [""]]
-        ]
-        if id in self.null_characters:
-            if id[1] == '7':
-                for a in assets:
-                    a[-1] = ["_01"]
-            assets[0][-1] = ["", "_01"]
-            assets[1][-1] = ["", "_01", "_02", "_03", "_04", "_05", "_06"]
-            assets[2][-1] = ["", "_01", "_02", "_03", "_04", "_05", "_06"]
-            assets[3][-1] = ["", "_01", "_02", "_03", "_04", "_05", "_06"]
-            assets[8][-1] = ["", "_01", "_02", "_03", "_04", "_05", "_06"]
-        isSkin = id[1] == '7'
-        isMulti = True
-        isGender = True
-        
-        jsoncontent = {}
-        
-        for a in assets:
-            if a[1] == "sheet": continue
-            for skin in a[4]:
-                for sub1 in a[5]:
-                    if sub1 != "" and not isGender: continue
-                    for sub2 in a[6]:
-                        if sub2 != "" and not isMulti: continue
-                        for sub3 in a[7]:
-                            for uncap in a[8]:
-                                for extra in a[9]:
-                                    try:
-                                        f = "http://" + endpoint + "assets_en/img_low/" + a[1] + skin + id + uncap + extra + sub1 + sub2 + sub3 + "." + a[2]
-                                        url_handle = self.req(f)
-                                        url_handle.read()
-                                        url_handle.close()
-                                        if a[0] not in jsoncontent:
-                                            jsoncontent[a[0]] = []
-                                        jsoncontent[a[0]].append(f.replace('img_low/', a[3]))
-                                    except:
-                                        if a[0] == "Inventory Portraits":
-                                            if sub1 != "": isGender = False
-                                            if sub2 != "": isMulti = False
-                                    if a[0] == "Main Arts" and skin == a[4][0]:
-                                        try:
-                                            f = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + id + uncap + extra + sub1 + sub2 + sub3 + "." + a[2]
-                                            url_handle = self.req(f)
-                                            url_handle.read()
-                                            url_handle.close()
-                                            if a[0] not in jsoncontent:
-                                                jsoncontent[a[0]] = []
-                                            jsoncontent[a[0]].append(f)
-                                        except:
-                                            pass
-        for a in assets:
-            if a[1] != "sheet": continue
-            for sub1 in a[4]:
-                for sub2 in a[5]:
-                    try:
-                        f = "http://" + endpoint + "assets_en/js_low/model/manifest/" + a[3] + id + sub1 + sub2 + ".js"
-                        url_handle = self.req(f)
-                        data = url_handle.read().decode("utf-8")
-                        url_handle.close()
-                        st = data.find('manifest:') + len('manifest:')
-                        ed = data.find(']', st) + 1
-                        data = json.loads(data[st:ed].replace('Game.imgUri+', '').replace('src', '"src"').replace('type', '"type"').replace('id', '"id"'))
-                        for l in data:
-                            if a[0] not in jsoncontent:
-                                jsoncontent[a[0]] = []
-                            jsoncontent[a[0]].append("http://" + endpoint + "assets_en/" + a[3] + l['src'].split('?')[0])
-                    except:
-                        pass
-        if len(jsoncontent.keys()) != 0:
-            with open("docs/data/" + id + ".json", "w") as out:
-                json.dump(jsoncontent, out)
-            print("Saved", id + ".json")
-        else:
-            print("Warning:", id, "didn't return any positive result")
+                    with err[2]:
+                        err[0] = 0
+                        self.data[index].add(f + s)
+                except Exception as e:
+                    try: url_handle.close()
+                    except: pass
+                    if s != "": break
+                    with err[2]:
+                        err[0] += 1
+                        if err[0] >= 20:
+                            if err[1]: print("Threads", index+":"+file, "are done")
+                            err[1] = False
+                            return
+                    break
+            id += step
 
     def manualUpdate(self):
         for id in self.new:
-            if len(id) == 10:
+            if len(id) == 10 or len(id) == 14:
                 match id[0]:
                     case '1':
                         self.data['weapons'].add(id)
@@ -393,17 +162,10 @@ class Generator():
 
 if __name__ == '__main__':
     g = Generator()
-    if '-full' in sys.argv:
-        g.run()
-        self.jsonGenerator()
-    elif len(sys.argv) > 2 and sys.argv[1] == '-update':
+    if len(sys.argv) > 2 and sys.argv[1] == '-update':
         g.new = sys.argv[2:]
         g.manualUpdate()
         g.save()
         g.update()
-    elif len(sys.argv) > 2 and sys.argv[1] == '-jsonupdate':
-        g.new = sys.argv[2:]
-        g.manualUpdate()
-        g.jsonGenerator()
     else:
         g.run()
