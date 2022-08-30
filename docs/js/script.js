@@ -88,7 +88,7 @@ function successJSON(id)
                 newArea("Summon", id, true);
                 break;
             case '3':
-                if(id[1] == '9') newArea("NOC", id, true);
+                if(id[1] == '9') newArea("NPC", id, true);
                 else newArea("Character", id, true);
                 break;
             default:
@@ -102,9 +102,10 @@ function successJSON(id)
     
     for(let key of Object.keys(obj))
     {
+        var urls = obj[key];
+        if(urls.length == 0) continue;
         var div = addResult(key, key);
         result_area.appendChild(div);
-        var urls = obj[key];
 
         for(let url of urls)
         {
@@ -264,7 +265,7 @@ function lookupCharacter(character_id)
         if(asset[0].includes("Skill"))
         {
             uncap_append = [""];
-            alt_append = ["_01", "_02", "_03", "_04"];
+            alt_append = ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08"];
         }
         
         var div = addResult(asset[0], asset[0]);
