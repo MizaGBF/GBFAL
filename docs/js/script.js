@@ -20,6 +20,7 @@ language = "assets_en/";
 
 counter = 0;
 last_id = null;
+last_style = null;
 result_area = null;
 null_characters = [
     "3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"
@@ -77,7 +78,7 @@ function successJSON(id)
 {
     var obj = JSON.parse(this.response);
     console.log(obj);
-    if(id.length == 10)
+    if(id.length == 10 || id.length == 14)
     {
         switch(id[0])
         {
@@ -132,7 +133,7 @@ function successJSON(id)
 
 function failJSON(id)
 {
-    if(id.length == 10)
+    if(id.length == 10 || id.length == 14)
     {
         switch(id[0])
         {
@@ -164,7 +165,8 @@ function lookup(id)
 {
     counter = 0;
     f = document.getElementById('filter');
-    if((id.length == 10 && !isNaN(id) && id != last_id) || (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1)) && id.slice(1) != last_id))
+    var el = id.split("_");
+    if((el.length == 2 && el[1] == "st2" && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || (el.length == 1 && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1)) && id.slice(1) != last_id))
     {
         if(f.value == "") f.value = id;
         if(id.toLowerCase()[0] === 'e') id = id.slice(1);
@@ -212,6 +214,10 @@ function addResult(identifier, name)
 
 function lookupCharacter(character_id)
 {
+    var el = character_id.split("_");
+    character_id = el[0];
+    // add manual style later?
+    
     assets = [
         ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", false, true, false, true], // skin folder, gendered/multi, spritesheet, bonus
         ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", false, true, false, true],
