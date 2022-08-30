@@ -71,6 +71,7 @@ class Generator():
         self.newShared(errs)
         for i in range(4):
             possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01.jpg"))
+            possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01_st2.jpg"))
         # summons
         self.newShared(errs)
         for i in range(4):
