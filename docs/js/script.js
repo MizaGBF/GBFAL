@@ -77,7 +77,6 @@ function getJSON(url, callback, err_callback, id) {
 function successJSON(id)
 {
     var obj = JSON.parse(this.response);
-    console.log(obj);
     if(id.length == 10 || id.length == 14)
     {
         switch(id[0])
@@ -104,6 +103,7 @@ function successJSON(id)
     for(let key of Object.keys(obj))
     {
         var urls = obj[key];
+        urls.sort();
         if(urls.length == 0) continue;
         var div = addResult(key, key);
         result_area.appendChild(div);
