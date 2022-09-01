@@ -112,6 +112,7 @@ function successJSON(id)
         {
             var img = document.createElement("img");
             var ref = document.createElement('a');
+            url = url.replace("//sp", '/sp');
             ref.setAttribute('href', url.replace("img_low", "img").replace("http://", protocol));
             div.appendChild(ref);
             ref.appendChild(img);
