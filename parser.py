@@ -228,7 +228,7 @@ class Parser():
         data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src', '"src"').replace('type', '"type"').replace('id', '"id"'))
         res = []
         for l in data:
-            src = self.getEndpoint() + "img_low/" + l['src'].split('?')[0]
+            src = self.getEndpoint() + "img_low" + l['src'].split('?')[0]
             res.append(src)
         return res
 
