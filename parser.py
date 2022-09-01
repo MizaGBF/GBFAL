@@ -160,7 +160,7 @@ class Parser():
             targets.append("_" + uncaps[i])
         for t in targets:
             try:
-                fn = "phit_{}{}".format(id, t)
+                fn = "phit_{}{}{}".format(id, t, style)
                 urls['Attack Effect Sheets'] += self.processManifest(fn)
             except:
                 break
