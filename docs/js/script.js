@@ -103,7 +103,6 @@ function successJSON(id)
     for(let key of Object.keys(obj))
     {
         var urls = obj[key];
-        urls.sort();
         if(urls.length == 0) continue;
         var div = addResult(key, key);
         result_area.appendChild(div);
