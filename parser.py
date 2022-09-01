@@ -213,8 +213,13 @@ class Parser():
                         urls["Chain Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/raid_chain/" + fn + ".jpg")
             # sprites
             urls["Sprites"].append(self.getEndpoint() + "img/sp/assets/npc/sd/" + base_fn + ".png")
+        # sorting
         for k in urls:
-            urls[k].sort()
+            if "Sheet" not in k: continue
+            el = [f.split("/")[-1] for f in urls[k]]
+            el.sort()
+            for i in range(len(urls[k])):
+                urls[k][i] = "/".join(urls[k][i].split("/")[:-1]) + "/" + el[i]
         with open("docs/data/" + id + style + ".json", 'w') as outfile:
             json.dump(urls, outfile)
         return True
