@@ -435,7 +435,6 @@ if __name__ == '__main__':
         else:
             p.manualUpdate(sys.argv[2:])
     elif "-indexupdate" in sys.argv:
-        pass
+        Generator().run()
     else:
         p.run()
-    Generator().run()
