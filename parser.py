@@ -86,7 +86,7 @@ class Generator():
         for i in range(4):
             possibles.append(('skins', i, 4, errs[-1], "3710{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01.jpg"))
         #enemies
-        for ab in [62, 72]:
+        for ab in [73]:
             for d in [1, 2, 3]:
                 self.newShared(errs)
                 for i in range(5):
@@ -112,6 +112,7 @@ class Generator():
                 if k == "version": continue
                 s = list(self.data[k])
                 s.sort()
+                s.reverse()
                 f.write(k + "=" + str(s) + ";\n")
             f.write(base)
             print("list.js updated")
