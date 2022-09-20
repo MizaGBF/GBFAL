@@ -249,7 +249,7 @@ function lookupCharacter(character_id)
         var skin_folders = (is_character_skin && asset[4]) ? ["", "skin/"] : [""];
         var skin_appends = (is_character_skin && asset[4]) ? ["", "_s1", "_s2", "_s3", "_s4", "_s5", "_s6"] : [""];
         var gendered = asset[5] ? ["", "_0", "_1"] : [""];
-        var multi = asset[5] ? ["", "_101", "_102", "_103"] : [""];
+        var multi = asset[5] ? ["", "_101", "_102", "_103", "_104", "_105"] : [""];
         var sheet = asset[6] ? ((asset[1].includes("nsp_") || asset[1].includes("npc_")) ? ["", "_s2", "_s3", "_a", "_s2_a", "_s3_a", "_b", "_s2_b", "_s3_b", "_c", "_s2_c", "_s3_c"] : ["", "_a", "_b", "_c"]) : [""];
         var extra = [""];
         

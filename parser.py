@@ -355,7 +355,7 @@ class Parser():
             # main
             base_fn = "{}_{}{}".format(id, uncap, style)
             for g in (["", "_1"] if gendered else [""]):
-                for m in (["", "_101", "_102", "_103"] if multi else [""]):
+                for m in (["", "_101", "_102", "_103", "_104", "_105"] if multi else [""]):
                     for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if null else [""]):
                         fn = base_fn + g + m + n
                         urls["Main Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/zoom/" + fn + ".png")
