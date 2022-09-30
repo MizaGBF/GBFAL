@@ -131,7 +131,7 @@ class Generator():
                 continue
             for s in styles:
                 try:
-                    url_handle = self.req("http://" + endpoint + path + f + ext.replace("{}", s))
+                    url_handle = self.req("https://" + endpoint + path + f + ext.replace("{}", s))
                     url_handle.read()
                     url_handle.close()
                     with err[2]:
@@ -173,16 +173,16 @@ class Parser():
         self.quality = ("/img/", "/js/")
         self.force_update = False
         
-        self.manifestUri = "http://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
-        self.cjsUri = "http://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
-        self.imgUri = "http://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
+        self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
+        self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
+        self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
         self.endpoints = [
-            "http://prd-game-a-granbluefantasy.akamaized.net/assets_en/",
-            "http://prd-game-a1-granbluefantasy.akamaized.net/assets_en/",
-            "http://prd-game-a2-granbluefantasy.akamaized.net/assets_en/",
-            "http://prd-game-a3-granbluefantasy.akamaized.net/assets_en/",
-            "http://prd-game-a4-granbluefantasy.akamaized.net/assets_en/",
-            "http://prd-game-a5-granbluefantasy.akamaized.net/assets_en/"
+            "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/"
         ]
         self.endpoint_counter = 0
         self.exclusion = set([])
