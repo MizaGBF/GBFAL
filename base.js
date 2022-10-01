@@ -98,3 +98,13 @@ function displayEnemies(elem)
         addImage(node, "sp/assets/enemy/m/" + id + ".png", "e" + id);
     }
 }
+
+function displayMC(elem)
+{
+    elem.removeAttribute("onclick");
+    var node = document.getElementById('areamc');  
+    for(let id of job)
+    {
+        addImage(node, "sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id);
+    }
+}

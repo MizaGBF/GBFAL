@@ -99,6 +99,8 @@ function successJSON(id)
     }
     else if(id.length == 7)
         newArea("Enemy", id, false);
+    else if(id.length == 9)
+        newArea("Main Character", id, false);
     
     for(let key of Object.keys(obj))
     {
@@ -158,6 +160,14 @@ function failJSON(id)
         last_id = id;
         updateQuery("e" + id);
     }
+    else if(id.length == 9)
+    {
+        if(id[5] != '1')
+            id = id.slice(0, 5) + "1" + id.slice(6);
+        lookupMC(id);
+        last_id = id;
+        updateQuery(id);
+    }
 }
 
 function lookup(id)
@@ -165,7 +175,11 @@ function lookup(id)
     counter = 0;
     f = document.getElementById('filter');
     var el = id.split("_");
-    if((el.length == 2 && el[1] == "st2" && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || (el.length == 1 && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1)) && id.slice(1) != last_id))
+    if(
+        (el.length == 2 && el[1] == "st2" && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || (el.length == 1 && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || 
+        (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1)) && id.slice(1) != last_id) ||
+        (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6)) && id != last_id)
+    )
     {
         if(f.value == "") f.value = id;
         if(id.toLowerCase()[0] === 'e') id = id.slice(1);
@@ -387,7 +401,7 @@ function lookupNPC(npc_id)
 
 function lookupSummon(summon_id)
 {
-   assets = [
+    assets = [
         ["Main Arts", "sp/assets/summon/b/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/"],
@@ -471,7 +485,7 @@ function lookupSummon(summon_id)
 
 function lookupWeapon(weapon_id)
 {
-   assets = [
+    assets = [
         ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/"],
@@ -535,7 +549,7 @@ function lookupWeapon(weapon_id)
 
 function lookupEnemy(enemy_id)
 {
-   assets = [
+    assets = [
         ["Big Icon", "sp/assets/enemy/m/", "png", "img/"],
         ["Small Icon", "sp/assets/enemy/s/", "png", "img/"],
         ["Sprite Sheets", "sp/cjs/enemy_", "png", "img_low/"],
@@ -576,6 +590,110 @@ function lookupEnemy(enemy_id)
                 }
                 img.src = protocol + getEndpoint() + language + asset[3] + path;
             }
+        }
+    }
+}
+
+function lookupMC(mc_id)
+{
+    job_ids = mc_id.split('_');
+    assets = [
+        ["Job Icon", "sp/ui/icon/job/", "png", "img/", 0],
+        ["Inventory Portrait", "sp/assets/leader/m/", "jpg", "img/", 1],
+        ["Outfit Portrait", "sp/assets/leader/sd/m/", "jpg", "img/", 1],
+        ["Home Art", "sp/assets/leader/my/", "png", "img_low/", 2],
+        ["Full Art", "sp/assets/leader/job_change/", "png", "img_low/", 2],
+        ["Outfit Preview Art", "sp/assets/leader/skin/", "png", "img_low/", 2],
+        ["Class Name Text", "sp/ui/job_name/job_list/", "png", "img/", 0],
+        ["Class Change Button", "sp/assets/leader/jlon/", "png", "img/", 2],
+        ["Party Class Big Portrait", "sp/assets/leader/jobon_z/", "png", "img_low/", 2],
+        ["Party Class Portrait", "sp/assets/leader/p/", "png", "img_low/", 2],
+        ["Sprite", "sp/assets/leader/sd/", "png", "img/", 3]
+    ];
+    // 0 = job_ids[0]
+    // 1 = job_ids[0] + "_01"
+    // 2 = mc_id + "_1_01"
+    // 3 = mc_id + "_1_01" (color variations)
+    
+    newArea("Main Character", mc_id, false);
+    for(let asset of assets)
+    {
+        var div = addResult(asset[0], asset[0]);
+        result_area.appendChild(div);
+        
+        if(asset[4] >= 2)
+        {
+            let colors = [job_ids[0]];
+            if(asset[4] == 3)
+            {
+                for(let i = 2; i < 6; ++i)
+                    colors.push(job_ids[0].slice(0, 5) + i);
+            }
+            for(let i = 0; i < 2; ++i)
+            {
+                for(let color of colors)
+                {
+                    var path = asset[1] + color + "_" + job_ids[1] + "_" + i + "_01" + "." + asset[2];
+                    var img = document.createElement("img");
+                    var ref = document.createElement('a');
+                    ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+                    div.appendChild(ref);
+                    ref.appendChild(img);
+                    img.id  = "loading";
+                    img.onerror = function() {
+                        var result = this.parentNode.parentNode;
+                        this.parentNode.remove();
+                        this.remove();
+                        if(result.childNodes.length <= 2) result.remove();
+                    }
+                    img.onload = function() {
+                        this.id = ""
+                    }
+                    img.src = protocol + getEndpoint() + language + asset[3] + path;
+                }
+                // sky compass band aid
+                if(asset[0] === "Full Art")
+                {
+                    var path = job_ids[0] + "_" + i + "." + asset[2];
+                    img = document.createElement("img");
+                    ref = document.createElement('a');
+                    ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path);
+                    div.appendChild(ref);
+                    ref.appendChild(img);
+                    img.id  = "loading";
+                    img.className  = "skycompass";
+                    img.onerror = function() {
+                        var result = this.parentNode.parentNode;
+                        this.parentNode.remove();
+                        this.remove();
+                        if(result.childNodes.length <= 2) result.remove();
+                    }
+                    img.onload = function() {
+                        this.id = ""
+                    }
+                    img.src = "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path;
+                }
+            }
+        }
+        else
+        {
+            var path = asset[1] + (asset[4] == 0 ? job_ids[0] : job_ids[0] + "_01") + "." + asset[2];
+            var img = document.createElement("img");
+            var ref = document.createElement('a');
+            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+            div.appendChild(ref);
+            ref.appendChild(img);
+            img.id  = "loading";
+            img.onerror = function() {
+                var result = this.parentNode.parentNode;
+                this.parentNode.remove();
+                this.remove();
+                if(result.childNodes.length <= 2) result.remove();
+            }
+            img.onload = function() {
+                this.id = ""
+            }
+            img.src = protocol + getEndpoint() + language + asset[3] + path;
         }
     }
 }

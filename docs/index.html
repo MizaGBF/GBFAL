@@ -19,7 +19,7 @@
 </head>
 <body onload="init()">
     <img id="titleheader" src="assets/ui/header.png">
-    <div id="version">v1.17</div>
+    <div id="version">v1.18</div>
     <br>
     <div id="manual" width="400px"><a href="search.html" id="manuallink">Manual Search</a></div>
     <br>
@@ -41,6 +41,11 @@
     <details onclick="displayWeapons(this)">
         <summary>Weapons</summary>
         <h3 class="result" id="areaweapons">
+        </h3>
+    </details>
+    <details onclick="displayMC(this)">
+        <summary>Classes</summary>
+        <h3 class="result" id="areamc">
         </h3>
     </details>
     <details onclick="displayEnemies(this)">

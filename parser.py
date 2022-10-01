@@ -9,6 +9,7 @@ import zlib
 import sys
 import queue
 import re
+import time
 
 # old parser to generate a list of existing character, etc
 class Generator():
@@ -19,7 +20,8 @@ class Generator():
             "summons":set(),
             "weapons":set(),
             "enemies":set(),
-            "skins":set()
+            "skins":set(),
+            "job":set()
         }
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.endpoints = [
@@ -93,8 +95,8 @@ class Generator():
                     possibles.append(('enemies', i, 5, errs[-1], str(ab) + "{}" + str(d), 4, "assets_en/img/sp/assets/enemy/s/", ".png"))
         
         print("Starting Index update...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)) as executor:
-            futures = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)+40) as executor:
+            futures = self.job_search(executor)
             for p in possibles:
                 futures.append(executor.submit(self.subroutine, self.endpoints[count], *p))
                 count = (count + 1) % len(self.endpoints)
@@ -112,7 +114,7 @@ class Generator():
                 if k == "version": continue
                 s = list(self.data[k])
                 s.sort()
-                s.reverse()
+                if k != 'job': s.reverse()
                 f.write(k + "=" + str(s) + ";\n")
             f.write(base)
             print("list.js updated")
@@ -144,11 +146,64 @@ class Generator():
                     with err[2]:
                         err[0] += 1
                         if err[0] >= 20:
-                            if err[1]: print("Threads", index+":"+file, "are done")
+                            if err[1]: print("Threads", index, "("+file+")", "are done")
                             err[1] = False
                             return
                     break
             id += step
+
+    def job_search(self, executor):
+        shared = [Lock(), queue.Queue(), False]
+        lookup = list(self.data['job'])
+        for i in range(10, 50):
+            for j in range(0, 10):
+                for k in range(0, 10):
+                    id = "{}{}{}01".format(i, j, k)
+                    exist = False
+                    for jid in lookup:
+                        if jid.startswith(id):
+                            exist = True
+                            break
+                    if not exist:
+                        shared[1].put(id)
+        futures = []
+        for i in range(40):
+            futures.append(executor.submit(self.subroutine_job, self.endpoints[i % len(self.endpoints)], shared))
+        return futures
+
+    def subroutine_job(self, endpoint, shared):
+        mh = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']
+        while shared[1].qsize() > 0:
+            try:
+                id = shared[1].get(block=False)
+            except:
+                time.sleep(0.001)
+                continue
+            try:
+                path = "assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id)
+                url_handle = self.req("https://" + endpoint + path)
+                url_handle.read()
+                url_handle.close()
+            except:
+                try: url_handle.close()
+                except: pass
+                continue
+            for mhid in mh:
+                try:
+                    path = "assets_en/img_low/sp/assets/leader/sd/{}_{}_0_01.png".format(id, mhid)
+                    url_handle = self.req("https://" + endpoint + path)
+                    url_handle.read()
+                    url_handle.close()
+                    with shared[0]:
+                        self.data['job'].add(id + "_" + mhid)
+                    break
+                except:
+                    try: url_handle.close()
+                    except: pass
+        with shared[0]:
+            if not shared[2]:
+                shared[2] = True
+                print("Threads job are done")
 
     def manualUpdate(self):
         for id in self.new:
