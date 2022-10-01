@@ -88,14 +88,14 @@ class Generator():
         for i in range(4):
             possibles.append(('skins', i, 4, errs[-1], "3710{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01.jpg"))
         #enemies
-        for ab in [73]:
+        for ab in [73, 51, 52, 43, 41, 81]:
             for d in [1, 2, 3]:
                 self.newShared(errs)
                 for i in range(5):
                     possibles.append(('enemies', i, 5, errs[-1], str(ab) + "{}" + str(d), 4, "assets_en/img/sp/assets/enemy/s/", ".png"))
         
         print("Starting Index update...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)+40) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = self.job_search(executor)
             for p in possibles:
                 futures.append(executor.submit(self.subroutine, self.endpoints[count], *p))

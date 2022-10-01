@@ -15,6 +15,7 @@
     <meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
     <link rel="icon" type="image/png" href="assets/icon.png" />
     <link rel="stylesheet" href="css/style.css">
+    <script src="js/list.js"></script>
     <script src="js/script.js"></script>
 </head>
 <body onload="init()">
@@ -39,8 +40,37 @@
         </h3>
     </details>
     <div id="resultarea">
-
     </div>
+    <details onclick="displayCharacters(this)">
+        <summary>Characters</summary>
+        <h3 class="result" id="areacharacters">
+        </h3>
+    </details>
+    <details onclick="displaySkins(this)">
+        <summary>Skins</summary>
+        <h3 class="result" id="areaskins">
+        </h3>
+    </details>
+    <details onclick="displaySummons(this)">
+        <summary>Summons</summary>
+        <h3 class="result" id="areasummons">
+        </h3>
+    </details>
+    <details onclick="displayWeapons(this)">
+        <summary>Weapons</summary>
+        <h3 class="result" id="areaweapons">
+        </h3>
+    </details>
+    <details onclick="displayMC(this)">
+        <summary>Classes</summary>
+        <h3 class="result" id="areamc">
+        </h3>
+    </details>
+    <details onclick="displayEnemies(this)">
+        <summary>Enemies</summary>
+        <h3 class="result" id="areaenemies">
+        </h3>
+    </details>
 </body>
 <footer>
     <a href="https://github.com/MizaGBF/GBFAL">Source</a>
