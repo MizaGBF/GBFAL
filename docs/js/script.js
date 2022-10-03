@@ -608,6 +608,9 @@ function lookupMC(mc_id)
         ["Class Change Button", "sp/assets/leader/jlon/", "png", "img/", 2],
         ["Party Class Big Portrait", "sp/assets/leader/jobon_z/", "png", "img_low/", 2],
         ["Party Class Portrait", "sp/assets/leader/p/", "png", "img_low/", 2],
+        ["Profile Portrait", "sp/assets/leader/pm/", "png", "img_low/", 2],
+        ["Profile Board Portrait", "sp/assets/leader/talk/", "png", "img/", 2],
+        ["Raid Log", "sp/assets/leader/raid_log/", "png", "img/", 2],
         ["Sprite", "sp/assets/leader/sd/", "png", "img/", 3]
     ];
     // 0 = job_ids[0]
