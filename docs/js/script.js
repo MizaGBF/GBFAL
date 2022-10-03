@@ -746,7 +746,7 @@ var class_lookup = { // need to be manually updated..... :(
     "310601_sw": ["edg_sw"], // eternal 2
     "120001_wa": ["pri_wa", "pri_sp"], // priest
     "180101_mc": ["mst_kn", "mst_mc"], // bard
-    "200301_kn": ["dct_kn", "dct_gu"],
+    "200301_kn": ["dct_kn", "dct_gu"], // doctor
     "220201_kt": ["smr_bw", "smr_kt"], // samurai
     "140001_kn": ["thi_kn", "thi_gu"], // thief
     "370601_me": ["bel_me"], // belial skin 1
@@ -867,11 +867,5 @@ function lookupMCPlus(mc_id)
                 }
             }
         }
-    }
-    else
-    {
-        let div = addResult("Sprite Sheets", "Sprite Sheets");
-        result_area.appendChild(div);
-        div.appendChild(document.createTextNode("The identifiant is missing, check this page again at a later date or try CTRL+F5."));
     }
 }

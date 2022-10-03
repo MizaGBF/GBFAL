@@ -137,6 +137,21 @@ class Parser():
             f.write(base)
             print("list.js updated")
 
+    def listjob(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
+        job_index = {}
+        mhs = set(mhs)
+        try:
+            with open('docs/data/job.json', mode='r', encoding='utf-8') as f:
+                job_index = json.load(f)
+        except:
+            pass
+        count = 0
+        for k in job_index:
+            if k.split('_')[1] in mhs:
+                print(k)
+                count += 1
+        print(count, "result(s)")
+
     def dig_job_spritesheet(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
         job_index = {}
         try:
@@ -527,10 +542,11 @@ class Parser():
 def print_help():
     print("Usage: python parser.py [option]")
     print("options:")
-    print("-run    : Update character JSON files and update the index")
-    print("-update : Manual JSON updates (Followed by IDs to check)")
-    print("-index  : Update the index and create new character JSON files if any")
+    print("-run    : Update character JSON files and update the index.")
+    print("-update : Manual JSON updates (Followed by IDs to check).")
+    print("-index  : Update the index and create new character JSON files if any.")
     print("-job    : Search Job spritesheets (Very time consuming). You can add specific Mainhand ID to reduce the search time.")
+    print("-listjob: List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
     time.sleep(2)
 
 if __name__ == '__main__':
@@ -553,5 +569,10 @@ if __name__ == '__main__':
                 p.dig_job_spritesheet()
             else:
                 p.dig_job_spritesheet(sys.argv[2:])
+        elif sys.argv[1] == '-listjob':
+            if len(sys.argv) == 2:
+                p.listjob()
+            else:
+                p.listjob(sys.argv[2:])
         else:
             print_help()
