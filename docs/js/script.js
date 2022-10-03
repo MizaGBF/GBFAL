@@ -64,7 +64,6 @@ function getJSON(url, callback, err_callback, id) {
             if (xhr.status === 200) {
                 callback.apply(xhr, [id]);
             } else {
-                load_try = true;
                 err_callback.apply(xhr, [id]);
             }
         }
@@ -227,11 +226,11 @@ function addResult(identifier, name)
 
 function lookupCharacter(character_id)
 {
-    var el = character_id.split("_");
+    let el = character_id.split("_");
     character_id = el[0];
     // add manual style later?
     
-    assets = [
+    let assets = [
         ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", false, true, false, true], // skin folder, gendered/multi, spritesheet, bonus
         ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", false, true, false, true],
         ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", true, true, false, true],
@@ -247,25 +246,25 @@ function lookupCharacter(character_id)
         ["AOE Skill Sheets", "sp/cjs/ab_all_", "png", "img_low/", false, false, true, false],
         ["Single Target Skill Sheets", "sp/cjs/ab_", "png", "img_low/", false, false, true, false]
     ];
-    uncaps = ["_01", "_02", "_03", "_04"];
-    styles = ["", "_st2"];
-    bonus = ["_81", "_82", "_83"];
-    alts = ["", "_f", "_f1", "_f_01"];
+    let uncaps = ["_01", "_02", "_03", "_04"];
+    let styles = ["", "_st2"];
+    let bonus = ["_81", "_82", "_83"];
+    let alts = ["", "_f", "_f1", "_f_01"];
     
     
-    var is_character_skin = character_id[1] == '7';
+    let is_character_skin = character_id[1] == '7';
     newArea("Character", character_id, true);
     for(let asset of assets)
     {
-        var uncap_append = asset[7] ? uncaps.concat(bonus) : uncaps;
-        var style_append = asset[0].includes("Sheets") ? ["", "_st2", "_st2_2", "_st2_3"] : styles;
-        var alt_append = asset[0].includes("Sheets") ? alts : [""];
-        var skin_folders = (is_character_skin && asset[4]) ? ["", "skin/"] : [""];
-        var skin_appends = (is_character_skin && asset[4]) ? ["", "_s1", "_s2", "_s3", "_s4", "_s5", "_s6"] : [""];
-        var gendered = asset[5] ? ["", "_0", "_1"] : [""];
-        var multi = asset[5] ? ["", "_101", "_102", "_103", "_104", "_105"] : [""];
-        var sheet = asset[6] ? ((asset[1].includes("nsp_") || asset[1].includes("npc_")) ? ["", "_s2", "_s3", "_a", "_s2_a", "_s3_a", "_b", "_s2_b", "_s3_b", "_c", "_s2_c", "_s3_c"] : ["", "_a", "_b", "_c"]) : [""];
-        var extra = [""];
+        let uncap_append = asset[7] ? uncaps.concat(bonus) : uncaps;
+        let style_append = asset[0].includes("Sheets") ? ["", "_st2", "_st2_2", "_st2_3"] : styles;
+        let alt_append = asset[0].includes("Sheets") ? alts : [""];
+        let skin_folders = (is_character_skin && asset[4]) ? ["", "skin/"] : [""];
+        let skin_appends = (is_character_skin && asset[4]) ? ["", "_s1", "_s2", "_s3", "_s4", "_s5", "_s6"] : [""];
+        let gendered = asset[5] ? ["", "_0", "_1"] : [""];
+        let multi = asset[5] ? ["", "_101", "_102", "_103", "_104", "_105"] : [""];
+        let sheet = asset[6] ? ((asset[1].includes("nsp_") || asset[1].includes("npc_")) ? ["", "_s2", "_s3", "_a", "_s2_a", "_s3_a", "_b", "_s2_b", "_s3_b", "_c", "_s2_c", "_s3_c"] : ["", "_a", "_b", "_c"]) : [""];
+        let extra = [""];
         
         // lyria / young cat fix
         if(null_characters.includes(character_id))
@@ -287,7 +286,7 @@ function lookupCharacter(character_id)
             alt_append = ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08"];
         }
         
-        var div = addResult(asset[0], asset[0]);
+        let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
         for(let uncap of uncap_append)
         {
@@ -309,15 +308,15 @@ function lookupCharacter(character_id)
                                         for(let sh of sheet)
                                         {
                                             if(s_a != "" && s_f == "") continue;
-                                            var path = asset[1] + s_f + character_id + uncap + style + alt + gender + unit + ex + s_a + sh + "." + asset[2];
-                                            var img = document.createElement("img");
-                                            var ref = document.createElement('a');
+                                            let path = asset[1] + s_f + character_id + uncap + style + alt + gender + unit + ex + s_a + sh + "." + asset[2];
+                                            let img = document.createElement("img");
+                                            let ref = document.createElement('a');
                                             ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                                             div.appendChild(ref);
                                             ref.appendChild(img);
                                             img.id  = "loading";
                                             img.onerror = function() {
-                                                var result = this.parentNode.parentNode;
+                                                let result = this.parentNode.parentNode;
                                                 this.parentNode.remove();
                                                 this.remove();
                                                 if(result.childNodes.length <= 2) result.remove();
@@ -329,16 +328,16 @@ function lookupCharacter(character_id)
                                             // sky compass band aid
                                             if(asset[0] === "Main Arts")
                                             {
-                                                var path = character_id + uncap + style + alt + gender + unit + s_a + sh + "." + asset[2];
-                                                img = document.createElement("img");
-                                                ref = document.createElement('a');
+                                                let path = character_id + uncap + style + alt + gender + unit + s_a + sh + "." + asset[2];
+                                                let img = document.createElement("img");
+                                                let ref = document.createElement('a');
                                                 ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
                                                 div.appendChild(ref);
                                                 ref.appendChild(img);
                                                 img.id  = "loading";
                                                 img.className  = "skycompass";
                                                 img.onerror = function() {
-                                                    var result = this.parentNode.parentNode;
+                                                    let result = this.parentNode.parentNode;
                                                     this.parentNode.remove();
                                                     this.remove();
                                                     if(result.childNodes.length <= 2) result.remove();
@@ -362,31 +361,31 @@ function lookupCharacter(character_id)
 
 function lookupNPC(npc_id)
 {
-    assets = [
+    let assets = [
         ["Journal Art", "sp/assets/npc/b/", "png", "img_low/"],
         ["Inventory Portrait", "sp/assets/npc/m/", "jpg", "img_low/"],
         ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"]
     ];
-    scene_alts = ["", "_01", "_laugh", "_laugh2", "_sad", "_angry", "_school", "_a", "_shadow", "_close", "_serious", "_shout", "_surprise", "_surprise2", "_think", "_serious", "_a", "_a_up", "_body", "_valentine"];
+    let scene_alts = ["", "_01", "_laugh", "_laugh2", "_sad", "_angry", "_school", "_a", "_shadow", "_close", "_serious", "_shout", "_surprise", "_surprise2", "_think", "_serious", "_a", "_a_up", "_body", "_valentine"];
     
     newArea("NPC", npc_id, true);
     for(let asset of assets)
     {
-        var scene_append = asset[0] == "Scene Arts" ? scene_alts : ["", "_01"];
+        let scene_append = asset[0] == "Scene Arts" ? scene_alts : ["", "_01"];
         
-        var div = addResult(asset[0], asset[0]);
+        let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
         for(let scene of scene_append)
         {
-            var path = asset[1] +  npc_id + scene + "." + asset[2];
-            var img = document.createElement("img");
-            var ref = document.createElement('a');
+            let path = asset[1] +  npc_id + scene + "." + asset[2];
+            let img = document.createElement("img");
+            let ref = document.createElement('a');
             ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
             div.appendChild(ref);
             ref.appendChild(img);
             img.id  = "loading";
             img.onerror = function() {
-                var result = this.parentNode.parentNode;
+                let result = this.parentNode.parentNode;
                 this.parentNode.remove();
                 this.remove();
                 if(result.childNodes.length <= 2) result.remove();
@@ -411,44 +410,59 @@ function lookupSummon(summon_id)
         ["Summon Call Sheets", "sp/cjs/summon_", "png", "img_low/"],
         ["Summon Damage Sheets", "sp/cjs/summon_", "png", "img_low/"]
     ];
-    uncaps = ["", "_01", "_02"];
-    sheets = [""];
+    let multi_summons = ['2040414000']
+    let uncaps = ["", "_01", "_02"];
+    let sheets = [""];
+    let uncap_append = [];
     
     newArea("Summon", summon_id, true);
     for(let asset of assets)
     {
-        var uncap_append = JSON.parse(JSON.stringify(uncaps));
-        switch(asset[0])
+        if(asset[0].includes('Sheets'))
         {
-            case "Summon Call Sheets":
+            let typestring = asset[0].includes('Call') ? "_attack" : "_damage";
+            if(multi_summons.includes(summon_id))
+            {
+                let capp = JSON.parse(JSON.stringify(uncaps));
+                let multistrings = ["_a", "_b", "_c", "_d", "_e", "_f"];
+                uncap_append = []
+                for(let m of multistrings)
+                {
+                    for(let ca of capp)
+                    {
+                        uncap_append.push(ca + m + typestring);
+                    }
+                }
+            }
+            else
+            {
+                uncap_append = JSON.parse(JSON.stringify(uncaps));
                 for(let i = 0; i < uncap_append.length; ++i)
-                    uncap_append[i] += "_attack";
-                sheets = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_bg", "_bg1", "_bg2", "_bg3"];
-                break;
-            case "Summon Damage Sheets":
-                for(let i = 0; i < uncap_append.length; ++i)
-                    uncap_append[i] += "_damage";
-                sheets = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_bg", "_bg1", "_bg2", "_bg3"];
-                break;
-            default:
-                sheets = [""];
-        };
+                    uncap_append[i] += typestring;
+            }
+            sheets = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_bg", "_bg1", "_bg2", "_bg3"];
+        }
+        else
+        {
+            sheets = [""];
+            uncap_append = [""]
+        }
         
-        var div = addResult(asset[0], asset[0]);
+        let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
         for(let uncap of uncap_append)
         {
             for(let sheet of sheets)
             {
-                var path = asset[1] + summon_id + uncap + sheet + "." + asset[2];
-                var img = document.createElement("img");
-                var ref = document.createElement('a');
+                let path = asset[1] + summon_id + uncap + sheet + "." + asset[2];
+                let img = document.createElement("img");
+                let ref = document.createElement('a');
                 ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                 div.appendChild(ref);
                 ref.appendChild(img);
                 img.id  = "loading";
                 img.onerror = function() {
-                    var result = this.parentNode.parentNode;
+                    let result = this.parentNode.parentNode;
                     this.parentNode.remove();
                     this.remove();
                     if(result.childNodes.length <= 2) result.remove();
@@ -462,15 +476,15 @@ function lookupSummon(summon_id)
         // sky compass band aid
         if(asset[0] === "Main Arts")
         {
-            img = document.createElement("img");
-            ref = document.createElement('a');
+            let img = document.createElement("img");
+            let ref = document.createElement('a');
             ref.setAttribute('href', "https://media.skycompass.io/assets/archives/summons/" + summon_id + "/detail_l.png");
             div.appendChild(ref);
             ref.appendChild(img);
-            img.id  = "loading";
+            img.id = "loading";
             img.className  = "skycompass";
             img.onerror = function() {
-                var result = this.parentNode.parentNode;
+                let result = this.parentNode.parentNode;
                 this.parentNode.remove();
                 this.remove();
                 if(result.childNodes.length <= 2) result.remove();
@@ -485,7 +499,7 @@ function lookupSummon(summon_id)
 
 function lookupWeapon(weapon_id)
 {
-    assets = [
+    let assets = [
         ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/"],
@@ -494,8 +508,8 @@ function lookupWeapon(weapon_id)
         ["Attack Effects", "sp/cjs/phit_", "png", "img/"],
         ["Charge Attack Sheets", "sp/cjs/sp_", "png", "img_low/"]
     ];
-    appends = [""];
-    sheets = [""];
+    let appends = [""];
+    let sheets = [""];
     
     newArea("Weapon", weapon_id, true);
     for(let asset of assets)
@@ -519,21 +533,21 @@ function lookupWeapon(weapon_id)
                 sheets = [""];
         };
         
-        var div = addResult(asset[0], asset[0]);
+        let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
         for(let append of appends)
         {
             for(let sheet of sheets)
             {
-                var path = asset[1] + weapon_id + append + sheet + "." + asset[2];
-                var img = document.createElement("img");
-                var ref = document.createElement('a');
+                let path = asset[1] + weapon_id + append + sheet + "." + asset[2];
+                let img = document.createElement("img");
+                let ref = document.createElement('a');
                 ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                 div.appendChild(ref);
                 ref.appendChild(img);
                 img.id  = "loading";
                 img.onerror = function() {
-                    var result = this.parentNode.parentNode;
+                    let result = this.parentNode.parentNode;
                     this.parentNode.remove();
                     this.remove();
                     if(result.childNodes.length <= 2) result.remove();
@@ -549,7 +563,7 @@ function lookupWeapon(weapon_id)
 
 function lookupEnemy(enemy_id)
 {
-    assets = [
+    let assets = [
         ["Big Icon", "sp/assets/enemy/m/", "png", "img/"],
         ["Small Icon", "sp/assets/enemy/s/", "png", "img/"],
         ["Sprite Sheets", "sp/cjs/enemy_", "png", "img_low/"],
@@ -557,8 +571,8 @@ function lookupEnemy(enemy_id)
         ["Attack Effect Sheets", "sp/cjs/ehit_", "png", "img_low/"],
         ["Charge Attack Sheets", "sp/cjs/esp_", "png", "img_low/"]
     ];
-    appends = [""];
-    sheets = [""];
+    let appends = [""];
+    let sheets = [""];
     
     newArea("Enemy", enemy_id, false);
     for(let asset of assets)
@@ -566,21 +580,21 @@ function lookupEnemy(enemy_id)
         sheets = asset[0].includes("Sheets") ? ["", "_a", "_b", "_c", "_d", "_e"] : [""];
         appends = asset[0].includes("Charge Attack") ? ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10", "_11", "_12", "_13", "_14", "_15", "_16", "_17", "_18", "_19", "_20"] : [""];
         
-        var div = addResult(asset[0], asset[0]);
+        let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
         for(let append of appends)
         {
             for(let sheet of sheets)
             {
-                var path = asset[1] + enemy_id + append+sheet + "." + asset[2];
-                var img = document.createElement("img");
-                var ref = document.createElement('a');
+                let path = asset[1] + enemy_id + append+sheet + "." + asset[2];
+                let img = document.createElement("img");
+                let ref = document.createElement('a');
                 ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                 div.appendChild(ref);
                 ref.appendChild(img);
                 img.id  = "loading";
                 img.onerror = function() {
-                    var result = this.parentNode.parentNode;
+                    let result = this.parentNode.parentNode;
                     this.parentNode.remove();
                     this.remove();
                     if(result.childNodes.length <= 2) result.remove();
@@ -596,55 +610,55 @@ function lookupEnemy(enemy_id)
 
 function lookupMC(mc_id)
 {
-    job_ids = mc_id.split('_');
-    assets = [
+    let job_ids = mc_id.split('_');
+    let assets = [
         ["Job Icon", "sp/ui/icon/job/", "png", "img/", 0],
         ["Inventory Portrait", "sp/assets/leader/m/", "jpg", "img/", 1],
         ["Outfit Portrait", "sp/assets/leader/sd/m/", "jpg", "img/", 1],
+        ["Outfit Description", "sp/assets/leader/skin/", "png", "img_low/", 1],
         ["Home Art", "sp/assets/leader/my/", "png", "img_low/", 2],
         ["Full Art", "sp/assets/leader/job_change/", "png", "img_low/", 2],
         ["Outfit Preview Art", "sp/assets/leader/skin/", "png", "img_low/", 2],
-        ["Class Name Text", "sp/ui/job_name/job_list/", "png", "img/", 0],
+        ["Class Name Party Text", "sp/ui/job_name/job_list/", "png", "img/", 0],
+        ["Class Name Master Text", "sp/assets/leader/job_name_ml/", "png", "img/", 0],
         ["Class Change Button", "sp/assets/leader/jlon/", "png", "img/", 2],
         ["Party Class Big Portrait", "sp/assets/leader/jobon_z/", "png", "img_low/", 2],
         ["Party Class Portrait", "sp/assets/leader/p/", "png", "img_low/", 2],
         ["Profile Portrait", "sp/assets/leader/pm/", "png", "img_low/", 2],
         ["Profile Board Portrait", "sp/assets/leader/talk/", "png", "img/", 2],
         ["Raid Log", "sp/assets/leader/raid_log/", "png", "img/", 2],
+        ["Raid Result", "sp/assets/leader/result_ml/", "jpg", "img_low/", 2],
+        ["Mastery Portrait", "sp/assets/leader/zenith/", "png", "img_low/", 2],
+        ["Master Level Portrait", "sp/assets/leader/master_level/", "png", "img_low/", 2],
         ["Sprite", "sp/assets/leader/sd/", "png", "img/", 3]
     ];
     // 0 = job_ids[0]
     // 1 = job_ids[0] + "_01"
     // 2 = mc_id + "_1_01"
     // 3 = mc_id + "_1_01" (color variations)
-    
     newArea("Main Character", mc_id, false);
+    getJSON("data/job.json", lookupMCPlus, function(v){}, mc_id);
     for(let asset of assets)
     {
-        var div = addResult(asset[0], asset[0]);
+        let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
-        
+        let variations = ['01', '02', '03', '04', '05', '80'];
         if(asset[4] >= 2)
         {
-            let colors = [job_ids[0]];
-            if(asset[4] == 3)
-            {
-                for(let i = 2; i < 6; ++i)
-                    colors.push(job_ids[0].slice(0, 5) + i);
-            }
             for(let i = 0; i < 2; ++i)
             {
-                for(let color of colors)
+                for(let vr of variations)
                 {
-                    var path = asset[1] + color + "_" + job_ids[1] + "_" + i + "_01" + "." + asset[2];
-                    var img = document.createElement("img");
-                    var ref = document.createElement('a');
+                    let job_final_id = job_ids[0].slice(0, 4) + vr;
+                    let path = asset[1] + job_final_id + "_" + job_ids[1] + "_" + i + "_01" + "." + asset[2];
+                    let img = document.createElement("img");
+                    let ref = document.createElement('a');
                     ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                     div.appendChild(ref);
                     ref.appendChild(img);
                     img.id  = "loading";
                     img.onerror = function() {
-                        var result = this.parentNode.parentNode;
+                        let result = this.parentNode.parentNode;
                         this.parentNode.remove();
                         this.remove();
                         if(result.childNodes.length <= 2) result.remove();
@@ -657,16 +671,16 @@ function lookupMC(mc_id)
                 // sky compass band aid
                 if(asset[0] === "Full Art")
                 {
-                    var path = job_ids[0] + "_" + i + "." + asset[2];
-                    img = document.createElement("img");
-                    ref = document.createElement('a');
+                    let path = job_ids[0] + "_" + i + "." + asset[2];
+                    let img = document.createElement("img");
+                    let ref = document.createElement('a');
                     ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path);
                     div.appendChild(ref);
                     ref.appendChild(img);
                     img.id  = "loading";
                     img.className  = "skycompass";
                     img.onerror = function() {
-                        var result = this.parentNode.parentNode;
+                        let result = this.parentNode.parentNode;
                         this.parentNode.remove();
                         this.remove();
                         if(result.childNodes.length <= 2) result.remove();
@@ -680,23 +694,184 @@ function lookupMC(mc_id)
         }
         else
         {
-            var path = asset[1] + (asset[4] == 0 ? job_ids[0] : job_ids[0] + "_01") + "." + asset[2];
-            var img = document.createElement("img");
-            var ref = document.createElement('a');
-            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-            div.appendChild(ref);
-            ref.appendChild(img);
-            img.id  = "loading";
-            img.onerror = function() {
-                var result = this.parentNode.parentNode;
-                this.parentNode.remove();
-                this.remove();
-                if(result.childNodes.length <= 2) result.remove();
+            for(let vr of variations)
+            {
+                let job_final_id = job_ids[0].slice(0, 4) + vr;
+                let path = asset[1] + (asset[4] == 0 ? job_final_id : job_final_id + "_01") + "." + asset[2];
+                let img = document.createElement("img");
+                let ref = document.createElement('a');
+                ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+                div.appendChild(ref);
+                ref.appendChild(img);
+                img.id  = "loading";
+                img.onerror = function() {
+                    let result = this.parentNode.parentNode;
+                    this.parentNode.remove();
+                    this.remove();
+                    if(result.childNodes.length <= 2) result.remove();
+                }
+                img.onload = function() {
+                    this.id = ""
+                }
+                img.src = protocol + getEndpoint() + language + asset[3] + path;
             }
-            img.onload = function() {
-                this.id = ""
-            }
-            img.src = protocol + getEndpoint() + language + asset[3] + path;
         }
+    }
+}
+
+var class_lookup = { // need to be manually updated..... :(
+    "150201_sw": ["dkf_sw", "dkf_kn"], // dark fencer
+    "200201_kn": ["acm_kn", "acm_gu"], // alchemist
+    "310401_sw": ["mcd_sw"], // mac do
+    "130201_wa": ["hrm_wa", "hrm_kn"], // hermit
+    "120401_wa": ["hlr_wa", "hlr_sp"], // iatromantis
+    "150301_sw": ["csr_sw", "csr_kn"], // chaos ruler
+    "170201_bw": ["sdw_bw", "sdw_gu"], // sidewinder
+    "240201_gu": ["gns_gu"], // gunslinger
+    "360001_me": ["vee_me"], // vyrn suit
+    "310701_sw": ["fal_sw"], // fallen
+    "400001_kt": ["szk_kt"], // zhuque
+    "450301_sw": ["rlc_sw", "rlc_gu"], // relic buster
+    "140301_kn": ["gzk_kn", "gzk_gu"], // bandit tycoon
+    "110001_sw": ["kni_sw", "kni_sp"], // knight
+    "270301_mc": ["ris_mc"], // rising force
+    "290201_gu": ["kks_gu"], // mechanic
+    "190101_sp": ["drg_sp", "drg_ax"], // dragoon
+    "140201_kn": ["hky_kn", "hky_gu"], // hawkeye
+    "240301_gu": ["sol_gu"], // soldier
+    "120301_wa": ["sag_wa", "sag_sp"], // sage
+    "120101_wa": ["cle_wa", "cle_sp"], // cleric
+    "150101_sw": ["ars_sw", "ars_kn"], // arcana dueler
+    "130301_wa": ["wrk_wa", "wrk_kn"], // warlock
+    "310601_sw": ["edg_sw"], // eternal 2
+    "120001_wa": ["pri_wa", "pri_sp"], // priest
+    "180101_mc": ["mst_kn", "mst_mc"], // bard
+    "200301_kn": ["dct_kn", "dct_gu"],
+    "220201_kt": ["smr_bw", "smr_kt"], // samurai
+    "140001_kn": ["thi_kn", "thi_gu"], // thief
+    "370601_me": ["bel_me"], // belial skin 1
+    "370701_me": ["ngr_me"], // cook
+    "330001_sp": ["sry_sp"], // qinglong
+    "370501_me": ["phm_me"], // anime s2 skin
+    "440301_bw": ["rbn_bw"], // robin hood
+    "160201_me": ["ogr_me"], // ogre
+    "210301_me": ["mhs_me", "mhs_kt"], // runeslayer
+    "310001_sw": ["lov_sw"], // lord of vermillion
+    "370801_me": ["frb_me"], // belial 2
+    "180201_mc": ["sps_kn", "sps_mc"], // superstar
+    "310301_sw": ["chd_sw"], // attack on titan
+    "125001_wa": ["snt_wa"], // santa
+    "110301_sw": ["spt_sw", "spt_sp"], // spartan
+    "310801_sw": ["ykt_sw"], // yukata
+    "110201_sw": ["hsb_sw", "hsb_sp"], // holy saber
+    "230301_sw": ["glr_sw", "glr_kt"], // glorybringer
+    "130101_wa": ["srr_wa", "srr_kn"], // sorcerer
+    "430301_wa": ["mnk_wa", "mnk_me"], // monk
+    "280301_kn": ["msq_kn"], // masquerade
+    "250201_wa": ["wmn_wa"], // mystic
+    "160001_me": ["grp_me"], // grappler
+    "110101_sw": ["frt_sw", "frt_sp"], // sentinel
+    "270201_mc": ["drm_mc"], // taiko
+    "300301_sw": ["crs_sw", "crs_kt"], // chrysaor
+    "360101_gu": ["rac_gu"], // platinum sky 2
+    "300201_sw": ["gda_sw", "gda_kt"], // gladiator
+    "100101_sw": ["wrr_sw", "wrr_ax"], // warrior
+    "170001_bw": ["rng_bw", "rng_gu"], // ranger
+    "280201_kn": ["dnc_kn"], // dancer
+    "410301_mc": ["lmb_ax", "lmb_mc"],
+    "100001_sw": ["fig_sw", "fig_ax"], // fighter
+    "180301_kn": ["els_kn", "els_mc"], // elysian
+    "250301_wa": ["knd_wa"], // nekomancer
+    "260201_kn": ["asa_kn"], // assassin
+    "370301_me": ["kjm_me"], // monster 3
+    "140101_kn": ["rdr_kn", "rdr_gu"], // raider
+    "180001_mc": ["hpt_kn", "hpt_mc"], // superstar
+    "370001_me": ["kjt_me"], // monster 1
+    "165001_me": ["stf_me"], // street fighter
+    "160301_me": ["rsr_me"], // luchador
+    "100201_sw": ["wms_sw", "wms_ax"], // weapon master
+    "170301_bw": ["hdg_bw", "hdg_gu"], // nighthound
+    "230201_sw": ["sdm_sw", "sdm_kt"], // swordmaster
+    "310201_sw": ["swm_sw"], // summer
+    "190301_sp": ["aps_sp", "aps_ax"], // apsaras
+    "100401_sw": ["vkn_sw", "vkn_ax"], // viking
+    "150001_sw": ["enh_sw", "enh_kn"], // enhancer
+    "220301_bw": ["kng_bw", "kng_kt"], // kengo
+    "120201_wa": ["bis_wa", "bis_sp"], // bishop
+    "310101_sw": ["ani_sw"], // anime season 1
+    "130001_wa": ["wiz_wa", "wiz_kn"], // wizard
+    "185001_kn": [], // idol
+    "100301_sw": ["bsk_sw", "bsk_ax"], // berserker
+    "160101_me": ["kun_me"], // kung fu artist
+    "370201_me": ["kjb_me"], // monster 2
+    "110401_sw": ["pld_sw", "pld_sp"], // paladin
+    "310501_sw": ["cnq_sw"], // eternal 1
+    "310901_sw": ["vss_sw"], // versus skin
+    "190001_sp": ["lnc_sp", "lnc_ax"], // lancer
+    "420301_sp": ["cav_sp", "cav_gu"], // cavalier
+    "190201_sp": ["vkr_sp", "vkr_ax"], // valkyrie
+    "260301_kn": ["tmt_kn"], // tormentor
+    "210201_kt": ["nnj_me", "nnj_kt"], // ninja
+    "370401_me": ["ybk_me"], // bird
+    "320001_kn": ["sut_kn"], // story dancer
+    "170101_bw": ["mrk_bw", "mrk_gu"], // archer
+    "311001_sw": ["gkn_sw"] // school
+}
+
+function lookupMCPlus(mc_id)
+{
+    let dupe_check = [];
+    let obj = JSON.parse(this.response);
+    let genders = ['_0_', '_1_'];
+    if(mc_id in class_lookup)
+    {
+        if(class_lookup[mc_id].length > 0)
+        {
+            let div = addResult("Sprite Sheets", "Sprite Sheets");
+            result_area.appendChild(div);
+            for(let cid of class_lookup[mc_id])
+            {
+                if(cid in obj)
+                {
+                    for(let elem of obj[cid])
+                    {
+                        for(let gender of genders)
+                        {
+                            let file_name = elem.replace('_0_', gender).split('/');
+                            file_name = file_name[file_name.length - 1];
+                            if(dupe_check.includes(file_name)) continue;
+                            else dupe_check.push(file_name);
+                            let img = document.createElement("img");
+                            let ref = document.createElement('a');
+                            ref.setAttribute('href', elem.replace('img_low/', 'img/').replace('_0_', gender));
+                            div.appendChild(ref);
+                            ref.appendChild(img);
+                            img.id  = "loading";
+                            img.onerror = function() {
+                                let result = this.parentNode.parentNode;
+                                this.parentNode.remove();
+                                this.remove();
+                                if(result.childNodes.length <= 2) result.remove();
+                            }
+                            img.onload = function() {
+                                this.id = ""
+                            }
+                            img.src = elem.replace('_0_', gender);
+                        }
+                    }
+                }
+                else
+                {
+                    div.appendChild(document.createTextNode("Sprite Sheets are missing, check this page again later"));
+                    return
+                }
+            }
+        }
+    }
+    else
+    {
+        let div = addResult("Sprite Sheets", "Sprite Sheets");
+        result_area.appendChild(div);
+        div.appendChild(document.createTextNode("The identifiant is missing, check this page again at a later date or try CTRL+F5."));
     }
 }

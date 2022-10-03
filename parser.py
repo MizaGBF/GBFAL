@@ -10,10 +10,16 @@ import sys
 import queue
 import re
 import time
+import string
 
-# old parser to generate a list of existing character, etc
-class Generator():
+# parser to generate json files (characters/skins only for now) and to index a list of all existing character, etc
+class Parser():
     def __init__(self):
+        self.running = False
+        self.index = set()
+        self.queue = queue.Queue()
+        self.quality = ("/img/", "/js/")
+        self.force_update = False
         self.data = {
             "version":0,
             "characters":set(),
@@ -24,18 +30,28 @@ class Generator():
             "job":set()
         }
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
+        self.new_characters = []
+        
+        self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
+        self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
+        self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
         self.endpoints = [
-            "prd-game-a-granbluefantasy.akamaized.net/",
-            "prd-game-a1-granbluefantasy.akamaized.net/",
-            "prd-game-a2-granbluefantasy.akamaized.net/",
-            "prd-game-a3-granbluefantasy.akamaized.net/",
-            "prd-game-a4-granbluefantasy.akamaized.net/",
-            "prd-game-a5-granbluefantasy.akamaized.net/"
+            "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/",
+            "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/"
         ]
+        self.endpoint_counter = 0
+        
+        self.load()
+        self.exclusion = set([])
+        self.loadIndex()
 
     def load(self): # load data.json
         try:
-            with open('data.json') as f:
+            with open('data.json', mode='r', encoding='utf-8') as f:
                 data = json.load(f)
                 if not isinstance(data, dict): return
             for k in data:
@@ -52,7 +68,7 @@ class Generator():
                     data[k] = list(self.data[k])
                 else:
                     data[k] = self.data[k]
-            with open('data.json', 'w') as outfile:
+            with open('data.json', mode='w', encoding='utf-8') as outfile:
                 json.dump(data, outfile)
             print("data.json updated")
         except Exception as e:
@@ -64,11 +80,11 @@ class Generator():
         errs[-1].append(True)
         errs[-1].append(Lock())
 
-    def run(self):
-        self.load()
+    def run_index_update(self):
         count = 0
         errs = []
         possibles = []
+        self.new_characters = []
         
         # characters
         self.newShared(errs)
@@ -103,10 +119,11 @@ class Generator():
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         print("Done")
+        self.manualUpdate(self.new_characters)
         self.save()
-        self.update()
+        self.update_index()
 
-    def update(self):
+    def update_index(self):
         with open("base.js", mode="r", encoding="utf-8") as f:
             base = f.read()
         with open("docs/js/list.js", mode="w", encoding="utf-8") as f:
@@ -119,8 +136,61 @@ class Generator():
             f.write(base)
             print("list.js updated")
 
-    def req(self, url, headers={}):
-        return request.urlopen(request.Request(url, headers=headers), timeout=50)
+    def dig_job_spritesheet(self):
+        job_index = {}
+        try:
+            with open('docs/data/job.json', mode='r', encoding='utf-8') as f:
+                job_index = json.load(f)
+        except:
+            pass
+        shared = [Lock(), queue.Queue(), job_index]
+        for a in string.ascii_lowercase:
+            for b in string.ascii_lowercase:
+                for c in string.ascii_lowercase:
+                    shared[1].put(a+b+c)
+        print("Checking job spritesheets...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+            futures = []
+            for count in range(100):
+                futures.append(executor.submit(self.dig_job_spritesheet_subroutine, shared))
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+        try:
+            with open('docs/data/job.json', mode='w', encoding='utf-8') as f:
+                json.dump(shared[2], f)
+            print("job.json updated")
+        except:
+            pass
+
+    def dig_job_spritesheet_subroutine(self, shared):
+        while shared[1].qsize() > 0:
+            try:
+                permut = shared[1].get(block=False)
+            except:
+                time.sleep(0.001)
+                continue
+            for mh in ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']:
+                sheets = self.dig_job_spritesheet_image(permut, mh)
+                if len(sheets) != 0:
+                    print("Found:", permut, mh)
+                    with shared[0]:
+                        shared[2][permut + "_" + mh] = sheets
+
+    def dig_job_spritesheet_image(self, permut, mh):
+        sheets = []
+        colors = [
+            ['01', '02', '03', '04', '05'],
+            ['80']
+        ]
+        for cl in colors:
+            for col in cl:
+                try:
+                    sheets += self.processManifest("{}_{}_0_{}".format(permut, mh, col))
+                except:
+                    try: url_handle.close()
+                    except: pass
+                    if col == '01': return sheets
+        return sheets
 
     def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles = [""]):
         id = start
@@ -133,12 +203,14 @@ class Generator():
                 continue
             for s in styles:
                 try:
-                    url_handle = self.req("https://" + endpoint + path + f + ext.replace("{}", s))
+                    url_handle = self.req(endpoint + path + f + ext.replace("{}", s))
                     url_handle.read()
                     url_handle.close()
                     with err[2]:
                         err[0] = 0
                         self.data[index].add(f + s)
+                        if file.startswith("30"):
+                            self.new_characters.append(f + s)
                 except Exception as e:
                     try: url_handle.close()
                     except: pass
@@ -181,7 +253,7 @@ class Generator():
                 continue
             try:
                 path = "assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id)
-                url_handle = self.req("https://" + endpoint + path)
+                url_handle = self.req(endpoint + path)
                 url_handle.read()
                 url_handle.close()
             except:
@@ -191,7 +263,7 @@ class Generator():
             for mhid in mh:
                 try:
                     path = "assets_en/img_low/sp/assets/leader/sd/{}_{}_0_01.png".format(id, mhid)
-                    url_handle = self.req("https://" + endpoint + path)
+                    url_handle = self.req(endpoint + path)
                     url_handle.read()
                     url_handle.close()
                     with shared[0]:
@@ -204,44 +276,6 @@ class Generator():
             if not shared[2]:
                 shared[2] = True
                 print("Threads job are done")
-
-    def manualUpdate(self):
-        for id in self.new:
-            if len(id) == 10 or len(id) == 14:
-                match id[0]:
-                    case '1':
-                        self.data['weapons'].add(id)
-                    case '2':
-                        self.data['summons'].add(id)
-                    case '3':
-                        if id[1] == '7': self.data['skins'].add(id)
-                        else: self.data['characters'].add(id)
-            elif len(id) == 7:
-                self.data['enemies'].add(id)
-
-# parser to generate json files, characters/skins only for now
-class Parser():
-    def __init__(self):
-        self.running = False
-        self.index = set()
-        self.queue = queue.Queue()
-        self.quality = ("/img/", "/js/")
-        self.force_update = False
-        
-        self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
-        self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
-        self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
-        self.endpoints = [
-            "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/"
-        ]
-        self.endpoint_counter = 0
-        self.exclusion = set([])
-        self.loadIndex()
 
     def loadIndex(self):
         files = [f for f in os.listdir('docs/data/') if os.path.isfile(os.path.join('docs/data/', f))]
@@ -458,6 +492,8 @@ class Parser():
             return False
 
     def manualUpdate(self, ids):
+        if len(ids) == 0:
+            return
         max_thread = 40
         counter = 0
         tcounter = 0
@@ -482,15 +518,31 @@ class Parser():
         if counter > 0:
             print(counter, "successfully processed ID")
 
+def print_help():
+    print("Usage: python parser.py [option]")
+    print("options:")
+    print("-run    : Update characters JSON and update the index")
+    print("-update : Manual JSON updates (Followed by IDs to check)")
+    print("-index  : Update the index")
+    print("-job    : Search Job spritesheets (Very time consuming")
+    time.sleep(5)
+
 if __name__ == '__main__':
     p = Parser()
-    if len(sys.argv) >= 2 and sys.argv[1] == '-update':
-        if len(sys.argv) == 2:
-            print("Add IDs to update after '-update'")
-            print("Example 'parser.py -update 3040000000 3040001000'")
-        else:
-            p.manualUpdate(sys.argv[2:])
-    elif "-indexupdate" in sys.argv:
-        Generator().run()
+    if len(sys.argv) < 2:
+        print_help()
     else:
-        p.run()
+        if sys.argv[1] == '-run':
+            p.run()
+            p.run_index_update()
+        elif sys.argv[1] == '-update':
+            if len(sys.argv) == 2:
+                print_help()
+            else:
+                p.manualUpdate(sys.argv[2:])
+        elif sys.argv[1] == '-index':
+            p.run_index_update()
+        elif sys.argv[1] == '-job':
+            p.dig_job_spritesheet()
+        else:
+            print_help()
