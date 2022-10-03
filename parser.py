@@ -137,23 +137,28 @@ class Parser():
             f.write(base)
             print("list.js updated")
 
-    def dig_job_spritesheet(self):
+    def dig_job_spritesheet(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
         job_index = {}
         try:
             with open('docs/data/job.json', mode='r', encoding='utf-8') as f:
                 job_index = json.load(f)
         except:
             pass
+        existing_list = set()
+        for k in job_index:
+            existing_list.add(k.split('_')[0])
         shared = [Lock(), queue.Queue(), job_index]
         for a in string.ascii_lowercase:
             for b in string.ascii_lowercase:
                 for c in string.ascii_lowercase:
-                    shared[1].put(a+b+c)
+                    d = a+b+c
+                    if d not in existing_list:
+                        shared[1].put(a+b+c)
         print("Checking job spritesheets...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = []
             for count in range(100):
-                futures.append(executor.submit(self.dig_job_spritesheet_subroutine, shared))
+                futures.append(executor.submit(self.dig_job_spritesheet_subroutine, shared, mhs))
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         try:
@@ -163,14 +168,14 @@ class Parser():
         except:
             pass
 
-    def dig_job_spritesheet_subroutine(self, shared):
+    def dig_job_spritesheet_subroutine(self, shared, mhs):
         while shared[1].qsize() > 0:
             try:
                 permut = shared[1].get(block=False)
             except:
                 time.sleep(0.001)
                 continue
-            for mh in ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']:
+            for mh in mhs:
                 sheets = self.dig_job_spritesheet_image(permut, mh)
                 if len(sheets) != 0:
                     print("Found:", permut, mh)
@@ -525,7 +530,7 @@ def print_help():
     print("-run    : Update character JSON files and update the index")
     print("-update : Manual JSON updates (Followed by IDs to check)")
     print("-index  : Update the index and create new character JSON files if any")
-    print("-job    : Search Job spritesheets (Very time consuming)")
+    print("-job    : Search Job spritesheets (Very time consuming). You can add specific Mainhand ID to reduce the search time.")
     time.sleep(2)
 
 if __name__ == '__main__':
@@ -544,6 +549,9 @@ if __name__ == '__main__':
         elif sys.argv[1] == '-index':
             p.run_index_update()
         elif sys.argv[1] == '-job':
-            p.dig_job_spritesheet()
+            if len(sys.argv) == 2:
+                p.dig_job_spritesheet()
+            else:
+                p.dig_job_spritesheet(sys.argv[2:])
         else:
             print_help()
