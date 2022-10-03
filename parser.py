@@ -80,7 +80,7 @@ class Parser():
         errs[-1].append(True)
         errs[-1].append(Lock())
 
-    def run_index_update(self):
+    def run_index_update(self, no_manual=False):
         count = 0
         errs = []
         possibles = []
@@ -89,26 +89,26 @@ class Parser():
         # characters
         self.newShared(errs)
         for i in range(4):
-            possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
+            possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
         # summons
         self.newShared(errs)
         for i in range(4):
-            possibles.append(('summons', i, 4, errs[-1], "2040{}000", 3, "assets_en/img_low/sp/assets/summon/m/", ".jpg"))
+            possibles.append(('summons', i, 4, errs[-1], "2040{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
         # weapons
         for j in range(10):
             self.newShared(errs)
             for i in range(5):
-                possibles.append(('weapons', i, 5, errs[-1], "1040{}".format(j) + "{}00", 3, "assets_en/img_low/sp/assets/weapon/m/", ".jpg"))
+                possibles.append(('weapons', i, 5, errs[-1], "1040{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
         # skins
         self.newShared(errs)
         for i in range(4):
-            possibles.append(('skins', i, 4, errs[-1], "3710{}000", 3, "assets_en/img_low/sp/assets/npc/m/", "_01.jpg"))
+            possibles.append(('skins', i, 4, errs[-1], "3710{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg"))
         #enemies
         for ab in [73, 51, 52, 43, 41, 81]:
             for d in [1, 2, 3]:
                 self.newShared(errs)
                 for i in range(5):
-                    possibles.append(('enemies', i, 5, errs[-1], str(ab) + "{}" + str(d), 4, "assets_en/img/sp/assets/enemy/s/", ".png"))
+                    possibles.append(('enemies', i, 5, errs[-1], str(ab) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png"))
         
         print("Starting Index update...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
@@ -119,7 +119,8 @@ class Parser():
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         print("Done")
-        self.manualUpdate(self.new_characters)
+        if not no_manual:
+            self.manualUpdate(self.new_characters)
         self.save()
         self.update_index()
 
@@ -211,7 +212,7 @@ class Parser():
                         self.data[index].add(f + s)
                         if file.startswith("30"):
                             self.new_characters.append(f + s)
-                except Exception as e:
+                except:
                     try: url_handle.close()
                     except: pass
                     if s != "": break
@@ -521,11 +522,11 @@ class Parser():
 def print_help():
     print("Usage: python parser.py [option]")
     print("options:")
-    print("-run    : Update characters JSON and update the index")
+    print("-run    : Update character JSON files and update the index")
     print("-update : Manual JSON updates (Followed by IDs to check)")
-    print("-index  : Update the index")
-    print("-job    : Search Job spritesheets (Very time consuming")
-    time.sleep(5)
+    print("-index  : Update the index and create new character JSON files if any")
+    print("-job    : Search Job spritesheets (Very time consuming)")
+    time.sleep(2)
 
 if __name__ == '__main__':
     p = Parser()
@@ -534,7 +535,7 @@ if __name__ == '__main__':
     else:
         if sys.argv[1] == '-run':
             p.run()
-            p.run_index_update()
+            p.run_index_update(no_manual=True)
         elif sys.argv[1] == '-update':
             if len(sys.argv) == 2:
                 print_help()
