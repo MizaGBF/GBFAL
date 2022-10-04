@@ -496,7 +496,7 @@ class Parser():
         url_handle.close()
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
-        data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src', '"src"').replace('type', '"type"').replace('id', '"id"'))
+        data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
         res = []
         for l in data:
             src = self.getEndpoint() + "img_low" + l['src'].split('?')[0]

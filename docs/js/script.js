@@ -79,7 +79,7 @@ function getJSON(url, callback, err_callback, id) {
 
 function successJSON(id)
 {
-    var obj = JSON.parse(this.response);
+    let obj = JSON.parse(this.response);
     if(id.length == 10 || id.length == 14)
     {
         switch(id[0])
@@ -107,22 +107,22 @@ function successJSON(id)
     
     for(let key of Object.keys(obj))
     {
-        var urls = obj[key];
+        let urls = obj[key];
         if(urls.length == 0) continue;
-        var div = addResult(key, key);
+        let div = addResult(key, key);
         result_area.appendChild(div);
 
         for(let url of urls)
         {
-            var img = document.createElement("img");
-            var ref = document.createElement('a');
+            let img = document.createElement("img");
+            let ref = document.createElement('a');
             ref.setAttribute('href', url.replace("img_low", "img").replace("http://", protocol));
             div.appendChild(ref);
             ref.appendChild(img);
             img.id  = "loading";
             if(url.includes("media.skycompass.io")) img.className  = "skycompass";
             img.onerror = function() {
-                var result = this.parentNode.parentNode;
+                let result = this.parentNode.parentNode;
                 this.parentNode.remove();
                 this.remove();
                 if(result.childNodes.length <= 2) result.remove();
@@ -177,7 +177,7 @@ function lookup(id)
 {
     counter = 0;
     f = document.getElementById('filter');
-    var el = id.split("_");
+    let el = id.split("_");
     if(
         (el.length == 2 && el[1] == "st2" && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || (el.length == 1 && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || 
         (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1)) && id.slice(1) != last_id) ||
@@ -194,14 +194,14 @@ function newArea(name, id, include_link)
 {    
     while(true)
     {
-        var child = result_area.lastElementChild;
+        let child = result_area.lastElementChild;
         if(!child) break;
         result_area.removeChild(child);
     }
-    var div = addResult("Result Header", name + ": " + id);
+    let div = addResult("Result Header", name + ": " + id);
     if(include_link)
     {
-        var l = document.createElement('a');
+        let l = document.createElement('a');
         l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
         l.appendChild(document.createTextNode("Wiki"));
         div.appendChild(l);
@@ -219,7 +219,7 @@ function newArea(name, id, include_link)
 
 function addResult(identifier, name)
 {
-    var div = document.createElement("div");
+    let div = document.createElement("div");
     div.id = "result";
     div.setAttribute("data-id", identifier);
     div.appendChild(document.createTextNode(name));
@@ -804,7 +804,7 @@ var class_lookup = { // need to be manually updated..... :(
     "120201_wa": ["bis_wa", "bis_sp"], // bishop
     "310101_sw": ["ani_sw"], // anime season 1
     "130001_wa": ["wiz_wa", "wiz_kn"], // wizard
-    "185001_kn": [], // idol
+    "185001_kn": ["idl_kn", "idl_mc"], // idol
     "100301_sw": ["bsk_sw", "bsk_ax"], // berserker
     "160101_me": ["kun_me"], // kung fu artist
     "370201_me": ["kjb_me"], // monster 2
