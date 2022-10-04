@@ -41,17 +41,21 @@ function filter()
 function init()
 {
     result_area = document.getElementById('resultarea');
-    var params = new URLSearchParams(window.location.search);
-    var id = params.get("id");
+    let params = new URLSearchParams(window.location.search);
+    let id = params.get("id");
     if(id != null) lookup(id);
 }
 
 function updateQuery(id)
 {
-    var params = new URLSearchParams(window.location.search);
-    params.set("id", id);
-    var newRelativePathQuery = window.location.pathname + '?' + params.toString();
-    history.pushState(null, '', newRelativePathQuery);
+    let params = new URLSearchParams(window.location.search);
+    let current_id = params.get("id");
+    if(current_id != id)
+    {
+        params.set("id", id);
+        let newRelativePathQuery = window.location.pathname + '?' + params.toString();
+        history.pushState(null, '', newRelativePathQuery);
+    }
 }
 
 function getJSON(url, callback, err_callback, id) {
