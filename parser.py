@@ -285,13 +285,13 @@ class Parser():
                 time.sleep(0.001)
                 continue
             try:
-                path = "assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id)
+                path = "img_low/sp/assets/leader/m/{}_01.jpg".format(id)
                 self.req(endpoint + path)
             except:
                 continue
             for mhid in mh:
                 try:
-                    path = "assets_en/img_low/sp/assets/leader/sd/{}_{}_0_01.png".format(id, mhid)
+                    path = "img_low/sp/assets/leader/sd/{}_{}_0_01.png".format(id, mhid)
                     self.req(endpoint + path)
                     with shared[0]:
                         self.data['job'].add(id + "_" + mhid)
