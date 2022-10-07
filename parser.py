@@ -1,4 +1,4 @@
-from urllib import request
+import httpx
 import json
 import concurrent.futures
 from threading import Lock
@@ -32,6 +32,7 @@ class Parser():
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.new_characters = []
         
+        self.client = httpx.Client(http2=True)
         self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
         self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
         self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
@@ -163,12 +164,29 @@ class Parser():
         for k in job_index:
             existing_list.add(k.split('_')[0])
         shared = [Lock(), queue.Queue(), job_index]
-        for a in string.ascii_lowercase:
-            for b in string.ascii_lowercase:
-                for c in string.ascii_lowercase:
-                    d = a+b+c
-                    if d not in existing_list:
-                        shared[1].put(a+b+c)
+        generate_queue = True
+        i = 0
+        while i < len(mhs):
+            if len(mhs[i]) == 6 and mhs[i][3] == '_':
+                generate_queue = False
+                shared[1].put(mhs[i].split('_')[0])
+                mhs[i] = mhs[i].split('_')[1]
+                i += 1
+            elif len(mhs[i]) == 3:
+                generate_queue = False
+                shared[1].put(mhs[i])
+                mhs.pop(i)
+            else:
+                i += 1
+        if len(mhs) == 0:
+            mhs = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']
+        if generate_queue:
+            for a in string.ascii_lowercase:
+                for b in string.ascii_lowercase:
+                    for c in string.ascii_lowercase:
+                        d = a+b+c
+                        if d not in existing_list:
+                            shared[1].put(a+b+c)
         print("Checking job spritesheets...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = []
@@ -208,8 +226,6 @@ class Parser():
                 try:
                     sheets += self.processManifest("{}_{}_0_{}".format(permut, mh, col))
                 except:
-                    try: url_handle.close()
-                    except: pass
                     if col == '01': return sheets
         return sheets
 
@@ -224,17 +240,13 @@ class Parser():
                 continue
             for s in styles:
                 try:
-                    url_handle = self.req(endpoint + path + f + ext.replace("{}", s))
-                    url_handle.read()
-                    url_handle.close()
+                    self.req(endpoint + path + f + ext.replace("{}", s))
                     with err[2]:
                         err[0] = 0
                         self.data[index].add(f + s)
                         if file.startswith("30"):
                             self.new_characters.append(f + s)
                 except:
-                    try: url_handle.close()
-                    except: pass
                     if s != "": break
                     with err[2]:
                         err[0] += 1
@@ -274,25 +286,18 @@ class Parser():
                 continue
             try:
                 path = "assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id)
-                url_handle = self.req(endpoint + path)
-                url_handle.read()
-                url_handle.close()
+                self.req(endpoint + path)
             except:
-                try: url_handle.close()
-                except: pass
                 continue
             for mhid in mh:
                 try:
                     path = "assets_en/img_low/sp/assets/leader/sd/{}_{}_0_01.png".format(id, mhid)
-                    url_handle = self.req(endpoint + path)
-                    url_handle.read()
-                    url_handle.close()
+                    self.req(endpoint + path)
                     with shared[0]:
                         self.data['job'].add(id + "_" + mhid)
                     break
                 except:
-                    try: url_handle.close()
-                    except: pass
+                    pass
         with shared[0]:
             if not shared[2]:
                 shared[2] = True
@@ -312,7 +317,9 @@ class Parser():
         return e
 
     def req(self, url, headers={}):
-        return request.urlopen(request.Request(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers=headers), timeout=50)
+        response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers=headers, timeout=50)
+        if response.status_code != 200: raise Exception()
+        return response.content
 
     def run(self):
         max_thread = 10
@@ -491,9 +498,7 @@ class Parser():
         return True
 
     def processManifest(self, file):
-        url_handle = self.req(self.manifestUri + file + ".js")
-        manifest = url_handle.read().decode('utf-8')
-        url_handle.close()
+        manifest = self.req(self.manifestUri + file + ".js").decode('utf-8')
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
         data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
@@ -505,9 +510,7 @@ class Parser():
 
     def artCheck(self, id, uncap, style, append):
         try:
-            url_handle = self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + uncap + style + append + ".jpg")
-            url_handle.read()
-            url_handle.close()
+            self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + uncap + style + append + ".jpg")
             return True
         except:
             return False
@@ -545,7 +548,7 @@ def print_help():
     print("-run    : Update character JSON files and update the index.")
     print("-update : Manual JSON updates (Followed by IDs to check).")
     print("-index  : Update the index and create new character JSON files if any.")
-    print("-job    : Search Job spritesheets (Very time consuming). You can add specific Mainhand ID to reduce the search time.")
+    print("-job    : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
     print("-listjob: List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
     time.sleep(2)
 

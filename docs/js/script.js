@@ -819,7 +819,8 @@ var class_lookup = { // need to be manually updated..... :(
     "370401_me": ["ybk_me"], // bird
     "320001_kn": ["sut_kn"], // story dancer
     "170101_bw": ["mrk_bw", "mrk_gu"], // archer
-    "311001_sw": ["gkn_sw"] // school
+    "311001_sw": ["gkn_sw"], // school
+    "340001_ax": ["gnb_ax"] // xuanwu
 }
 
 function lookupMCPlus(mc_id)
