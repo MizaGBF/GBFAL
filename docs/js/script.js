@@ -631,6 +631,7 @@ function lookupMC(mc_id)
         ["Party Class Portrait", "sp/assets/leader/p/", "png", "img_low/", 2],
         ["Profile Portrait", "sp/assets/leader/pm/", "png", "img_low/", 2],
         ["Profile Board Portrait", "sp/assets/leader/talk/", "png", "img/", 2],
+        ["Raid Portrait", "sp/assets/leader/raid_normal/", "jpg", "img/", 2],
         ["Raid Log", "sp/assets/leader/raid_log/", "png", "img/", 2],
         ["Raid Result", "sp/assets/leader/result_ml/", "jpg", "img_low/", 2],
         ["Mastery Portrait", "sp/assets/leader/zenith/", "png", "img_low/", 2],
@@ -844,7 +845,6 @@ var class_ougi = {
     "311001_sw": "1040020200", // school
     "310301_sw": "1040014200" // attack on titan
 }
-
 
 function lookupMCPlus(mc_id)
 {
