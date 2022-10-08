@@ -501,7 +501,7 @@ function lookupSummon(summon_id)
     }
 }
 
-function lookupWeapon(weapon_id)
+function lookupWeapon(weapon_id, shortened=false)
 {
     let assets = [
         ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/"],
@@ -515,9 +515,10 @@ function lookupWeapon(weapon_id)
     let appends = [""];
     let sheets = [""];
     
-    newArea("Weapon", weapon_id, true);
+    if(!shortened) newArea("Weapon", weapon_id, true);
     for(let asset of assets)
     {
+        if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue;
         switch(asset[0])
         {
             case "Battle Sprites":
@@ -753,7 +754,7 @@ var class_lookup = { // need to be manually updated..... :(
     "200301_kn": ["dct_kn", "dct_gu"], // doctor
     "220201_kt": ["smr_bw", "smr_kt"], // samurai
     "140001_kn": ["thi_kn", "thi_gu"], // thief
-    "370601_me": ["bel_me"], // belial skin 1
+    "370601_me": ["bel_me"], // belial 1
     "370701_me": ["ngr_me"], // cook
     "330001_sp": ["sry_sp"], // qinglong
     "370501_me": ["phm_me"], // anime s2 skin
@@ -822,6 +823,28 @@ var class_lookup = { // need to be manually updated..... :(
     "311001_sw": ["gkn_sw"], // school
     "340001_ax": ["gnb_ax"] // xuanwu
 }
+var class_ougi = {
+    "320001_kn": "1040115000", // school dancer
+    "340001_ax": "1040315700", // xuanwu
+    "400001_kt": "1040913700", // zhuque
+    "330001_sp": "1040216600", // qinglong
+    "310501_sw": "1040016700", // eternal 1
+    "310601_sw": "1040016800", // eternal 2
+    "360101_gu": "1040508600", // platinum sky 2
+    "370801_me": "1040616000", // belial 2
+    "310701_sw": "1040016900", // fallen
+    "370001_me": "1040610300", // monster 1
+    "310901_sw": "1040019100", // versus
+    "370201_me": "1040610200", // monster 2
+    "370301_me": "1040610400", // monster 3
+    "370601_me": "1040614400", // belial 1
+    "370701_me": "1040615300", // cook
+    "310001_sw": "1040009100", // lord of vermillion
+    "310801_sw": "1040018800", // yukata
+    "311001_sw": "1040020200", // school
+    "310301_sw": "1040014200" // attack on titan
+}
+
 
 function lookupMCPlus(mc_id)
 {
@@ -871,6 +894,10 @@ function lookupMCPlus(mc_id)
                     return
                 }
             }
+        }
+        if(mc_id in class_ougi)
+        {
+            lookupWeapon(class_ougi[mc_id], true);
         }
     }
 }

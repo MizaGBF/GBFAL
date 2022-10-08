@@ -303,6 +303,60 @@ class Parser():
                 shared[2] = True
                 print("Threads job are done")
 
+    def dig_job_chargeattack(self):
+        try:
+            with open('job_ca.json', mode='r', encoding='utf-8') as f:
+                index = set(json.load(f))
+        except:
+            index = set()
+        shared = [Lock(), queue.Queue(), index]
+        for i in range(10):
+            count = 0
+            j = 0
+            while count < 10 and j < 1000:
+                f = "1040{}{}00".format(i, str(j).zfill(3))
+                if f in self.data["weapons"] or f in index:
+                    count = 0
+                else:
+                    count += 1
+                    shared[1].put(f)
+                j += 1
+        print("Checking job charge attacks...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+            futures = []
+            for count in range(100):
+                futures.append(executor.submit(self.dig_job_chargeattack_subroutine, shared))
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+        try:
+            with open('job_ca.json', mode='w', encoding='utf-8') as f:
+                json.dump(list(shared[2]), f)
+            print("job_ca.json updated")
+        except:
+            pass
+
+    def dig_job_chargeattack_subroutine(self, shared):
+        while shared[1].qsize() > 0:
+            try:
+                file = shared[1].get(block=False)
+            except:
+                time.sleep(0.001)
+                continue
+            try:
+                self.req(self.imgUri + '_low/sp/assets/weapon/m/' + file + ".jpg")
+                continue
+            except:
+                pass
+            for k in [["phit_", ""], ["sp_", "_1_s2"]]:
+                try:
+                    self.req(self.manifestUri + k[0] + file + k[1] + ".js")
+                    print("Possible:", file)
+                    with shared[0]:
+                        shared[2].add(file)
+                    break
+                except:
+                    pass
+
     def loadIndex(self):
         files = [f for f in os.listdir('docs/data/') if os.path.isfile(os.path.join('docs/data/', f))]
         known = []
@@ -549,6 +603,7 @@ def print_help():
     print("-update : Manual JSON updates (Followed by IDs to check).")
     print("-index  : Update the index and create new character JSON files if any.")
     print("-job    : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
+    print("-jobca  : Search Job Attack spritesheets (Very time consuming).")
     print("-listjob: List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
     time.sleep(2)
 
@@ -572,6 +627,8 @@ if __name__ == '__main__':
                 p.dig_job_spritesheet()
             else:
                 p.dig_job_spritesheet(sys.argv[2:])
+        elif sys.argv[1] == '-jobca':
+            p.dig_job_chargeattack()
         elif sys.argv[1] == '-listjob':
             if len(sys.argv) == 2:
                 p.listjob()
