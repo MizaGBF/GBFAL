@@ -32,7 +32,8 @@ class Parser():
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.new_characters = []
         
-        self.client = httpx.Client(http2=True)
+        limits = httpx.Limits(max_keepalive_connections=100, max_connections=100, keepalive_expiry=10)
+        self.client = httpx.Client(http2=True, limits=limits)
         self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
         self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
         self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
@@ -371,7 +372,7 @@ class Parser():
         return e
 
     def req(self, url, headers={}):
-        response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers=headers, timeout=50)
+        response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
         if response.status_code != 200: raise Exception()
         return response.content
 
