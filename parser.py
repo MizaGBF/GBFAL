@@ -530,16 +530,17 @@ class Parser():
             for g in (["", "_1"] if gendered else [""]):
                 for m in (["", "_101", "_102", "_103", "_104", "_105"] if multi else [""]):
                     for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if null else [""]):
-                        fn = base_fn + g + m + n
-                        urls["Main Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/zoom/" + fn + ".png")
-                        urls["Main Arts"].append("https://media.skycompass.io/assets/customizes/characters/1138x1138/" + fn + ".png")
-                        urls["Inventory Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/m/" + fn + ".jpg")
-                        urls["Square Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/s/" + fn + ".jpg")
-                        urls["Party Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/f/" + fn + ".jpg")
-                        urls["Raid"].append(self.getEndpoint() + "img/sp/assets/npc/raid_normal/" + fn + ".jpg")
-                        urls["Twitter Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/sns/" + fn + ".jpg")
-                        urls["Charge Attack Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/cutin_special/" + fn + ".jpg")
-                        urls["Chain Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/raid_chain/" + fn + ".jpg")
+                        for af in (["", "_f", "_f1"] if altForm else [""]):
+                            fn = base_fn + af + g + m + n
+                            urls["Main Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/zoom/" + fn + ".png")
+                            urls["Main Arts"].append("https://media.skycompass.io/assets/customizes/characters/1138x1138/" + fn + ".png")
+                            urls["Inventory Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/m/" + fn + ".jpg")
+                            urls["Square Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/s/" + fn + ".jpg")
+                            urls["Party Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/f/" + fn + ".jpg")
+                            urls["Raid"].append(self.getEndpoint() + "img/sp/assets/npc/raid_normal/" + fn + ".jpg")
+                            urls["Twitter Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/sns/" + fn + ".jpg")
+                            urls["Charge Attack Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/cutin_special/" + fn + ".jpg")
+                            urls["Chain Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/raid_chain/" + fn + ".jpg")
             # sprites
             urls["Sprites"].append(self.getEndpoint() + "img/sp/assets/npc/sd/" + base_fn + ".png")
         # sorting
