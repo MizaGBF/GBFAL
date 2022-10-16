@@ -477,7 +477,8 @@ class Parser():
                     if form == "": uncaps.append(uncap)
                     else: altForm = True
                 except:
-                    break
+                    if form == "":
+                        break
         if len(uncaps) == 0:
             return False
         if not id.startswith("371") and style == "":
