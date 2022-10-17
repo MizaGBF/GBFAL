@@ -92,6 +92,12 @@ class Parser():
         self.newShared(errs)
         for i in range(4):
             possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
+        self.newShared(errs)
+        for i in range(4):
+            possibles.append(('characters', i, 4, errs[-1], "3030{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg"))
+        self.newShared(errs)
+        for i in range(4):
+            possibles.append(('characters', i, 4, errs[-1], "3020{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg"))
         # summons
         self.newShared(errs)
         for i in range(4):
