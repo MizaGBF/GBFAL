@@ -31,6 +31,10 @@ img {
     object-fit: contain;
 }
 
+small {
+    font-size: 16px;
+}
+
 #titleheader {
     border: 5px solid #000000;
     border-radius: 10px;
