@@ -25,6 +25,20 @@ result_area = null;
 null_characters = [
     "3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"
 ];
+blacklist = [
+    "1040814400",
+    "1040420000",
+    "1040515200",
+    "1040217300",
+    "1040315100",
+    "1040711700",
+    "1040616300",
+    "1040115700",
+    "1040022900",
+    "1040913400",
+    "1040217400",
+    "1040913500"
+]
 
 function getEndpoint()
 {
@@ -175,6 +189,7 @@ function failJSON(id)
 
 function lookup(id)
 {
+    if(blacklist.includes(id)) return;
     counter = 0;
     f = document.getElementById('filter');
     let el = id.split("_");
