@@ -190,6 +190,7 @@ function failJSON(id)
 
 function lookup(id)
 {
+    if(blacklist.includes(id)) return;
     counter = 0;
     f = document.getElementById('filter');
     let el = id.split("_");
@@ -245,6 +246,7 @@ function addResult(identifier, name)
 
 function lookupCharacter(character_id)
 {
+    if(blacklist.includes(character_id)) return;
     let el = character_id.split("_");
     character_id = el[0];
     // add manual style later?
@@ -380,6 +382,7 @@ function lookupCharacter(character_id)
 
 function lookupNPC(npc_id)
 {
+    if(blacklist.includes(npc_id)) return;
     let assets = [
         ["Journal Art", "sp/assets/npc/b/", "png", "img_low/"],
         ["Inventory Portrait", "sp/assets/npc/m/", "jpg", "img_low/"],
@@ -419,6 +422,7 @@ function lookupNPC(npc_id)
 
 function lookupSummon(summon_id)
 {
+    if(blacklist.includes(summon_id)) return;
     assets = [
         ["Main Arts", "sp/assets/summon/b/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/"],
@@ -518,6 +522,7 @@ function lookupSummon(summon_id)
 
 function lookupWeapon(weapon_id, shortened=false)
 {
+    if(blacklist.includes(weapon_id)) return;
     let assets = [
         ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/"],
@@ -583,6 +588,7 @@ function lookupWeapon(weapon_id, shortened=false)
 
 function lookupEnemy(enemy_id)
 {
+    if(blacklist.includes(enemy_id)) return;
     let assets = [
         ["Big Icon", "sp/assets/enemy/m/", "png", "img/"],
         ["Small Icon", "sp/assets/enemy/s/", "png", "img/"],
@@ -630,6 +636,7 @@ function lookupEnemy(enemy_id)
 
 function lookupMC(mc_id)
 {
+    if(blacklist.includes(mc_id)) return;
     let job_ids = mc_id.split('_');
     let assets = [
         ["Job Icon", "sp/ui/icon/job/", "png", "img/", 0],
@@ -863,6 +870,7 @@ var class_ougi = {
 
 function lookupMCPlus(mc_id)
 {
+    if(blacklist.includes(mc_id)) return;
     let dupe_check = [];
     let obj = JSON.parse(this.response);
     let genders = ['_0_', '_1_'];
