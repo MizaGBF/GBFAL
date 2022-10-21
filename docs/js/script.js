@@ -151,6 +151,7 @@ function successJSON(id)
 
 function failJSON(id)
 {
+    if(blacklist.includes(id)) return;
     if(id.length == 10 || id.length == 14)
     {
         switch(id[0])
@@ -189,7 +190,6 @@ function failJSON(id)
 
 function lookup(id)
 {
-    if(blacklist.includes(id)) return;
     counter = 0;
     f = document.getElementById('filter');
     let el = id.split("_");
