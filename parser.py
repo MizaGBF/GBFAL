@@ -112,7 +112,7 @@ class Parser():
         for i in range(4):
             possibles.append(('skins', i, 4, errs[-1], "3710{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg"))
         #enemies
-        for ab in [73, 51, 52, 43, 41, 81]:
+        for ab in [73, 51, 52, 43, 41, 81, 91]:
             for d in [1, 2, 3]:
                 self.newShared(errs)
                 for i in range(5):
