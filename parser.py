@@ -441,13 +441,13 @@ class Parser():
 
     def run_sub(self, start, step, err, file):
         id = start
-        while err[1] and err[0] < 20 and self.running:
+        while err[1] and err[0] < 40 and self.running:
             f = file.format(str(id).zfill(3))
             if self.force_update or f not in self.index:
                 if not self.update(f):
                     with err[2]:
                         err[0] += 1
-                        if err[0] >= 20:
+                        if err[0] >= 40:
                             err[1] = False
                             return
                 else:
@@ -462,6 +462,7 @@ class Parser():
         urls["Inventory Portraits"] = []
         urls["Square Portraits"] = []
         urls["Party Portraits"] = []
+        urls["Popup Portraits"] = []
         urls["Sprites"] = []
         urls["Raid"] = []
         urls["Twitter Arts"] = []
@@ -540,6 +541,7 @@ class Parser():
                             urls["Inventory Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/m/" + fn + ".jpg")
                             urls["Square Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/s/" + fn + ".jpg")
                             urls["Party Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/f/" + fn + ".jpg")
+                            urls["Party Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/qm/" + fn + ".png")
                             urls["Raid"].append(self.getEndpoint() + "img/sp/assets/npc/raid_normal/" + fn + ".jpg")
                             urls["Twitter Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/sns/" + fn + ".jpg")
                             urls["Charge Attack Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/cutin_special/" + fn + ".jpg")
