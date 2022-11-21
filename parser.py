@@ -383,7 +383,7 @@ class Parser():
         return response.content
 
     def run(self):
-        max_thread = 10
+        max_thread = 16
         print("Updating Database...")
         if self.force_update:
             print("Note: All characters will be updated")
@@ -419,7 +419,7 @@ class Parser():
                     print("Progress 100%")
                 elif finished > max_thread*len(possibles):
                     pass
-                elif finished > 0 and finished % 10 == 0:
+                elif finished > 0 and finished % (max_thread//2) == 0:
                     print("Progress {:.1f}%".format((100*finished)/(max_thread*len(possibles))))
         self.running = False
         print("Done")
@@ -441,13 +441,13 @@ class Parser():
 
     def run_sub(self, start, step, err, file):
         id = start
-        while err[1] and err[0] < 40 and self.running:
+        while err[1] and err[0] < 80 and self.running:
             f = file.format(str(id).zfill(3))
             if self.force_update or f not in self.index:
                 if not self.update(f):
                     with err[2]:
                         err[0] += 1
-                        if err[0] >= 40:
+                        if err[0] >= 80:
                             err[1] = False
                             return
                 else:
@@ -541,7 +541,7 @@ class Parser():
                             urls["Inventory Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/m/" + fn + ".jpg")
                             urls["Square Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/s/" + fn + ".jpg")
                             urls["Party Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/f/" + fn + ".jpg")
-                            urls["Party Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/qm/" + fn + ".png")
+                            urls["Popup Portraits"].append(self.getEndpoint() + "img/sp/assets/npc/qm/" + fn + ".png")
                             urls["Raid"].append(self.getEndpoint() + "img/sp/assets/npc/raid_normal/" + fn + ".jpg")
                             urls["Twitter Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/sns/" + fn + ".jpg")
                             urls["Charge Attack Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/cutin_special/" + fn + ".jpg")
