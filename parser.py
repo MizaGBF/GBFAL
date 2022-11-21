@@ -522,18 +522,15 @@ class Parser():
             except:
                 pass
         # arts
-        gendered = self.artCheck(id, "_01", style, "_1")
-        multi = self.artCheck(id, "_01", style, "_101")
-        null = self.artCheck(id, "_01", style, "_01")
+        bonus_dict, gendered, multi, null = self.artCheck(id, style)
         bonus = []
-        for b in ["_81", "_82", "_83"]:
-            if self.artCheck(id, b, style, ""):
-                bonus.append(b[1:])
+        for b in bonus_dict:
+            bonus.append(b[1:])
         # # # Assets
         for uncap in uncaps + bonus:
             # main
             base_fn = "{}_{}{}".format(id, uncap, style)
-            for g in (["", "_1"] if gendered else [""]):
+            for g in (["", "_1"] if (gendered or bonus_dict.get(uncap, False)) else [""]):
                 for m in (["", "_101", "_102", "_103", "_104", "_105"] if multi else [""]):
                     for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if null else [""]):
                         for af in (["", "_f", "_f1"] if altForm else [""]):
@@ -571,12 +568,21 @@ class Parser():
             res.append(src)
         return res
 
-    def artCheck(self, id, uncap, style, append):
-        try:
-            self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + uncap + style + append + ".jpg")
-            return True
-        except:
-            return False
+    def artCheck(self, id, style):
+        flags = [{}, False, False, False]
+        for uncap in ["_01", "_81", "_82", "_83", "_91", "_92", "_93"]:
+            for g in ["", "_1"]:
+                for m in ["", "_101"]:
+                    for n in ["", "_01"]:
+                        try:
+                            self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + uncap + style + g + m + n + ".jpg")
+                            if uncap.startswith("_8") or uncap.startswith("_9"): flags[0][uncap] = (g == "_1")
+                            if g == "_1" and uncap == "_01": flags[1] = True
+                            if m == "_101": flags[2] = True
+                            if n == "_01": flags[3] = True
+                        except:
+                            pass
+        return tuple(flags)
 
     def manualUpdate(self, ids):
         if len(ids) == 0:
