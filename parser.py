@@ -530,7 +530,7 @@ class Parser():
         for uncap in uncaps + bonus:
             # main
             base_fn = "{}_{}{}".format(id, uncap, style)
-            for g in (["", "_1"] if (gendered or bonus_dict.get(uncap, False)) else [""]):
+            for g in (["", "_1"] if (gendered or bonus_dict.get("_" + uncap, False)) else [""]):
                 for m in (["", "_101", "_102", "_103", "_104", "_105"] if multi else [""]):
                     for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if null else [""]):
                         for af in (["", "_f", "_f1"] if altForm else [""]):

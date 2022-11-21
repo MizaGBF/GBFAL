@@ -258,7 +258,7 @@ function lookupCharacter(character_id)
     ];
     let uncaps = ["_01", "_02", "_03", "_04"];
     let styles = ["", "_st2"];
-    let bonus = ["_81", "_82", "_83"];
+    let bonus = ["_81", "_82", "_83", "_91"];
     let alts = ["", "_f", "_f1", "_f_01"];
     
     
