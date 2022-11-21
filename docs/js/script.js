@@ -191,7 +191,7 @@ function lookup(id)
     {
         if(f.value == "") f.value = id;
         if(id.toLowerCase()[0] === 'e') id = id.slice(1);
-        getJSON("data/" + id + ".json", successJSON, failJSON, id);
+        getJSON("data/" + id + ".json?" + Date.now(), successJSON, failJSON, id);
     }
 }
 
