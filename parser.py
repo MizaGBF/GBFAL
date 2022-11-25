@@ -37,15 +37,7 @@ class Parser():
         self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
         self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
         self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
-        self.endpoints = [
-            "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/",
-            "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/"
-        ]
-        self.endpoint_counter = 0
+        self.endpoint = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/"
         
         self.load()
         self.exclusion = set([])
@@ -83,7 +75,6 @@ class Parser():
         errs[-1].append(Lock())
 
     def run_index_update(self, no_manual=False):
-        count = 0
         errs = []
         possibles = []
         self.new_characters = []
@@ -122,8 +113,7 @@ class Parser():
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = self.job_search(executor)
             for p in possibles:
-                futures.append(executor.submit(self.subroutine, self.endpoints[count], *p))
-                count = (count + 1) % len(self.endpoints)
+                futures.append(executor.submit(self.subroutine, self.getEndpoint(), *p))
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         print("Done")
@@ -280,7 +270,7 @@ class Parser():
                         shared[1].put(id)
         futures = []
         for i in range(40):
-            futures.append(executor.submit(self.subroutine_job, self.endpoints[i % len(self.endpoints)], shared))
+            futures.append(executor.submit(self.subroutine_job, self.getEndpoint(), shared))
         return futures
 
     def subroutine_job(self, endpoint, shared):
@@ -373,9 +363,7 @@ class Parser():
         self.index = set(known)
 
     def getEndpoint(self):
-        e = self.endpoints[self.endpoint_counter]
-        self.endpoint_counter = (self.endpoint_counter + 1) % len(self.endpoints)
-        return e
+        return self.endpoint
 
     def req(self, url, headers={}):
         response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
@@ -523,17 +511,15 @@ class Parser():
             except:
                 pass
         # arts
-        bonus_dict, gendered, multi, null = self.artCheck(id, style)
-        bonus = []
-        for b in bonus_dict:
-            bonus.append(b[1:])
+        flags = self.artCheck(id, style, uncaps)
         # # # Assets
-        for uncap in uncaps + bonus:
+        for uncap in flags:
             # main
             base_fn = "{}_{}{}".format(id, uncap, style)
-            for g in (["", "_1"] if (gendered or bonus_dict.get("_" + uncap, False)) else [""]):
-                for m in (["", "_101", "_102", "_103", "_104", "_105"] if multi else [""]):
-                    for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if null else [""]):
+            uf = flags[uncap]
+            for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
+                    for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
                         for af in (["", "_f", "_f1"] if altForm else [""]):
                             fn = base_fn + af + g + m + n
                             urls["Main Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/zoom/" + fn + ".png")
@@ -570,21 +556,25 @@ class Parser():
             res.append(src)
         return res
 
-    def artCheck(self, id, style):
-        flags = [{}, False, False, False]
-        for uncap in ["_01", "_81", "_82", "_83", "_91", "_92", "_93"]:
-            for g in ["", "_1"]:
-                for m in ["", "_101"]:
-                    for n in ["", "_01"]:
+    def artCheck(self, id, style, uncaps):
+        flags = {}
+        for uncap in uncaps + ["81", "82", "83", "91", "92", "93"]:
+            for g in ["_1", ""]:
+                if flags.get(uncap, [False, False, False])[0]: continue
+                for m in ["_101", ""]:
+                    if flags.get(uncap, [False, False, False])[1]: continue
+                    for n in ["_01", ""]:
+                        if flags.get(uncap, [False, False, False])[2]: continue
                         try:
-                            self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + uncap + style + g + m + n + ".jpg")
-                            if uncap.startswith("_8") or uncap.startswith("_9"): flags[0][uncap] = (g == "_1")
-                            if g == "_1" and uncap == "_01": flags[1] = True
-                            if m == "_101": flags[2] = True
-                            if n == "_01": flags[3] = True
+                            self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + "_" + uncap + style + g + m + n + ".jpg")
+                            if uncap not in flags:
+                                flags[uncap] = [False, False, False]
+                            flags[uncap][0] = flags[uncap][0] or (g == "_1")
+                            flags[uncap][1] = flags[uncap][1] or (m == "_101")
+                            flags[uncap][2] = flags[uncap][2] or (n == "_01")
                         except:
                             pass
-        return tuple(flags)
+        return flags
 
     def manualUpdate(self, ids):
         if len(ids) == 0:
