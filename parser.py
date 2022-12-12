@@ -586,18 +586,23 @@ class Parser():
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread+2) as executor:
             futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
             for id in ids:
-                if len(id) == 10:
+                if len(id) >= 10:
                     futures.append(executor.submit(self.update, id))
                     tcounter += 1
-            print("Attempting to update", tcounter, "element(s)")
             tfinished = 0
-            for future in concurrent.futures.as_completed(futures):
-                tfinished += 1
-                if tfinished >= tcounter:
-                    self.running = False
-                r = future.result()
-                if isinstance(r, int): counter += r
-                elif r: counter += 1
+            if tcounter > 0:
+                print("Attempting to update", tcounter, "element(s)")
+                for future in concurrent.futures.as_completed(futures):
+                    tfinished += 1
+                    if tfinished >= tcounter:
+                        self.running = False
+                    r = future.result()
+                    if isinstance(r, int): counter += r
+                    elif r: counter += 1
+            else:
+                self.running = False
+                for future in concurrent.futures.as_completed(futures):
+                    r = future.result()
         self.running = False
         print("Done")
         if counter > 0:
