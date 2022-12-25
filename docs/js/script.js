@@ -423,7 +423,7 @@ function lookupSummon(summon_id)
         ["Summon Damage Sheets", "sp/cjs/summon_", "png", "img_low/"]
     ];
     let multi_summons = ['2040414000']
-    let uncaps = ["", "_01", "_02"];
+    let uncaps = ["", "_01", "_02", "_03"];
     let sheets = [""];
     let uncap_append = [];
     
@@ -833,7 +833,8 @@ var class_lookup = { // need to be manually updated..... :(
     "320001_kn": ["sut_kn"], // story dancer
     "170101_bw": ["mrk_bw", "mrk_gu"], // archer
     "311001_sw": ["gkn_sw"], // school
-    "340001_ax": ["gnb_ax"] // xuanwu
+    "340001_ax": ["gnb_ax"], // xuanwu
+    "360201_gu": ["ebi_gu"] // premium friday
 }
 var class_ougi = {
     "320001_kn": "1040115000", // school dancer
@@ -854,7 +855,8 @@ var class_ougi = {
     "310001_sw": "1040009100", // lord of vermillion
     "310801_sw": "1040018800", // yukata
     "311001_sw": "1040020200", // school
-    "310301_sw": "1040014200" // attack on titan
+    "310301_sw": "1040014200", // attack on titan
+    "360201_gu": "1040515800" // premium friday
 }
 
 function lookupMCPlus(mc_id)
