@@ -457,7 +457,7 @@ function lookupSummon(summon_id)
         else
         {
             sheets = [""];
-            uncap_append = [""]
+            uncap_append = uncaps;
         }
         
         let div = addResult(asset[0], asset[0]);
