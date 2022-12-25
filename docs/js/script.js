@@ -436,7 +436,7 @@ function lookupSummon(summon_id)
             if(multi_summons.includes(summon_id))
             {
                 let capp = JSON.parse(JSON.stringify(uncaps));
-                let multistrings = ["_a", "_b", "_c", "_d", "_e", "_f"];
+                let multistrings = ["", "_a", "_b", "_c", "_d", "_e", "_f"];
                 uncap_append = []
                 for(let m of multistrings)
                 {
