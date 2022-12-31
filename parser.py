@@ -617,7 +617,23 @@ def print_help():
     print("-job    : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
     print("-jobca  : Search Job Attack spritesheets (Very time consuming).")
     print("-listjob: List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
+    print("-debug: List downloaded skins with multi portraits.")
     time.sleep(2)
+
+def debug_multi_portrait_skin():
+    files = [f for f in os.listdir('docs/data/') if os.path.isfile(os.path.join('docs/data/', f))]
+    known = []
+    for f in files:
+        if f.startswith("371"):
+            known.append(f)
+    for k in known:
+        with open("docs/data/" + k) as f:
+            data = json.load(f)
+        counted = set()
+        for x in data['Inventory Portraits']:
+            if '_f' not in x and '_f1' not in x and x not in counted:
+                counted.add(x)
+        if len(counted) > 1: print(k)
 
 if __name__ == '__main__':
     p = Parser()
@@ -646,5 +662,7 @@ if __name__ == '__main__':
                 p.listjob()
             else:
                 p.listjob(sys.argv[2:])
+        elif sys.argv[1] == '-debug':
+            debug_multi_portrait_skin()
         else:
             print_help()
