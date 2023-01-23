@@ -1,0 +1,83 @@
+<head>
+    <meta charset="utf-8"/>
+    <title>GBF Assets Lookup</title>
+    <meta name="title" content="GBF Assets Lookup">
+    <meta name="description" content="The GBF Assets Lookup Project">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mizagbf.github.io/GBFAL/">
+    <meta property="og:title" content="GBF Assets Lookup">
+    <meta property="og:description" content="The GBF Assets Lookup Project">
+    <meta property="og:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://mizagbf.github.io/GBFAL/">
+    <meta property="twitter:title" content="GBF Assets Lookup">
+    <meta property="twitter:description" content="The GBF Assets Lookup Project">
+    <meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+    <link rel="icon" type="image/png" href="assets/icon.png" />
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/list.js"></script>
+    <script src="js/script.js"></script>
+</head>
+<body onload="init()">
+    <a href="index.html"><img id="titleheader" src="assets/ui/header.png"></a>
+    <div id="version">v1.21</div>
+    <br>
+    <input type="text" id="filter" onkeyup="filter()" placeholder="Input an ID" style="width:500px">
+    <br>
+    <br>
+    <details>
+        <summary>Explanations</summary>
+        <h3 class="content">
+            <li>A valid ID looks like 3040000000.</li>
+            <li>Currently supported: Characters, Skins, Weapons, Summons, NPCs, Enemies and Classes.</li>
+            <li>For Enemies, add 'e' before the ID. Example: <a href="?id=e6205703">e6205703</a>.</li>
+            <li>For Classes, put the pair of the class ID and its main proficiency, separated by an underscore: <a href="?id=450301_sw">Relic Buster</a>.</li>
+            <li>Loading can take time, especially for Skins and Multi-Unit Characters, be patient!</li>
+            <li>You can find IDs on a corresponding <a href="https://gbf.wiki/">Wiki page</a>, under the Extra informations.</li>
+            <li>You can click on images to access the highest quality.</li>
+            <li>Sky Compass arts have a cyan border.</li>
+            <li>You can bookmark the page after loading an ID to save it.</li>
+        </h3>
+    </details>
+    <div id="resultarea">
+    </div>
+    <details onclick="displayCharacters(this)">
+        <summary>Characters</summary>
+        <h3 class="result" id="areacharacters">
+            <small>Non-exhaustive list</small><br>
+        </h3>
+    </details>
+    <details onclick="displaySkins(this)">
+        <summary>Skins</summary>
+        <h3 class="result" id="areaskins">
+            <small>Non-exhaustive list</small><br>
+        </h3>
+    </details>
+    <details onclick="displaySummons(this)">
+        <summary>Summons</summary>
+        <h3 class="result" id="areasummons">
+            <small>Non-exhaustive list</small><br>
+        </h3>
+    </details>
+    <details onclick="displayWeapons(this)">
+        <summary>Weapons</summary>
+        <h3 class="result" id="areaweapons">
+            <small>Non-exhaustive list</small><br>
+        </h3>
+    </details>
+    <details onclick="displayMC(this)">
+        <summary>Classes</summary>
+        <h3 class="result" id="areamc">
+            <small>Non-exhaustive list</small><br>
+        </h3>
+    </details>
+    <details onclick="displayEnemies(this)">
+        <summary>Enemies</summary>
+        <h3 class="result" id="areaenemies">
+            <small>Non-exhaustive list</small><br>
+        </h3>
+    </details>
+</body>
+<footer>
+    <a href="https://github.com/MizaGBF/GBFAL">Source</a>
+</footer>

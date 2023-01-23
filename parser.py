@@ -125,7 +125,7 @@ class Parser():
     def update_index(self):
         with open("base.js", mode="r", encoding="utf-8") as f:
             base = f.read()
-        with open("docs/js/list.js", mode="w", encoding="utf-8") as f:
+        with open("js/list.js", mode="w", encoding="utf-8") as f:
             for k in self.data:
                 if k == "version": continue
                 s = list(self.data[k])
@@ -139,7 +139,7 @@ class Parser():
         job_index = {}
         mhs = set(mhs)
         try:
-            with open('docs/data/job.json', mode='r', encoding='utf-8') as f:
+            with open('data/job.json', mode='r', encoding='utf-8') as f:
                 job_index = json.load(f)
         except:
             pass
@@ -153,7 +153,7 @@ class Parser():
     def dig_job_spritesheet(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
         job_index = {}
         try:
-            with open('docs/data/job.json', mode='r', encoding='utf-8') as f:
+            with open('data/job.json', mode='r', encoding='utf-8') as f:
                 job_index = json.load(f)
         except:
             pass
@@ -192,7 +192,7 @@ class Parser():
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         try:
-            with open('docs/data/job.json', mode='w', encoding='utf-8') as f:
+            with open('data/job.json', mode='w', encoding='utf-8') as f:
                 json.dump(shared[2], f)
             print("job.json updated")
         except:
@@ -355,7 +355,7 @@ class Parser():
                     pass
 
     def loadIndex(self):
-        files = [f for f in os.listdir('docs/data/') if os.path.isfile(os.path.join('docs/data/', f))]
+        files = [f for f in os.listdir('data/') if os.path.isfile(os.path.join('data/', f))]
         known = []
         for f in files:
             if f.startswith("371") or f.startswith("304") or f.startswith("303") or f.startswith("302"):
@@ -541,7 +541,7 @@ class Parser():
             el.sort()
             for i in range(len(urls[k])):
                 urls[k][i] = "/".join(urls[k][i].split("/")[:-1]) + "/" + el[i]
-        with open("docs/data/" + id + style + ".json", 'w') as outfile:
+        with open("data/" + id + style + ".json", 'w') as outfile:
             json.dump(urls, outfile)
         return True
 
@@ -621,13 +621,13 @@ def print_help():
     time.sleep(2)
 
 def debug_multi_portrait_skin():
-    files = [f for f in os.listdir('docs/data/') if os.path.isfile(os.path.join('docs/data/', f))]
+    files = [f for f in os.listdir('data/') if os.path.isfile(os.path.join('data/', f))]
     known = []
     for f in files:
         if f.startswith("371"):
             known.append(f)
     for k in known:
-        with open("docs/data/" + k) as f:
+        with open("data/" + k) as f:
             data = json.load(f)
         counted = set()
         for x in data['Inventory Portraits']:
