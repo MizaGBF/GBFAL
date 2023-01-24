@@ -760,6 +760,7 @@ var class_lookup = { // need to be manually updated..... :(
     "120101_wa": ["cle_wa", "cle_sp"], // cleric
     "150101_sw": ["ars_sw", "ars_kn"], // arcana dueler
     "130301_wa": ["wrk_wa", "wrk_kn"], // warlock
+    "130401_wa": ["mnd_wa", "mnd_kn"], // warlock
     "310601_sw": ["edg_sw"], // eternal 2
     "120001_wa": ["pri_wa", "pri_sp"], // priest
     "180101_mc": ["mst_kn", "mst_mc"], // bard
