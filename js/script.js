@@ -937,7 +937,7 @@ function addImage(node, path, id)
 {
     let img = document.createElement("img");
     let ref = document.createElement('a');
-    ref.setAttribute('href', "search.html?id=" + id);
+    ref.setAttribute('href', "?id=" + id);
     node.appendChild(ref);
     ref.appendChild(img);
     img.id  = "loading";
