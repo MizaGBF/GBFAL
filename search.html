@@ -3,8 +3,8 @@
 <script>
     let params = new URLSearchParams(window.location.search);
     let id = params.get("id");
-    if(id != null) window.location.href = "?id=" + id;
-    else window.location.href = "";
+    if(id != null) window.location.href = "/?id=" + id;
+    else window.location.href = "/";
 </script>
 <a href="/">redirect</a>
 <!-- This page is now unused, I'm keeping it for backward compatibility -->
