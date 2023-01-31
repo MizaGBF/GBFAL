@@ -7,33 +7,25 @@ Event: https://media.skycompass.io/assets/archives/events/ID/image/NUM_free.png
 
 */
 
-protocol = "https://";
-endpoints = [
-    "prd-game-a-granbluefantasy.akamaized.net/",
-    "prd-game-a1-granbluefantasy.akamaized.net/",
-    "prd-game-a2-granbluefantasy.akamaized.net/",
-    "prd-game-a3-granbluefantasy.akamaized.net/",
-    "prd-game-a4-granbluefantasy.akamaized.net/",
-    "prd-game-a5-granbluefantasy.akamaized.net/"
+var protocol = "https://";
+var endpoints = [
+    "prd-game-a1-granbluefantasy.akamaized.net/"
 ];
-language = "assets_en/";
-
-counter = 0;
-last_id = null;
-last_style = null;
-result_area = null;
-null_characters = [
+var language = "assets_en/";
+var last_id = null;
+var last_style = null;
+var result_area = null;
+var null_characters = [
     "3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"
 ];
-blacklist = [
+var blacklist = [
 
 ]
+var index = {};
 
 function getEndpoint()
 {
-    var e = endpoints[counter];
-    counter = (counter + 1) % endpoints.length;
-    return e;
+    return endpoints[0];
 }
 
 function filter()
@@ -43,10 +35,24 @@ function filter()
 
 function init()
 {
+    getJSON("data.json?" + Date.now(), loadData, function(unused){}, null);
     result_area = document.getElementById('resultarea');
     let params = new URLSearchParams(window.location.search);
     let id = params.get("id");
     if(id != null) lookup(id);
+}
+
+function loadData(unused)
+{
+    index = JSON.parse(this.response);
+    for(let key in index)
+    {
+        if(key != "version")
+        {
+            index[key].sort();
+            index[key].reverse();
+        }
+    }
 }
 
 function updateQuery(id)
@@ -110,20 +116,27 @@ function successJSON(id)
     
     for(let key of Object.keys(obj))
     {
-        let urls = obj[key];
-        if(urls.length == 0) continue;
+        let paths = obj[key];
+        if(paths.length == 0) continue;
         let div = addResult(key, key);
         result_area.appendChild(div);
 
-        for(let url of urls)
+        for(let path of paths)
         {
             let img = document.createElement("img");
             let ref = document.createElement('a');
-            ref.setAttribute('href', url.replace("img_low", "img").replace("http://", protocol));
-            div.appendChild(ref);
-            ref.appendChild(img);
+            if(path.includes("media.skycompass.io"))
+            {
+                ref.setAttribute('href', path);
+                img.src = path;
+                img.className  = "skycompass";
+            }
+            else
+            {
+                ref.setAttribute('href', protocol + getEndpoint() + language + path.replace("img_low", "img"));
+                img.src = protocol + getEndpoint() + language + path;
+            }
             img.id  = "loading";
-            if(url.includes("media.skycompass.io")) img.className  = "skycompass";
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
@@ -133,7 +146,8 @@ function successJSON(id)
             img.onload = function() {
                 this.id = "done"
             }
-            img.src = url.replace("http://", protocol);
+            div.appendChild(ref);
+            ref.appendChild(img);
         }
     }
 }
@@ -913,6 +927,108 @@ function lookupMCPlus(mc_id)
         if(mc_id in class_ougi)
         {
             lookupWeapon(class_ougi[mc_id], true);
+        }
+    }
+}
+
+// =================================================================================================
+// index stuff
+function addImage(node, path, id)
+{
+    let img = document.createElement("img");
+    let ref = document.createElement('a');
+    ref.setAttribute('href', "search.html?id=" + id);
+    node.appendChild(ref);
+    ref.appendChild(img);
+    img.id  = "loading";
+    img.loading = "lazy";
+    img.onerror = function() {
+        this.remove();
+    }
+    img.onload = function() {
+        this.id = "done"
+    }
+    img.src = protocol + getEndpoint() + language + "img_low/" + path; 
+}
+
+function displayCharacters(elem)
+{
+    elem.removeAttribute("onclick");
+    if("characters" in index)
+    {
+        let node = document.getElementById('areacharacters');  
+        for(let id of index["characters"])
+        {
+            let el = id.split("_");
+            if(el.length == 2)
+                addImage(node, "sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", id);
+            else
+                addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
+        }
+    }
+}
+
+function displaySummons(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areasummons');
+    if("summons" in index)
+    {
+        for(let id of index["summons"])
+        {
+            addImage(node, "sp/assets/summon/m/" + id + ".jpg", id);
+        }
+    }
+}
+
+function displayWeapons(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areaweapons');
+    if("weapons" in index)
+    {
+        for(let id of index["weapons"])
+        {
+            addImage(node, "sp/assets/weapon/m/" + id + ".jpg", id);
+        }
+    }
+}
+
+function displaySkins(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areaskins');
+    if("skins" in index)
+    {
+        for(let id of index["skins"])
+        {
+            addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
+        }
+    }
+}
+
+function displayEnemies(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areaenemies');
+    if("enemies" in index)
+    {
+        for(let id of index["enemies"])
+        {
+            addImage(node, "sp/assets/enemy/m/" + id + ".png", "e" + id);
+        }
+    }
+}
+
+function displayMC(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areamc');
+    if("job" in index)
+    {
+        for(let id of index["job"])
+        {
+            addImage(node, "sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id);
         }
     }
 }

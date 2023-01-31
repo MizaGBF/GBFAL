@@ -120,20 +120,6 @@ class Parser():
         if not no_manual:
             self.manualUpdate(self.new_characters)
         self.save()
-        self.update_index()
-
-    def update_index(self):
-        with open("base.js", mode="r", encoding="utf-8") as f:
-            base = f.read()
-        with open("js/list.js", mode="w", encoding="utf-8") as f:
-            for k in self.data:
-                if k == "version": continue
-                s = list(self.data[k])
-                s.sort()
-                if k != 'job': s.reverse()
-                f.write(k + "=" + str(s) + ";\n")
-            f.write(base)
-            print("list.js updated")
 
     def listjob(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
         job_index = {}
@@ -241,7 +227,7 @@ class Parser():
                     with err[2]:
                         err[0] = 0
                         self.data[index].add(f + s)
-                        if file.startswith("30"):
+                        if file.startswith("30") or file.startswith("37"):
                             self.new_characters.append(f + s)
                 except:
                     if s != "": break
@@ -522,18 +508,18 @@ class Parser():
                     for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
                         for af in (["", "_f", "_f1"] if altForm else [""]):
                             fn = base_fn + af + g + m + n
-                            urls["Main Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/zoom/" + fn + ".png")
+                            urls["Main Arts"].append("img_low/sp/assets/npc/zoom/" + fn + ".png")
                             urls["Main Arts"].append("https://media.skycompass.io/assets/customizes/characters/1138x1138/" + fn + ".png")
-                            urls["Inventory Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/m/" + fn + ".jpg")
-                            urls["Square Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/s/" + fn + ".jpg")
-                            urls["Party Portraits"].append(self.getEndpoint() + "img_low/sp/assets/npc/f/" + fn + ".jpg")
-                            urls["Popup Portraits"].append(self.getEndpoint() + "img/sp/assets/npc/qm/" + fn + ".png")
-                            urls["Raid"].append(self.getEndpoint() + "img/sp/assets/npc/raid_normal/" + fn + ".jpg")
-                            urls["Twitter Arts"].append(self.getEndpoint() + "img_low/sp/assets/npc/sns/" + fn + ".jpg")
-                            urls["Charge Attack Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/cutin_special/" + fn + ".jpg")
-                            urls["Chain Cutins"].append(self.getEndpoint() + "img_low/sp/assets/npc/raid_chain/" + fn + ".jpg")
+                            urls["Inventory Portraits"].append("img_low/sp/assets/npc/m/" + fn + ".jpg")
+                            urls["Square Portraits"].append("img_low/sp/assets/npc/s/" + fn + ".jpg")
+                            urls["Party Portraits"].append("img_low/sp/assets/npc/f/" + fn + ".jpg")
+                            urls["Popup Portraits"].append("img/sp/assets/npc/qm/" + fn + ".png")
+                            urls["Raid"].append("img/sp/assets/npc/raid_normal/" + fn + ".jpg")
+                            urls["Twitter Arts"].append("img_low/sp/assets/npc/sns/" + fn + ".jpg")
+                            urls["Charge Attack Cutins"].append("img_low/sp/assets/npc/cutin_special/" + fn + ".jpg")
+                            urls["Chain Cutins"].append("img_low/sp/assets/npc/raid_chain/" + fn + ".jpg")
             # sprites
-            urls["Sprites"].append(self.getEndpoint() + "img/sp/assets/npc/sd/" + base_fn + ".png")
+            urls["Sprites"].append("img/sp/assets/npc/sd/" + base_fn + ".png")
         # sorting
         for k in urls:
             if "Sheet" not in k: continue
@@ -552,7 +538,7 @@ class Parser():
         data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
         res = []
         for l in data:
-            src = self.getEndpoint() + "img_low" + l['src'].split('?')[0]
+            src = "img_low" + l['src'].split('?')[0]
             res.append(src)
         return res
 
