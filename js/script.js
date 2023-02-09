@@ -850,12 +850,14 @@ var class_lookup = { // need to be manually updated..... :(
     "311001_sw": ["gkn_sw"], // school
     "340001_ax": ["gnb_ax"], // xuanwu
     "360201_gu": ["ebi_gu"] // premium friday
+    "350001_me": ["byk_me"] // baihu
 }
 var class_ougi = {
     "320001_kn": "1040115000", // school dancer
     "340001_ax": "1040315700", // xuanwu
     "400001_kt": "1040913700", // zhuque
     "330001_sp": "1040216600", // qinglong
+    "370901_me": "1040617400", // baihu
     "310501_sw": "1040016700", // eternal 1
     "310601_sw": "1040016800", // eternal 2
     "360101_gu": "1040508600", // platinum sky 2
