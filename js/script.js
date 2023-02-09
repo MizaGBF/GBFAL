@@ -850,7 +850,7 @@ var class_lookup = { // need to be manually updated..... :(
     "311001_sw": ["gkn_sw"], // school
     "340001_ax": ["gnb_ax"], // xuanwu
     "360201_gu": ["ebi_gu"], // premium friday
-    "350001_me": ["byk_me"] // baihu
+    "370901_me": ["byk_me"] // baihu
 }
 var class_ougi = {
     "320001_kn": "1040115000", // school dancer
