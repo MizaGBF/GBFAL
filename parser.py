@@ -451,15 +451,16 @@ class Parser():
         altForm = False
         # main sheet
         for uncap in ["01", "02", "03", "04"]:
-            for form in ["", "_f", "_f1", "_f_01"]:
-                try:
-                    fn = "npc_{}_{}{}{}".format(id, uncap, style, form)
-                    urls['Character Sheets'] += self.processManifest(fn)
-                    if form == "": uncaps.append(uncap)
-                    else: altForm = True
-                except:
-                    if form == "":
-                        break
+            for ftype in ["", "_s2"]:
+                for form in ["", "_f", "_f1", "_f_01"]:
+                    try:
+                        fn = "npc_{}_{}{}{}{}".format(id, uncap, style, form, ftype)
+                        urls['Character Sheets'] += self.processManifest(fn)
+                        if form == "": uncaps.append(uncap)
+                        else: altForm = True
+                    except:
+                        if form == "":
+                            break
         if len(uncaps) == 0:
             return False
         if not id.startswith("371") and style == "":
