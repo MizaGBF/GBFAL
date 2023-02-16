@@ -239,7 +239,8 @@ function newArea(name, id, include_link)
 function addResult(identifier, name)
 {
     let div = document.createElement("div");
-    div.id = "result";
+    div.classList.add("result");
+    if(identifier == "Result Header") div.classList.add("result-header");
     div.setAttribute("data-id", identifier);
     div.appendChild(document.createTextNode(name));
     div.appendChild(document.createElement("br"));

@@ -24,7 +24,15 @@ summary {
 }
 
 footer {
+    font-family: sans-serif;
     font-size: 15px;
+    text-align:center;
+    background: #000000b0;
+    border-color: #000000;
+    border-radius: 10px;
+    border-style: solid;
+    width:150px;
+    margin:auto;
 }
 
 img {
@@ -51,7 +59,7 @@ small {
     height: 32px;
 }
 
-#result, .result {
+.result {
     background: #000000b0;
     border-color: #000000;
     color: #ffffff;
@@ -59,6 +67,12 @@ small {
     border-radius: 10px;
     margin: 1em;
     border-style: solid;
+}
+
+.result-header {
+    font-size: 24px;
+    width:600px;
+    margin:auto;
 }
 
 #filter {
@@ -124,16 +138,20 @@ h3 {
 
 a:link {
     color: red;
+    font-size: 1em;
 }
 
 a:visited {
     color: pink;
+    font-size: 1em;
 }
 
 a:hover {
     color: white;
+    font-size: 1em;
 }
 
 a:active {
     color: yellow;
+    font-size: 1em;
 }
