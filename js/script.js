@@ -609,6 +609,7 @@ function lookupEnemy(enemy_id)
     {
         sheets = asset[0].includes("Sheets") ? ["", "_a", "_b", "_c", "_d", "_e"] : [""];
         appends = asset[0].includes("Charge Attack") ? ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10", "_11", "_12", "_13", "_14", "_15", "_16", "_17", "_18", "_19", "_20"] : [""];
+        if(asset[0] === "Big Icon") appends = ["", "_a"];
         
         let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);

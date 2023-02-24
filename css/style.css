@@ -23,7 +23,7 @@ summary {
     text-shadow: #000000 1px 0 10px;
 }
 
-footer {
+footer, #header {
     font-family: sans-serif;
     font-size: 15px;
     text-align:center;
@@ -33,6 +33,10 @@ footer {
     border-style: solid;
     width:150px;
     margin:auto;
+}
+
+#header {
+    color: white;
 }
 
 img {
