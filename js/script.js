@@ -392,7 +392,7 @@ function lookupNPC(npc_id)
         ["Inventory Portrait", "sp/assets/npc/m/", "jpg", "img_low/"],
         ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"]
     ];
-    let scene_alts = ["", "_01", "_laugh", "_laugh2", "_sad", "_angry", "_school", "_a", "_shadow", "_close", "_serious", "_shout", "_surprise", "_surprise2", "_think", "_serious", "_a", "_a_up", "_body", "_valentine"];
+    let scene_alts = ["", "_01", "_laugh", "_laugh2", "_sad", "_angry", "_school", "_a", "_shadow", "_close", "_serious", "_shout", "_surprise", "_surprise2", "_think", "_serious", "_ecstasy", "_ecstasy2", "_a", "_a_up", "_body", "_valentine"];
     
     newArea("NPC", npc_id, true);
     for(let asset of assets)
