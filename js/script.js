@@ -393,7 +393,7 @@ function lookupNPC(npc_id)
         ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"],
         ["Battle Text Arts", "sp/raid/navi_face/", "png", "img/"]
     ];
-    let scene_alts = ["", "_01", "_laugh", "_laugh2", "_wink", "_sad", "_angry", "_school", "_a", "_shadow", "_close", "_serious", "_shout", "_surprise", "_surprise2", "_think", "_serious", "_ecstasy", "_ecstasy2", "_a", "_a_up", "_body", "_valentine"];
+    let scene_alts = ["", "_01", "_laugh", "_laugh2", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_a", "_b", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_surprise2", "_think", "_serious", "_ecstasy", "_ecstasy2", "_a", "_a_up", "_body", "_valentine"];
     
     newArea("NPC", npc_id, true);
     for(let asset of assets)
