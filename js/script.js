@@ -391,14 +391,14 @@ function lookupNPC(npc_id)
         ["Journal Art", "sp/assets/npc/b/", "png", "img_low/"],
         ["Inventory Portrait", "sp/assets/npc/m/", "jpg", "img_low/"],
         ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"],
-        ["Battle Text Arts", "sp/raid/navi_face/", "png", "img/"]
+        ["Raid Bubble Arts", "sp/raid/navi_face/", "png", "img/"]
     ];
     let scene_alts = ["", "_01", "_laugh", "_laugh2", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_a", "_b", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_surprise2", "_think", "_serious", "_ecstasy", "_ecstasy2", "_a", "_a_up", "_body", "_valentine"];
     
     newArea("NPC", npc_id, true);
     for(let asset of assets)
     {
-        let scene_append = asset[0] == "Scene Arts" ? scene_alts : ["", "_01"];
+        let scene_append = (asset[0] == "Scene Arts" || asset[0] == "Raid Bubble Arts") ? scene_alts : ["", "_01"];
         
         let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
