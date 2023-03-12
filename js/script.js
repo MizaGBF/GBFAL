@@ -444,6 +444,10 @@ function lookupNPC(npc_id)
             uncap_append = ["", "_01", "_02", "_03"];
             if(transcendance.includes(npc_id)) uncap_append.push("_04");
         }
+        else if(npc_id.startsWith('30'))
+        {
+            uncap_append = ["", "_01"];
+        }
         let prefix_append = (asset[0] == "Scene Arts") ? ["", "_a", "_battle"] : [""];
         let scene_append = (asset[0] == "Scene Arts" || asset[0] == "Raid Bubble Arts") ? scene_alts : [""];
         let suffix_append = (asset[0] == "Scene Arts") ? ["", "_up"] : [""];
