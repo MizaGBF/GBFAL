@@ -435,16 +435,15 @@ function lookupNPC(npc_id)
     ];
     let scene_alts = ["", "_speed", "_up_speed", "_speed2", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_ecstasy", "_ecstasy2", "_body", "_valentine", "_weapon_a", "_weapon_b", "_b", "_c", "_d", "_e", "_f", "_g"];
     
-    let uncap_append = ["", "_01"];
-    if(npc_id.startsWith('30'))
-    {
-        uncap_append = ["", "_01", "_02", "_03"];
-        if(transcendance.includes(npc_id)) uncap_append.push("_04");
-    }
-    
     newArea("NPC", npc_id, true);
     for(let asset of assets)
     {
+        let uncap_append = (assets[0] != "Scene Arts") ? ["", "_01"] : [""];
+        if(npc_id.startsWith('30'))
+        {
+            uncap_append = ["", "_01", "_02", "_03"];
+            if(transcendance.includes(npc_id)) uncap_append.push("_04");
+        }
         let prefix_append = (asset[0] == "Scene Arts") ? ["", "_a", "_battle"] : [""];
         let scene_append = (asset[0] == "Scene Arts" || asset[0] == "Raid Bubble Arts") ? scene_alts : [""];
         let suffix_append = (asset[0] == "Scene Arts") ? ["", "_up"] : [""];
