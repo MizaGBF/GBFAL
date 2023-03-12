@@ -444,7 +444,7 @@ function lookupNPC(npc_id)
             uncap_append = ["", "_01", "_02", "_03"];
             if(transcendance.includes(npc_id)) uncap_append.push("_04");
         }
-        else if(npc_id.startsWith('30'))
+        else if(npc_id.startsWith('37'))
         {
             uncap_append = ["", "_01"];
         }
