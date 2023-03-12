@@ -22,7 +22,7 @@
 <body onload="init()">
     <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div id="version">v3.0</div>
+        <div id="version">v3.1</div>
     </div>
     <br>
     <input type="text" id="filter" onkeyup="filter()" placeholder="Input an ID" style="width:500px">
@@ -47,11 +47,28 @@
     <br>
     <div id="resultarea">
     </div>
-    <details onclick="displayCharacters(this)">
+    <details>
         <summary>Characters</summary>
-        <h3 class="result" id="areacharacters">
-            <small>Non-exhaustive list</small><br>
-        </h3>
+        <div class="subdetails">
+            <details onclick="displayCharacters(this, 4)">
+                <summary>SSR</summary>
+                <h3 class="result" id="areacharacters4">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 3)">
+                <summary>SR</summary>
+                <h3 class="result" id="areacharacters3">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 2)">
+                <summary>R</summary>
+                <h3 class="result" id="areacharacters2">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+        </div>
     </details>
     <details onclick="displaySkins(this)">
         <summary>Skins</summary>
@@ -59,17 +76,99 @@
             <small>Non-exhaustive list</small><br>
         </h3>
     </details>
-    <details onclick="displaySummons(this)">
+    <details>
         <summary>Summons</summary>
-        <h3 class="result" id="areasummons">
-            <small>Non-exhaustive list</small><br>
-        </h3>
+        <div class="subdetails">
+            <details onclick="displaySummons(this, 4)">
+                <summary>SSR</summary>
+                <h3 class="result" id="areasummons4">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displaySummons(this, 3)">
+                <summary>SR</summary>
+                <h3 class="result" id="areasummons3">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displaySummons(this, 2)">
+                <summary>R</summary>
+                <h3 class="result" id="areasummons2">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displaySummons(this, 1)">
+                <summary>N</summary>
+                <h3 class="result" id="areasummons1">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+        </div>
     </details>
-    <details onclick="displayWeapons(this)">
+    <details>
         <summary>Weapons</summary>
-        <h3 class="result" id="areaweapons">
-            <small>Non-exhaustive list</small><br>
-        </h3>
+        <div class="subdetails">
+            <details onclick="displayWeapons(this, 0)">
+                <summary>Sword</summary>
+                <h3 class="result" id="areaweapons0">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 1)">
+                <summary>Dagger</summary>
+                <h3 class="result" id="areaweapons1">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 2)">
+                <summary>Spear</summary>
+                <h3 class="result" id="areaweapons2">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 3)">
+                <summary>Axe</summary>
+                <h3 class="result" id="areaweapons3">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 4)">
+                <summary>Staff</summary>
+                <h3 class="result" id="areaweapons4">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 5)">
+                <summary>Gun</summary>
+                <h3 class="result" id="areaweapons5">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 6)">
+                <summary>Melee</summary>
+                <h3 class="result" id="areaweapons6">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 7)">
+                <summary>Bow</summary>
+                <h3 class="result" id="areaweapons7">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 8)">
+                <summary>Harp</summary>
+                <h3 class="result" id="areaweapons8">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayWeapons(this, 9)">
+                <summary>Katana</summary>
+                <h3 class="result" id="areaweapons9">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+        </div>
     </details>
     <details onclick="displayMC(this)">
         <summary>Classes</summary>

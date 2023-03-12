@@ -50,7 +50,7 @@ function loadData(unused)
         if(key != "version")
         {
             index[key].sort();
-            if(key != "npcs") index[key].reverse();
+            if(!(["job", "npcs"].includes(key))) index[key].reverse();
         }
     }
 }
@@ -961,14 +961,16 @@ function addImage(node, path, id, onerr = null)
     img.src = protocol + getEndpoint() + language + "img_low/" + path; 
 }
 
-function displayCharacters(elem)
+function displayCharacters(elem, i)
 {
+    i = JSON.stringify(i);
     elem.removeAttribute("onclick");
+    let node = document.getElementById('areacharacters'+i);
     if("characters" in index)
     {
-        let node = document.getElementById('areacharacters');  
         for(let id of index["characters"])
         {
+            if(id[2] != i) continue;
             let el = id.split("_");
             if(el.length == 2)
                 addImage(node, "sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", id);
@@ -978,27 +980,31 @@ function displayCharacters(elem)
     }
 }
 
-function displaySummons(elem)
+function displaySummons(elem, i)
 {
+    i = JSON.stringify(i);
     elem.removeAttribute("onclick");
-    let node = document.getElementById('areasummons');
+    let node = document.getElementById('areasummons'+i);
     if("summons" in index)
     {
         for(let id of index["summons"])
         {
+            if(id[2] != i) continue;
             addImage(node, "sp/assets/summon/m/" + id + ".jpg", id);
         }
     }
 }
 
-function displayWeapons(elem)
+function displayWeapons(elem, i)
 {
+    i = JSON.stringify(i);
     elem.removeAttribute("onclick");
-    let node = document.getElementById('areaweapons');
+    let node = document.getElementById('areaweapons'+i);
     if("weapons" in index)
     {
         for(let id of index["weapons"])
         {
+            if(id[4] != i) continue;
             addImage(node, "sp/assets/weapon/m/" + id + ".jpg", id);
         }
     }

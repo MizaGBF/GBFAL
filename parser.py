@@ -80,25 +80,22 @@ class Parser():
         possibles = []
         self.new_characters = []
         
-        # characters
-        self.newShared(errs)
-        for i in range(4):
-            possibles.append(('characters', i, 4, errs[-1], "3040{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
-        self.newShared(errs)
-        for i in range(4):
-            possibles.append(('characters', i, 4, errs[-1], "3030{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg"))
-        self.newShared(errs)
-        for i in range(4):
-            possibles.append(('characters', i, 4, errs[-1], "3020{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg"))
-        # summons
-        self.newShared(errs)
-        for i in range(4):
-            possibles.append(('summons', i, 4, errs[-1], "2040{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
-        # weapons
-        for j in range(10):
+        #rarity
+        for r in range(1, 5):
+            # characters
+            if r > 1:
+                self.newShared(errs)
+                for i in range(4):
+                    possibles.append(('characters', i, 4, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
+            # summons
             self.newShared(errs)
-            for i in range(5):
-                possibles.append(('weapons', i, 5, errs[-1], "1040{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
+            for i in range(4):
+                possibles.append(('summons', i, 4, errs[-1], "20"+str(r)+"0{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
+            # weapons
+            for j in range(10):
+                self.newShared(errs)
+                for i in range(5):
+                    possibles.append(('weapons', i, 5, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
         # skins
         self.newShared(errs)
         for i in range(4):
@@ -115,7 +112,7 @@ class Parser():
         for i in range(8):
             possibles.append(('npcs', i, 8, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", "{}.png", [""], 80))
         
-        print("Starting Index update...")
+        print("Starting Index update... (", len(possibles), " threads )")
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)) as executor:
             futures = self.job_search(executor)
             for p in possibles:
