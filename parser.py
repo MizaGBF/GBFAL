@@ -27,7 +27,8 @@ class Parser():
             "weapons":set(),
             "enemies":set(),
             "skins":set(),
-            "job":set()
+            "job":set(),
+            "npcs":set()
         }
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.new_characters = []
@@ -102,15 +103,20 @@ class Parser():
         self.newShared(errs)
         for i in range(4):
             possibles.append(('skins', i, 4, errs[-1], "3710{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg"))
-        #enemies
-        for ab in [73, 51, 52, 43, 41, 81, 91]:
-            for d in [1, 2, 3]:
-                self.newShared(errs)
-                for i in range(5):
-                    possibles.append(('enemies', i, 5, errs[-1], str(ab) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png"))
+        # enemies
+        for a in range(1, 10):
+            for b in range(1, 4):
+                for d in [1, 2, 3]:
+                    self.newShared(errs)
+                    for i in range(2):
+                        possibles.append(('enemies', i, 2, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png"))
+        # npc
+        self.newShared(errs)
+        for i in range(8):
+            possibles.append(('npcs', i, 8, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", "{}.png", [""], 80))
         
         print("Starting Index update...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)) as executor:
             futures = self.job_search(executor)
             for p in possibles:
                 futures.append(executor.submit(self.subroutine, self.getEndpoint(), *p))
@@ -212,9 +218,9 @@ class Parser():
                     if col == '01': return sheets
         return sheets
 
-    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles = [""]):
+    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles = [""], maxerr=20):
         id = start
-        while err[0] < 20 and err[1]:
+        while err[0] < maxerr and err[1]:
             f = file.format(str(id).zfill(zfill))
             if f in self.data[index]:
                 with err[2]:
@@ -233,7 +239,7 @@ class Parser():
                     if s != "": break
                     with err[2]:
                         err[0] += 1
-                        if err[0] >= 20:
+                        if err[0] >= maxerr:
                             if err[1]: print("Threads", index, "("+file+")", "are done")
                             err[1] = False
                             return
@@ -352,7 +358,7 @@ class Parser():
         return self.endpoint
 
     def req(self, url, headers={}):
-        response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
+        response = self.client.head(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
         if response.status_code != 200: raise Exception()
         return response.content
 

@@ -50,7 +50,7 @@ function loadData(unused)
         if(key != "version")
         {
             index[key].sort();
-            index[key].reverse();
+            if(key != "npcs") index[key].reverse();
         }
     }
 }
@@ -939,7 +939,7 @@ function lookupMCPlus(mc_id)
 
 // =================================================================================================
 // index stuff
-function addImage(node, path, id)
+function addImage(node, path, id, onerr = null)
 {
     let img = document.createElement("img");
     let ref = document.createElement('a');
@@ -948,9 +948,13 @@ function addImage(node, path, id)
     ref.appendChild(img);
     img.id  = "loading";
     img.loading = "lazy";
-    img.onerror = function() {
-        this.remove();
+    if(onerr == null)
+    {
+        img.onerror = function() {
+            this.remove();
+        }
     }
+    else img.onerror = onerr;
     img.onload = function() {
         this.id = "done"
     }
@@ -1013,15 +1017,38 @@ function displaySkins(elem)
     }
 }
 
-function displayEnemies(elem)
+function displayEnemies(elem, i)
 {
+    i = JSON.stringify(i);
     elem.removeAttribute("onclick");
-    let node = document.getElementById('areaenemies');
+    let node = document.getElementById('areaenemies'+i);
     if("enemies" in index)
     {
         for(let id of index["enemies"])
         {
+            if(id[0] != i) continue;
             addImage(node, "sp/assets/enemy/m/" + id + ".png", "e" + id);
+        }
+    }
+}
+
+function displayNPC(elem, i)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areanpc'+i);
+    let start = 3990000000 + i * 1000;
+    let end = start + 499000;
+    let onerr = function() {
+        this.onerror = null;
+        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/m/3999999999.jpg";
+    }
+    if("npcs" in index)
+    {
+        for(let id of index["npcs"])
+        {
+            let t = parseInt(id);
+            if(t < start || t > end) continue;
+            addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id, onerr);
         }
     }
 }

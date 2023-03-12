@@ -22,7 +22,7 @@
 <body onload="init()">
     <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div id="version">v2.2</div>
+        <div id="version">v3.0</div>
     </div>
     <br>
     <input type="text" id="filter" onkeyup="filter()" placeholder="Input an ID" style="width:500px">
@@ -77,11 +77,117 @@
             <small>Non-exhaustive list</small><br>
         </h3>
     </details>
-    <details onclick="displayEnemies(this)">
+    <details>
         <summary>Enemies</summary>
-        <h3 class="result" id="areaenemies">
-            <small>Non-exhaustive list</small><br>
-        </h3>
+        <div class="subdetails">
+            <details onclick="displayEnemies(this, 1)">
+                <summary>1 - Beasts</summary>
+                <h3 class="result" id="areaenemies1">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayEnemies(this, 2)">
+                <summary>2 - Plants</summary>
+                <h3 class="result" id="areaenemies2">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayEnemies(this, 3)">
+                <summary>3 - Aquas</summary>
+                <h3 class="result" id="areaenemies3">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayEnemies(this, 4)">
+                <summary>4 - Golems</summary>
+                <h3 class="result" id="areaenemies4">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayEnemies(this, 5)">
+                <summary>5 - Darkness</summary>
+                <h3 class="result" id="areaenemies5">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayEnemies(this, 6)">
+                <summary>6 - Humanoids</summary>
+                <h3 class="result" id="areaenemies6">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayEnemies(this, 7)">
+                <summary>7 - Dragons</summary>
+                <h3 class="result" id="areaenemies7">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayEnemies(this, 8)">
+                <summary>8 - Primals</summary>
+                <h3 class="result" id="areaenemies8">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayEnemies(this, 9)">
+                <summary>9 - Others</summary>
+                <h3 class="result" id="areaenemies9">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+        </div>
+    </details>
+    <details>
+        <summary>NPC</summary>
+        <div class="subdetails">
+            <details onclick="displayNPC(this, 0)">
+                <summary>0 - 499</summary>
+                <h3 class="result" id="areanpc0">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayNPC(this, 500)">
+                <summary>500 - 999</summary>
+                <h3 class="result" id="areanpc500">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayNPC(this, 1000)">
+                <summary>1000 - 1499</summary>
+                <h3 class="result" id="areanpc1000">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayNPC(this, 1500)">
+                <summary>1500 - 1999</summary>
+                <h3 class="result" id="areanpc1500">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayNPC(this, 2000)">
+                <summary>2000 - 2499</summary>
+                <h3 class="result" id="areanpc2000">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayNPC(this, 2500)">
+                <summary>2500 - 2999</summary>
+                <h3 class="result" id="areanpc2500">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayNPC(this, 3000)">
+                <summary>3000 - 3499</summary>
+                <h3 class="result" id="areanpc3000">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayNPC(this, 3500)">
+                <summary>3500 - 3999</summary>
+                <h3 class="result" id="areanpc3500">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+        </div>
     </details>
     <br>
 </body>
