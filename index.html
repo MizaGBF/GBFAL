@@ -22,7 +22,7 @@
 <body onload="init()">
     <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div id="version">v3.1</div>
+        <div id="version">v3.2</div>
     </div>
     <br>
     <input type="text" id="filter" onkeyup="filter()" placeholder="Input an ID" style="width:500px">
@@ -34,11 +34,12 @@
             <ul>
                 <li>A valid ID looks like 3040000000.</li>
                 <li>Currently supported: Characters, Skins, Weapons, Summons, NPCs, Enemies and Classes.</li>
-                <li>For Enemies, add 'e' before the ID. Example: <a href="?id=e6205703">e6205703</a>.</li>
-                <li>For Classes, put the pair of the class ID and its main proficiency, separated by an underscore: <a href="?id=450301_sw">Relic Buster</a>.</li>
-                <li>Loading can take time, especially for Skins and Multi-Unit Characters, be patient!</li>
+                <li>For Enemies, add 'e' before the ID. Example: <a href="?id=e6205703">e6205703</a> for School Belial.</li>
+                <li>For Classes, put the pair of the class ID and its main proficiency, separated by an underscore: <a href="?id=450301_sw">450301_sw</a> for Relic Buster.</li>
+                <li>Loading can take time, especially for Skins and Multi-Unit Characters, please be patient!</li>
+                <li>This page is static and doesn't host any images, they are all pulled directly from GBF.</li>
                 <li>You can find IDs on a corresponding <a href="https://gbf.wiki/">Wiki page</a>, under the Extra informations.</li>
-                <li>You can click on images to access the highest quality.</li>
+                <li>Click on images to access their highest quality.</li>
                 <li>Sky Compass arts have a cyan border.</li>
                 <li>You can bookmark the page after loading an ID to save it.</li>
             </ul>
@@ -108,65 +109,265 @@
     <details>
         <summary>Weapons</summary>
         <div class="subdetails">
-            <details onclick="displayWeapons(this, 0)">
-                <summary>Sword</summary>
-                <h3 class="result" id="areaweapons0">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
+            <details>
+                <summary>SSR</summary>
+                <div class="subdetails">
+                    <details onclick="displayWeapons(this, 4, 0)">
+                        <summary>Sword</summary>
+                        <h3 class="result" id="areaweapons40">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 1)">
+                        <summary>Dagger</summary>
+                        <h3 class="result" id="areaweapons41">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 2)">
+                        <summary>Spear</summary>
+                        <h3 class="result" id="areaweapons42">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 3)">
+                        <summary>Axe</summary>
+                        <h3 class="result" id="areaweapons43">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 4)">
+                        <summary>Staff</summary>
+                        <h3 class="result" id="areaweapons44">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 5)">
+                        <summary>Gun</summary>
+                        <h3 class="result" id="areaweapons45">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 6)">
+                        <summary>Melee</summary>
+                        <h3 class="result" id="areaweapons46">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 7)">
+                        <summary>Bow</summary>
+                        <h3 class="result" id="areaweapons47">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 8)">
+                        <summary>Harp</summary>
+                        <h3 class="result" id="areaweapons48">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 4, 9)">
+                        <summary>Katana</summary>
+                        <h3 class="result" id="areaweapons49">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
             </details>
-            <details onclick="displayWeapons(this, 1)">
-                <summary>Dagger</summary>
-                <h3 class="result" id="areaweapons1">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
+            <details>
+                <summary>SR</summary>
+                <div class="subdetails">
+                    <details onclick="displayWeapons(this, 3, 0)">
+                        <summary>Sword</summary>
+                        <h3 class="result" id="areaweapons30">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 1)">
+                        <summary>Dagger</summary>
+                        <h3 class="result" id="areaweapons31">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 2)">
+                        <summary>Spear</summary>
+                        <h3 class="result" id="areaweapons32">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 3)">
+                        <summary>Axe</summary>
+                        <h3 class="result" id="areaweapons33">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 4)">
+                        <summary>Staff</summary>
+                        <h3 class="result" id="areaweapons34">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 5)">
+                        <summary>Gun</summary>
+                        <h3 class="result" id="areaweapons35">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 6)">
+                        <summary>Melee</summary>
+                        <h3 class="result" id="areaweapons36">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 7)">
+                        <summary>Bow</summary>
+                        <h3 class="result" id="areaweapons37">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 8)">
+                        <summary>Harp</summary>
+                        <h3 class="result" id="areaweapons38">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 3, 9)">
+                        <summary>Katana</summary>
+                        <h3 class="result" id="areaweapons39">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
             </details>
-            <details onclick="displayWeapons(this, 2)">
-                <summary>Spear</summary>
-                <h3 class="result" id="areaweapons2">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
+            <details>
+                <summary>R</summary>
+                <div class="subdetails">
+                    <details onclick="displayWeapons(this, 2, 0)">
+                        <summary>Sword</summary>
+                        <h3 class="result" id="areaweapons20">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 1)">
+                        <summary>Dagger</summary>
+                        <h3 class="result" id="areaweapons21">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 2)">
+                        <summary>Spear</summary>
+                        <h3 class="result" id="areaweapons22">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 3)">
+                        <summary>Axe</summary>
+                        <h3 class="result" id="areaweapons23">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 4)">
+                        <summary>Staff</summary>
+                        <h3 class="result" id="areaweapons24">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 5)">
+                        <summary>Gun</summary>
+                        <h3 class="result" id="areaweapons25">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 6)">
+                        <summary>Melee</summary>
+                        <h3 class="result" id="areaweapons26">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 7)">
+                        <summary>Bow</summary>
+                        <h3 class="result" id="areaweapons27">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 8)">
+                        <summary>Harp</summary>
+                        <h3 class="result" id="areaweapons28">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 2, 9)">
+                        <summary>Katana</summary>
+                        <h3 class="result" id="areaweapons29">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
             </details>
-            <details onclick="displayWeapons(this, 3)">
-                <summary>Axe</summary>
-                <h3 class="result" id="areaweapons3">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayWeapons(this, 4)">
-                <summary>Staff</summary>
-                <h3 class="result" id="areaweapons4">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayWeapons(this, 5)">
-                <summary>Gun</summary>
-                <h3 class="result" id="areaweapons5">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayWeapons(this, 6)">
-                <summary>Melee</summary>
-                <h3 class="result" id="areaweapons6">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayWeapons(this, 7)">
-                <summary>Bow</summary>
-                <h3 class="result" id="areaweapons7">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayWeapons(this, 8)">
-                <summary>Harp</summary>
-                <h3 class="result" id="areaweapons8">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayWeapons(this, 9)">
-                <summary>Katana</summary>
-                <h3 class="result" id="areaweapons9">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
+            <details>
+                <summary>N</summary>
+                <div class="subdetails">
+                    <details onclick="displayWeapons(this, 1, 0)">
+                        <summary>Sword</summary>
+                        <h3 class="result" id="areaweapons10">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 1)">
+                        <summary>Dagger</summary>
+                        <h3 class="result" id="areaweapons11">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 2)">
+                        <summary>Spear</summary>
+                        <h3 class="result" id="areaweapons12">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 3)">
+                        <summary>Axe</summary>
+                        <h3 class="result" id="areaweapons13">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 4)">
+                        <summary>Staff</summary>
+                        <h3 class="result" id="areaweapons14">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 5)">
+                        <summary>Gun</summary>
+                        <h3 class="result" id="areaweapons15">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 6)">
+                        <summary>Melee</summary>
+                        <h3 class="result" id="areaweapons16">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 7)">
+                        <summary>Bow</summary>
+                        <h3 class="result" id="areaweapons17">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 8)">
+                        <summary>Harp</summary>
+                        <h3 class="result" id="areaweapons18">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayWeapons(this, 1, 9)">
+                        <summary>Katana</summary>
+                        <h3 class="result" id="areaweapons19">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
             </details>
         </div>
     </details>

@@ -978,6 +978,7 @@ function displayCharacters(elem, i)
                 addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
         }
     }
+    this.onclick = null;
 }
 
 function displaySummons(elem, i)
@@ -993,21 +994,24 @@ function displaySummons(elem, i)
             addImage(node, "sp/assets/summon/m/" + id + ".jpg", id);
         }
     }
+    this.onclick = null;
 }
 
-function displayWeapons(elem, i)
+function displayWeapons(elem, r, i)
 {
+    r = JSON.stringify(r);
     i = JSON.stringify(i);
     elem.removeAttribute("onclick");
-    let node = document.getElementById('areaweapons'+i);
+    let node = document.getElementById('areaweapons'+r+i);
     if("weapons" in index)
     {
         for(let id of index["weapons"])
         {
-            if(id[4] != i) continue;
+            if(id[4] != i || id[2] != r) continue;
             addImage(node, "sp/assets/weapon/m/" + id + ".jpg", id);
         }
     }
+    this.onclick = null;
 }
 
 function displaySkins(elem)
@@ -1036,6 +1040,7 @@ function displayEnemies(elem, i)
             addImage(node, "sp/assets/enemy/m/" + id + ".png", "e" + id);
         }
     }
+    this.onclick = null;
 }
 
 function displayNPC(elem, i)
@@ -1057,6 +1062,7 @@ function displayNPC(elem, i)
             addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id, onerr);
         }
     }
+    this.onclick = null;
 }
 
 function displayMC(elem)
@@ -1070,4 +1076,5 @@ function displayMC(elem)
             addImage(node, "sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id);
         }
     }
+    this.onclick = null;
 }
