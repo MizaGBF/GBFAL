@@ -47,6 +47,15 @@ footer, #header {
     margin:auto;
 }
 
+.preview {
+    padding-right: 32.7975px;
+    padding-left: 32.7975px;
+    max-height: 80px;
+    border: 2px solid #808080;
+    border-radius: 10px;
+    border-style: solid;
+}
+
 img {
     object-fit: contain;
 }

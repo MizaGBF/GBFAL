@@ -1151,7 +1151,8 @@ function displayNPC(elem, i)
     let end = start + 499000;
     let onerr = function() {
         this.onerror = null;
-        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/m/3999999999.jpg";
+        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
+        this.className = "preview";
     }
     if("npcs" in index)
     {
