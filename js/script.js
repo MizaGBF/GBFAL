@@ -438,7 +438,7 @@ function lookupNPC(npc_id)
     newArea("NPC", npc_id, true);
     for(let asset of assets)
     {
-        let uncap_append = (assets[0] != "Scene Arts") ? ["", "_01"] : [""];
+        let uncap_append = (asset[0] != "Scene Arts") ? ["", "_01"] : [""];
         if(npc_id.startsWith('30'))
         {
             uncap_append = ["", "_01", "_02", "_03"];
