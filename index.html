@@ -23,7 +23,7 @@
 <body onload="init()">
     <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div id="version">v3.5</div>
+        <div id="version">v3.6</div>
     </div>
     <br>
     <input type="text" id="filter" onkeyup="filter()" placeholder="Input an ID" style="width:500px">
@@ -35,7 +35,6 @@
             <ul>
                 <li>A valid ID looks like 3040000000.</li>
                 <li>Currently supported: Characters, Skins, Weapons, Summons, NPCs, Enemies and Classes.</li>
-                <li>For Characters and Outfits, add 'n' before the ID to access the NPC files. Example: <a href="?id=n3040036000">n3040036000</a> for Seofon's NPC files.</li>
                 <li>For Enemies, add 'e' before the ID. Example: <a href="?id=e6205703">e6205703</a> for School Belial.</li>
                 <li>For Classes, put the pair of the class ID and its main proficiency, separated by an underscore: <a href="?id=450301_sw">450301_sw</a> for Relic Buster.</li>
                 <li>Loading can take time, especially for Skins and Multi-Unit Characters, please be patient!</li>
@@ -486,24 +485,6 @@
             <details onclick="displayNPC(this, 3500)">
                 <summary>3500 - 3999</summary>
                 <h3 class="result" id="areanpc3500">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayNPCCharacters(this, 4)">
-                <summary>SSR</summary>
-                <h3 class="result" id="areanpccharacters4">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayNPCCharacters(this, 3)">
-                <summary>SR</summary>
-                <h3 class="result" id="areanpccharacters3">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayNPCCharacters(this, 2)">
-                <summary>R</summary>
-                <h3 class="result" id="areanpccharacters2">
                     <small>Non-exhaustive list</small><br>
                 </h3>
             </details>

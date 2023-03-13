@@ -354,10 +354,13 @@ class Parser():
     def getEndpoint(self):
         return self.endpoint
 
-    def req(self, url, headers={}):
-        response = self.client.head(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
+    def req(self, url, headers={}, get=False):
+        if get:
+            response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
+        else:
+            response = self.client.head(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
         if response.status_code != 200: raise Exception()
-        return response.content
+        if get: return response.content
 
     def run(self):
         max_thread = 16
@@ -436,10 +439,12 @@ class Parser():
     def update(self, id, style=""):
         urls = {}
         urls["Main Arts"] = []
+        urls["Journal Arts"] = []
         urls["Inventory Portraits"] = []
         urls["Square Portraits"] = []
         urls["Party Portraits"] = []
         urls["Popup Portraits"] = []
+        urls["Party Select Portraits"] = []
         urls["Sprites"] = []
         urls["Raid"] = []
         urls["Twitter Arts"] = []
@@ -461,7 +466,7 @@ class Parser():
                         urls['Character Sheets'] += self.processManifest(fn)
                         if form == "": uncaps.append(uncap)
                         else: altForm = True
-                    except:
+                    except Exception as e:
                         if form == "":
                             break
         if len(uncaps) == 0:
@@ -514,10 +519,12 @@ class Parser():
                             fn = base_fn + af + g + m + n
                             urls["Main Arts"].append("img_low/sp/assets/npc/zoom/" + fn + ".png")
                             urls["Main Arts"].append("https://media.skycompass.io/assets/customizes/characters/1138x1138/" + fn + ".png")
+                            urls["Journal Arts"].append("img_low/sp/assets/npc/b/" + fn + ".png")
                             urls["Inventory Portraits"].append("img_low/sp/assets/npc/m/" + fn + ".jpg")
                             urls["Square Portraits"].append("img_low/sp/assets/npc/s/" + fn + ".jpg")
                             urls["Party Portraits"].append("img_low/sp/assets/npc/f/" + fn + ".jpg")
                             urls["Popup Portraits"].append("img/sp/assets/npc/qm/" + fn + ".png")
+                            urls["Party Select Portraits"].append("img/sp/assets/npc/quest/" + fn + ".jpg")
                             urls["Raid"].append("img/sp/assets/npc/raid_normal/" + fn + ".jpg")
                             urls["Twitter Arts"].append("img_low/sp/assets/npc/sns/" + fn + ".jpg")
                             urls["Charge Attack Cutins"].append("img_low/sp/assets/npc/cutin_special/" + fn + ".jpg")
@@ -536,7 +543,7 @@ class Parser():
         return True
 
     def processManifest(self, file):
-        manifest = self.req(self.manifestUri + file + ".js").decode('utf-8')
+        manifest = self.req(self.manifestUri + file + ".js", get=True).decode('utf-8')
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
         data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))

@@ -18,9 +18,6 @@ var result_area = null;
 var null_characters = [
     "3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"
 ];
-var transcendance = [
-    "3040030000", "3040031000", "3040032000", "3040033000", "3040034000", "3040035000", "3040036000", "3040037000", "3040038000", "3040039000"
-];
 var blacklist = [
 
 ]
@@ -153,9 +150,14 @@ function successJSON(id)
             ref.appendChild(img);
         }
     }
+    // character npc files, at the end
+    if(id.length >= 10 && id[0] == '3')
+    {
+        lookupNPCChara(id, obj);
+    }
 }
 
-function failJSON(id, forcenpc)
+function failJSON(id)
 {
     if(blacklist.includes(id)) return;
     if(id.length == 10 || id.length == 14)
@@ -169,22 +171,14 @@ function failJSON(id, forcenpc)
                 lookupSummon(id);
                 break;
             case '3':
-                if(id[1] == '9' || forcenpc) lookupNPC(id);
+                if(id[1] == '9') lookupNPC(id);
                 else lookupCharacter(id);
                 break;
             default:
                 return;
         };
-        if(forcenpc)
-        {
-            last_id = "n"+id;
-            updateQuery("n"+id);
-        }
-        else
-        {
-            last_id = id;
-            updateQuery(id);
-        }
+        last_id = id;
+        updateQuery(id);
     }
     else if(id.length == 7)
     {
@@ -204,13 +198,6 @@ function failJSON(id, forcenpc)
 
 function lookup(id)
 {
-    let forcenpc = false;
-    if(id.startsWith('n3'))
-    {
-        id = id.slice(1);
-        if(last_id == id) last_id = null;
-        forcenpc = true;
-    }
     if(blacklist.includes(id)) return;
     counter = 0;
     f = document.getElementById('filter');
@@ -224,11 +211,9 @@ function lookup(id)
         if(f.value == "")
         {
             f.value = id;
-            if(forcenpc) f.value = "n" + f.value;
         }
         if(id.toLowerCase()[0] === 'e') id = id.slice(1);
-        if(forcenpc) failJSON(id, forcenpc);
-        else getJSON("data/" + id + ".json?" + Date.now(), successJSON, failJSON, id);
+        getJSON("data/" + id + ".json?" + Date.now(), successJSON, failJSON, id);
     }
 }
 
@@ -250,22 +235,6 @@ function newArea(name, id, include_link)
         
         if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371")
         {
-            if(name == "Character")
-            {
-                div.appendChild(document.createElement('br'));
-                l = document.createElement('a');
-                l.setAttribute('href', "?id=n" + id);
-                l.appendChild(document.createTextNode("NPC Assets"));
-                div.appendChild(l);
-            }
-            else if(name == "NPC")
-            {
-                div.appendChild(document.createElement('br'));
-                l = document.createElement('a');
-                l.setAttribute('href', "?id=" + id);
-                l.appendChild(document.createTextNode("Character Assets"));
-                div.appendChild(l);
-            }
             div.appendChild(document.createElement('br'));
             l = document.createElement('a');
             l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
@@ -296,9 +265,12 @@ function lookupCharacter(character_id)
     
     let assets = [
         ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", false, true, false, true], // skin folder, gendered/multi, spritesheet, bonus
+        ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", false, true, false, true],
         ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", false, true, false, true],
         ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", true, true, false, true],
         ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", true, true, false, true],
+        ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_low/", true, true, false, true],
+        ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img_low/", true, true, false, true],
         ["Sprites", "sp/assets/npc/sd/", "png", "img/", false, false, false, false],
         ["Raid", "sp/assets/npc/raid_normal/", "jpg", "img/", false, true, false, true],
         ["Twitter Arts", "sp/assets/npc/sns/", "jpg", "img_low/", false, true, false, true],
@@ -310,7 +282,8 @@ function lookupCharacter(character_id)
         ["AOE Skill Sheets", "sp/cjs/ab_all_", "png", "img_low/", false, false, true, false],
         ["Single Target Skill Sheets", "sp/cjs/ab_", "png", "img_low/", false, false, true, false]
     ];
-    let uncaps = ["_01", "_02", "_03", "_04"];
+    let uncaps = ["_01", "_02"];
+    if(character_id[1] != '0') uncaps = ["_01"];
     let styles = ["", "_st2"];
     let bonus = ["_81", "_82", "_83", "_91"];
     let alts = ["", "_f", "_f1", "_f_01"];
@@ -421,6 +394,73 @@ function lookupCharacter(character_id)
             }
         }
     }
+    // character npc files, at the end
+    lookupNPCChara(character_id);
+}
+
+function lookupNPCChara(character_id, json_data = null)
+{
+    let uncaps = [""];
+    if(json_data != null)
+    {
+        for(let el of json_data["Journal Arts"])
+        {
+            let u = '_'+el.split('.')[0].split('_').slice(-1)[0];
+            if(u != '_01' && !u.startsWith('_8')) uncaps.push(u);
+        }
+    }
+    else
+    {
+        uncaps = ["", "_02"];
+    }
+    let assets = [
+        ["Raid Bubble Arts", "sp/raid/navi_face/", "png", "img/"],
+        ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"]
+    ];
+    
+    let expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2"];
+    let variationsA = ["", "_battle"];
+    let variationsB = ["", "_speed", "_up"]
+    let others = ["_up_speed"];
+    let specials = ["_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+    let scene_alts = [];
+    for(let uncap of uncaps)
+        for(let A of variationsA)
+            for(let ex of expressions)
+                for(let B of variationsB)
+                    scene_alts.push(uncap+A+ex+B);
+    scene_alts = scene_alts.concat(others, specials);
+    
+    for(let asset of assets)
+    {
+        let div = addResult(asset[0], asset[0]);
+        result_area.appendChild(div);
+        
+        let iterations =  (asset[0] != "Scene Arts") ? [].concat(expressions, others) : scene_alts;
+        let count = 0;
+        for(let scene of iterations)
+        {
+            let path = asset[1] +  character_id + scene + "." + asset[2];
+            let img = document.createElement("img");
+            let ref = document.createElement('a');
+            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+            div.appendChild(ref);
+            ref.appendChild(img);
+            img.id  = "loading";
+            if(asset[0] == "Scene Arts" && count % 3 != 0) img.setAttribute('loading', 'lazy');
+            count++;
+            img.onerror = function() {
+                let result = this.parentNode.parentNode;
+                this.parentNode.remove();
+                this.remove();
+                if(result.childNodes.length <= 2) result.remove();
+            }
+            img.onload = function() {
+                this.id = ""
+            }
+            img.src = protocol + getEndpoint() + language + asset[3] + path;
+        }
+    }
 }
 
 function lookupNPC(npc_id)
@@ -430,80 +470,50 @@ function lookupNPC(npc_id)
         ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/"],
         ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/"],
-        ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"],
-        ["Raid Bubble Arts", "sp/raid/navi_face/", "png", "img/"]
+        ["Raid Bubble Arts", "sp/raid/navi_face/", "png", "img/"],
+        ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"]
     ];
-    let scene_alts = ["", "_speed", "_up_speed", "_speed2", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_ecstasy", "_ecstasy2", "_body", "_valentine", "_weapon_a", "_weapon_b", "_b", "_c", "_d", "_e", "_f", "_g"];
+    let expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2"];
+    let variationsA = ["", "_battle"];
+    let variationsB = ["", "_speed", "_up"]
+    let others = ["_up_speed"];
+    let specials = ["_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+    let scene_alts = [];
+    for(let uncap of [""])
+        for(let A of variationsA)
+            for(let ex of expressions)
+                for(let B of variationsB)
+                    scene_alts.push(uncap+A+ex+B);
+    scene_alts = scene_alts.concat(others, specials);
     
     newArea("NPC", npc_id, true);
     for(let asset of assets)
     {
-        let uncap_append = (asset[0] != "Scene Arts") ? ["", "_01"] : [""];
-        if(npc_id.startsWith('30'))
-        {
-            uncap_append = ["", "_01", "_02", "_03"];
-            if(transcendance.includes(npc_id)) uncap_append.push("_04");
-        }
-        else if(npc_id.startsWith('37'))
-        {
-            uncap_append = ["", "_01"];
-        }
-        let prefix_append = (asset[0] == "Scene Arts") ? ["", "_a", "_battle"] : [""];
-        let scene_append = (asset[0] == "Scene Arts" || asset[0] == "Raid Bubble Arts") ? scene_alts : [""];
-        let suffix_append = (asset[0] == "Scene Arts") ? ["", "_up"] : [""];
-        
         let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
-        for(let uncap of uncap_append)
+
+        let iterations = ["", "_01"];
+        if(asset[0] == "Raid Bubble Arts") iterations = [].concat(expressions, others);
+        else if(asset[0] == "Scene Arts") iterations = scene_alts.slice();
+        for(let scene of iterations)
         {
-            for(let prefix of prefix_append)
-            {
-                for(let scene of scene_append)
-                {
-                    for(let suffix of suffix_append)
-                        {
-                        let path = asset[1] +  npc_id + uncap + prefix + scene + suffix + "." + asset[2];
-                        let img = document.createElement("img");
-                        let ref = document.createElement('a');
-                        ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-                        div.appendChild(ref);
-                        ref.appendChild(img);
-                        img.id  = "loading";
-                        img.onerror = function() {
-                            let result = this.parentNode.parentNode;
-                            this.parentNode.remove();
-                            this.remove();
-                            if(result.childNodes.length <= 2) result.remove();
-                        }
-                        img.onload = function() {
-                            this.id = ""
-                        }
-                        img.src = protocol + getEndpoint() + language + asset[3] + path;
-                    }
-                }
+            let path = asset[1] + npc_id + scene + "." + asset[2];
+            let img = document.createElement("img");
+            let ref = document.createElement('a');
+            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+            div.appendChild(ref);
+            ref.appendChild(img);
+            img.id  = "loading";
+            img.onerror = function() {
+                let result = this.parentNode.parentNode;
+                this.parentNode.remove();
+                this.remove();
+                if(result.childNodes.length <= 2) result.remove();
             }
-            // sky compass band aid
-            if(asset[0] === "Main Arts" && (npc_id.startsWith('30') || npc_id.startsWith('37')))
-            {
-                let path = npc_id + uncap + "." + asset[2];
-                let img = document.createElement("img");
-                let ref = document.createElement('a');
-                ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
-                div.appendChild(ref);
-                ref.appendChild(img);
-                img.id  = "loading";
-                img.className  = "skycompass";
-                img.onerror = function() {
-                    let result = this.parentNode.parentNode;
-                    this.parentNode.remove();
-                    this.remove();
-                    if(result.childNodes.length <= 2) result.remove();
-                }
-                img.onload = function() {
-                    this.id = ""
-                }
-                img.src = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path;
+            img.onload = function() {
+                this.id = ""
             }
+            img.src = protocol + getEndpoint() + language + asset[3] + path;
         }
     }
 }
@@ -1030,7 +1040,7 @@ function addImage(node, path, id, onerr = null)
     node.appendChild(ref);
     ref.appendChild(img);
     img.id  = "loading";
-    img.loading = "lazy";
+    img.setAttribute('loading', 'lazy');
     if(onerr == null)
     {
         img.onerror = function() {
@@ -1059,26 +1069,6 @@ function displayCharacters(elem, i)
                 addImage(node, "sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", id);
             else
                 addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
-        }
-    }
-    this.onclick = null;
-}
-
-function displayNPCCharacters(elem, i)
-{
-    i = JSON.stringify(i);
-    elem.removeAttribute("onclick");
-    let node = document.getElementById('areanpccharacters'+i);
-    if("characters" in index)
-    {
-        for(let id of index["characters"])
-        {
-            if(id[2] != i) continue;
-            let el = id.split("_");
-            if(el.length == 2)
-                addImage(node, "sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", "n"+id);
-            else
-                addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", "n"+id);
         }
     }
     this.onclick = null;
