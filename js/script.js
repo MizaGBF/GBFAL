@@ -483,7 +483,7 @@ function lookupNPC(npc_id)
                 }
             }
             // sky compass band aid
-            if(asset[0] === "Main Arts")
+            if(asset[0] === "Main Arts" && (if(npc_id.startsWith('30') || npc_id.startsWith('37'))))
             {
                 let path = npc_id + uncap + "." + asset[2];
                 let img = document.createElement("img");
