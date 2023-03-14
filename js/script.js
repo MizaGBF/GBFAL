@@ -22,6 +22,7 @@ var blacklist = [
 
 ]
 var index = {};
+var lastsearches = [];
 
 function getEndpoint()
 {
@@ -95,13 +96,23 @@ function successJSON(id)
         {
             case '1':
                 newArea("Weapon", id, true);
+                updateHistory(id, 1);
                 break;
             case '2':
                 newArea("Summon", id, true);
+                updateHistory(id, 2);
                 break;
             case '3':
-                if(id[1] == '9') newArea("NPC", id, true);
-                else newArea("Character", id, true);
+                if(id[1] == '9')
+                {
+                    newArea("NPC", id, true);
+                    updateHistory(id, 5);
+                }
+                else
+                {
+                    newArea("Character", id, true);
+                    updateHistory(id, 3);
+                }
                 break;
             default:
                 return;
@@ -110,9 +121,15 @@ function successJSON(id)
         updateQuery(id);
     }
     else if(id.length == 7)
+    {
         newArea("Enemy", id, false);
+        updateHistory(id, 4);
+    }
     else if(id.length == 9)
+    {
         newArea("Main Character", id, false);
+        updateHistory(id, 0);
+    }
     
     for(let key of Object.keys(obj))
     {
@@ -166,13 +183,23 @@ function failJSON(id)
         {
             case '1':
                 lookupWeapon(id);
+                updateHistory(id, 1);
                 break;
             case '2':
                 lookupSummon(id);
+                updateHistory(id, 2);
                 break;
             case '3':
-                if(id[1] == '9') lookupNPC(id);
-                else lookupCharacter(id);
+                if(id[1] == '9')
+                {
+                    lookupNPC(id);
+                    updateHistory(id, 5);
+                }
+                else
+                {
+                    lookupCharacter(id);
+                    updateHistory(id, 3);
+                }
                 break;
             default:
                 return;
@@ -183,6 +210,7 @@ function failJSON(id)
     else if(id.length == 7)
     {
         lookupEnemy(id);
+        updateHistory(id, 4);
         last_id = id;
         updateQuery("e" + id);
     }
@@ -191,8 +219,66 @@ function failJSON(id)
         if(id[5] != '1')
             id = id.slice(0, 5) + "1" + id.slice(6);
         lookupMC(id);
+        updateHistory(id, 0);
         last_id = id;
         updateQuery(id);
+    }
+}
+
+function updateHistory(id, search_type)
+{
+    for(let e of lastsearches)
+    {
+        if(e[0] == id) return; // don't update if already in
+    }
+    lastsearches.push([id, search_type]);
+    if(lastsearches.length > 10) lastsearches = lastsearches.slice(lastsearches.length - 10);
+    let histarea = document.getElementById('history');
+    histarea.parentNode.style.display = null;
+    histarea.innerHTML = "";
+    for(let e of lastsearches)
+    {
+        switch(e[1])
+        {
+            case 3: // character, skin, ...
+            {
+                if(e[0].includes('_st'))
+                    addIndexImage(histarea, "sp/assets/npc/m/" + e[0].split('_')[0] + "_01_" + e[0].split('_')[1] + ".jpg", e[0]);
+                else
+                    addIndexImage(histarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0]);
+                break;
+            }
+            case 2: // summon
+            {
+                addIndexImage(histarea, "sp/assets/summon/m/" + e[0] + ".jpg", e[0]);
+                break;
+            }
+            case 1: // summon
+            {
+                addIndexImage(histarea, "sp/assets/weapon/m/" + e[0] + ".jpg", e[0]);
+                break;
+            }
+            case 0: // mc
+            {
+                addIndexImage(histarea, "sp/assets/leader/m/" + e[0].split('_')[0] + "_01.jpg", e[0]);
+                break;
+            }
+            case 4: // enemy
+            {
+                addIndexImage(histarea, "sp/assets/enemy/m/" + e[0] + ".png", "e" + e[0]);
+                break;
+            }
+            case 5: // npc
+            {
+                let onerr = function() {
+                    this.onerror = null;
+                    this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
+                    this.className = "preview";
+                }
+                addIndexImage(histarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], onerr);
+                break;
+            }
+        }
     }
 }
 
@@ -256,11 +342,13 @@ function addResult(identifier, name)
     return div;
 }
 
-function lookupCharacter(character_id)
+function lookupCharacter(character_id) // old and slow, avoid using this
 {
     if(blacklist.includes(character_id)) return;
     let el = character_id.split("_");
     character_id = el[0];
+    style = "";
+    if(el.length > 1) style = "_"+el[1];
     // add manual style later?
     
     let assets = [
@@ -294,7 +382,6 @@ function lookupCharacter(character_id)
     for(let asset of assets)
     {
         let uncap_append = asset[7] ? uncaps.concat(bonus) : uncaps;
-        let style_append = asset[0].includes("Sheets") ? ["", "_st2", "_st2_2", "_st2_3"] : styles;
         let alt_append = asset[0].includes("Sheets") ? alts : [""];
         let skin_folders = (is_character_skin && asset[4]) ? ["", "skin/"] : [""];
         let skin_appends = (is_character_skin && asset[4]) ? ["", "_s1", "_s2", "_s3", "_s4", "_s5", "_s6"] : [""];
@@ -328,27 +415,45 @@ function lookupCharacter(character_id)
         for(let uncap of uncap_append)
         {
             if(uncap != "_01") style_append = [""]; // style limited to _01 for now
-            for(let style of style_append)
+            for(let alt of alt_append)
             {
-                for(let alt of alt_append)
+                for(let gender of gendered)
                 {
-                    for(let gender of gendered)
+                    for(let unit of multi)
                     {
-                        for(let unit of multi)
+                        for(let ex of extra)
                         {
-                            for(let ex of extra)
+                            for(let s_f of skin_folders)
                             {
-                                for(let s_f of skin_folders)
+                                for(let s_a of skin_appends)
                                 {
-                                    for(let s_a of skin_appends)
+                                    for(let sh of sheet)
                                     {
-                                        for(let sh of sheet)
+                                        if(s_a != "" && s_f == "") continue;
+                                        let path = asset[1] + s_f + character_id + uncap + style + alt + gender + unit + ex + s_a + sh + "." + asset[2];
+                                        let img = document.createElement("img");
+                                        let ref = document.createElement('a');
+                                        ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+                                        div.appendChild(ref);
+                                        ref.appendChild(img);
+                                        img.classList.add("loading");
+                                        img.onerror = function() {
+                                            let result = this.parentNode.parentNode;
+                                            this.parentNode.remove();
+                                            this.remove();
+                                            if(result.childNodes.length <= 2) result.remove();
+                                        }
+                                        img.onload = function() {
+                                            this.classList.remove("loading");
+                                        }
+                                        img.src = protocol + getEndpoint() + language + asset[3] + path;
+                                        // sky compass band aid
+                                        if(asset[0] === "Main Arts")
                                         {
-                                            if(s_a != "" && s_f == "") continue;
-                                            let path = asset[1] + s_f + character_id + uncap + style + alt + gender + unit + ex + s_a + sh + "." + asset[2];
+                                            let path = character_id + uncap + style + alt + gender + unit + s_a + sh + "." + asset[2];
                                             let img = document.createElement("img");
                                             let ref = document.createElement('a');
-                                            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+                                            ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
                                             div.appendChild(ref);
                                             ref.appendChild(img);
                                             img.classList.add("loading");
@@ -360,30 +465,9 @@ function lookupCharacter(character_id)
                                             }
                                             img.onload = function() {
                                                 this.classList.remove("loading");
+                                                this.classList.add("skycompass");
                                             }
-                                            img.src = protocol + getEndpoint() + language + asset[3] + path;
-                                            // sky compass band aid
-                                            if(asset[0] === "Main Arts")
-                                            {
-                                                let path = character_id + uncap + style + alt + gender + unit + s_a + sh + "." + asset[2];
-                                                let img = document.createElement("img");
-                                                let ref = document.createElement('a');
-                                                ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
-                                                div.appendChild(ref);
-                                                ref.appendChild(img);
-                                                img.classList.add("loading");
-                                                img.onerror = function() {
-                                                    let result = this.parentNode.parentNode;
-                                                    this.parentNode.remove();
-                                                    this.remove();
-                                                    if(result.childNodes.length <= 2) result.remove();
-                                                }
-                                                img.onload = function() {
-                                                    this.classList.remove("loading");
-                                                    this.classList.add("skycompass");
-                                                }
-                                                img.src = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path;
-                                            }
+                                            img.src = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path;
                                         }
                                     }
                                 }
@@ -405,8 +489,8 @@ function lookupNPCChara(character_id, json_data = null)
     {
         for(let el of json_data["Journal Arts"])
         {
-            let u = '_'+el.split('.')[0].split('_').slice(-1)[0];
-            if(u != '_01' && !u.startsWith('_8')) uncaps.push(u);
+            let u = '_'+el.split('.')[0].split(character_id.split('_')[0])[1].split('_')[1];
+            if(u != '_01' && !u.startsWith('_8') && !u.includes('f')) uncaps.push(u);
         }
     }
     else
@@ -1036,6 +1120,7 @@ function addIndexImage(node, path, id, onerr = null)
 {
     let img = document.createElement("img");
     node.appendChild(img);
+    img.title = id;
     img.classList.add("loading");
     img.setAttribute('loading', 'lazy');
     if(onerr == null)
