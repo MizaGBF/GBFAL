@@ -129,14 +129,13 @@ function successJSON(id)
             {
                 ref.setAttribute('href', path);
                 img.src = path;
-                img.className  = "skycompass";
             }
             else
             {
                 ref.setAttribute('href', protocol + getEndpoint() + language + path.replace("img_low", "img"));
                 img.src = protocol + getEndpoint() + language + path;
             }
-            img.id  = "loading";
+            img.classList.add("loading");
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
@@ -144,7 +143,8 @@ function successJSON(id)
                 if(result.childNodes.length <= 2) result.remove();
             }
             img.onload = function() {
-                this.id = "done"
+                this.classList.remove("loading");
+                if(this.src.includes("media.skycompass.io")) this.classList.add("skycompass");
             }
             div.appendChild(ref);
             ref.appendChild(img);
@@ -351,7 +351,7 @@ function lookupCharacter(character_id)
                                             ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                                             div.appendChild(ref);
                                             ref.appendChild(img);
-                                            img.id  = "loading";
+                                            img.classList.add("loading");
                                             img.onerror = function() {
                                                 let result = this.parentNode.parentNode;
                                                 this.parentNode.remove();
@@ -359,7 +359,7 @@ function lookupCharacter(character_id)
                                                 if(result.childNodes.length <= 2) result.remove();
                                             }
                                             img.onload = function() {
-                                                this.id = "done"
+                                                this.classList.remove("loading");
                                             }
                                             img.src = protocol + getEndpoint() + language + asset[3] + path;
                                             // sky compass band aid
@@ -371,8 +371,7 @@ function lookupCharacter(character_id)
                                                 ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
                                                 div.appendChild(ref);
                                                 ref.appendChild(img);
-                                                img.id  = "loading";
-                                                img.className  = "skycompass";
+                                                img.classList.add("loading");
                                                 img.onerror = function() {
                                                     let result = this.parentNode.parentNode;
                                                     this.parentNode.remove();
@@ -380,7 +379,8 @@ function lookupCharacter(character_id)
                                                     if(result.childNodes.length <= 2) result.remove();
                                                 }
                                                 img.onload = function() {
-                                                    this.id = ""
+                                                    this.classList.remove("loading");
+                                                    this.classList.add("skycompass");
                                                 }
                                                 img.src = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path;
                                             }
@@ -446,7 +446,7 @@ function lookupNPCChara(character_id, json_data = null)
             ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
             div.appendChild(ref);
             ref.appendChild(img);
-            img.id  = "loading";
+            img.classList.add("loading");
             if(asset[0] == "Scene Arts" && count % 3 != 0) img.setAttribute('loading', 'lazy');
             count++;
             img.onerror = function() {
@@ -456,7 +456,7 @@ function lookupNPCChara(character_id, json_data = null)
                 if(result.childNodes.length <= 2) result.remove();
             }
             img.onload = function() {
-                this.id = ""
+                this.classList.remove("loading");
             }
             img.src = protocol + getEndpoint() + language + asset[3] + path;
         }
@@ -503,7 +503,7 @@ function lookupNPC(npc_id)
             ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
             div.appendChild(ref);
             ref.appendChild(img);
-            img.id  = "loading";
+            img.classList.add("loading");
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
@@ -511,7 +511,7 @@ function lookupNPC(npc_id)
                 if(result.childNodes.length <= 2) result.remove();
             }
             img.onload = function() {
-                this.id = ""
+                this.classList.remove("loading");
             }
             img.src = protocol + getEndpoint() + language + asset[3] + path;
         }
@@ -581,7 +581,7 @@ function lookupSummon(summon_id)
                 ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                 div.appendChild(ref);
                 ref.appendChild(img);
-                img.id  = "loading";
+                img.classList.add("loading");
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -589,7 +589,7 @@ function lookupSummon(summon_id)
                     if(result.childNodes.length <= 2) result.remove();
                 }
                 img.onload = function() {
-                    this.id = ""
+                    this.classList.remove("loading");
                 }
                 img.src = protocol + getEndpoint() + language + asset[3] + path;
             }
@@ -602,8 +602,7 @@ function lookupSummon(summon_id)
             ref.setAttribute('href', "https://media.skycompass.io/assets/archives/summons/" + summon_id + "/detail_l.png");
             div.appendChild(ref);
             ref.appendChild(img);
-            img.id = "loading";
-            img.className  = "skycompass";
+            img.classList.add("loading");
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
@@ -611,7 +610,8 @@ function lookupSummon(summon_id)
                 if(result.childNodes.length <= 2) result.remove();
             }
             img.onload = function() {
-                this.id = ""
+                this.classList.remove("loading");
+                this.classList.add("skycompass");
             }
             img.src = "https://media.skycompass.io/assets/archives/summons/" + summon_id + "/detail_l.png";
         }
@@ -668,7 +668,7 @@ function lookupWeapon(weapon_id, shortened=false)
                 ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                 div.appendChild(ref);
                 ref.appendChild(img);
-                img.id  = "loading";
+                img.classList.add("loading");
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -676,7 +676,7 @@ function lookupWeapon(weapon_id, shortened=false)
                     if(result.childNodes.length <= 2) result.remove();
                 }
                 img.onload = function() {
-                    this.id = ""
+                    this.classList.remove("loading");
                 }
                 img.src = protocol + getEndpoint() + language + asset[3] + path;
             }
@@ -717,7 +717,7 @@ function lookupEnemy(enemy_id)
                 ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                 div.appendChild(ref);
                 ref.appendChild(img);
-                img.id  = "loading";
+                img.classList.add("loading");
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -725,7 +725,7 @@ function lookupEnemy(enemy_id)
                     if(result.childNodes.length <= 2) result.remove();
                 }
                 img.onload = function() {
-                    this.id = ""
+                    this.classList.remove("loading");
                 }
                 img.src = protocol + getEndpoint() + language + asset[3] + path;
             }
@@ -783,7 +783,7 @@ function lookupMC(mc_id)
                     ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                     div.appendChild(ref);
                     ref.appendChild(img);
-                    img.id  = "loading";
+                    img.classList.add("loading");
                     img.onerror = function() {
                         let result = this.parentNode.parentNode;
                         this.parentNode.remove();
@@ -791,7 +791,7 @@ function lookupMC(mc_id)
                         if(result.childNodes.length <= 2) result.remove();
                     }
                     img.onload = function() {
-                        this.id = ""
+                        this.classList.remove("loading");
                     }
                     img.src = protocol + getEndpoint() + language + asset[3] + path;
                 }
@@ -804,8 +804,7 @@ function lookupMC(mc_id)
                     ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path);
                     div.appendChild(ref);
                     ref.appendChild(img);
-                    img.id  = "loading";
-                    img.className  = "skycompass";
+                    img.classList.add("loading");
                     img.onerror = function() {
                         let result = this.parentNode.parentNode;
                         this.parentNode.remove();
@@ -813,7 +812,8 @@ function lookupMC(mc_id)
                         if(result.childNodes.length <= 2) result.remove();
                     }
                     img.onload = function() {
-                        this.id = ""
+                        this.classList.remove("loading");
+                        this.classList.add("skycompass");
                     }
                     img.src = "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path;
                 }
@@ -830,7 +830,7 @@ function lookupMC(mc_id)
                 ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
                 div.appendChild(ref);
                 ref.appendChild(img);
-                img.id  = "loading";
+                img.classList.add("loading");
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -838,7 +838,7 @@ function lookupMC(mc_id)
                     if(result.childNodes.length <= 2) result.remove();
                 }
                 img.onload = function() {
-                    this.id = ""
+                    this.classList.remove("loading");
                 }
                 img.src = protocol + getEndpoint() + language + asset[3] + path;
             }
@@ -1002,7 +1002,7 @@ function lookupMCPlus(mc_id)
                             ref.setAttribute('href', elem.replace('img_low/', 'img/').replace('_0_', gender));
                             div.appendChild(ref);
                             ref.appendChild(img);
-                            img.id  = "loading";
+                            img.classList.add("loading");
                             img.onerror = function() {
                                 let result = this.parentNode.parentNode;
                                 this.parentNode.remove();
@@ -1010,7 +1010,7 @@ function lookupMCPlus(mc_id)
                                 if(result.childNodes.length <= 2) result.remove();
                             }
                             img.onload = function() {
-                                this.id = ""
+                                this.classList.remove("loading");
                             }
                             img.src = elem.replace('_0_', gender);
                         }
@@ -1032,14 +1032,11 @@ function lookupMCPlus(mc_id)
 
 // =================================================================================================
 // index stuff
-function addImage(node, path, id, onerr = null)
+function addIndexImage(node, path, id, onerr = null)
 {
     let img = document.createElement("img");
-    let ref = document.createElement('a');
-    ref.setAttribute('href', "?id=" + id);
-    node.appendChild(ref);
-    ref.appendChild(img);
-    img.id  = "loading";
+    node.appendChild(img);
+    img.classList.add("loading");
     img.setAttribute('loading', 'lazy');
     if(onerr == null)
     {
@@ -1049,9 +1046,15 @@ function addImage(node, path, id, onerr = null)
     }
     else img.onerror = onerr;
     img.onload = function() {
-        this.id = "done"
+        this.classList.remove("loading");
+        this.classList.add("clickable");
+        this.onclick = function()
+        {
+            window.scrollTo(0, 0);
+            lookup(id);
+        };
     }
-    img.src = protocol + getEndpoint() + language + "img_low/" + path; 
+    img.src = protocol + getEndpoint() + language + "img_low/" + path;
 }
 
 function displayCharacters(elem, i)
@@ -1066,9 +1069,9 @@ function displayCharacters(elem, i)
             if(id[2] != i) continue;
             let el = id.split("_");
             if(el.length == 2)
-                addImage(node, "sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", id);
+                addIndexImage(node, "sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", id);
             else
-                addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
+                addIndexImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
         }
     }
     this.onclick = null;
@@ -1084,7 +1087,7 @@ function displaySummons(elem, i)
         for(let id of index["summons"])
         {
             if(id[2] != i) continue;
-            addImage(node, "sp/assets/summon/m/" + id + ".jpg", id);
+            addIndexImage(node, "sp/assets/summon/m/" + id + ".jpg", id);
         }
     }
     this.onclick = null;
@@ -1101,7 +1104,7 @@ function displayWeapons(elem, r, i)
         for(let id of index["weapons"])
         {
             if(id[4] != i || id[2] != r) continue;
-            addImage(node, "sp/assets/weapon/m/" + id + ".jpg", id);
+            addIndexImage(node, "sp/assets/weapon/m/" + id + ".jpg", id);
         }
     }
     this.onclick = null;
@@ -1115,7 +1118,7 @@ function displaySkins(elem)
     {
         for(let id of index["skins"])
         {
-            addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
+            addIndexImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
         }
     }
 }
@@ -1130,7 +1133,7 @@ function displayEnemies(elem, i)
         for(let id of index["enemies"])
         {
             if(id[0] != i) continue;
-            addImage(node, "sp/assets/enemy/m/" + id + ".png", "e" + id);
+            addIndexImage(node, "sp/assets/enemy/m/" + id + ".png", "e" + id);
         }
     }
     this.onclick = null;
@@ -1153,7 +1156,7 @@ function displayNPC(elem, i)
         {
             let t = parseInt(id);
             if(t < start || t > end) continue;
-            addImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id, onerr);
+            addIndexImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id, onerr);
         }
     }
     this.onclick = null;
@@ -1167,7 +1170,7 @@ function displayMC(elem)
     {
         for(let id of index["job"])
         {
-            addImage(node, "sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id);
+            addIndexImage(node, "sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id);
         }
     }
     this.onclick = null;

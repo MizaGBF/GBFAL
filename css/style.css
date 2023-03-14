@@ -73,11 +73,15 @@ small {
     font-size: 16px;
 }
 
-#loading {
+.loading {
     background: #ff0000;
     background: url(../assets/ui/loading.gif); 
     width: 32px;
     height: 32px;
+}
+
+.clickable {
+  cursor: pointer;
 }
 
 .result {
