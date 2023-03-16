@@ -9,8 +9,14 @@ Event: https://media.skycompass.io/assets/archives/events/ID/image/NUM_free.png
 
 var protocol = "https://";
 var endpoints = [
-    "prd-game-a1-granbluefantasy.akamaized.net/"
+    "prd-game-a-granbluefantasy.akamaized.net/",
+    "prd-game-a1-granbluefantasy.akamaized.net/",
+    "prd-game-a2-granbluefantasy.akamaized.net/",
+    "prd-game-a3-granbluefantasy.akamaized.net/",
+    "prd-game-a4-granbluefantasy.akamaized.net/",
+    "prd-game-a5-granbluefantasy.akamaized.net/"
 ];
+var endp_count = -1;
 var language = "assets_en/";
 var last_id = null;
 var last_style = null;
@@ -26,7 +32,8 @@ var lastsearches = [];
 
 function getEndpoint()
 {
-    return endpoints[0];
+    endp_count = (endp_count + 1) % endpoints.length;
+    return endpoints[endp_count];
 }
 
 function filter()
@@ -521,7 +528,6 @@ function lookupNPCChara(character_id, json_data = null)
         result_area.appendChild(div);
         
         let iterations =  (asset[0] != "Scene Arts") ? [].concat(expressions, others) : scene_alts;
-        let count = 0;
         for(let scene of iterations)
         {
             let path = asset[1] +  character_id + scene + "." + asset[2];
@@ -531,8 +537,6 @@ function lookupNPCChara(character_id, json_data = null)
             div.appendChild(ref);
             ref.appendChild(img);
             img.classList.add("loading");
-            if(asset[0] == "Scene Arts" && count % 3 != 0) img.setAttribute('loading', 'lazy');
-            count++;
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
