@@ -884,7 +884,7 @@ function lookupMC(mc_id)
                     img.src = protocol + getEndpoint() + language + asset[3] + path;
                 }
                 // sky compass band aid
-                if(asset[0] === "Full Art")
+                if(asset[0] === "Home Art")
                 {
                     let path = job_ids[0] + "_" + i + "." + asset[2];
                     let img = document.createElement("img");
