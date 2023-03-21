@@ -47,6 +47,24 @@ function init()
     result_area = document.getElementById('resultarea');
     let params = new URLSearchParams(window.location.search);
     let id = params.get("id");
+    let shistory = params.get("history");
+    if(shistory != null)
+    {
+        try {
+            lastsearches = atob(shistory).split(";");
+            for(let i = 0; i < lastsearches.length; ++i)
+            {
+                lastsearches[i] = lastsearches[i].split(",");
+                lastsearches[i][1] = parseInt(lastsearches[i][1]);
+            }
+            updateHistory(null, 0);
+        } catch {};
+        if(lastsearches.length > 0)
+        {
+            let title = document.getElementById("to-title");
+            title.href = "index.html?history=" + shistory;
+        }
+    }
     if(id != null) lookup(id);
 }
 
@@ -70,8 +88,16 @@ function updateQuery(id)
     if(current_id != id)
     {
         params.set("id", id);
+        if(lastsearches.length > 0)
+            params.set("history", btoa(lastsearches.join(";")));
         let newRelativePathQuery = window.location.pathname + '?' + params.toString();
         history.pushState(null, '', newRelativePathQuery);
+        if(lastsearches.length > 0)
+        {
+            let title = document.getElementById("to-title");
+            delete params["id"];
+            title.href = "index.html?" + params.toString();
+        }
     }
 }
 
@@ -234,11 +260,14 @@ function failJSON(id)
 
 function updateHistory(id, search_type)
 {
-    for(let e of lastsearches)
+    if(id != null)
     {
-        if(e[0] == id) return; // don't update if already in
+        for(let e of lastsearches)
+        {
+            if(e[0] == id) return; // don't update if already in
+        }
+        lastsearches.push([id, search_type]);
     }
-    lastsearches.push([id, search_type]);
     if(lastsearches.length > 10) lastsearches = lastsearches.slice(lastsearches.length - 10);
     let histarea = document.getElementById('history');
     histarea.parentNode.style.display = null;

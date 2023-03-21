@@ -35,6 +35,18 @@ footer, #header {
     margin:auto;
 }
 
+#to-top, #to-bottom {
+    width: 45px;
+    height: 45px;
+    border-color: #000000;
+    border-radius: 5px;
+    border-style: solid;
+}
+
+#to-top {
+    transform: scaleY(-1);
+}
+
 #header {
     color: white;
 }
