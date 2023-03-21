@@ -113,7 +113,7 @@ class Parser():
                 for d in [1, 2, 3]:
                     self.newShared(errs)
                     for i in range(2):
-                        possibles.append(('enemies', i, 2, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png"))
+                        possibles.append(('enemies', i, 2, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
         # npc
         self.newShared(errs)
         for i in range(8):
