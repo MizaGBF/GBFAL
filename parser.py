@@ -71,7 +71,7 @@ class Parser():
                 json.dump(data, outfile)
             print("data.json updated")
             with open('changelog.json', mode='w', encoding='utf-8') as outfile:
-                json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000)}, f)
+                json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000)}, outfile)
             print("changelog.json updated")
         except Exception as e:
             print(e)

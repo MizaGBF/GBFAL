@@ -359,7 +359,6 @@ function updateRelated(id)
             else if(e.startsWith('39')) indice = 5;
             else if(e.includes('_') && !e.includes('_st')) indice = 0;
             else indice = parseInt(e[0]);
-            console.log(e, indice);
             switch(indice)
             {
                 case 3: // character, skin, ...
