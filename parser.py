@@ -677,6 +677,7 @@ class Parser():
         print("Done")
         if counter > 0:
             print(counter, "successfully processed ID")
+        return (counter > 0)
 
     def get_relation(self, eid):
         try:
@@ -945,7 +946,8 @@ if __name__ == '__main__':
             if len(sys.argv) == 2:
                 print_help()
             else:
-                p.manualUpdate(sys.argv[2:])
+                if p.manualUpdate(sys.argv[2:]):
+                    p.save()
         elif sys.argv[1] == '-index':
             p.run_index_update()
         elif sys.argv[1] == '-job':
