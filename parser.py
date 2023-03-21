@@ -695,7 +695,7 @@ class Parser():
                 if 'index.php' not in link and '/' not in link[1:]:
                     links.append(link)
         except:
-            return eid, []
+            return None, []
         for link in links:
             try:
                 page = self.req("https://gbf.wiki" + link, get=True)
@@ -723,7 +723,7 @@ class Parser():
                     a = page.find("wikitable", b)
                     if a == -1: break
                     a += len("wikitable")
-                    b = page.find("</tbody></table></div>", a)
+                    b = page.find("</table>", a)
                     for sid in self.re.findall(page[a:b]):
                         if sid != eid:
                             ids.add(sid)
@@ -731,7 +731,7 @@ class Parser():
             except:
                 return eid, []
 
-    def build_relation(self):
+    def build_relation(self, to_update=[]):
         try:
             with open("relation_name.json", "r") as f:
                 self.name_table = json.load(f)
@@ -749,18 +749,23 @@ class Parser():
         futures = []
         new = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
-            for eid in self.data['characters']:
-                if eid not in relation:
-                    futures.append(executor.submit(self.get_relation, eid))
-            for eid in self.data['summons']:
-                if eid not in relation:
-                    futures.append(executor.submit(self.get_relation, eid))
-            for eid in self.data['weapons']:
-                if eid not in relation:
+            if len(to_update) == 0:
+                for eid in self.data['characters']:
+                    if eid not in relation:
+                        futures.append(executor.submit(self.get_relation, eid))
+                for eid in self.data['summons']:
+                    if eid not in relation:
+                        futures.append(executor.submit(self.get_relation, eid))
+                for eid in self.data['weapons']:
+                    if eid not in relation:
+                        futures.append(executor.submit(self.get_relation, eid))
+            else:
+                for eid in to_update:
                     futures.append(executor.submit(self.get_relation, eid))
             for future in concurrent.futures.as_completed(futures):
                 r = future.result()
                 try:
+                    if r[0] is None or (r[0] not in self.data['characters'] and r[0] not in self.data['summons'] and r[0] not in self.data['weapons'] and r[0] not in self.data['skins']): raise Exception()
                     relation[r[0]] = r[1]
                     new.append(r[0])
                 except:
@@ -805,7 +810,99 @@ class Parser():
                     print("Name table updated")
                 except:
                     pass
-                
+
+    def connect_relation(self, As, B):
+        try:
+            with open("relation_name.json", "r") as f:
+                self.name_table = json.load(f)
+            print("Element name table loaded")
+        except:
+            self.name_table = {}
+        self.name_table_modified = False
+        try:
+            with open("relation.json", "r") as f:
+                relation = json.load(f)
+            print("Existing relationships loaded")
+        except:
+            relation = {}
+        print("Trying to add relation...")
+        modified = False
+        for A in As:
+            if A not in self.data['characters'] and A not in self.data['summons'] and A not in self.data['weapons']:
+                print("Unknown element:", A)
+                continue
+            if B not in self.data['characters'] and B not in self.data['summons'] and B not in self.data['weapons'] and B not in self.data['skins']:
+                print("Unknown element:", B)
+                continue
+            if A not in relation:
+                relation[A] = []
+            if B in relation[A]:
+                print("Relation already exists")
+                continue
+            relation[A].append(B)
+            modified = True
+            for eid in relation[A]:
+                if eid not in relation:
+                    relation[eid] = []
+                if A not in relation[eid]:
+                    relation[eid].append(A)
+                    relation[eid].sort()
+            relation[A].sort()
+        if modified:
+            for k in self.name_table:
+                ks = k.replace(',', '').split(' ')
+                for l in self.name_table:
+                    ls = l.replace(',', '').split(' ')
+                    if l != k and k in ls or l in ks and self.name_table[k] != self.name_table[l]:
+                        for e in self.name_table[l]:
+                            if e not in self.name_table[k]:
+                                self.name_table[k].append(e)
+                        self.name_table[l] = self.name_table[k]
+            for k in self.name_table:
+                for eid in self.name_table[k]:
+                    if eid not in relation:
+                        relation[eid] = []
+                    for oid in self.name_table[k]:
+                        if oid == eid or oid in relation[eid]: continue
+                        relation[eid].append(oid)
+                        relation[eid].sort()
+            try:
+                with open("relation.json", "w") as f:
+                    json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
+                print("Relationships updated")
+            except:
+                pass
+
+    def relation_edit(self):
+        while True:
+            print("[0] Redo Relationship")
+            print("[1] Add Relationship")
+            match input():
+                case '0':
+                    while True:
+                        s = input("ID(s):")
+                        if s == "":
+                            break
+                        else:
+                            self.build_relation([x for x in s.split(' ') if x != ''])
+                            break
+                case '1':
+                    while True:
+                        s = input("ID(s) to edit:")
+                        if s == "":
+                            break
+                        else:
+                            sid = [x for x in s.split(' ') if x != '']
+                            while True:
+                                s = input("Connect to which ID:")
+                                if s == "":
+                                    break
+                                else:
+                                    self.connect_relation(sid, s)
+                                    break
+                            break
+                case _:
+                    break
 
 def print_help():
     print("Usage: python parser.py [option]")
@@ -816,6 +913,7 @@ def print_help():
     print("-job     : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
     print("-jobca   : Search Job Attack spritesheets (Very time consuming).")
     print("-relation: Update the relationship index.")
+    print("-relinput: Update to relationships.")
     print("-listjob : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
     print("-debug   : List downloaded skins with multi portraits.")
     time.sleep(2)
@@ -859,6 +957,8 @@ if __name__ == '__main__':
             p.dig_job_chargeattack()
         elif sys.argv[1] == '-relation':
             p.build_relation()
+        elif sys.argv[1] == '-relinput':
+            p.relation_edit()
         elif sys.argv[1] == '-listjob':
             if len(sys.argv) == 2:
                 p.listjob()
