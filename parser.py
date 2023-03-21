@@ -564,7 +564,7 @@ class Parser():
         urls['Summon Damage Sheets'] = []
         uncaps = []
         # main sheet
-        for uncap in ["", "_02", "_03"]:
+        for uncap in ["", "_02", "_03", "_04"]:
             try:
                 fn = "{}_{}".format(id, uncap)
                 self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/m/{}{}.jpg".format(id, uncap))
