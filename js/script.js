@@ -29,6 +29,8 @@ var blacklist = [
 ]
 var index = {};
 var lastsearches = [];
+var timestamp = Date.now();
+var relations = {}
 
 function getEndpoint()
 {
@@ -43,7 +45,26 @@ function filter()
 
 function init()
 {
-    getJSON("data.json?" + Date.now(), loadData, function(unused){}, null);
+    getJSON("changelog.json?" + timestamp, initChangelog, initFollowup, null);
+    getJSON("relation.json?" + timestamp, initRelation, function(unused){}, null);
+}
+
+function initChangelog(unusued)
+{
+    try{
+        let json = JSON.parse(this.response);
+        let date = (new Date(json['timestamp'])).toISOString();
+        document.getElementById('timestamp').innerHTML += " " + date.split('T')[0] + " " + date.split('T')[1].split(':').slice(0, 2).join(':') + " UTC";
+        timestamp = json['timestamp'];
+    }catch{
+        document.getElementById('timestamp').innerHTML = "";
+    }
+    initFollowup();
+}
+
+function initFollowup(unused=null)
+{
+    getJSON("data.json?" + timestamp, loadData, function(unused){}, null);
     result_area = document.getElementById('resultarea');
     let params = new URLSearchParams(window.location.search);
     let id = params.get("id");
@@ -66,6 +87,11 @@ function init()
         }
     }
     if(id != null) lookup(id);
+}
+
+function initRelation(unused)
+{
+    relations = JSON.parse(this.response);
 }
 
 function loadData(unused)
@@ -163,7 +189,7 @@ function successJSON(id)
         newArea("Main Character", id, false);
         updateHistory(id, 0);
     }
-    
+    updateRelated(id);
     for(let key of Object.keys(obj))
     {
         let paths = obj[key];
@@ -256,6 +282,7 @@ function failJSON(id)
         last_id = id;
         updateQuery(id);
     }
+    updateRelated(id);
 }
 
 function updateHistory(id, search_type)
@@ -318,6 +345,67 @@ function updateHistory(id, search_type)
     }
 }
 
+function updateRelated(id)
+{
+    let relarea = document.getElementById('related');
+    if(id in relations)
+    {
+        relarea.parentNode.style.display = relations[id].length > 0 ? null : "none";
+        relarea.innerHTML = "";
+        for(let e of relations[id])
+        {
+            let indice = -1;
+            if(e[0] == 'e') indice = 4;
+            else if(e.startsWith('39')) indice = 5;
+            else if(e.includes('_') && !e.includes('_st')) indice = 0;
+            else indice = parseInt(e[0]);
+            console.log(e, indice);
+            switch(indice)
+            {
+                case 3: // character, skin, ...
+                {
+                    if(e.includes('_st'))
+                        addIndexImage(relarea, "sp/assets/npc/m/" + e.split('_')[0] + "_01_" + e.split('_')[1] + ".jpg", e);
+                    else
+                        addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e);
+                    break;
+                }
+                case 2: // summon
+                {
+                    addIndexImage(relarea, "sp/assets/summon/m/" + e + ".jpg", e);
+                    break;
+                }
+                case 1: // summon
+                {
+                    addIndexImage(relarea, "sp/assets/weapon/m/" + e + ".jpg", e);
+                    break;
+                }
+                case 0: // mc
+                {
+                    addIndexImage(relarea, "sp/assets/leader/m/" + e.split('_')[0] + "_01.jpg", e);
+                    break;
+                }
+                case 4: // enemy
+                {
+                    addIndexImage(relarea, "sp/assets/enemy/m/" + e + ".png", "e" + e);
+                    break;
+                }
+                case 5: // npc
+                {
+                    let onerr = function() {
+                        this.onerror = null;
+                        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
+                        this.className = "preview";
+                    }
+                    addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e, onerr);
+                    break;
+                }
+            }
+        }
+    }
+    else relarea.parentNode.style.display = "none";
+}
+
 function lookup(id)
 {
     if(blacklist.includes(id)) return;
@@ -330,12 +418,12 @@ function lookup(id)
         (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6)) && id != last_id)
     )
     {
-        if(f.value == "")
+        if(f.value == "" || f.value != id)
         {
             f.value = id;
         }
         if(id.toLowerCase()[0] === 'e') id = id.slice(1);
-        getJSON("data/" + id + ".json?" + Date.now(), successJSON, failJSON, id);
+        getJSON("data/" + id + ".json?" + timestamp, successJSON, failJSON, id);
     }
 }
 

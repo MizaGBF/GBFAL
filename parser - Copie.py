@@ -748,64 +748,37 @@ class Parser():
         print("Checking new relationships...")
         futures = []
         new = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
-            for eid in self.data['characters']:
+        print("Checking with the name table...")
+        for k in self.name_table:
+            ks = k.replace(',', '').split(' ')
+            for l in self.name_table:
+                ls = l.replace(',', '').split(' ')
+                if l != k and k in l or l in k and self.name_table[k] != self.name_table[l]:
+                    for e in self.name_table[l]:
+                        if e not in self.name_table[k]:
+                            self.name_table[k].append(e)
+                    self.name_table[l] = self.name_table[k]
+        for k in self.name_table:
+            for eid in self.name_table[k]:
                 if eid not in relation:
-                    futures.append(executor.submit(self.get_relation, eid))
-            for eid in self.data['summons']:
-                if eid not in relation:
-                    futures.append(executor.submit(self.get_relation, eid))
-            for eid in self.data['weapons']:
-                if eid not in relation:
-                    futures.append(executor.submit(self.get_relation, eid))
-            for future in concurrent.futures.as_completed(futures):
-                r = future.result()
-                try:
-                    relation[r[0]] = r[1]
-                    new.append(r[0])
-                except:
-                    pass
-            for n in new:
-                for eid in relation[n]:
-                    if eid not in relation:
-                        relation[eid] = []
-                    if n not in relation[eid]:
-                        relation[eid].append(n)
-                        relation[eid].sort()
-                relation[n].sort()
-            if len(new) > 0:
-                print("Checking with the name table...")
-                for k in self.name_table:
-                    ks = k.replace(',', '').split(' ')
-                    for l in self.name_table:
-                        ls = l.replace(',', '').split(' ')
-                        if l != k and k in ls or l in ks and self.name_table[k] != self.name_table[l]:
-                            for e in self.name_table[l]:
-                                if e not in self.name_table[k]:
-                                    self.name_table[k].append(e)
-                            self.name_table[l] = self.name_table[k]
-                for k in self.name_table:
-                    for eid in self.name_table[k]:
-                        if eid not in relation:
-                            relation[eid] = []
-                        for oid in self.name_table[k]:
-                            if oid == eid or oid in relation[eid]: continue
-                            relation[eid].append(oid)
-                            relation[eid].sort()
-                try:
-                    with open("relation.json", "w") as f:
-                        json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
-                    print("Relationships updated")
-                except:
-                    pass
-            if self.name_table_modified:
-                try:
-                    with open("relation_name.json", "w") as f:
-                        json.dump(self.name_table, f, sort_keys=True, indent='\t', separators=(',', ':'))
-                    print("Name table updated")
-                except:
-                    pass
-                
+                    relation[eid] = []
+                for oid in self.name_table[k]:
+                    if oid == eid or oid in relation[eid]: continue
+                    relation[eid].append(oid)
+                    relation[eid].sort()
+        try:
+            with open("relation.json", "w") as f:
+                json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
+            print("Relationships updated")
+        except:
+            pass
+        if self.name_table_modified:
+            try:
+                with open("relation_name.json", "w") as f:
+                    json.dump(self.name_table, f, sort_keys=True, indent='\t', separators=(',', ':'))
+                print("Name table updated")
+            except:
+                pass
 
 def print_help():
     print("Usage: python parser.py [option]")
