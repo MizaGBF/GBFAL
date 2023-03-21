@@ -611,6 +611,7 @@ function lookupSummon(summon_id)
     if(blacklist.includes(summon_id)) return;
     assets = [
         ["Main Arts", "sp/assets/summon/b/", "png", "img_low/"],
+        ["Home Arts", "sp/assets/summon/my/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/"],
         ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/"],

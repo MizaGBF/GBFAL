@@ -2,13 +2,10 @@ import httpx
 import json
 import concurrent.futures
 from threading import Lock
-import json
 import os
 import os.path
-import zlib
 import sys
 import queue
-import re
 import time
 import string
 
@@ -31,7 +28,8 @@ class Parser():
             "npcs":set()
         }
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
-        self.new_characters = []
+        self.multi_summon = ["2040414000"]
+        self.new_elements = []
         
         limits = httpx.Limits(max_keepalive_connections=100, max_connections=100, keepalive_expiry=10)
         self.client = httpx.Client(http2=True, limits=limits)
@@ -78,7 +76,7 @@ class Parser():
     def run_index_update(self, no_manual=False):
         errs = []
         possibles = []
-        self.new_characters = []
+        self.new_elements = []
         
         #rarity
         for r in range(1, 5):
@@ -121,7 +119,7 @@ class Parser():
                 future.result()
         print("Done")
         if not no_manual:
-            self.manualUpdate(self.new_characters)
+            self.manualUpdate(self.new_elements)
         self.save()
 
     def listjob(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
@@ -230,8 +228,8 @@ class Parser():
                     with err[2]:
                         err[0] = 0
                         self.data[index].add(f + s)
-                        if file.startswith("30") or file.startswith("37"):
-                            self.new_characters.append(f + s)
+                        if file.startswith("30") or file.startswith("37") or file.startswith("20"):
+                            self.new_elements.append(f + s)
                 except:
                     if s != "": break
                     with err[2]:
@@ -415,7 +413,7 @@ class Parser():
             except:
                 continue
             for s in styles:
-                if self.update(id, s):
+                if self.charaUpdate(id, s):
                     count += 1
         return count
 
@@ -424,7 +422,7 @@ class Parser():
         while err[1] and err[0] < 80 and self.running:
             f = file.format(str(id).zfill(3))
             if self.force_update or f not in self.index:
-                if not self.update(f):
+                if not self.charaUpdate(f):
                     with err[2]:
                         err[0] += 1
                         if err[0] >= 80:
@@ -436,7 +434,7 @@ class Parser():
                         err[3] += 1
             id += step
 
-    def update(self, id, style=""):
+    def charaUpdate(self, id, style=""):
         urls = {}
         urls["Main Arts"] = []
         urls["Journal Arts"] = []
@@ -466,7 +464,7 @@ class Parser():
                         urls['Character Sheets'] += self.processManifest(fn)
                         if form == "": uncaps.append(uncap)
                         else: altForm = True
-                    except Exception as e:
+                    except:
                         if form == "":
                             break
         if len(uncaps) == 0:
@@ -542,6 +540,67 @@ class Parser():
             json.dump(urls, outfile)
         return True
 
+    def sumUpdate(self, id):
+        urls = {}
+        urls["Main Arts"] = []
+        urls["Home Arts"] = []
+        urls["Inventory Portraits"] = []
+        urls["Square Portraits"] = []
+        urls["Main Summon Portraits"] = []
+        urls["Sub Summon Portraits"] = []
+        urls["Raid Portraits"] = []
+        urls['Summon Call Sheets'] = []
+        urls['Summon Damage Sheets'] = []
+        uncaps = []
+        # main sheet
+        for uncap in ["", "_02", "_03"]:
+            try:
+                fn = "{}_{}".format(id, uncap)
+                self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/m/{}{}.jpg".format(id, uncap))
+                urls['Main Arts'].append("img_low/sp/assets/summon/b/{}{}.png".format(id, uncap))
+                if uncap == "": urls['Main Arts'].append("https://media.skycompass.io/assets/archives/summons/{}/detail_l.png".format(id))
+                urls['Home Arts'].append("img_low/sp/assets/summon/my/{}{}.png".format(id, uncap))
+                urls['Inventory Portraits'].append("img_low/sp/assets/summon/m/{}{}.jpg".format(id, uncap))
+                urls['Square Portraits'].append("img_low/sp/assets/summon/s/{}{}.jpg".format(id, uncap))
+                urls['Main Summon Portraits'].append("img_low/sp/assets/summon/party_main/{}{}.jpg".format(id, uncap))
+                urls['Sub Summon Portraits'].append("img_low/sp/assets/summon/party_sub/{}{}.jpg".format(id, uncap))
+                urls['Raid Portraits'].append("img/sp/assets/summon/raid_normal/{}{}.jpg".format(id, uncap))
+                uncaps.append("01" if uncap == "" else uncap[1:])
+            except:
+                break
+        if len(uncaps) == 0:
+            return False
+        if id in self.multi_summon:
+            tmp = []
+            for u in uncaps:
+                for c in 'abcde':
+                    tmp.append(u+"_"+c)
+            uncaps = tmp
+        # attack
+        for u in uncaps:
+            try:
+                fn = "summon_{}_{}_attack".format(id, u)
+                urls['Summon Call Sheets'] += self.processManifest(fn)
+            except:
+                pass
+        # damage
+        for u in uncaps:
+            try:
+                fn = "summon_{}_{}_damage".format(id, u)
+                urls['Summon Damage Sheets'] += self.processManifest(fn)
+            except:
+                pass
+        # sorting
+        for k in urls:
+            if "Sheet" not in k: continue
+            el = [f.split("/")[-1] for f in urls[k]]
+            el.sort()
+            for i in range(len(urls[k])):
+                urls[k][i] = "/".join(urls[k][i].split("/")[:-1]) + "/" + el[i]
+        with open("data/" + id + ".json", 'w') as outfile:
+            json.dump(urls, outfile)
+        return True
+
     def processManifest(self, file):
         manifest = self.req(self.manifestUri + file + ".js", get=True).decode('utf-8')
         st = manifest.find('manifest:') + len('manifest:')
@@ -584,7 +643,10 @@ class Parser():
             futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
             for id in ids:
                 if len(id) >= 10:
-                    futures.append(executor.submit(self.update, id))
+                    if id.startswith('2'):
+                        futures.append(executor.submit(self.sumUpdate, id))
+                    else:
+                        futures.append(executor.submit(self.charaUpdate, id))
                     tcounter += 1
             tfinished = 0
             if tcounter > 0:
