@@ -1424,17 +1424,24 @@ function addIndexImageGeneric(node, path, id, onerr = null)
     a.href = img.src.replace("img_low/", "img/")
 }
 
-function displayBG(elem, i)
+function displayBG(elem, i=null)
 {
     elem.removeAttribute("onclick");
-    let node = document.getElementById('areabg'+i);
+    let node = (i==null ? document.getElementById('areabg') : document.getElementById('areabg'+i));
     if("npcs" in index)
     {
         for(let id of index["background"])
         {
-            if(id.startsWith(i))
+            if(i == null && !id.startsWith("common") && !id.startsWith("event") && !id.startsWith("main"))
             {
-                addIndexImageGeneric(node, "sp/raid/bg/" + id + ".jpg", id, null);
+                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_1.jpg", id+"_1", null);
+                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_2.jpg", id+"_2", null);
+                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_3.jpg", id+"_3", null);
+            }
+            else if(id.startsWith(i))
+            {
+                if(i == "main") addIndexImageGeneric(node, "sp/guild/custom/bg/" + id + ".png", id, null);
+                else addIndexImageGeneric(node, "sp/raid/bg/" + id + ".jpg", id, null);
             }
         }
     }
