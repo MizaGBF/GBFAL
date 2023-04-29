@@ -101,7 +101,24 @@ function loadData(unused)
     {
         if(key != "version")
         {
-            index[key].sort();
+            if(key == "background")
+            {
+                let obj = {};
+                for(let bg of index[key])
+                {
+                    let tmp = bg.split('_');
+                    obj[tmp[0]+tmp[1].padStart(3)] = bg;
+                }
+                let obj_keys = Object.keys(obj);
+                obj_keys.sort();
+                index[key] = [];
+                for(let k of obj_keys)
+                    index[key].push(obj[k]);
+            }
+            else
+            {
+                index[key].sort();
+            }
             if(!(["job", "npcs"].includes(key))) index[key].reverse();
         }
     }
@@ -1391,6 +1408,10 @@ function addIndexImageGeneric(node, path, id, onerr = null)
     img.title = id;
     img.classList.add("loading");
     img.setAttribute('loading', 'lazy');
+    img.onload = function() {
+        this.classList.remove("loading");
+        this.classList.add("preview");
+    }
     if(onerr == null)
     {
         img.onerror = function() {
