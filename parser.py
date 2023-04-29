@@ -27,7 +27,8 @@ class Parser():
             "enemies":set(),
             "skins":set(),
             "job":set(),
-            "npcs":set()
+            "npcs":set(),
+            "background":set()
         }
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.multi_summon = ["2040414000"]
@@ -118,6 +119,14 @@ class Parser():
         self.newShared(errs)
         for i in range(8):
             possibles.append(('npcs', i, 8, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", "{}.png", [""], 80))
+        
+        # backgrounds
+        self.newShared(errs)
+        for i in range(2):
+            possibles.append(('background', i, 2, errs[-1], "event_{}", 1, "img_low/sp/raid/bg/", "{}.jpg", [""], 10))
+        self.newShared(errs)
+        for i in range(2):
+            possibles.append(('background', i, 2, errs[-1], "common_{}", 3, "img_low/sp/raid/bg/", "{}.jpg", [""], 10))
         
         print("Starting Index update... (", len(possibles), " threads )")
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)) as executor:

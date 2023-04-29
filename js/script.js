@@ -1381,3 +1381,41 @@ function displayMC(elem)
     }
     this.onclick = null;
 }
+
+function addIndexImageGeneric(node, path, id, onerr = null)
+{
+    let a = document.createElement("a");
+    let img = document.createElement("img");
+    a.appendChild(img);
+    node.appendChild(a);
+    img.title = id;
+    img.classList.add("loading");
+    img.setAttribute('loading', 'lazy');
+    if(onerr == null)
+    {
+        img.onerror = function() {
+            this.parentNode.remove();
+            this.remove();
+        }
+    }
+    else img.onerror = onerr;
+    img.src = protocol + getEndpoint() + language + "img_low/" + path;
+    a.href = img.src.replace("img_low/", "img/")
+}
+
+function displayBG(elem, i)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areabg'+i);
+    if("npcs" in index)
+    {
+        for(let id of index["background"])
+        {
+            if(id.startsWith(i))
+            {
+                addIndexImageGeneric(node, "sp/raid/bg/" + id + ".jpg", id, null);
+            }
+        }
+    }
+    this.onclick = null;
+}
