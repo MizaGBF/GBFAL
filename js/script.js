@@ -107,7 +107,8 @@ function loadData(unused)
                 for(let bg of index[key])
                 {
                     let tmp = bg.split('_');
-                    obj[tmp[0]+tmp[1].padStart(3)] = bg;
+                    if(tmp.length == 1) obj[bg] = bg;
+                    else obj[tmp[0]+tmp[1].padStart(3)] = bg;
                 }
                 let obj_keys = Object.keys(obj);
                 obj_keys.sort();
