@@ -132,16 +132,19 @@ class Parser():
             possibles.append(('background', i, 2, errs[-1], "main_{}", 1, "img_low/sp/guild/custom/bg/", "{}.png", [""], 10))
         self.newShared(errs)
         for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "{}rb", 1, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 60))
+            possibles.append(('background', i, 2, errs[-1], "{}rb", 1, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 50))
         self.newShared(errs)
         for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "e{}", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 60))
+            possibles.append(('background', i, 2, errs[-1], "e{}", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 50))
         self.newShared(errs)
         for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "f{}", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 60))
+            possibles.append(('background', i, 2, errs[-1], "f{}", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 50))
         self.newShared(errs)
         for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "f{}r", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 60))
+            possibles.append(('background', i, 2, errs[-1], "f{}r", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 50))
+        self.newShared(errs)
+        for i in range(2):
+            possibles.append(('background', i, 2, errs[-1], "f{}ra", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 50))
         
         print("Starting Index update... (", len(possibles), " threads )")
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)) as executor:
