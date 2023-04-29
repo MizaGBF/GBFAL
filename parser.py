@@ -139,6 +139,9 @@ class Parser():
         self.newShared(errs)
         for i in range(2):
             possibles.append(('background', i, 2, errs[-1], "f{}", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 60))
+        self.newShared(errs)
+        for i in range(2):
+            possibles.append(('background', i, 2, errs[-1], "f{}r", 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 60))
         
         print("Starting Index update... (", len(possibles), " threads )")
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)) as executor:
