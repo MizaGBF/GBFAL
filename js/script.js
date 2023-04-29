@@ -1435,9 +1435,9 @@ function displayBG(elem, i=null)
         {
             if(i == null && !id.startsWith("common") && !id.startsWith("event") && !id.startsWith("main"))
             {
-                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_1.jpg", id+"_1", null);
-                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_2.jpg", id+"_2", null);
                 addIndexImageGeneric(node, "sp/raid/bg/" + id + "_3.jpg", id+"_3", null);
+                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_2.jpg", id+"_2", null);
+                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_1.jpg", id+"_1", null);
             }
             else if(id.startsWith(i))
             {
