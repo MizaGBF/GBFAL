@@ -28,7 +28,8 @@ class Parser():
             "skins":set(),
             "job":set(),
             "npcs":set(),
-            "background":set()
+            "background":set(),
+            "title":set()
         }
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.multi_summon = ["2040414000"]
@@ -38,7 +39,7 @@ class Parser():
         self.name_lock = Lock()
         self.re = re.compile("[123][07][1234]0\\d{4}00")
         
-        limits = httpx.Limits(max_keepalive_connections=100, max_connections=100, keepalive_expiry=10)
+        limits = httpx.Limits(max_keepalive_connections=300, max_connections=300, keepalive_expiry=10)
         self.client = httpx.Client(http2=False, limits=limits)
         self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
         self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
@@ -93,53 +94,60 @@ class Parser():
             # characters
             if r > 1:
                 self.newShared(errs)
-                for i in range(4):
-                    possibles.append(('characters', i, 4, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
+                for i in range(2):
+                    possibles.append(('characters', i, 2, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
             # summons
             self.newShared(errs)
-            for i in range(4):
-                possibles.append(('summons', i, 4, errs[-1], "20"+str(r)+"0{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
+            for i in range(2):
+                possibles.append(('summons', i, 2, errs[-1], "20"+str(r)+"0{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
             # weapons
             for j in range(10):
                 self.newShared(errs)
-                for i in range(5):
-                    possibles.append(('weapons', i, 5, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
+                for i in range(2):
+                    possibles.append(('weapons', i, 2, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
         # skins
         self.newShared(errs)
-        for i in range(4):
-            possibles.append(('skins', i, 4, errs[-1], "3710{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg"))
+        for i in range(2):
+            possibles.append(('skins', i, 2, errs[-1], "3710{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg"))
         # enemies
         for a in range(1, 10):
             for b in range(1, 4):
                 for d in [1, 2, 3]:
                     self.newShared(errs)
-                    for i in range(2):
-                        possibles.append(('enemies', i, 2, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
+                    possibles.append(('enemies', 0, 1, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
         # npc
         self.newShared(errs)
-        for i in range(8):
-            possibles.append(('npcs', i, 8, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", "{}.png", [""], 80))
+        for i in range(5):
+            possibles.append(('npcs', i, 5, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 80))
         
         # backgrounds
         self.newShared(errs)
         for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "event_{}", 1, "img_low/sp/raid/bg/", "{}.jpg", [""], 10))
+            possibles.append(('background', i, 2, errs[-1], "event_{}", 1, "img_low/sp/raid/bg/", ".jpg", [""], 10))
         self.newShared(errs)
         for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "common_{}", 3, "img_low/sp/raid/bg/", "{}.jpg", [""], 10))
+            possibles.append(('background', i, 2, errs[-1], "common_{}", 3, "img_low/sp/raid/bg/", ".jpg", [""], 10))
         self.newShared(errs)
         for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "main_{}", 1, "img_low/sp/guild/custom/bg/", "{}.png", [""], 10))
+            possibles.append(('background', i, 2, errs[-1], "main_{}", 1, "img_low/sp/guild/custom/bg/", ".png", [""], 10))
         for i in ["ra", "rb", "rc"]:
             self.newShared(errs)
-            possibles.append(('background', 0, 1, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 50))
+            possibles.append(('background', 0, 1, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
         for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc")]:
             self.newShared(errs)
-            possibles.append(('background', 0, 1, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "{}_1.jpg", [""], 50))
+            possibles.append(('background', 0, 1, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
         
-        print("Starting Index update... (", len(possibles), " threads )")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)) as executor:
+        # titles
+        self.newShared(errs)
+        possibles.append(('title', 0, 1, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 20))
+        
+        thread_count = len(possibles)+40
+        
+        print("Starting Index update... (", thread_count, " threads )")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=thread_count) as executor:
+            # jop threads
             futures = self.job_search(executor)
+            # start
             for p in possibles:
                 futures.append(executor.submit(self.subroutine, self.getEndpoint(), *p))
             for future in concurrent.futures.as_completed(futures):
@@ -388,6 +396,8 @@ class Parser():
         if response.status_code != 200: raise Exception()
         if get:
             return response.content
+        else:
+            return response.headers
 
     def run(self):
         max_thread = 16

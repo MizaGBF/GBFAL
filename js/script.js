@@ -101,14 +101,12 @@ function loadData(unused)
     {
         if(key != "version")
         {
-            if(key == "background")
+            if(["background", "title"].includes(key))
             {
                 let obj = {};
-                for(let bg of index[key])
+                for(let elem of index[key])
                 {
-                    let tmp = bg.split('_');
-                    if(tmp.length == 1) obj[bg] = bg;
-                    else obj[tmp[0]+tmp[1].padStart(3)] = bg;
+                    obj[elem.padStart(10)] = elem;
                 }
                 let obj_keys = Object.keys(obj);
                 obj_keys.sort();
@@ -1429,7 +1427,7 @@ function displayBG(elem, i=null)
 {
     elem.removeAttribute("onclick");
     let node = (i==null ? document.getElementById('areabg') : document.getElementById('areabg'+i));
-    if("npcs" in index)
+    if("background" in index)
     {
         for(let id of index["background"])
         {
@@ -1444,6 +1442,20 @@ function displayBG(elem, i=null)
                 if(i == "main") addIndexImageGeneric(node, "sp/guild/custom/bg/" + id + ".png", id, null);
                 else addIndexImageGeneric(node, "sp/raid/bg/" + id + ".jpg", id, null);
             }
+        }
+    }
+    this.onclick = null;
+}
+
+function displayTitle(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areatitle');
+    if("title" in index)
+    {
+        for(let id of index["title"])
+        {
+            addIndexImageGeneric(node, "sp/top/bg/bg_" + id + ".jpg", id, null);
         }
     }
     this.onclick = null;
