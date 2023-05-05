@@ -1232,7 +1232,7 @@ function lookupMCPlus(mc_id)
                             img.onload = function() {
                                 this.classList.remove("loading");
                             }
-                            img.src = elem.replace('_0_', gender);
+                            img.src = protocol + getEndpoint() + language + elem.replace('_0_', gender);
                         }
                     }
                 }
