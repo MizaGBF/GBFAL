@@ -456,15 +456,14 @@ function newArea(name, id, include_link)
         l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
         l.appendChild(document.createTextNode("Wiki"));
         div.appendChild(l);
-        
-        if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371")
-        {
-            div.appendChild(document.createElement('br'));
-            l = document.createElement('a');
-            l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
-            l.appendChild(document.createTextNode("Animation"));
-            div.appendChild(l);
-        }
+        div.appendChild(document.createElement('br'));
+    }
+    if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371" || id.slice(0, 2) == "10" || (id.length == 9 && id[6] == '_'))
+    {
+        l = document.createElement('a');
+        l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
+        l.appendChild(document.createTextNode("Animation"));
+        div.appendChild(l);
     }
 }
 
