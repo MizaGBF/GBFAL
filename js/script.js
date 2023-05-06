@@ -115,12 +115,6 @@ function updateQuery(id)
         params.set("id", id);
         let newRelativePathQuery = window.location.pathname + '?' + params.toString();
         history.pushState(null, '', newRelativePathQuery);
-        if(lastsearches.length > 0)
-        {
-            let title = document.getElementById("to-title");
-            delete params["id"];
-            title.href = "index.html?" + params.toString();
-        }
     }
 }
 
