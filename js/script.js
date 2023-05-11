@@ -16,7 +16,8 @@ var endpoints = [
     "prd-game-a4-granbluefantasy.akamaized.net/",
     "prd-game-a5-granbluefantasy.akamaized.net/"
 ];
-var endp_count = -1;
+var main_endp_count = -1;
+var index_endp_count = -1;
 var language = "assets_en/";
 var last_id = null;
 var last_style = null;
@@ -28,14 +29,21 @@ var blacklist = [
 
 ]
 var index = {};
+var mc_index = null;
 var lastsearches = [];
 var timestamp = Date.now();
 var relations = {}
 
-function getEndpoint()
+function getMainEndpoint()
 {
-    endp_count = (endp_count + 1) % endpoints.length;
-    return endpoints[endp_count];
+    main_endp_count = (main_endp_count + 1) % endpoints.length;
+    return endpoints[main_endp_count];
+}
+
+function getIndexEndpoint()
+{
+    index_endp_count = (index_endp_count + 1) % endpoints.length;
+    return endpoints[index_endp_count];
 }
 
 function filter()
@@ -45,8 +53,7 @@ function filter()
 
 function init()
 {
-    getJSON("changelog.json?" + timestamp, initChangelog, initFollowup, null);
-    getJSON("relation.json?" + timestamp, initRelation, function(unused){}, null);
+    getJSON("json/changelog.json?" + timestamp, initChangelog, initChangelog, null);
 }
 
 function initChangelog(unusued)
@@ -59,51 +66,27 @@ function initChangelog(unusued)
     }catch{
         document.getElementById('timestamp').innerHTML = "";
     }
-    initFollowup();
+    getJSON("json/data.json?" + timestamp, initIndex, initIndex, null);
+    getJSON("json/relation.json?" + timestamp, initRelation, function(unused){}, null);
 }
 
-function initFollowup(unused=null)
+function initIndex(unused)
 {
-    getJSON("data.json?" + timestamp, loadData, function(unused){}, null);
-    result_area = document.getElementById('resultarea');
-    let params = new URLSearchParams(window.location.search);
-    let id = params.get("id");
-    updateHistory(null, 0);
-    if(id != null) lookup(id);
+    try{
+        index = JSON.parse(this.response);
+        result_area = document.getElementById('resultarea');
+        let params = new URLSearchParams(window.location.search);
+        let id = params.get("id");
+        updateHistory(null, 0);
+        if(id != null) lookup(id);
+    }catch{
+        getJSON("json/data.json?" + timestamp, initIndex, initIndex, null); // try again
+    }
 }
 
 function initRelation(unused)
 {
     relations = JSON.parse(this.response);
-}
-
-function loadData(unused)
-{
-    index = JSON.parse(this.response);
-    for(let key in index)
-    {
-        if(key != "version")
-        {
-            if(["background", "title"].includes(key))
-            {
-                let obj = {};
-                for(let elem of index[key])
-                {
-                    obj[elem.padStart(10)] = elem;
-                }
-                let obj_keys = Object.keys(obj);
-                obj_keys.sort();
-                index[key] = [];
-                for(let k of obj_keys)
-                    index[key].push(obj[k]);
-            }
-            else
-            {
-                index[key].sort();
-            }
-            if(!(["job", "npcs"].includes(key))) index[key].reverse();
-        }
-    }
 }
 
 function updateQuery(id)
@@ -137,16 +120,18 @@ function getJSON(url, callback, err_callback, id) {
     xhr.send(null);
 }
 
-function successJSON(id)
+function loadIndexed(id, obj, shortened=false)
 {
-    let obj = JSON.parse(this.response);
     if(id.length == 10 || id.length == 14)
     {
         switch(id[0])
         {
             case '1':
-                newArea("Weapon", id, true);
-                updateHistory(id, 1);
+                if(!shortened)
+                {
+                    newArea("Weapon", id, true);
+                    updateHistory(id, 1);
+                }
                 break;
             case '2':
                 newArea("Summon", id, true);
@@ -174,47 +159,139 @@ function successJSON(id)
     {
         newArea("Enemy", id, false);
         updateHistory(id, 4);
+        updateQuery("e"+id);
     }
     else if(id.length == 9)
     {
         newArea("Main Character", id, false);
         updateHistory(id, 0);
+        updateQuery(id);
     }
-    updateRelated(id);
-    for(let key of Object.keys(obj))
+    let assets = null;
+    let skycompass = null;
+    if(id.length == 7) // enemies
     {
-        let paths = obj[key];
-        if(paths.length == 0) continue;
-        let div = addResult(key, key);
-        result_area.appendChild(div);
-
-        for(let path of paths)
+        assets = [
+            ["Big Icon", "sp/assets/enemy/m/", "png", "img/", 0, false, false],
+            ["Small Icon", "sp/assets/enemy/s/", "png", "img/", 0, false, false],
+            ["Sprite Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
+            ["Raid Appear Sheets", "sp/cjs/raid_appear_", "png", "img_low/", 2, false, false],
+            ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 3, false, false],
+            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 4, false, false]
+        ];
+    }
+    else if(id.startsWith("30") || id.startsWith("37")) // characters / skins
+    {
+        assets = [
+            ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", 5, true, false], // index, skycompass, side form
+            ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", 5, false, false],
+            ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", 5, false, false],
+            ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", 5, false, false],
+            ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", 5, false, false],
+            ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_low/", 5, false, false],
+            ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", 5, false, false],
+            ["Tower Portraits", "sp/assets/npc/t/", "png", "img_low/", 5, false, false],
+            ["Sprites", "sp/assets/npc/sd/", "png", "img/", 6, false, false],
+            ["Raid", "sp/assets/npc/raid_normal/", "jpg", "img/", 5, false, true],
+            ["Twitter Arts", "sp/assets/npc/sns/", "jpg", "img_low/", 5, false, false],
+            ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", "img_low/", 5, false, false],
+            ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", "img_low/", 5, false, false],
+            ["Character Sheets", "sp/cjs/", "png", "img_low/", 0, false, false],
+            ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
+            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
+            ["AOE Skill Sheets", "sp/cjs/", "png", "img_low/", 5, false, false],
+            ["Single Target Skill Sheets", "sp/cjs/", "png", "img_low/", 3, false, false]
+        ];
+        skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
+    }
+    else if(id.startsWith("20")) // summons
+    {
+        assets = [
+            ["Main Arts", "sp/assets/summon/b/", "png", "img_low/", 0, true, false], // index, skycompass, side form
+            ["Home Arts", "sp/assets/summon/my/", "png", "img_low/", 0, false, false],
+            ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/", 0, false, false],
+            ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/", 0, false, false],
+            ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/", 0, false, false],
+            ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/", 0, false, false],
+            ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/", 0, false, false],
+            ["Summon Call Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
+            ["Summon Damage Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
+        ];
+        skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
+    }
+    else if(id.startsWith("10")) // weapons
+    {
+        assets = [
+            ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/", 0, false, false], // index, skycompass, side form
+            ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", 0, false, false],
+            ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", 0, false, false],
+            ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", 0, false, false],
+            ["Battle Sprites", "sp/cjs/", "png", "img/", 0, false, false],
+            ["Attack Effects", "sp/cjs/", "png", "img/", 1, false, false],
+            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
+        ];
+    }
+    if(assets != null)
+    {
+        for(let asset of assets)
         {
-            let img = document.createElement("img");
-            let ref = document.createElement('a');
-            if(path.includes("media.skycompass.io"))
+            if(obj[asset[4]].length == 0) continue;
+            if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue;
+            let div = addResult(asset[0], asset[0]);
+            result_area.appendChild(div);
+            
+            for(let file of obj[asset[4]])
             {
-                ref.setAttribute('href', path);
-                img.src = path;
+                if(!asset[6] && (file.endsWith('_f') || file.endsWith('_f1'))) continue;
+                let img = document.createElement("img");
+                let ref = document.createElement('a');
+                if(file.endsWith(".png") || file.endsWith(".jpg"))
+                    img.src = protocol + getMainEndpoint() + language + asset[3] + asset[1] + file;
+                else
+                    img.src = protocol + getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
+                ref.setAttribute('href', img.src.replace("img_low", "img"));
+                img.classList.add("loading");
+                img.onerror = function() {
+                    let result = this.parentNode.parentNode;
+                    this.parentNode.remove();
+                    this.remove();
+                    if(result.childNodes.length <= 2) result.remove();
+                }
+                img.onload = function() {
+                    this.classList.remove("loading");
+                }
+                div.appendChild(ref);
+                ref.appendChild(img);
+                if(skycompass != null && asset[5]) // skycompass
+                {
+                    img = document.createElement("img");
+                    ref = document.createElement('a');
+                    if(!skycompass[2])
+                    {
+                        if(file != obj[asset[4]][0]) continue;
+                        ref.setAttribute('href', skycompass[0] + file.split('_')[0] + skycompass[1]);
+                        img.src = skycompass[0] + file.split('_')[0] + skycompass[1];
+                    }
+                    else
+                    {
+                        ref.setAttribute('href', skycompass[0] + file + skycompass[1]);
+                        img.src = skycompass[0] + file + skycompass[1];
+                    }
+                    img.classList.add("loading");
+                    img.onerror = function() {
+                        let result = this.parentNode.parentNode;
+                        this.parentNode.remove();
+                        this.remove();
+                        if(result.childNodes.length <= 2) result.remove();
+                    }
+                    img.onload = function() {
+                        this.classList.remove("loading");
+                        this.classList.add("skycompass");
+                    }
+                    div.appendChild(ref);
+                    ref.appendChild(img);
+                }
             }
-            else
-            {
-                ref.setAttribute('href', protocol + getEndpoint() + language + path.replace("img_low", "img"));
-                img.src = protocol + getEndpoint() + language + path;
-            }
-            img.classList.add("loading");
-            img.onerror = function() {
-                let result = this.parentNode.parentNode;
-                this.parentNode.remove();
-                this.remove();
-                if(result.childNodes.length <= 2) result.remove();
-            }
-            img.onload = function() {
-                this.classList.remove("loading");
-                if(this.src.includes("media.skycompass.io")) this.classList.add("skycompass");
-            }
-            div.appendChild(ref);
-            ref.appendChild(img);
         }
     }
     // character npc files, at the end
@@ -224,7 +301,7 @@ function successJSON(id)
     }
 }
 
-function failJSON(id)
+function loadUnindexed(id)
 {
     if(blacklist.includes(id)) return;
     if(id.length == 10 || id.length == 14)
@@ -417,7 +494,7 @@ function updateRelated(id)
 function lookup(id)
 {
     if(blacklist.includes(id)) return;
-    counter = 0;
+    main_endp_count = -1;
     f = document.getElementById('filter');
     let el = id.split("_");
     if(
@@ -426,12 +503,25 @@ function lookup(id)
         (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6)) && id != last_id)
     )
     {
+        let start = id.slice(0, 2);
+        let check = null;
         if(f.value == "" || f.value != id)
         {
             f.value = id;
         }
-        if(id.toLowerCase()[0] === 'e') id = id.slice(1);
-        getJSON("data/" + id + ".json?" + timestamp, successJSON, failJSON, id);
+        if(id.toLowerCase()[0] === 'e')
+        {
+            id = id.slice(1);
+            check = "enemies";
+        }
+        else if(start == "30") check = "characters"
+        else if(start == "37") check = "skins"
+        else if(start == "20") check = "summons"
+        else if(start == "10") check = "weapons"
+        if(check != null && id in index[check])
+            loadIndexed(id, index[check][id])
+        else
+            loadUnindexed(id)
     }
 }
 
@@ -489,7 +579,8 @@ function lookupCharacter(character_id) // old and slow, avoid using this
         ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", true, true, false, true],
         ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", true, true, false, true],
         ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_low/", true, true, false, true],
-        ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img_low/", true, true, false, true],
+        ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", true, true, false, true],
+        ["Tower Portraits", "sp/assets/npc/t/", "png", "img_low/", true, true, false, true],
         ["Sprites", "sp/assets/npc/sd/", "png", "img/", false, false, false, false],
         ["Raid", "sp/assets/npc/raid_normal/", "jpg", "img/", false, true, false, true],
         ["Twitter Arts", "sp/assets/npc/sns/", "jpg", "img_low/", false, true, false, true],
@@ -577,7 +668,7 @@ function lookupCharacter(character_id) // old and slow, avoid using this
                                         img.onload = function() {
                                             this.classList.remove("loading");
                                         }
-                                        img.src = protocol + getEndpoint() + language + asset[3] + path;
+                                        img.src = protocol + getMainEndpoint() + language + asset[3] + path;
                                         // sky compass band aid
                                         if(asset[0] === "Main Arts")
                                         {
@@ -613,12 +704,12 @@ function lookupCharacter(character_id) // old and slow, avoid using this
     lookupNPCChara(character_id);
 }
 
-function lookupNPCChara(character_id, json_data = null)
+function lookupNPCChara(character_id, chara_data = null)
 {
     let uncaps = [""];
-    if(json_data != null)
+    if(chara_data != null)
     {
-        for(let el of json_data["Journal Arts"])
+        for(let el of chara_data[5])
         {
             let u = '_'+el.split('.')[0].split(character_id.split('_')[0])[1].split('_')[1];
             if(u != '_01' && !u.startsWith('_8') && !u.includes('f')) uncaps.push(u);
@@ -670,7 +761,7 @@ function lookupNPCChara(character_id, json_data = null)
             img.onload = function() {
                 this.classList.remove("loading");
             }
-            img.src = protocol + getEndpoint() + language + asset[3] + path;
+            img.src = protocol + getMainEndpoint() + language + asset[3] + path;
         }
     }
 }
@@ -725,7 +816,7 @@ function lookupNPC(npc_id)
             img.onload = function() {
                 this.classList.remove("loading");
             }
-            img.src = protocol + getEndpoint() + language + asset[3] + path;
+            img.src = protocol + getMainEndpoint() + language + asset[3] + path;
         }
     }
 }
@@ -804,7 +895,7 @@ function lookupSummon(summon_id)
                 img.onload = function() {
                     this.classList.remove("loading");
                 }
-                img.src = protocol + getEndpoint() + language + asset[3] + path;
+                img.src = protocol + getMainEndpoint() + language + asset[3] + path;
             }
         }
         // sky compass band aid
@@ -891,7 +982,7 @@ function lookupWeapon(weapon_id, shortened=false)
                 img.onload = function() {
                     this.classList.remove("loading");
                 }
-                img.src = protocol + getEndpoint() + language + asset[3] + path;
+                img.src = protocol + getMainEndpoint() + language + asset[3] + path;
             }
         }
     }
@@ -940,7 +1031,7 @@ function lookupEnemy(enemy_id)
                 img.onload = function() {
                     this.classList.remove("loading");
                 }
-                img.src = protocol + getEndpoint() + language + asset[3] + path;
+                img.src = protocol + getMainEndpoint() + language + asset[3] + path;
             }
         }
     }
@@ -951,33 +1042,34 @@ function lookupMC(mc_id)
     if(blacklist.includes(mc_id)) return;
     let job_ids = mc_id.split('_');
     let assets = [
-        ["Job Icon", "sp/ui/icon/job/", "png", "img/", 0],
-        ["Inventory Portrait", "sp/assets/leader/m/", "jpg", "img/", 1],
-        ["Outfit Portrait", "sp/assets/leader/sd/m/", "jpg", "img/", 1],
-        ["Outfit Description", "sp/assets/leader/skin/", "png", "img_low/", 1],
-        ["Home Art", "sp/assets/leader/my/", "png", "img_low/", 2],
-        ["Full Art", "sp/assets/leader/job_change/", "png", "img_low/", 2],
-        ["Outfit Preview Art", "sp/assets/leader/skin/", "png", "img_low/", 2],
-        ["Class Name Party Text", "sp/ui/job_name/job_list/", "png", "img/", 0],
-        ["Class Name Master Text", "sp/assets/leader/job_name_ml/", "png", "img/", 0],
-        ["Class Change Button", "sp/assets/leader/jlon/", "png", "img/", 2],
-        ["Party Class Big Portrait", "sp/assets/leader/jobon_z/", "png", "img_low/", 2],
-        ["Party Class Portrait", "sp/assets/leader/p/", "png", "img_low/", 2],
-        ["Profile Portrait", "sp/assets/leader/pm/", "png", "img_low/", 2],
-        ["Profile Board Portrait", "sp/assets/leader/talk/", "png", "img/", 2],
-        ["Raid Portrait", "sp/assets/leader/raid_normal/", "jpg", "img/", 2],
-        ["Raid Log", "sp/assets/leader/raid_log/", "png", "img/", 2],
-        ["Raid Result", "sp/assets/leader/result_ml/", "jpg", "img_low/", 2],
-        ["Mastery Portrait", "sp/assets/leader/zenith/", "png", "img_low/", 2],
-        ["Master Level Portrait", "sp/assets/leader/master_level/", "png", "img_low/", 2],
-        ["Sprite", "sp/assets/leader/sd/", "png", "img/", 3]
+        ["Job Icons", "sp/ui/icon/job/", "png", "img/", 0],
+        ["Inventory Portraits", "sp/assets/leader/m/", "jpg", "img/", 1],
+        ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", "img/", 1],
+        ["Outfit Description Arts", "sp/assets/leader/skin/", "png", "img_low/", 1],
+        ["Home Arts", "sp/assets/leader/my/", "png", "img_low/", 2],
+        ["Full Arts", "sp/assets/leader/job_change/", "png", "img_low/", 2],
+        ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", "img_low/", 2],
+        ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", "img/", 0],
+        ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", "img/", 0],
+        ["Class Change Buttons", "sp/assets/leader/jlon/", "png", "img/", 2],
+        ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", "img_low/", 2],
+        ["Party Class Portraits", "sp/assets/leader/p/", "png", "img_low/", 2],
+        ["Profile Portraits", "sp/assets/leader/pm/", "png", "img_low/", 2],
+        ["Profile Board Portraits", "sp/assets/leader/talk/", "png", "img/", 2],
+        ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", "img/", 2],
+        ["Tower Portraits", "sp/assets/leader/t/", "png", "img_low/", 2],
+        ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", "img/", 2],
+        ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", "img/", 2],
+        ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", "img_low/", 2],
+        ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2],
+        ["Master Level Portraits", "sp/assets/leader/master_level/", "png", "img_low/", 2],
+        ["Sprites", "sp/assets/leader/sd/", "png", "img/", 3]
     ];
     // 0 = job_ids[0]
     // 1 = job_ids[0] + "_01"
     // 2 = mc_id + "_1_01"
     // 3 = mc_id + "_1_01" (color variations)
     newArea("Main Character", mc_id, false);
-    getJSON("data/job.json", lookupMCPlus, function(v){}, mc_id);
     for(let asset of assets)
     {
         let div = addResult(asset[0], asset[0]);
@@ -1006,7 +1098,7 @@ function lookupMC(mc_id)
                     img.onload = function() {
                         this.classList.remove("loading");
                     }
-                    img.src = protocol + getEndpoint() + language + asset[3] + path;
+                    img.src = protocol + getMainEndpoint() + language + asset[3] + path;
                 }
                 // sky compass band aid
                 if(asset[0] === "Home Art")
@@ -1053,10 +1145,14 @@ function lookupMC(mc_id)
                 img.onload = function() {
                     this.classList.remove("loading");
                 }
-                img.src = protocol + getEndpoint() + language + asset[3] + path;
+                img.src = protocol + getMainEndpoint() + language + asset[3] + path;
             }
         }
     }
+    if(mc_index == null)
+        getJSON("json/job.json", lookupMCPlus, function(v){}, mc_id);
+    else
+        lookupMCPlus(mc_id);
 }
 
 var class_lookup = { // need to be manually updated..... :(
@@ -1190,7 +1286,7 @@ function lookupMCPlus(mc_id)
 {
     if(blacklist.includes(mc_id)) return;
     let dupe_check = [];
-    let obj = JSON.parse(this.response);
+    if(mc_index == null) mc_index = JSON.parse(this.response);
     let genders = ['_0_', '_1_'];
     if(mc_id in class_lookup)
     {
@@ -1200,9 +1296,9 @@ function lookupMCPlus(mc_id)
             result_area.appendChild(div);
             for(let cid of class_lookup[mc_id])
             {
-                if(cid in obj)
+                if(cid in mc_index)
                 {
-                    for(let elem of obj[cid])
+                    for(let elem of mc_index[cid])
                     {
                         for(let gender of genders)
                         {
@@ -1225,7 +1321,7 @@ function lookupMCPlus(mc_id)
                             img.onload = function() {
                                 this.classList.remove("loading");
                             }
-                            img.src = protocol + getEndpoint() + language + elem.replace('_0_', gender);
+                            img.src = protocol + getMainEndpoint() + language + elem.replace('_0_', gender);
                         }
                     }
                 }
@@ -1238,7 +1334,10 @@ function lookupMCPlus(mc_id)
         }
         if(mc_id in class_ougi)
         {
-            lookupWeapon(class_ougi[mc_id], true);
+            if('weapons' in index && class_ougi[mc_id] in index['weapons'])
+                loadIndexed(class_ougi[mc_id], index['weapons'][class_ougi[mc_id]], true);
+            else
+                lookupWeapon(class_ougi[mc_id], true);
         }
     }
 }
@@ -1268,7 +1367,7 @@ function addIndexImage(node, path, id, onerr = null)
             lookup(id);
         };
     }
-    img.src = protocol + getEndpoint() + language + "img_low/" + path;
+    img.src = protocol + getIndexEndpoint() + language + "img_low/" + path;
 }
 
 function displayCharacters(elem, i)
@@ -1278,7 +1377,7 @@ function displayCharacters(elem, i)
     let node = document.getElementById('areacharacters'+i);
     if("characters" in index)
     {
-        for(let id of index["characters"])
+        for(const id in index["characters"])
         {
             if(id[2] != i) continue;
             let el = id.split("_");
@@ -1298,7 +1397,7 @@ function displaySummons(elem, i)
     let node = document.getElementById('areasummons'+i);
     if("summons" in index)
     {
-        for(let id of index["summons"])
+        for(const id in index["summons"])
         {
             if(id[2] != i) continue;
             addIndexImage(node, "sp/assets/summon/m/" + id + ".jpg", id);
@@ -1315,7 +1414,7 @@ function displayWeapons(elem, r, i)
     let node = document.getElementById('areaweapons'+r+i);
     if("weapons" in index)
     {
-        for(let id of index["weapons"])
+        for(const id in index["weapons"])
         {
             if(id[4] != i || id[2] != r) continue;
             addIndexImage(node, "sp/assets/weapon/m/" + id + ".jpg", id);
@@ -1330,7 +1429,7 @@ function displaySkins(elem)
     let node = document.getElementById('areaskins');
     if("skins" in index)
     {
-        for(let id of index["skins"])
+        for(const id in index["skins"])
         {
             addIndexImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
         }
@@ -1344,7 +1443,7 @@ function displayEnemies(elem, i)
     let node = document.getElementById('areaenemies'+i);
     if("enemies" in index)
     {
-        for(let id of index["enemies"])
+        for(const id in index["enemies"])
         {
             if(id[0] != i) continue;
             addIndexImage(node, "sp/assets/enemy/m/" + id + ".png", "e" + id);
@@ -1366,7 +1465,7 @@ function displayNPC(elem, i)
     }
     if("npcs" in index)
     {
-        for(let id of index["npcs"])
+        for(const id in index["npcs"])
         {
             let t = parseInt(id);
             if(t < start || t > end) continue;
@@ -1382,7 +1481,7 @@ function displayMC(elem)
     let node = document.getElementById('areamc');
     if("job" in index)
     {
-        for(let id of index["job"])
+        for(const id in index["job"])
         {
             addIndexImage(node, "sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id);
         }
@@ -1411,7 +1510,7 @@ function addIndexImageGeneric(node, path, id, onerr = null)
         }
     }
     else img.onerror = onerr;
-    img.src = protocol + getEndpoint() + language + "img_low/" + path;
+    img.src = protocol + getIndexEndpoint() + language + "img_low/" + path;
     a.href = img.src.replace("img_low/", "img/")
 }
 
@@ -1421,7 +1520,7 @@ function displayBG(elem, i=null)
     let node = (i==null ? document.getElementById('areabg') : document.getElementById('areabg'+i));
     if("background" in index)
     {
-        for(let id of index["background"])
+        for(const id in index["background"])
         {
             if(i == null && !id.startsWith("common") && !id.startsWith("event") && !id.startsWith("main"))
             {
@@ -1445,7 +1544,7 @@ function displayTitle(elem)
     let node = document.getElementById('areatitle');
     if("title" in index)
     {
-        for(let id of index["title"])
+        for(const id in index["title"])
         {
             addIndexImageGeneric(node, "sp/top/bg/bg_" + id + ".jpg", id, null);
         }

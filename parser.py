@@ -2,8 +2,6 @@ import httpx
 import json
 import concurrent.futures
 from threading import Lock
-import os
-import os.path
 import sys
 import queue
 import time
@@ -15,22 +13,21 @@ from datetime import datetime, timezone
 class Parser():
     def __init__(self):
         self.running = False
-        self.index = set()
         self.queue = queue.Queue()
         self.quality = ("/img/", "/js/")
-        self.force_update = False
         self.data = {
-            "version":0,
-            "characters":set(),
-            "summons":set(),
-            "weapons":set(),
-            "enemies":set(),
-            "skins":set(),
-            "job":set(),
-            "npcs":set(),
-            "background":set(),
-            "title":set()
+            "characters":{},
+            "summons":{},
+            "weapons":{},
+            "enemies":{},
+            "skins":{},
+            "job":{},
+            "npcs":{},
+            "background":{},
+            "title":{}
         }
+        self.lock = Lock()
+        self.modified = False
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.multi_summon = ["2040414000"]
         self.new_elements = []
@@ -48,33 +45,29 @@ class Parser():
         
         self.load()
         self.exclusion = set([])
-        self.loadIndex()
 
     def load(self): # load data.json
         try:
-            with open('data.json', mode='r', encoding='utf-8') as f:
+            with open('json/data.json', mode='r', encoding='utf-8') as f:
                 data = json.load(f)
                 if not isinstance(data, dict): return
             for k in data:
-                if isinstance(data[k], list): self.data[k] = set(data[k])
-                else: self.data[k] = data[k]
+                self.data[k] = data.get(k, {})
         except Exception as e:
             print(e)
 
     def save(self): # save data.json
         try:
-            data = {}
-            for k in self.data:
-                if isinstance(self.data[k], set):
-                    data[k] = list(self.data[k])
-                else:
-                    data[k] = self.data[k]
-            with open('data.json', mode='w', encoding='utf-8') as outfile:
-                json.dump(data, outfile)
-            print("data.json updated")
-            with open('changelog.json', mode='w', encoding='utf-8') as outfile:
-                json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000)}, outfile)
-            print("changelog.json updated")
+            if self.modified:
+                self.modified = False
+                with open('json/data.json', mode='w', encoding='utf-8') as outfile:
+                    for k in self.data:
+                        self.data[k] = dict(sorted(self.data[k].items(), reverse=True))
+                    json.dump(self.data, outfile)
+                print("data.json updated")
+                with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
+                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000)}, outfile)
+                print("changelog.json updated")
         except Exception as e:
             print(e)
 
@@ -84,7 +77,7 @@ class Parser():
         errs[-1].append(True)
         errs[-1].append(Lock())
 
-    def run_index_update(self, no_manual=False):
+    def run(self):
         errs = []
         possibles = []
         self.new_elements = []
@@ -143,7 +136,7 @@ class Parser():
         
         thread_count = len(possibles)+40
         
-        print("Starting Index update... (", thread_count, " threads )")
+        print("Starting index update... (", thread_count, " threads )")
         with concurrent.futures.ThreadPoolExecutor(max_workers=thread_count) as executor:
             # jop threads
             futures = self.job_search(executor)
@@ -152,9 +145,8 @@ class Parser():
                 futures.append(executor.submit(self.subroutine, self.getEndpoint(), *p))
             for future in concurrent.futures.as_completed(futures):
                 future.result()
-        print("Done")
-        if not no_manual:
-            self.manualUpdate(self.new_elements)
+        print("Index update done")
+        self.manualUpdate(self.new_elements)
         self.save()
         self.build_relation()
 
@@ -162,7 +154,7 @@ class Parser():
         job_index = {}
         mhs = set(mhs)
         try:
-            with open('data/job.json', mode='r', encoding='utf-8') as f:
+            with open('json/job.json', mode='r', encoding='utf-8') as f:
                 job_index = json.load(f)
         except:
             pass
@@ -176,7 +168,7 @@ class Parser():
     def dig_job_spritesheet(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
         job_index = {}
         try:
-            with open('data/job.json', mode='r', encoding='utf-8') as f:
+            with open('json/job.json', mode='r', encoding='utf-8') as f:
                 job_index = json.load(f)
         except:
             pass
@@ -215,7 +207,7 @@ class Parser():
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         try:
-            with open('data/job.json', mode='w', encoding='utf-8') as f:
+            with open('json/job.json', mode='w', encoding='utf-8') as f:
                 json.dump(shared[2], f)
             print("job.json updated")
         except:
@@ -263,15 +255,15 @@ class Parser():
                     self.req(endpoint + path + f + ext.replace("{}", s))
                     with err[2]:
                         err[0] = 0
-                        self.data[index].add(f + s)
-                        if file.startswith("30") or file.startswith("37") or file.startswith("20"):
-                            self.new_elements.append(f + s)
+                        self.data[index][f + s] = 0
+                        self.modified = True
+                        self.new_elements.append(f + s)
                 except:
                     if s != "": break
                     with err[2]:
                         err[0] += 1
                         if err[0] >= maxerr:
-                            if err[1]: print("Threads", index, "("+file+")", "are done")
+                            if err[1]: print("Group", index, "("+file.format('X'*zfill)+")", "is done")
                             err[1] = False
                             return
                     break
@@ -314,7 +306,8 @@ class Parser():
                     path = "img_low/sp/assets/leader/sd/{}_{}_0_01.png".format(id, mhid)
                     self.req(endpoint + path)
                     with shared[0]:
-                        self.data['job'].add(id + "_" + mhid)
+                        self.data['job'][id + "_" + mhid] = 0
+                        self.modified = True
                     break
                 except:
                     pass
@@ -325,7 +318,7 @@ class Parser():
 
     def dig_job_chargeattack(self):
         try:
-            with open('job_ca.json', mode='r', encoding='utf-8') as f:
+            with open('json/job_ca.json', mode='r', encoding='utf-8') as f:
                 index = set(json.load(f))
         except:
             index = set()
@@ -335,7 +328,7 @@ class Parser():
             j = 0
             while count < 10 and j < 1000:
                 f = "1040{}{}00".format(i, str(j).zfill(3))
-                if f in self.data["weapons"] or f in index:
+                if f in self.data["weapons"]:
                     count = 0
                 else:
                     count += 1
@@ -349,7 +342,7 @@ class Parser():
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         try:
-            with open('job_ca.json', mode='w', encoding='utf-8') as f:
+            with open('json/job_ca.json', mode='w', encoding='utf-8') as f:
                 json.dump(list(shared[2]), f)
             print("job_ca.json updated")
         except:
@@ -377,14 +370,6 @@ class Parser():
                 except:
                     pass
 
-    def loadIndex(self):
-        files = [f for f in os.listdir('data/') if os.path.isfile(os.path.join('data/', f))]
-        known = []
-        for f in files:
-            if f.startswith("371") or f.startswith("304") or f.startswith("303") or f.startswith("302"):
-                known.append(f.split('.')[0])
-        self.index = set(known)
-
     def getEndpoint(self):
         return self.endpoint
 
@@ -399,50 +384,18 @@ class Parser():
         else:
             return response.headers
 
-    def run(self):
-        max_thread = 16
-        print("Updating Database...")
-        if self.force_update:
-            print("Note: All characters will be updated")
-            s = input("Type quit to exit now:").lower()
-            if s == "quit":
-                print("Process aborted")
-                return
-        
-        possibles = [
-            ("3020{}000", "R Characters"),
-            ("3030{}000", "SR Characters"),
-            ("3040{}000", "SSR Characters"),
-            ("3710{}000", "Skins")
-        ]
-
-        self.running = True
-        tmul = len(possibles)+1
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread*tmul) as executor:
-            futures = []
-            err = []
-            for i in range(max_thread):
-                futures.append(executor.submit(self.styleProcessing))
-            for p in possibles:
-                err.append([0, True, Lock(), 0, p[1]])
-                for i in range(max_thread):
-                    futures.append(executor.submit(self.run_sub, i, max_thread, err[-1], p[0]))
-            finished = 0
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
-                finished += 1
-                if finished == max_thread*len(possibles):
-                    self.running = False
-                    print("Progress 100%")
-                elif finished > max_thread*len(possibles):
-                    pass
-                elif finished > 0 and finished % (max_thread//2) == 0:
-                    print("Progress {:.1f}%".format((100*finished)/(max_thread*len(possibles))))
-        self.running = False
-        print("Done")
-        for e in err:
-            if e[3] > 0:
-                print(e[3], e[4])
+    def run_index_content(self):
+        print("Checking index content...")
+        to_update = []
+        for k in ["characters", "summons", "skins", "enemies"]:
+            for id in self.data[k]:
+                if self.data[k][id] == 0:
+                    to_update.append(id)
+        if len(to_update) > 0:
+            print(len(to_update), "element(s) to be updated. Starting...")
+            self.manualUpdate(to_update)
+        else:
+            print("No elements need to be updated")
 
     def styleProcessing(self):
         count = 0
@@ -456,12 +409,21 @@ class Parser():
                     count += 1
         return count
 
-    def run_sub(self, start, step, err, file):
+    def run_sub(self, start, step, err, file, index):
         id = start
         while err[1] and err[0] < 80 and self.running:
             f = file.format(str(id).zfill(3))
-            if self.force_update or f not in self.index:
-                if not self.charaUpdate(f):
+            if f not in self.data[index] or isinstance(self.data[index], int):
+                r = True
+                if f.startswith('20'):
+                    r = self.sumUpdate(f)
+                elif f.startswith('10'):
+                    r = self.weapUpdate(f)
+                elif len(f) == 7:
+                    r = mobUpdate(f)
+                else:
+                    r = self.charaUpdate(f)
+                if not r:
                     with err[2]:
                         err[0] += 1
                         if err[0] >= 80:
@@ -474,77 +436,30 @@ class Parser():
             id += step
 
     def charaUpdate(self, id, style=""):
-        urls = {}
-        urls["Main Arts"] = []
-        urls["Journal Arts"] = []
-        urls["Inventory Portraits"] = []
-        urls["Square Portraits"] = []
-        urls["Party Portraits"] = []
-        urls["Popup Portraits"] = []
-        urls["Party Select Portraits"] = []
-        urls["Sprites"] = []
-        urls["Raid"] = []
-        urls["Twitter Arts"] = []
-        urls["Charge Attack Cutins"] = []
-        urls["Chain Cutins"] = []
-        urls['Character Sheets'] = []
-        urls['Attack Effect Sheets'] = []
-        urls['Charge Attack Sheets'] = []
-        urls['AOE Skill Sheets'] = []
-        urls['Single Target Skill Sheets'] = []
+        data = [[], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd
         uncaps = []
+        sheets = []
         altForm = False
-        # main sheet
+        # # # Main sheets
         for uncap in ["01", "02", "03", "04"]:
             for ftype in ["", "_s2"]:
                 for form in ["", "_f", "_f1", "_f_01"]:
                     try:
                         fn = "npc_{}_{}{}{}{}".format(id, uncap, style, form, ftype)
-                        urls['Character Sheets'] += self.processManifest(fn)
+                        sheets += self.processManifest(fn)
                         if form == "": uncaps.append(uncap)
                         else: altForm = True
                     except:
                         if form == "":
                             break
+        data[0] = sheets
         if len(uncaps) == 0:
             return False
-        if not id.startswith("371") and style == "":
-            self.queue.put((id, ["_st2"])) # style check
-        # attack
-        targets = [""]
-        for i in range(2, len(uncaps)):
-            targets.append("_" + uncaps[i])
-        for t in targets:
-            try:
-                fn = "phit_{}{}{}".format(id, t, style)
-                urls['Attack Effect Sheets'] += self.processManifest(fn)
-            except:
-                break
-        # ougi
-        for uncap in uncaps:
-            for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
-                for catype in ["", "_s2", "_s3"]:
-                    try:
-                        fn = "nsp_{}_{}{}{}{}".format(id, uncap, style, form, catype)
-                        urls['Charge Attack Sheets'] += self.processManifest(fn)
-                        break
-                    except:
-                        pass
-        # skills
-        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-            try:
-                fn = "ab_all_{}{}_{}".format(id, style, el)
-                urls['AOE Skill Sheets'] += self.processManifest(fn)
-            except:
-                pass
-            try:
-                fn = "ab_{}{}_{}".format(id, style, el)
-                urls['Single Target Skill Sheets'] += self.processManifest(fn)
-            except:
-                pass
+        # # # Assets
         # arts
         flags = self.artCheck(id, style, uncaps)
-        # # # Assets
+        targets = []
+        sd = []
         for uncap in flags:
             # main
             base_fn = "{}_{}{}".format(id, uncap, style)
@@ -553,91 +468,162 @@ class Parser():
                 for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
                     for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
                         for af in (["", "_f", "_f1"] if altForm else [""]):
-                            fn = base_fn + af + g + m + n
-                            urls["Main Arts"].append("img_low/sp/assets/npc/zoom/" + fn + ".png")
-                            urls["Main Arts"].append("https://media.skycompass.io/assets/customizes/characters/1138x1138/" + fn + ".png")
-                            urls["Journal Arts"].append("img_low/sp/assets/npc/b/" + fn + ".png")
-                            urls["Inventory Portraits"].append("img_low/sp/assets/npc/m/" + fn + ".jpg")
-                            urls["Square Portraits"].append("img_low/sp/assets/npc/s/" + fn + ".jpg")
-                            urls["Party Portraits"].append("img_low/sp/assets/npc/f/" + fn + ".jpg")
-                            urls["Popup Portraits"].append("img/sp/assets/npc/qm/" + fn + ".png")
-                            urls["Party Select Portraits"].append("img/sp/assets/npc/quest/" + fn + ".jpg")
-                            urls["Raid"].append("img/sp/assets/npc/raid_normal/" + fn + ".jpg")
-                            urls["Twitter Arts"].append("img_low/sp/assets/npc/sns/" + fn + ".jpg")
-                            urls["Charge Attack Cutins"].append("img_low/sp/assets/npc/cutin_special/" + fn + ".jpg")
-                            urls["Chain Cutins"].append("img_low/sp/assets/npc/raid_chain/" + fn + ".jpg")
+                            targets.append(base_fn + af + g + m + n)
             # sprites
-            urls["Sprites"].append("img/sp/assets/npc/sd/" + base_fn + ".png")
-        # sorting
-        for k in urls:
-            if "Sheet" not in k: continue
-            el = [f.split("/")[-1] for f in urls[k]]
-            el.sort()
-            for i in range(len(urls[k])):
-                urls[k][i] = "/".join(urls[k][i].split("/")[:-1]) + "/" + el[i]
-        with open("data/" + id + style + ".json", 'w') as outfile:
-            json.dump(urls, outfile)
+            sd.append(base_fn)
+        data[5] = targets
+        data[6] = sd
+        if len(targets) == 0:
+            return False
+        if not id.startswith("371") and style == "":
+            self.queue.put((id, ["_st2"])) # style check
+        # # # Other sheets
+        # attack
+        targets = [""]
+        for i in range(2, len(uncaps)):
+            targets.append("_" + uncaps[i])
+        attacks = []
+        for t in targets:
+            try:
+                fn = "phit_{}{}{}".format(id, t, style)
+                attacks += self.processManifest(fn)
+            except:
+                break
+        data[1] = attacks
+        # ougi
+        attacks = []
+        for uncap in uncaps:
+            for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
+                for catype in ["", "_s2", "_s3"]:
+                    try:
+                        fn = "nsp_{}_{}{}{}{}".format(id, uncap, style, form, catype)
+                        attacks += self.processManifest(fn)
+                        break
+                    except:
+                        pass
+        data[2] = attacks
+        # skills
+        attacks = []
+        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+            try:
+                fn = "ab_all_{}{}_{}".format(id, style, el)
+                attacks += self.processManifest(fn)
+            except:
+                pass
+        data[3] = attacks
+        attacks = []
+        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+            try:
+                fn = "ab_{}{}_{}".format(id, style, el)
+                attacks += self.processManifest(fn)
+            except:
+                pass
+        data[4] = attacks
+        with self.lock:
+            self.modified = True
+            if id.startswith('37'):
+                self.data['skins'][id+style] = data
+            else:
+                self.data['characters'][id+style] = data
         return True
 
     def sumUpdate(self, id):
-        urls = {}
-        urls["Main Arts"] = []
-        urls["Home Arts"] = []
-        urls["Inventory Portraits"] = []
-        urls["Square Portraits"] = []
-        urls["Main Summon Portraits"] = []
-        urls["Sub Summon Portraits"] = []
-        urls["Raid Portraits"] = []
-        urls['Summon Call Sheets'] = []
-        urls['Summon Damage Sheets'] = []
+        data = [[], [], []] # general, call, damage
         uncaps = []
         # main sheet
         for uncap in ["", "_02", "_03", "_04"]:
             try:
                 fn = "{}_{}".format(id, uncap)
                 self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/m/{}{}.jpg".format(id, uncap))
-                urls['Main Arts'].append("img_low/sp/assets/summon/b/{}{}.png".format(id, uncap))
-                if uncap == "": urls['Main Arts'].append("https://media.skycompass.io/assets/archives/summons/{}/detail_l.png".format(id))
-                urls['Home Arts'].append("img_low/sp/assets/summon/my/{}{}.png".format(id, uncap))
-                urls['Inventory Portraits'].append("img_low/sp/assets/summon/m/{}{}.jpg".format(id, uncap))
-                urls['Square Portraits'].append("img_low/sp/assets/summon/s/{}{}.jpg".format(id, uncap))
-                urls['Main Summon Portraits'].append("img_low/sp/assets/summon/party_main/{}{}.jpg".format(id, uncap))
-                urls['Sub Summon Portraits'].append("img_low/sp/assets/summon/party_sub/{}{}.jpg".format(id, uncap))
-                urls['Raid Portraits'].append("img/sp/assets/summon/raid_normal/{}{}.jpg".format(id, uncap))
+                data[0].append("{}{}".format(id, uncap))
                 uncaps.append("01" if uncap == "" else uncap[1:])
             except:
                 break
         if len(uncaps) == 0:
             return False
-        if id in self.multi_summon:
-            tmp = []
-            for u in uncaps:
-                for c in 'abcde':
-                    tmp.append(u+"_"+c)
-            uncaps = tmp
         # attack
         for u in uncaps:
             try:
                 fn = "summon_{}_{}_attack".format(id, u)
-                urls['Summon Call Sheets'] += self.processManifest(fn)
+                data[1] += self.processManifest(fn)
             except:
                 pass
         # damage
         for u in uncaps:
             try:
                 fn = "summon_{}_{}_damage".format(id, u)
-                urls['Summon Damage Sheets'] += self.processManifest(fn)
+                data[2] += self.processManifest(fn)
             except:
                 pass
-        # sorting
-        for k in urls:
-            if "Sheet" not in k: continue
-            el = [f.split("/")[-1] for f in urls[k]]
-            el.sort()
-            for i in range(len(urls[k])):
-                urls[k][i] = "/".join(urls[k][i].split("/")[:-1]) + "/" + el[i]
-        with open("data/" + id + ".json", 'w') as outfile:
-            json.dump(urls, outfile)
+        with self.lock:
+            self.modified = True
+            self.data['summons'][id] = data
+        return True
+
+    def weapUpdate(self, id):
+        data = [[], [], []] # general, phit, sp
+        uncaps = []
+        # art
+        try:
+            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/weapon/ls/{}.jpg".format(id))
+            data[0].append("{}".format(id))
+        except:
+            return False
+        # attack
+        try:
+            fn = "phit_{}".format(id)
+            data[1] += self.processManifest(fn)
+        except:
+            pass
+        # ougi
+        for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
+            try:
+                fn = "sp_{}{}".format(id, u)
+                data[2] += self.processManifest(fn)
+            except:
+                pass
+        with self.lock:
+            self.modified = True
+            self.data['weapons'][id] = data
+        return True
+
+    def mobUpdate(self, id):
+        data = [[], [], [], [], []] # general, sprite, appear, ehit, esp
+        uncaps = []
+        # icon
+        try:
+            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/m/{}.png".format(id))
+            data[0].append("{}".format(id))
+        except:
+            return False
+        # sprite
+        try:
+            fn = "enemy_{}".format(id)
+            data[1] += self.processManifest(fn)
+        except:
+            pass
+        # appear
+        try:
+            fn = "raid_appear_{}".format(id)
+            data[2] += self.processManifest(fn)
+        except:
+            pass
+        # ehit
+        try:
+            fn = "ehit_{}".format(id)
+            data[3] += self.processManifest(fn)
+        except:
+            pass
+        # esp
+        for i in range(0, 20):
+            try:
+                fn = "esp_{}_{}".format(id, str(i).zfill(2))
+                data[4] += self.processManifest(fn)
+            except:
+                pass
+        with self.lock:
+            self.modified = True
+            self.data['enemies'][id] = data
         return True
 
     def processManifest(self, file):
@@ -647,7 +633,7 @@ class Parser():
         data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
         res = []
         for l in data:
-            src = "img_low" + l['src'].split('?')[0]
+            src = l['src'].split('?')[0].split('/')[-1]
             res.append(src)
         return res
 
@@ -674,9 +660,7 @@ class Parser():
     def manualUpdate(self, ids):
         if len(ids) == 0:
             return
-        max_thread = 40
-        counter = 0
-        tcounter = 0
+        max_thread = 80
         self.running = True
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread+2) as executor:
             futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
@@ -684,28 +668,34 @@ class Parser():
                 if len(id) >= 10:
                     if id.startswith('2'):
                         futures.append(executor.submit(self.sumUpdate, id))
+                    elif id.startswith('10'):
+                        futures.append(executor.submit(self.weapUpdate, id))
+                    elif id.startswith('3'):
+                        el = id.split('_')
+                        if len(el) == 2:
+                            futures.append(executor.submit(self.charaUpdate, el[0], '_'+el[1]))
+                        else:
+                            futures.append(executor.submit(self.charaUpdate, id))
                     else:
-                        futures.append(executor.submit(self.charaUpdate, id))
-                    tcounter += 1
+                        pass
+                else:
+                    futures.append(executor.submit(self.mobUpdate, id))
             tfinished = 0
+            tcounter = len(futures) - 2
             if tcounter > 0:
                 print("Attempting to update", tcounter, "element(s)")
                 for future in concurrent.futures.as_completed(futures):
                     tfinished += 1
                     if tfinished >= tcounter:
                         self.running = False
-                    r = future.result()
-                    if isinstance(r, int): counter += r
-                    elif r: counter += 1
+                    future.result()
             else:
                 self.running = False
                 for future in concurrent.futures.as_completed(futures):
-                    r = future.result()
+                    future.result()
+        self.save()
         self.running = False
         print("Done")
-        if counter > 0:
-            print(counter, "successfully processed ID")
-        return (counter > 0)
 
     def get_relation(self, eid):
         try:
@@ -762,14 +752,14 @@ class Parser():
 
     def build_relation(self, to_update=[]):
         try:
-            with open("relation_name.json", "r") as f:
+            with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
             print("Element name table loaded")
         except:
             self.name_table = {}
         self.name_table_modified = False
         try:
-            with open("relation.json", "r") as f:
+            with open("json/relation.json", "r") as f:
                 relation = json.load(f)
             print("Existing relationships loaded")
         except:
@@ -827,14 +817,14 @@ class Parser():
                             relation[eid].append(oid)
                             relation[eid].sort()
                 try:
-                    with open("relation.json", "w") as f:
+                    with open("json/relation.json", "w") as f:
                         json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
                     print("Relationships updated")
                 except:
                     pass
             if self.name_table_modified:
                 try:
-                    with open("relation_name.json", "w") as f:
+                    with open("json/relation_name.json", "w") as f:
                         json.dump(self.name_table, f, sort_keys=True, indent='\t', separators=(',', ':'))
                     print("Name table updated")
                 except:
@@ -842,14 +832,14 @@ class Parser():
 
     def connect_relation(self, As, B):
         try:
-            with open("relation_name.json", "r") as f:
+            with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
             print("Element name table loaded")
         except:
             self.name_table = {}
         self.name_table_modified = False
         try:
-            with open("relation.json", "r") as f:
+            with open("json/relation.json", "r") as f:
                 relation = json.load(f)
             print("Existing relationships loaded")
         except:
@@ -896,7 +886,7 @@ class Parser():
                         relation[eid].append(oid)
                         relation[eid].sort()
             try:
-                with open("relation.json", "w") as f:
+                with open("json/relation.json", "w") as f:
                     json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
                 print("Relationships updated")
             except:
@@ -936,31 +926,15 @@ class Parser():
 def print_help():
     print("Usage: python parser.py [option]")
     print("options:")
-    print("-run     : Update character JSON files and update the index.")
+    print("-run     : Update the index with new content.")
     print("-update  : Manual JSON updates (Followed by IDs to check).")
-    print("-index   : Update the index and create new character JSON files if any.")
+    print("-index   : Check the index for missing content.")
     print("-job     : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
     print("-jobca   : Search Job Attack spritesheets (Very time consuming).")
     print("-relation: Update the relationship index.")
     print("-relinput: Update to relationships.")
     print("-listjob : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
-    print("-debug   : List downloaded skins with multi portraits.")
     time.sleep(2)
-
-def debug_multi_portrait_skin():
-    files = [f for f in os.listdir('data/') if os.path.isfile(os.path.join('data/', f))]
-    known = []
-    for f in files:
-        if f.startswith("371"):
-            known.append(f)
-    for k in known:
-        with open("data/" + k) as f:
-            data = json.load(f)
-        counted = set()
-        for x in data['Inventory Portraits']:
-            if '_f' not in x and '_f1' not in x and x not in counted:
-                counted.add(x)
-        if len(counted) > 1: print(k)
 
 if __name__ == '__main__':
     p = Parser()
@@ -969,7 +943,6 @@ if __name__ == '__main__':
     else:
         if sys.argv[1] == '-run':
             p.run()
-            p.run_index_update(no_manual=True)
         elif sys.argv[1] == '-update':
             if len(sys.argv) == 2:
                 print_help()
@@ -977,7 +950,7 @@ if __name__ == '__main__':
                 if p.manualUpdate(sys.argv[2:]):
                     p.save()
         elif sys.argv[1] == '-index':
-            p.run_index_update()
+            p.run_index_content()
         elif sys.argv[1] == '-job':
             if len(sys.argv) == 2:
                 p.dig_job_spritesheet()
@@ -994,7 +967,5 @@ if __name__ == '__main__':
                 p.listjob()
             else:
                 p.listjob(sys.argv[2:])
-        elif sys.argv[1] == '-debug':
-            debug_multi_portrait_skin()
         else:
             print_help()
