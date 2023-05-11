@@ -1377,15 +1377,19 @@ function displayCharacters(elem, i)
     let node = document.getElementById('areacharacters'+i);
     if("characters" in index)
     {
+        let slist = {};
         for(const id in index["characters"])
         {
             if(id[2] != i) continue;
             let el = id.split("_");
             if(el.length == 2)
-                addIndexImage(node, "sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", id);
+                slist[id.padEnd(15, "0")] = ["sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", id];
             else
-                addIndexImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
+                slist[id.padEnd(15, "0")] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
         }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1]);
     }
     this.onclick = null;
 }
@@ -1397,11 +1401,15 @@ function displaySummons(elem, i)
     let node = document.getElementById('areasummons'+i);
     if("summons" in index)
     {
+        let slist = {};
         for(const id in index["summons"])
         {
             if(id[2] != i) continue;
-            addIndexImage(node, "sp/assets/summon/m/" + id + ".jpg", id);
+            slist[id] = ["sp/assets/summon/m/" + id + ".jpg", id];
         }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1]);
     }
     this.onclick = null;
 }
@@ -1414,11 +1422,15 @@ function displayWeapons(elem, r, i)
     let node = document.getElementById('areaweapons'+r+i);
     if("weapons" in index)
     {
+        let slist = {};
         for(const id in index["weapons"])
         {
             if(id[4] != i || id[2] != r) continue;
-            addIndexImage(node, "sp/assets/weapon/m/" + id + ".jpg", id);
+            slist[id] = ["sp/assets/weapon/m/" + id + ".jpg", id];
         }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1]);
     }
     this.onclick = null;
 }
@@ -1429,10 +1441,14 @@ function displaySkins(elem)
     let node = document.getElementById('areaskins');
     if("skins" in index)
     {
+        let slist = {};
         for(const id in index["skins"])
         {
-            addIndexImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id);
+            slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
         }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1]);
     }
 }
 
@@ -1443,11 +1459,15 @@ function displayEnemies(elem, i)
     let node = document.getElementById('areaenemies'+i);
     if("enemies" in index)
     {
+        let slist = {};
         for(const id in index["enemies"])
         {
             if(id[0] != i) continue;
-            addIndexImage(node, "sp/assets/enemy/m/" + id + ".png", "e" + id);
+            slist[id] = ["sp/assets/enemy/m/" + id + ".png", "e"+id];
         }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1]);
     }
     this.onclick = null;
 }
@@ -1465,12 +1485,16 @@ function displayNPC(elem, i)
     }
     if("npcs" in index)
     {
+        let slist = {};
         for(const id in index["npcs"])
         {
             let t = parseInt(id);
             if(t < start || t > end) continue;
-            addIndexImage(node, "sp/assets/npc/m/" + id + "_01.jpg", id, onerr);
+            slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
         }
+        const keys = Object.keys(slist).sort();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1], onerr);
     }
     this.onclick = null;
 }
@@ -1481,10 +1505,14 @@ function displayMC(elem)
     let node = document.getElementById('areamc');
     if("job" in index)
     {
+        let slist = {};
         for(const id in index["job"])
         {
-            addIndexImage(node, "sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id);
+            slist[id] = ["sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id];
         }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1], onerr);
     }
     this.onclick = null;
 }
@@ -1520,8 +1548,15 @@ function displayBG(elem, i=null)
     let node = (i==null ? document.getElementById('areabg') : document.getElementById('areabg'+i));
     if("background" in index)
     {
+        let slist = {};
         for(const id in index["background"])
         {
+            slist[id.padStart(9, "0")] = id;
+        }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+        {
+            const id = slist[k];
             if(i == null && !id.startsWith("common") && !id.startsWith("event") && !id.startsWith("main"))
             {
                 addIndexImageGeneric(node, "sp/raid/bg/" + id + "_3.jpg", id+"_3", null);
@@ -1544,10 +1579,14 @@ function displayTitle(elem)
     let node = document.getElementById('areatitle');
     if("title" in index)
     {
+        let slist = {};
         for(const id in index["title"])
         {
-            addIndexImageGeneric(node, "sp/top/bg/bg_" + id + ".jpg", id, null);
+            slist[id.padStart(9, "0")] = id;
         }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImageGeneric(node, "sp/top/bg/bg_" + slist[k] + ".jpg", slist[k], null);
     }
     this.onclick = null;
 }

@@ -61,8 +61,6 @@ class Parser():
             if self.modified:
                 self.modified = False
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
-                    for k in self.data:
-                        self.data[k] = dict(sorted(self.data[k].items(), reverse=True))
                     json.dump(self.data, outfile)
                 print("data.json updated")
                 with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
