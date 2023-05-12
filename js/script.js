@@ -525,7 +525,7 @@ function lookup(id)
     }
 }
 
-function newArea(name, id, include_link)
+function newArea(name, id, include_link, indexed=true)
 {
     while(true)
     {
@@ -548,6 +548,11 @@ function newArea(name, id, include_link)
         l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
         l.appendChild(document.createTextNode("Animation"));
         div.appendChild(l);
+    }
+    if(!indexed)
+    {
+        div.appendChild(document.createElement('br'));
+        div.appendChild(document.createTextNode("This element isn't indexed, assets might be missing"));
     }
 }
 
@@ -600,7 +605,7 @@ function lookupCharacter(character_id) // old and slow, avoid using this
     
     
     let is_character_skin = character_id[1] == '7';
-    newArea("Character", character_id, true);
+    newArea("Character", character_id, true, false);
     for(let asset of assets)
     {
         let uncap_append = asset[7] ? uncaps.concat(bonus) : uncaps;
@@ -789,7 +794,7 @@ function lookupNPC(npc_id)
                     scene_alts.push(uncap+A+ex+B);
     scene_alts = scene_alts.concat(others, specials);
     
-    newArea("NPC", npc_id, true);
+    newArea("NPC", npc_id, true, false);
     for(let asset of assets)
     {
         let div = addResult(asset[0], asset[0]);
@@ -840,7 +845,7 @@ function lookupSummon(summon_id)
     let sheets = [""];
     let uncap_append = [];
     
-    newArea("Summon", summon_id, true);
+    newArea("Summon", summon_id, true, false);
     for(let asset of assets)
     {
         if(asset[0].includes('Sheets'))
@@ -937,7 +942,7 @@ function lookupWeapon(weapon_id, shortened=false)
     let appends = [""];
     let sheets = [""];
     
-    if(!shortened) newArea("Weapon", weapon_id, true);
+    if(!shortened) newArea("Weapon", weapon_id, true, false);
     for(let asset of assets)
     {
         if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue;
@@ -1002,7 +1007,7 @@ function lookupEnemy(enemy_id)
     let appends = [""];
     let sheets = [""];
     
-    newArea("Enemy", enemy_id, false);
+    newArea("Enemy", enemy_id, false, false);
     for(let asset of assets)
     {
         sheets = asset[0].includes("Sheets") ? ["", "_a", "_b", "_c", "_d", "_e"] : [""];
@@ -1512,7 +1517,7 @@ function displayMC(elem)
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
-            addIndexImage(node, slist[k][0], slist[k][1], onerr);
+            addIndexImage(node, slist[k][0], slist[k][1]);
     }
     this.onclick = null;
 }
