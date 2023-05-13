@@ -414,13 +414,15 @@ function updateHistory(id, search_type)
             }
             case 4: // enemy
             {
-                addIndexImage(histarea, "sp/assets/enemy/m/" + e[0] + ".png", "e" + e[0]);
+                addIndexImage(histarea, "sp/assets/enemy/s/" + e[0] + ".png", "e" + e[0], null, "img/");
                 break;
             }
             case 5: // npc
             {
                 let onerr = function() {
-                    this.onerror = null;
+                    this.onerror = function() {
+                        this.remove();
+                    }
                     this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
                     this.className = "preview";
                 }
@@ -518,10 +520,10 @@ function lookup(id)
         else if(start == "37") check = "skins"
         else if(start == "20") check = "summons"
         else if(start == "10") check = "weapons"
-        if(check != null && id in index[check])
-            loadIndexed(id, index[check][id])
+        if(check != null && id in index[check] && index[check][id] !== 0)
+            loadIndexed(id, index[check][id]);
         else
-            loadUnindexed(id)
+            loadUnindexed(id);
     }
 }
 
@@ -1339,7 +1341,7 @@ function lookupMCPlus(mc_id)
         }
         if(mc_id in class_ougi)
         {
-            if('weapons' in index && class_ougi[mc_id] in index['weapons'])
+            if('weapons' in index && class_ougi[mc_id] in index['weapons'] && index['weapons'][class_ougi[mc_id]] !== 0)
                 loadIndexed(class_ougi[mc_id], index['weapons'][class_ougi[mc_id]], true);
             else
                 lookupWeapon(class_ougi[mc_id], true);
@@ -1349,7 +1351,7 @@ function lookupMCPlus(mc_id)
 
 // =================================================================================================
 // index stuff
-function addIndexImage(node, path, id, onerr = null)
+function addIndexImage(node, path, id, onerr = null, quality="img_low/")
 {
     let img = document.createElement("img");
     node.appendChild(img);
@@ -1372,7 +1374,7 @@ function addIndexImage(node, path, id, onerr = null)
             lookup(id);
         };
     }
-    img.src = protocol + getIndexEndpoint() + language + "img_low/" + path;
+    img.src = protocol + getIndexEndpoint() + language + quality + path;
 }
 
 function displayCharacters(elem, i)
@@ -1468,11 +1470,11 @@ function displayEnemies(elem, i)
         for(const id in index["enemies"])
         {
             if(id[0] != i) continue;
-            slist[id] = ["sp/assets/enemy/m/" + id + ".png", "e"+id];
+            slist[id] = ["sp/assets/enemy/s/" + id + ".png", "e"+id];
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
-            addIndexImage(node, slist[k][0], slist[k][1]);
+            addIndexImage(node, slist[k][0], slist[k][1], null, "img/");
     }
     this.onclick = null;
 }
@@ -1484,7 +1486,9 @@ function displayNPC(elem, i)
     let start = 3990000000 + i * 1000;
     let end = start + 499000;
     let onerr = function() {
-        this.onerror = null;
+        this.onerror = function() {
+            this.remove();
+        }
         this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
         this.className = "preview";
     }

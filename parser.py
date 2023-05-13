@@ -30,6 +30,7 @@ class Parser():
         self.modified = False
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.multi_summon = ["2040414000"]
+        self.chara_special = {"3710171000":"3710167000","3710170000":"3710167000","3710169000":"3710167000","3710168000":"3710167000"}
         self.new_elements = []
         self.name_table = {}
         self.name_table_modified = False
@@ -439,11 +440,12 @@ class Parser():
         sheets = []
         altForm = False
         # # # Main sheets
+        tid = self.chara_special.get(id, id) # special substitution (mostly for bobobo)
         for uncap in ["01", "02", "03", "04"]:
             for ftype in ["", "_s2"]:
                 for form in ["", "_f", "_f1", "_f_01"]:
                     try:
-                        fn = "npc_{}_{}{}{}{}".format(id, uncap, style, form, ftype)
+                        fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
                         sheets += self.processManifest(fn)
                         if form == "": uncaps.append(uncap)
                         else: altForm = True
@@ -483,7 +485,7 @@ class Parser():
         attacks = []
         for t in targets:
             try:
-                fn = "phit_{}{}{}".format(id, t, style)
+                fn = "phit_{}{}{}".format(tid, t, style)
                 attacks += self.processManifest(fn)
             except:
                 break
@@ -494,7 +496,7 @@ class Parser():
             for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
                 for catype in ["", "_s2", "_s3"]:
                     try:
-                        fn = "nsp_{}_{}{}{}{}".format(id, uncap, style, form, catype)
+                        fn = "nsp_{}_{}{}{}{}".format(tid, uncap, style, form, catype)
                         attacks += self.processManifest(fn)
                         break
                     except:
@@ -504,7 +506,7 @@ class Parser():
         attacks = []
         for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
             try:
-                fn = "ab_all_{}{}_{}".format(id, style, el)
+                fn = "ab_all_{}{}_{}".format(tid, style, el)
                 attacks += self.processManifest(fn)
             except:
                 pass
@@ -512,14 +514,14 @@ class Parser():
         attacks = []
         for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
             try:
-                fn = "ab_{}{}_{}".format(id, style, el)
+                fn = "ab_{}{}_{}".format(tid, style, el)
                 attacks += self.processManifest(fn)
             except:
                 pass
         data[4] = attacks
         with self.lock:
             self.modified = True
-            if id.startswith('37'):
+            if tid.startswith('37'):
                 self.data['skins'][id+style] = data
             else:
                 self.data['characters'][id+style] = data
@@ -539,20 +541,23 @@ class Parser():
                 break
         if len(uncaps) == 0:
             return False
+        multi = [""] if id not in self.multi_summon else ["", "_a", "_b", "_c", "_d", "_e"]
         # attack
         for u in uncaps:
-            try:
-                fn = "summon_{}_{}_attack".format(id, u)
-                data[1] += self.processManifest(fn)
-            except:
-                pass
+            for m in multi:
+                try:
+                    fn = "summon_{}_{}{}_attack".format(id, u, m)
+                    data[1] += self.processManifest(fn)
+                except:
+                    pass
         # damage
         for u in uncaps:
-            try:
-                fn = "summon_{}_{}_damage".format(id, u)
-                data[2] += self.processManifest(fn)
-            except:
-                pass
+            for m in multi:
+                try:
+                    fn = "summon_{}_{}{}_damage".format(id, u, m)
+                    data[2] += self.processManifest(fn)
+                except:
+                    pass
         with self.lock:
             self.modified = True
             self.data['summons'][id] = data
@@ -590,7 +595,7 @@ class Parser():
         uncaps = []
         # icon
         try:
-            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/m/{}.png".format(id))
+            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/{}.png".format(id))
             data[0].append("{}".format(id))
         except:
             return False
