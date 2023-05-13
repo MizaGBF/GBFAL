@@ -726,7 +726,7 @@ class Parser():
                     with self.name_lock:
                         if name not in self.name_table:
                             self.name_table[name] = []
-                        if eid not in self.name_table[name]:
+                        if eid not in self.name_table[name] and not eid.startswith('399'):
                             self.name_table[name].append(eid)
                             self.name_table_modified = True
                 try: page = page.decode('utf-8')
