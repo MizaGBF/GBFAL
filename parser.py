@@ -419,7 +419,7 @@ class Parser():
                 elif f.startswith('10'):
                     r = self.weapUpdate(f)
                 elif len(f) == 7:
-                    r = mobUpdate(f)
+                    r = self.mobUpdate(f)
                 else:
                     r = self.charaUpdate(f)
                 if not r:
@@ -565,7 +565,6 @@ class Parser():
 
     def weapUpdate(self, id):
         data = [[], [], []] # general, phit, sp
-        uncaps = []
         # art
         try:
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/weapon/ls/{}.jpg".format(id))
@@ -592,7 +591,6 @@ class Parser():
 
     def mobUpdate(self, id):
         data = [[], [], [], [], []] # general, sprite, appear, ehit, esp
-        uncaps = []
         # icon
         try:
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/{}.png".format(id))
@@ -688,10 +686,10 @@ class Parser():
             if tcounter > 0:
                 print("Attempting to update", tcounter, "element(s)")
                 for future in concurrent.futures.as_completed(futures):
+                    future.result()
                     tfinished += 1
                     if tfinished >= tcounter:
                         self.running = False
-                    future.result()
             else:
                 self.running = False
                 for future in concurrent.futures.as_completed(futures):
@@ -950,8 +948,7 @@ if __name__ == '__main__':
             if len(sys.argv) == 2:
                 print_help()
             else:
-                if p.manualUpdate(sys.argv[2:]):
-                    p.save()
+                p.manualUpdate(sys.argv[2:])
         elif sys.argv[1] == '-index':
             p.run_index_content()
         elif sys.argv[1] == '-job':
