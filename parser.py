@@ -386,7 +386,7 @@ class Parser():
     def run_index_content(self):
         print("Checking index content...")
         to_update = []
-        for k in ["characters", "summons", "skins", "enemies"]:
+        for k in ["characters", "summons", "skins", "enemies", "npcs"]:
             for id in self.data[k]:
                 if self.data[k][id] == 0:
                     to_update.append(id)
@@ -435,7 +435,7 @@ class Parser():
             id += step
 
     def charaUpdate(self, id, style=""):
-        data = [[], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd
+        data = [[], [], [], [], [], [], [], None] # sprite, phit, sp, aoe, single, general, sd, scene
         uncaps = []
         sheets = []
         altForm = False
@@ -519,6 +519,7 @@ class Parser():
             except:
                 pass
         data[4] = attacks
+        data[7] = self.update_scene_file(id+style, uncaps)
         with self.lock:
             self.modified = True
             if tid.startswith('37'):
@@ -590,7 +591,7 @@ class Parser():
         return True
 
     def mobUpdate(self, id):
-        data = [[], [], [], [], []] # general, sprite, appear, ehit, esp
+        data = [[], [], [], [], [], None] # general, sprite, appear, ehit, esp, scene
         # icon
         try:
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/{}.png".format(id))
@@ -626,6 +627,35 @@ class Parser():
             self.modified = True
             self.data['enemies'][id] = data
         return True
+
+    def update_scene_file(self, id, uncaps = None):
+        try:
+            expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2", "_suddenly", "_shy", "_shy2", "_weak"]
+            variationsA = ["", "_battle"]
+            variationsB = ["", "_speed", "_up"]
+            others = ["_up_speed"]
+            specials = ["_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+            scene_alts = []
+            if uncaps is None:
+                uncaps = [""]
+            for uncap in uncaps:
+                if uncap == "01": uncap = ""
+                elif uncap != "": uncap = "_" + uncap
+                for A in variationsA:
+                    for ex in expressions:
+                        for B in variationsB:
+                            scene_alts.append(uncap+A+ex+B)
+            scene_alts += others + specials
+            result = []
+            for s in scene_alts:
+                try:
+                    self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png".format(id, s))
+                    result.append(s)
+                except:
+                    pass
+            return result
+        except:
+            return None
 
     def processManifest(self, file):
         manifest = self.req(self.manifestUri + file + ".js", get=True).decode('utf-8')
@@ -671,6 +701,8 @@ class Parser():
                         futures.append(executor.submit(self.sumUpdate, id))
                     elif id.startswith('10'):
                         futures.append(executor.submit(self.weapUpdate, id))
+                    elif id.startswith('39'):
+                        futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None))
                     elif id.startswith('3'):
                         el = id.split('_')
                         if len(el) == 2:
@@ -697,6 +729,50 @@ class Parser():
         self.save()
         self.running = False
         print("Done")
+
+    def update_all_scene(self, full=False):
+        self.running = True
+        print("Updating scene data...")
+        to_update = {}
+        to_update["npcs"] = []
+        for id in self.data["npcs"]:
+            if full or (isinstance(self.data["npcs"][id], int) or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0])):
+                to_update["npcs"].append((id, None))
+        for k in ["characters", "skins"]:
+            to_update[k] = []
+            for id in self.data[k]:
+                if not isinstance(self.data[k][id], int) and (full or (len(self.data[k][id]) < 8 or self.data[k][id][7] is None or len(self.data[k][id][7]) == 0)):
+                    uncaps = []
+                    for u in self.data[k][id][5]:
+                        uncaps.append(u.replace(id+"_", ""))
+                    to_update[k].append((id, uncaps))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
+            futures = []
+            for k in to_update:
+                for e in to_update[k]:
+                    futures.append(executor.submit(self.update_all_scene_sub, k, e[0], e[1]))
+            count = 0
+            countmax = len(futures)
+            print(countmax, "element(s) to update...")
+            if countmax > 0:
+                for future in concurrent.futures.as_completed(futures):
+                    future.result()
+                    count += 1
+                    if count % 50 == 0:
+                        print("Progress: {:.1f}%".format(100*count/countmax))
+        self.save()
+        self.running = False
+        print("Done")
+
+    def update_all_scene_sub(self, index, id, uncaps):
+        r = self.update_scene_file(id, uncaps)
+        if r is not None:
+            with self.lock:
+                self.modified = True
+                if index == "npcs" and self.data[index][id] == 0:
+                    self.data[index][id] = [r]
+                else:
+                    self.data[index][id][-1] = r
 
     def get_relation(self, eid):
         try:
@@ -923,18 +999,19 @@ class Parser():
                             break
                 case _:
                     break
-
 def print_help():
     print("Usage: python parser.py [option]")
     print("options:")
-    print("-run     : Update the index with new content.")
-    print("-update  : Manual JSON updates (Followed by IDs to check).")
-    print("-index   : Check the index for missing content.")
-    print("-job     : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
-    print("-jobca   : Search Job Attack spritesheets (Very time consuming).")
-    print("-relation: Update the relationship index.")
-    print("-relinput: Update to relationships.")
-    print("-listjob : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
+    print("-run       : Update the index with new content.")
+    print("-update    : Manual JSON updates (Followed by IDs to check).")
+    print("-index     : Check the index for missing content.")
+    print("-job       : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
+    print("-jobca     : Search Job Attack spritesheets (Very time consuming).")
+    print("-relation  : Update the relationship index.")
+    print("-relinput  : Update to relationships.")
+    print("-listjob   : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
+    print("-scene     : Update scene index for characters/npcs with missing data (Time consuming).")
+    print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
     time.sleep(2)
 
 if __name__ == '__main__':
@@ -967,5 +1044,9 @@ if __name__ == '__main__':
                 p.listjob()
             else:
                 p.listjob(sys.argv[2:])
+        elif sys.argv[1] == '-scene':
+            p.update_all_scene()
+        elif sys.argv[1] == '-scenefull':
+            p.update_all_scene(True)
         else:
             print_help()

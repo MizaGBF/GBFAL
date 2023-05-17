@@ -169,6 +169,8 @@ function loadIndexed(id, obj, shortened=false)
     }
     let assets = null;
     let skycompass = null;
+    let npcdata = null;
+    let files = null;
     if(id.length == 7) // enemies
     {
         assets = [
@@ -203,6 +205,17 @@ function loadIndexed(id, obj, shortened=false)
             ["Single Target Skill Sheets", "sp/cjs/", "png", "img_low/", 3, false, false]
         ];
         skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
+        npcdata = obj[7];
+    }
+    else if(id.startsWith("39")) // npcs
+    {
+        assets = [
+            ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", -1, false, false], // index, skycompass, side form
+            ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", -1, false, false],
+            ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", -1, false, false]
+        ];
+        npcdata = obj[0];
+        files = [id, id + "_01"];
     }
     else if(id.startsWith("20")) // summons
     {
@@ -235,12 +248,13 @@ function loadIndexed(id, obj, shortened=false)
     {
         for(let asset of assets)
         {
-            if(obj[asset[4]].length == 0) continue;
+            files = (asset[4] == -1) ? files : obj[asset[4]];
+            if(files.length == 0) continue;
             if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue;
             let div = addResult(asset[0], asset[0]);
             result_area.appendChild(div);
             
-            for(let file of obj[asset[4]])
+            for(let file of files)
             {
                 if(!asset[6] && (file.endsWith('_f') || file.endsWith('_f1'))) continue;
                 let img = document.createElement("img");
@@ -294,8 +308,40 @@ function loadIndexed(id, obj, shortened=false)
             }
         }
     }
-    // character npc files, at the end
-    if(id.length >= 10 && id[0] == '3')
+    if(npcdata != null) // indexed npc data
+    {
+        assets = [
+            ["Raid Bubble Arts", "sp/raid/navi_face/", "png", "img/"],
+            ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"]
+        ];
+        for(let asset of assets)
+        {
+            let div = addResult(asset[0], asset[0]);
+            result_area.appendChild(div);
+            for(let file of npcdata)
+            {
+                if(asset[0] == "Raid Bubble Arts" && file.endsWith('_up')) continue; // ignore those
+                let img = document.createElement("img");
+                let ref = document.createElement('a');
+                img.src = protocol + getMainEndpoint() + language + asset[3] + asset[1] + id + file + "." + asset[2];
+                ref.setAttribute('href', img.src.replace("img_low", "img"));
+                img.classList.add("loading");
+                img.onerror = function() {
+                    let result = this.parentNode.parentNode;
+                    this.parentNode.remove();
+                    this.remove();
+                    if(result.childNodes.length <= 2) result.remove();
+                }
+                img.onload = function() {
+                    this.classList.remove("loading");
+                }
+                div.appendChild(ref);
+                ref.appendChild(img);
+            }
+        }
+    }
+    // non indexed
+    else if(id.length >= 10 && id[0] == '3') // character npc files, at the end
     {
         lookupNPCChara(id, obj);
     }
@@ -516,10 +562,11 @@ function lookup(id)
             id = id.slice(1);
             check = "enemies";
         }
-        else if(start == "30") check = "characters"
-        else if(start == "37") check = "skins"
-        else if(start == "20") check = "summons"
-        else if(start == "10") check = "weapons"
+        else if(start == "30") check = "characters";
+        else if(start == "39") check = "npcs";
+        else if(start == "37") check = "skins";
+        else if(start == "20") check = "summons";
+        else if(start == "10") check = "weapons";
         if(check != null && id in index[check] && index[check][id] !== 0)
             loadIndexed(id, index[check][id]);
         else
