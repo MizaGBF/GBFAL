@@ -316,6 +316,7 @@ function loadIndexed(id, obj, shortened=false)
         ];
         for(let asset of assets)
         {
+            if(npcdata.length == 0) continue;
             let div = addResult(asset[0], asset[0]);
             result_area.appendChild(div);
             for(let file of npcdata)
