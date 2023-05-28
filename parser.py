@@ -125,7 +125,7 @@ class Parser():
         for i in ["ra", "rb", "rc"]:
             self.newShared(errs)
             possibles.append(('background', 0, 1, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
-        for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc")]:
+        for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
             self.newShared(errs)
             possibles.append(('background', 0, 1, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
         
