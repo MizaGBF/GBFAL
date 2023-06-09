@@ -31,6 +31,7 @@ var blacklist = [
 var index = {};
 var mc_index = null;
 var lastsearches = [];
+var bookmarks = [];
 var timestamp = Date.now();
 var relations = {}
 
@@ -54,6 +55,7 @@ function filter()
 function init()
 {
     getJSON("json/changelog.json?" + timestamp, initChangelog, initChangelog, null);
+    toggleBookmark(null, null);
 }
 
 function initChangelog(unusued)
@@ -120,8 +122,11 @@ function getJSON(url, callback, err_callback, id) {
     xhr.send(null);
 }
 
+// =================================================================================================
+// main stuff
 function loadIndexed(id, obj, shortened=false)
 {
+    let search_type;
     if(id.length == 10 || id.length == 14)
     {
         switch(id[0])
@@ -130,23 +135,23 @@ function loadIndexed(id, obj, shortened=false)
                 if(!shortened)
                 {
                     newArea("Weapon", id, true);
-                    updateHistory(id, 1);
+                    search_type = 1;
                 }
                 break;
             case '2':
                 newArea("Summon", id, true);
-                updateHistory(id, 2);
+                search_type = 2;
                 break;
             case '3':
                 if(id[1] == '9')
                 {
                     newArea("NPC", id, true);
-                    updateHistory(id, 5);
+                    search_type = 5;
                 }
                 else
                 {
                     newArea("Character", id, true);
-                    updateHistory(id, 3);
+                    search_type = 3;
                 }
                 break;
             default:
@@ -158,15 +163,18 @@ function loadIndexed(id, obj, shortened=false)
     else if(id.length == 7)
     {
         newArea("Enemy", id, false);
-        updateHistory(id, 4);
+        search_type = 4;
         updateQuery("e"+id);
     }
     else if(id.length == 9)
     {
         newArea("Main Character", id, false);
-        updateHistory(id, 0);
+        search_type = 0;
         updateQuery(id);
     }
+    updateHistory(id, search_type);
+    favButton(true, id, search_type);
+    updateRelated(id);
     let assets = null;
     let skycompass = null;
     let npcdata = null;
@@ -350,7 +358,6 @@ function loadIndexed(id, obj, shortened=false)
     {
         lookupNPCChara(id, obj);
     }
-    updateRelated(id);
 }
 
 function loadUnindexed(id)
@@ -396,166 +403,8 @@ function loadUnindexed(id)
         last_id = id;
         updateQuery(id);
     }
+    favButton(false, null, null);
     updateRelated(id);
-}
-
-function clearHistory()
-{
-    localStorage.removeItem('history');
-    document.getElementById('history').parentNode.style.display = "none";
-}
-
-function updateHistory(id, search_type)
-{
-    // update local storage
-    try
-    {
-        lastsearches = localStorage.getItem("history");
-        if(lastsearches == null)
-        {
-            lastsearches = [];
-        }
-        else
-        {
-            lastsearches = JSON.parse(lastsearches);
-        }
-    }
-    catch
-    {
-        lastsearches = [];
-    }
-    if(id != null)
-    {
-        for(let e of lastsearches)
-        {
-            if(e[0] == id) return; // don't update if already in
-        }
-        lastsearches.push([id, search_type]);
-        localStorage.setItem("history", JSON.stringify(lastsearches));
-    }
-    if(lastsearches.length == 0)
-    {
-        document.getElementById('history').parentNode.style.display = "none";
-        return;
-    }
-    else if(lastsearches.length > 10)
-    {
-        lastsearches = lastsearches.slice(lastsearches.length - 10);
-    }
-    let histarea = document.getElementById('history');
-    histarea.parentNode.style.display = null;
-    histarea.innerHTML = "";
-    for(let e of lastsearches)
-    {
-        switch(e[1])
-        {
-            case 3: // character, skin, ...
-            {
-                if(e[0].includes('_st'))
-                    addIndexImage(histarea, "sp/assets/npc/m/" + e[0].split('_')[0] + "_01_" + e[0].split('_')[1] + ".jpg", e[0]);
-                else
-                    addIndexImage(histarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0]);
-                break;
-            }
-            case 2: // summon
-            {
-                addIndexImage(histarea, "sp/assets/summon/m/" + e[0] + ".jpg", e[0]);
-                break;
-            }
-            case 1: // summon
-            {
-                addIndexImage(histarea, "sp/assets/weapon/m/" + e[0] + ".jpg", e[0]);
-                break;
-            }
-            case 0: // mc
-            {
-                addIndexImage(histarea, "sp/assets/leader/m/" + e[0].split('_')[0] + "_01.jpg", e[0]);
-                break;
-            }
-            case 4: // enemy
-            {
-                addIndexImage(histarea, "sp/assets/enemy/s/" + e[0] + ".png", "e" + e[0], null, "img/");
-                break;
-            }
-            case 5: // npc
-            {
-                let onerr = function() {
-                    this.onerror = function() {
-                        this.remove();
-                    }
-                    this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
-                    this.className = "preview";
-                }
-                addIndexImage(histarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], onerr);
-                break;
-            }
-        }
-    }
-    histarea.appendChild(document.createElement("br"));
-    let btn = document.createElement("button");
-    btn.innerHTML = "Clear";
-    btn.onclick = clearHistory;
-    histarea.appendChild(btn);
-}
-
-function updateRelated(id)
-{
-    let relarea = document.getElementById('related');
-    if(id in relations)
-    {
-        relarea.parentNode.style.display = relations[id].length > 0 ? null : "none";
-        relarea.innerHTML = "";
-        for(let e of relations[id])
-        {
-            let indice = -1;
-            if(e[0] == 'e') indice = 4;
-            else if(e.startsWith('39')) indice = 5;
-            else if(e.includes('_') && !e.includes('_st')) indice = 0;
-            else indice = parseInt(e[0]);
-            switch(indice)
-            {
-                case 3: // character, skin, ...
-                {
-                    if(e.includes('_st'))
-                        addIndexImage(relarea, "sp/assets/npc/m/" + e.split('_')[0] + "_01_" + e.split('_')[1] + ".jpg", e);
-                    else
-                        addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e);
-                    break;
-                }
-                case 2: // summon
-                {
-                    addIndexImage(relarea, "sp/assets/summon/m/" + e + ".jpg", e);
-                    break;
-                }
-                case 1: // summon
-                {
-                    addIndexImage(relarea, "sp/assets/weapon/m/" + e + ".jpg", e);
-                    break;
-                }
-                case 0: // mc
-                {
-                    addIndexImage(relarea, "sp/assets/leader/m/" + e.split('_')[0] + "_01.jpg", e);
-                    break;
-                }
-                case 4: // enemy
-                {
-                    addIndexImage(relarea, "sp/assets/enemy/m/" + e + ".png", "e" + e);
-                    break;
-                }
-                case 5: // npc
-                {
-                    let onerr = function() {
-                        this.onerror = null;
-                        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
-                        this.className = "preview";
-                    }
-                    addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e, onerr);
-                    break;
-                }
-            }
-        }
-    }
-    else relarea.parentNode.style.display = "none";
 }
 
 function lookup(id)
@@ -1424,6 +1273,327 @@ function lookupMCPlus(mc_id)
                 lookupWeapon(class_ougi[mc_id], true);
         }
     }
+}
+
+// =================================================================================================
+// bookmark, history, relation
+function updateDynamicList(dynarea, idlist)
+{
+    for(let e of idlist)
+    {
+        switch(e[1])
+        {
+            case 3: // character, skin, ...
+            {
+                if(e[0].includes('_st'))
+                    addIndexImage(dynarea, "sp/assets/npc/m/" + e[0].split('_')[0] + "_01_" + e[0].split('_')[1] + ".jpg", e[0]);
+                else
+                    addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0]);
+                break;
+            }
+            case 2: // summon
+            {
+                addIndexImage(dynarea, "sp/assets/summon/m/" + e[0] + ".jpg", e[0]);
+                break;
+            }
+            case 1: // summon
+            {
+                addIndexImage(dynarea, "sp/assets/weapon/m/" + e[0] + ".jpg", e[0]);
+                break;
+            }
+            case 0: // mc
+            {
+                addIndexImage(dynarea, "sp/assets/leader/m/" + e[0].split('_')[0] + "_01.jpg", e[0]);
+                break;
+            }
+            case 4: // enemy
+            {
+                addIndexImage(dynarea, "sp/assets/enemy/s/" + e[0] + ".png", "e" + e[0], null, "img/");
+                break;
+            }
+            case 5: // npc
+            {
+                let onerr = function() {
+                    this.onerror = function() {
+                        this.remove();
+                    }
+                    this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
+                    this.className = "preview";
+                }
+                addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], onerr);
+                break;
+            }
+        }
+    }
+}
+
+function favButton(state, id, search_type)
+{
+    if(state)
+    {
+        let fav = document.getElementById('favorite');
+        fav.style.display = null;
+        fav.src = "assets/ui/fav_0.png";
+        if(id != null)
+        {
+            for(let e of bookmarks)
+            {
+                if(e[0] == id)
+                {
+                    fav.src = "assets/ui/fav_1.png";
+                    return;
+                }
+            }
+            fav.onclick = function() { toggleBookmark(id, search_type); };
+        }
+    }
+    else
+    {
+        document.getElementById('favorite').style.display = "none";
+        fav.onclick = null;
+    }
+}
+
+function updateBookmark()
+{
+    if(bookmarks.length == 0)
+    {
+        document.getElementById('bookmark').parentNode.style.display = "none";
+        return;
+    }
+    let bookarea = document.getElementById('bookmark');
+    bookarea.parentNode.style.display = null;
+    bookarea.innerHTML = "";
+    updateDynamicList(bookarea, bookmarks);
+    bookarea.appendChild(document.createElement("br"));
+    let btn = document.createElement("button");
+    btn.innerHTML = "Clear";
+    btn.onclick = clearBookmark;
+    bookarea.appendChild(btn);
+    btn = document.createElement("button");
+    btn.innerHTML = "Export";
+    btn.onclick = exportBookmark;
+    bookarea.appendChild(btn);
+    btn = document.createElement("button");
+    btn.innerHTML = "Import";
+    btn.onclick = importBookmark;
+    bookarea.appendChild(btn);
+}
+
+function clearBookmark()
+{
+    localStorage.removeItem('bookmark');
+    document.getElementById('bookmark').parentNode.style.display = "none";
+    document.getElementById('favorite').src = "assets/ui/fav_0.png";
+}
+
+function exportBookmark()
+{
+    try
+    {
+        bookmarks = localStorage.getItem("bookmark");
+        if(bookmarks == null)
+        {
+            bookmarks = [];
+        }
+        else
+        {
+            bookmarks = JSON.parse(bookmarks);
+        }
+    }
+    catch
+    {
+        bookmarks = [];
+    }
+    navigator.clipboard.writeText(JSON.stringify(bookmarks));
+    let div = document.createElement('div');
+    div.className = 'popup';
+    div.textContent ='Bookmarks have been copied'
+    document.body.appendChild(div)
+    setInterval(rmPopup, 2500, div);
+}
+
+function importBookmark()
+{
+    try
+    {
+        let tmp = JSON.parse(navigator.clipboard.readText());
+        if(typeof tmp != 'object') return;
+        let fav = false;
+        for(let e of tmp)
+        {
+            if(typeof e != 'object' || e.length != 2 || typeof e[0] != 'string' || typeof e[1] != 'number') return
+            if(last_id == e[0]) fav = true;
+        }
+        bookmarks = tmp;
+        localStorage.setItem("bookmark", JSON.stringify(bookmarks));
+        if(fav) document.getElementById('favorite').src = "assets/ui/fav_1.png";
+        updateBookmark();
+    }
+    catch
+    {
+    }
+}
+
+function rmPopup(popup) {
+    popup.parentNode.removeChild(popup);
+}
+
+function toggleBookmark(id, search_type)
+{
+    try
+    {
+        bookmarks = localStorage.getItem("bookmark");
+        if(bookmarks == null)
+        {
+            bookmarks = [];
+        }
+        else
+        {
+            bookmarks = JSON.parse(bookmarks);
+        }
+    }
+    catch
+    {
+        bookmarks = [];
+    }
+    if(id != null)
+    {
+        let fav = document.getElementById('favorite');
+        if(fav.src.endsWith('fav_0.png'))
+        {
+            bookmarks.push([id, search_type]);
+            fav.src = "assets/ui/fav_1.png";
+        }
+        else
+        {
+            for(let i = 0; i < bookmarks.length; ++i)
+            {
+                if(bookmarks[i][0] == id)
+                {
+                    bookmarks.splice(i, 1);
+                    break;
+                }
+            }
+            fav.src = "assets/ui/fav_0.png";
+        }
+        localStorage.setItem("bookmark", JSON.stringify(bookmarks));
+    }
+    updateBookmark();
+}
+
+function clearHistory()
+{
+    localStorage.removeItem('history');
+    document.getElementById('history').parentNode.style.display = "none";
+}
+
+function updateHistory(id, search_type)
+{
+    // update local storage
+    try
+    {
+        lastsearches = localStorage.getItem("history");
+        if(lastsearches == null)
+        {
+            lastsearches = [];
+        }
+        else
+        {
+            lastsearches = JSON.parse(lastsearches);
+        }
+    }
+    catch
+    {
+        lastsearches = [];
+    }
+    if(id != null)
+    {
+        for(let e of lastsearches)
+        {
+            if(e[0] == id) return; // don't update if already in
+        }
+        lastsearches.push([id, search_type]);
+        localStorage.setItem("history", JSON.stringify(lastsearches));
+    }
+    if(lastsearches.length == 0)
+    {
+        document.getElementById('history').parentNode.style.display = "none";
+        return;
+    }
+    else if(lastsearches.length > 10)
+    {
+        lastsearches = lastsearches.slice(lastsearches.length - 10);
+    }
+    let histarea = document.getElementById('history');
+    histarea.parentNode.style.display = null;
+    histarea.innerHTML = "";
+    updateDynamicList(histarea, lastsearches);
+    histarea.appendChild(document.createElement("br"));
+    let btn = document.createElement("button");
+    btn.innerHTML = "Clear";
+    btn.onclick = clearHistory;
+    histarea.appendChild(btn);
+}
+
+function updateRelated(id)
+{
+    let relarea = document.getElementById('related');
+    if(id in relations)
+    {
+        relarea.parentNode.style.display = relations[id].length > 0 ? null : "none";
+        relarea.innerHTML = "";
+        for(let e of relations[id])
+        {
+            let indice = -1;
+            if(e[0] == 'e') indice = 4;
+            else if(e.startsWith('39')) indice = 5;
+            else if(e.includes('_') && !e.includes('_st')) indice = 0;
+            else indice = parseInt(e[0]);
+            switch(indice)
+            {
+                case 3: // character, skin, ...
+                {
+                    if(e.includes('_st'))
+                        addIndexImage(relarea, "sp/assets/npc/m/" + e.split('_')[0] + "_01_" + e.split('_')[1] + ".jpg", e);
+                    else
+                        addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e);
+                    break;
+                }
+                case 2: // summon
+                {
+                    addIndexImage(relarea, "sp/assets/summon/m/" + e + ".jpg", e);
+                    break;
+                }
+                case 1: // summon
+                {
+                    addIndexImage(relarea, "sp/assets/weapon/m/" + e + ".jpg", e);
+                    break;
+                }
+                case 0: // mc
+                {
+                    addIndexImage(relarea, "sp/assets/leader/m/" + e.split('_')[0] + "_01.jpg", e);
+                    break;
+                }
+                case 4: // enemy
+                {
+                    addIndexImage(relarea, "sp/assets/enemy/m/" + e + ".png", "e" + e);
+                    break;
+                }
+                case 5: // npc
+                {
+                    let onerr = function() {
+                        this.onerror = null;
+                        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
+                        this.className = "preview";
+                    }
+                    addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e, onerr);
+                    break;
+                }
+            }
+        }
+    }
+    else relarea.parentNode.style.display = "none";
 }
 
 // =================================================================================================

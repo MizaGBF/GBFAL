@@ -64,6 +64,28 @@ footer, #header {
     color: white;
 }
 
+#favorite {
+    width: 144px;
+    height: 39px;
+    float: right;
+}
+
+.popup {
+    border-radius: 25px;
+    border: 2px solid #73ff21;
+    padding: 20px;
+    background-color: #113300;
+    position:fixed;
+    top:5%;
+    left:5%;
+    z-index:100;
+    text-align: center;
+    font-size: 25px;
+    width: 12em;
+    color: #ffffff;
+    align-items: center;
+}
+
 .subdetails {
     background: #00000040;
     border-color: #000000;
