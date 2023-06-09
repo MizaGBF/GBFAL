@@ -65,7 +65,6 @@ footer, #header {
     max-height: 80px;
     border: 2px solid #808080;
     border-radius: 10px;
-    border-style: solid;
 }
 
 img {
@@ -151,12 +150,16 @@ h3 {
     font-size: 20px;
 }
 
+.asset {
+    border: 2px solid #333333;
+}
+
 .skycompass {
     max-width: 480px;
     max-height: 400px;;
     border: 2px solid #e0ffff;
     border-radius: 10px;
-    border-style: solid;
+    background: url(../assets/ui/skycompass.png) no-repeat bottom left 0% / 15%;
 }
 
 .content {

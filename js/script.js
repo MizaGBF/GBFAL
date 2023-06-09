@@ -275,6 +275,7 @@ function loadIndexed(id, obj, shortened=false)
                 }
                 img.onload = function() {
                     this.classList.remove("loading");
+                    this.classList.add("asset");
                 }
                 div.appendChild(ref);
                 ref.appendChild(img);
@@ -337,6 +338,7 @@ function loadIndexed(id, obj, shortened=false)
                 }
                 img.onload = function() {
                     this.classList.remove("loading");
+                    this.classList.add("asset");
                 }
                 div.appendChild(ref);
                 ref.appendChild(img);
@@ -725,6 +727,7 @@ function lookupCharacter(character_id) // old and slow, avoid using this
                                         }
                                         img.onload = function() {
                                             this.classList.remove("loading");
+                                            this.classList.add("asset");
                                         }
                                         img.src = protocol + getMainEndpoint() + language + asset[3] + path;
                                         // sky compass band aid
@@ -818,6 +821,7 @@ function lookupNPCChara(character_id, chara_data = null)
             }
             img.onload = function() {
                 this.classList.remove("loading");
+                this.classList.add("asset");
             }
             img.src = protocol + getMainEndpoint() + language + asset[3] + path;
         }
@@ -873,6 +877,7 @@ function lookupNPC(npc_id)
             }
             img.onload = function() {
                 this.classList.remove("loading");
+                this.classList.add("asset");
             }
             img.src = protocol + getMainEndpoint() + language + asset[3] + path;
         }
@@ -953,6 +958,7 @@ function lookupSummon(summon_id)
                 }
                 img.onload = function() {
                     this.classList.remove("loading");
+                    this.classList.add("asset");
                 }
                 img.src = protocol + getMainEndpoint() + language + asset[3] + path;
             }
@@ -1040,6 +1046,7 @@ function lookupWeapon(weapon_id, shortened=false)
                 }
                 img.onload = function() {
                     this.classList.remove("loading");
+                    this.classList.add("asset");
                 }
                 img.src = protocol + getMainEndpoint() + language + asset[3] + path;
             }
@@ -1089,6 +1096,7 @@ function lookupEnemy(enemy_id)
                 }
                 img.onload = function() {
                     this.classList.remove("loading");
+                    this.classList.add("asset");
                 }
                 img.src = protocol + getMainEndpoint() + language + asset[3] + path;
             }
@@ -1156,6 +1164,7 @@ function lookupMC(mc_id)
                     }
                     img.onload = function() {
                         this.classList.remove("loading");
+                        this.classList.add("asset");
                     }
                     img.src = protocol + getMainEndpoint() + language + asset[3] + path;
                 }
@@ -1203,6 +1212,7 @@ function lookupMC(mc_id)
                 }
                 img.onload = function() {
                     this.classList.remove("loading");
+                    this.classList.add("asset");
                 }
                 img.src = protocol + getMainEndpoint() + language + asset[3] + path;
             }
@@ -1379,6 +1389,7 @@ function lookupMCPlus(mc_id)
                             }
                             img.onload = function() {
                                 this.classList.remove("loading");
+                                this.classList.add("asset");
                             }
                             img.src = protocol + getMainEndpoint() + language + elem.replace('_0_', gender);
                         }
