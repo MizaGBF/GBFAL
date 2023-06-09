@@ -405,6 +405,12 @@ function loadUnindexed(id)
     updateRelated(id);
 }
 
+function clearHistory()
+{
+    localStorage.removeItem('history');
+    document.getElementById('history').parentNode.style.display = "none";
+}
+
 function updateHistory(id, search_type)
 {
     // update local storage
@@ -483,6 +489,11 @@ function updateHistory(id, search_type)
             }
         }
     }
+    histarea.appendChild(document.createElement("br"));
+    let btn = document.createElement("button");
+    btn.innerHTML = "Clear";
+    btn.onclick = clearHistory;
+    histarea.appendChild(btn);
 }
 
 function updateRelated(id)
