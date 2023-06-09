@@ -223,6 +223,7 @@ function loadIndexed(id, obj, shortened=false)
         assets = [
             ["Main Arts", "sp/assets/summon/b/", "png", "img_low/", 0, true, false], // index, skycompass, side form
             ["Home Arts", "sp/assets/summon/my/", "png", "img_low/", 0, false, false],
+            ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/", 0, false, false],
             ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/", 0, false, false],
             ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/", 0, false, false],
             ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/", 0, false, false],
@@ -884,6 +885,7 @@ function lookupSummon(summon_id)
     assets = [
         ["Main Arts", "sp/assets/summon/b/", "png", "img_low/"],
         ["Home Arts", "sp/assets/summon/my/", "png", "img_low/"],
+        ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/"],
         ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/"],
