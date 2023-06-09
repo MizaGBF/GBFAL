@@ -33,7 +33,8 @@ var mc_index = null;
 var lastsearches = [];
 var bookmarks = [];
 var timestamp = Date.now();
-var relations = {}
+var relations = {};
+var intervals = [];
 
 function getMainEndpoint()
 {
@@ -1410,7 +1411,7 @@ function exportBookmark()
     div.className = 'popup';
     div.textContent ='Bookmarks have been copied'
     document.body.appendChild(div)
-    setInterval(rmPopup, 2500, div);
+    intervals.push(setInterval(rmPopup, 2500, div));
 }
 
 function importBookmark()
@@ -1428,6 +1429,12 @@ function importBookmark()
         bookmarks = tmp;
         localStorage.setItem("bookmark", JSON.stringify(bookmarks));
         if(fav) document.getElementById('favorite').src = "assets/ui/fav_1.png";
+        else document.getElementById('favorite').src = "assets/ui/fav_0.png";
+        let div = document.createElement('div');
+        div.className = 'popup';
+        div.textContent ='Bookmarks have been imported with success'
+        document.body.appendChild(div)
+        intervals.push(setInterval(rmPopup, 2500, div));
         updateBookmark();
     }
     catch
@@ -1437,6 +1444,8 @@ function importBookmark()
 
 function rmPopup(popup) {
     popup.parentNode.removeChild(popup);
+    clearInterval(intervals[0]);
+    intervals.shift();
 }
 
 function toggleBookmark(id, search_type)

@@ -72,9 +72,9 @@ footer, #header {
 
 .popup {
     border-radius: 25px;
-    border: 2px solid #73ff21;
+    border: 2px solid #000633;
     padding: 20px;
-    background-color: #113300;
+    background-color: #005291;
     position:fixed;
     top:5%;
     left:5%;
