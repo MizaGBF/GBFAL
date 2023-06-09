@@ -36,6 +36,7 @@ class Parser():
         self.name_table_modified = False
         self.name_lock = Lock()
         self.re = re.compile("[123][07][1234]0\\d{4}00")
+        self.vregex = re.compile("Game\.version = \"(\d+)\";")
         
         limits = httpx.Limits(max_keepalive_connections=300, max_connections=300, keepalive_expiry=10)
         self.client = httpx.Client(http2=False, limits=limits)
@@ -75,6 +76,7 @@ class Parser():
         errs[-1].append(0)
         errs[-1].append(True)
         errs[-1].append(Lock())
+        return errs[-1]
 
     def run(self):
         errs = []
@@ -86,17 +88,15 @@ class Parser():
             # characters
             if r > 1:
                 self.newShared(errs)
-                for i in range(2):
-                    possibles.append(('characters', i, 2, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
+                for i in range(3):
+                    possibles.append(('characters', i, 3, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
             # summons
             self.newShared(errs)
             for i in range(2):
                 possibles.append(('summons', i, 2, errs[-1], "20"+str(r)+"0{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
             # weapons
             for j in range(10):
-                self.newShared(errs)
-                for i in range(2):
-                    possibles.append(('weapons', i, 2, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
+                possibles.append(('weapons', 0, 1, self.newShared(errs), "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
         # skins
         self.newShared(errs)
         for i in range(2):
@@ -105,33 +105,23 @@ class Parser():
         for a in range(1, 10):
             for b in range(1, 4):
                 for d in [1, 2, 3]:
-                    self.newShared(errs)
-                    possibles.append(('enemies', 0, 1, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
+                    possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
         # npc
         self.newShared(errs)
-        for i in range(5):
-            possibles.append(('npcs', i, 5, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 80))
+        for i in range(7):
+            possibles.append(('npcs', i, 7, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 80))
         
         # backgrounds
-        self.newShared(errs)
-        for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "event_{}", 1, "img_low/sp/raid/bg/", ".jpg", [""], 10))
-        self.newShared(errs)
-        for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "common_{}", 3, "img_low/sp/raid/bg/", ".jpg", [""], 10))
-        self.newShared(errs)
-        for i in range(2):
-            possibles.append(('background', i, 2, errs[-1], "main_{}", 1, "img_low/sp/guild/custom/bg/", ".png", [""], 10))
+        possibles.append(('background', 0, 1, self.newShared(errs), "event_{}", 1, "img_low/sp/raid/bg/", ".jpg", [""], 10))
+        possibles.append(('background', 0, 1, self.newShared(errs), "common_{}", 3, "img_low/sp/raid/bg/", ".jpg", [""], 10))
+        possibles.append(('background', 0, 1, self.newShared(errs), "main_{}", 1, "img_low/sp/guild/custom/bg/", ".png", [""], 10))
         for i in ["ra", "rb", "rc"]:
-            self.newShared(errs)
-            possibles.append(('background', 0, 1, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
+            possibles.append(('background', 0, 1, self.newShared(errs), "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
         for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
-            self.newShared(errs)
-            possibles.append(('background', 0, 1, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
+            possibles.append(('background', 0, 1, self.newShared(errs), i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
         
         # titles
-        self.newShared(errs)
-        possibles.append(('title', 0, 1, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 20))
+        possibles.append(('title', 0, 1, self.newShared(errs), "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 20))
         
         thread_count = len(possibles)+40
         
@@ -999,11 +989,45 @@ class Parser():
                             break
                 case _:
                     break
+
+    def gbfversion(self):
+        try:
+            res = self.req('https://game.granbluefantasy.jp/', headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36', 'Accept-Language':'en', 'Host':'game.granbluefantasy.jp', 'Connection':'keep-alive'}, get=True)
+            res = res.decode('utf-8')
+            return int(self.vregex.findall(res)[0])
+        except:
+            try:
+                if 'maintenance' in res.lower(): return "maintenance"
+            except:
+                pass
+            return None
+
+    def wait(self):
+        v = self.gbfversion()
+        if v is None:
+            print("Impossible to currently access the game.\nWait and try again.")
+            exit(0)
+        elif v == "maintenance":
+            print("Game is in maintenance")
+            exit(0)
+        print("Waiting update, ctrl+C to cancel...")
+        while True:
+            t = int(datetime.now(timezone.utc).replace(tzinfo=None).timestamp()) % 300
+            if 300 - t > 10:
+                time.sleep(10)
+            else:
+                time.sleep(310 - t)
+                n = self.gbfversion()
+                if isinstance(n, int) and n != v:
+                    print("Update detected.")
+                    return
+
 def print_help():
     print("Usage: python parser.py [option]")
     print("options:")
     print("-run       : Update the index with new content.")
     print("-update    : Manual JSON updates (Followed by IDs to check).")
+    print("-updaterun : Like '-update' but also do '-run' after.")
     print("-index     : Check the index for missing content.")
     print("-job       : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
     print("-jobca     : Search Job Attack spritesheets (Very time consuming).")
@@ -1012,41 +1036,52 @@ def print_help():
     print("-listjob   : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
     print("-scene     : Update scene index for characters/npcs with missing data (Time consuming).")
     print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
+    print("-wait      : Wait an in-game update (Must be the first parameter, usable with others).")
     time.sleep(2)
 
 if __name__ == '__main__':
     p = Parser()
-    if len(sys.argv) < 2:
+    argv = sys.argv.copy()
+    if argv[1] == "-wait":
+        argv.pop(1)
+        p.wait()
+    if len(argv) < 2:
         print_help()
     else:
-        if sys.argv[1] == '-run':
+        if argv[1] == '-run':
             p.run()
-        elif sys.argv[1] == '-update':
-            if len(sys.argv) == 2:
+        elif argv[1] == '-updaterun':
+            if len(argv) == 2:
                 print_help()
             else:
-                p.manualUpdate(sys.argv[2:])
-        elif sys.argv[1] == '-index':
+                p.manualUpdate(argv[2:])
+                p.run()
+        elif argv[1] == '-update':
+            if len(argv) == 2:
+                print_help()
+            else:
+                p.manualUpdate(argv[2:])
+        elif argv[1] == '-index':
             p.run_index_content()
-        elif sys.argv[1] == '-job':
-            if len(sys.argv) == 2:
+        elif argv[1] == '-job':
+            if len(argv) == 2:
                 p.dig_job_spritesheet()
             else:
-                p.dig_job_spritesheet(sys.argv[2:])
-        elif sys.argv[1] == '-jobca':
+                p.dig_job_spritesheet(argv[2:])
+        elif argv[1] == '-jobca':
             p.dig_job_chargeattack()
-        elif sys.argv[1] == '-relation':
+        elif argv[1] == '-relation':
             p.build_relation()
-        elif sys.argv[1] == '-relinput':
+        elif argv[1] == '-relinput':
             p.relation_edit()
-        elif sys.argv[1] == '-listjob':
-            if len(sys.argv) == 2:
+        elif argv[1] == '-listjob':
+            if len(argv) == 2:
                 p.listjob()
             else:
-                p.listjob(sys.argv[2:])
-        elif sys.argv[1] == '-scene':
+                p.listjob(argv[2:])
+        elif argv[1] == '-scene':
             p.update_all_scene()
-        elif sys.argv[1] == '-scenefull':
+        elif argv[1] == '-scenefull':
             p.update_all_scene(True)
         else:
             print_help()
