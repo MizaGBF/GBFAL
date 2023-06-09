@@ -66,8 +66,8 @@ function initChangelog(unusued)
     }catch{
         document.getElementById('timestamp').innerHTML = "";
     }
-    getJSON("json/data.json?" + timestamp, initIndex, initIndex, null);
     getJSON("json/relation.json?" + timestamp, initRelation, function(unused){}, null);
+    getJSON("json/data.json?" + timestamp, initIndex, initIndex, null);
 }
 
 function initIndex(unused)
@@ -350,6 +350,7 @@ function loadIndexed(id, obj, shortened=false)
     {
         lookupNPCChara(id, obj);
     }
+    updateRelated(id);
 }
 
 function loadUnindexed(id)

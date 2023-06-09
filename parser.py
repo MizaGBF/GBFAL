@@ -831,13 +831,12 @@ class Parser():
             print("Existing relationships loaded")
         except:
             relation = {}
-        print("Checking new relationships...")
         futures = []
         new = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
             if len(to_update) == 0:
                 for eid in self.data['characters']:
-                    if eid not in relation:
+                    if eid not in relation or len(relation[eid]) == 0:
                         futures.append(executor.submit(self.get_relation, eid))
                 for eid in self.data['summons']:
                     if eid not in relation:
@@ -848,6 +847,7 @@ class Parser():
             else:
                 for eid in to_update:
                     futures.append(executor.submit(self.get_relation, eid))
+            print("Checking", len(futures), "new relationships...")
             for future in concurrent.futures.as_completed(futures):
                 r = future.result()
                 try:
@@ -1042,7 +1042,7 @@ def print_help():
 if __name__ == '__main__':
     p = Parser()
     argv = sys.argv.copy()
-    if argv[1] == "-wait":
+    if len(argv) > 1 and argv[1] == "-wait":
         argv.pop(1)
         p.wait()
     if len(argv) < 2:
