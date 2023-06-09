@@ -362,22 +362,18 @@ function loadUnindexed(id)
         {
             case '1':
                 lookupWeapon(id);
-                updateHistory(id, 1);
                 break;
             case '2':
                 lookupSummon(id);
-                updateHistory(id, 2);
                 break;
             case '3':
                 if(id[1] == '9')
                 {
                     lookupNPC(id);
-                    updateHistory(id, 5);
                 }
                 else
                 {
                     lookupCharacter(id);
-                    updateHistory(id, 3);
                 }
                 break;
             default:
@@ -389,7 +385,6 @@ function loadUnindexed(id)
     else if(id.length == 7)
     {
         lookupEnemy(id);
-        updateHistory(id, 4);
         last_id = id;
         updateQuery("e" + id);
     }
@@ -398,7 +393,6 @@ function loadUnindexed(id)
         if(id[5] != '1')
             id = id.slice(0, 5) + "1" + id.slice(6);
         lookupMC(id);
-        updateHistory(id, 0);
         last_id = id;
         updateQuery(id);
     }
@@ -439,7 +433,15 @@ function updateHistory(id, search_type)
         lastsearches.push([id, search_type]);
         localStorage.setItem("history", JSON.stringify(lastsearches));
     }
-    if(lastsearches.length > 10) lastsearches = lastsearches.slice(lastsearches.length - 10);
+    if(lastsearches.length == 0)
+    {
+        document.getElementById('history').parentNode.style.display = "none";
+        return;
+    }
+    else if(lastsearches.length > 10)
+    {
+        lastsearches = lastsearches.slice(lastsearches.length - 10);
+    }
     let histarea = document.getElementById('history');
     histarea.parentNode.style.display = null;
     histarea.innerHTML = "";
