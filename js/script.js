@@ -1415,9 +1415,6 @@ function exportBookmark()
 
 function importBookmark()
 {
-    navigator.clipboard.readText().then(
-    
-    
     try
     {
         navigator.clipboard.readText().then((clipText) => {
