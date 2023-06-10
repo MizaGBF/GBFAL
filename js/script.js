@@ -444,11 +444,39 @@ function lookup(id)
         else if(start == "37") check = "skins";
         else if(start == "20") check = "summons";
         else if(start == "10") check = "weapons";
+        else if(id.length == 9 and id[6] == "_") check = "job";
         favButton(false, null, null);
         if(check != null && id in index[check] && index[check][id] !== 0)
             loadIndexed(id, index[check][id]);
         else
+        {
+            if(check != null && id in index[check] && index[check][id] == 0)
+            {
+                switch(check) // enable favorite if partially indexed
+                {
+                    case "npcs":
+                        favButton(true, id, 5);
+                        break;
+                    case "enemies":
+                        favButton(true, id, 4);
+                        break;
+                    case "characters":
+                    case "skins":
+                        favButton(true, id, 3);
+                        break;
+                    case "summons":
+                        favButton(true, id, 2);
+                        break;
+                    case "weapons":
+                        favButton(true, id, 1);
+                        break;
+                    case "job":
+                        favButton(true, id, 0);
+                        break;
+                }
+            }
             loadUnindexed(id);
+        }
     }
 }
 
