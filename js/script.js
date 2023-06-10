@@ -1330,9 +1330,9 @@ function updateDynamicList(dynarea, idlist)
 
 function favButton(state, id, search_type)
 {
+    let fav = document.getElementById('favorite');
     if(state)
     {
-        let fav = document.getElementById('favorite');
         fav.style.display = null;
         fav.onclick = function() { toggleBookmark(id, search_type); };
         for(let e of bookmarks)
