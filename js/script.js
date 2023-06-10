@@ -1415,9 +1415,9 @@ function exportBookmark()
 
 function importBookmark()
 {
-    try
-    {
-        navigator.clipboard.readText().then((clipText) => {
+    navigator.clipboard.readText().then((clipText) => {
+        try
+        {
             let tmp = JSON.parse(clipText);
             if(typeof tmp != 'object') return;
             let fav = false;
@@ -1435,7 +1435,7 @@ function importBookmark()
                 ++i;
             }
             bookmarks = tmp;
-            localStorage.setItem("favorite", JSON.stringify(bookmarks));
+            localStorage.setItem("bookmark", JSON.stringify(bookmarks));
             if(fav) document.getElementById('favorite').src = "assets/ui/fav_1.png";
             else document.getElementById('favorite').src = "assets/ui/fav_0.png";
             let div = document.createElement('div');
@@ -1444,11 +1444,9 @@ function importBookmark()
             document.body.appendChild(div)
             intervals.push(setInterval(rmPopup, 2500, div));
             updateBookmark();
-        });
-    }
-    catch
-    {
-    }
+        }
+        catch {}
+    });
 }
 
 function rmPopup(popup) {
