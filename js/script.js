@@ -1426,11 +1426,6 @@ function importBookmark()
             {
                 let e = tmp[i];
                 if(typeof e != 'object' || e.length != 2 || typeof e[0] != 'string' || typeof e[1] != 'number') return
-                if(e[1] == 2 || e[1] == 4 || e[1] == 5) // for GBFAL compatibiliy
-                {
-                    tmp.splice(i, 1);
-                    continue;
-                }
                 if(last_id == e[0]) fav = true;
                 ++i;
             }
