@@ -1415,9 +1415,12 @@ function exportBookmark()
 
 function importBookmark()
 {
+    navigator.clipboard.readText().then(
+    
+    
     try
     {
-        navigator.clipboard.readText().then((clipText) => (
+        navigator.clipboard.readText().then((clipText) => {
             let tmp = JSON.parse(clipText);
             if(typeof tmp != 'object') return;
             let fav = false;
@@ -1444,7 +1447,7 @@ function importBookmark()
             document.body.appendChild(div)
             intervals.push(setInterval(rmPopup, 2500, div));
             updateBookmark();
-        ));
+        });
     }
     catch
     {
