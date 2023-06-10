@@ -23,7 +23,7 @@
 <body onload="init()">
     <a id="to-title" href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div id="version">v5.0</div>
+        <div id="version">v5.1</div>
         <div id="timestamp">Last update</a>:</div>
     </div>
     <div id="to-bottom" class="clickable" onclick="window.scroll(0, document.body.scrollHeight);"><img src="assets/ui/button.png"></div>
@@ -49,13 +49,18 @@
         </h3>
     </details>
     <details style="display:none">
-        <summary>History</summary>
+        <summary class="red-sum">Updated</summary>
+        <div id="updated" class="result">
+        </div>
+    </details>
+    <details style="display:none">
+        <summary class="green-sum">History</summary>
         <div id="history" class="result">
         </div>
     </details>
     <input type="image" src="assets/ui/fav_0.png" style="display:none" id="favorite">
     <details style="display:none">
-        <summary>Bookmarks</summary>
+        <summary class="green-sum">Bookmarks</summary>
         <div id="bookmark" class="result">
         </div>
     </details>

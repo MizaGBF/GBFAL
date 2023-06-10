@@ -17,7 +17,6 @@ var endpoints = [
     "prd-game-a5-granbluefantasy.akamaized.net/"
 ];
 var main_endp_count = -1;
-var index_endp_count = -1;
 var language = "assets_en/";
 var last_id = null;
 var last_style = null;
@@ -34,6 +33,7 @@ var lastsearches = [];
 var bookmarks = [];
 var timestamp = Date.now();
 var relations = {};
+var updated = [];
 var intervals = [];
 
 function getMainEndpoint()
@@ -42,10 +42,9 @@ function getMainEndpoint()
     return endpoints[main_endp_count];
 }
 
-function getIndexEndpoint()
+function getIndexEndpoint(index)
 {
-    index_endp_count = (index_endp_count + 1) % endpoints.length;
-    return endpoints[index_endp_count];
+    return endpoints[index % endpoints.length];
 }
 
 function filter()
@@ -63,6 +62,16 @@ function initChangelog(unusued)
 {
     try{
         let json = JSON.parse(this.response);
+        if(json.hasOwnProperty("new"))
+        {
+            updated = json["new"];
+            if(updated.length > 0)
+            {
+                let newarea = document.getElementById('updated');
+                newarea.parentNode.style.display = null;
+                updateDynamicList(newarea, updated);
+            }
+        }
         let date = (new Date(json['timestamp'])).toISOString();
         document.getElementById('timestamp').innerHTML += " " + date.split('T')[0] + " " + date.split('T')[1].split(':').slice(0, 2).join(':') + " UTC";
         timestamp = json['timestamp'];
@@ -1632,7 +1641,7 @@ function addIndexImage(node, path, id, onerr = null, quality="img_low/")
             lookup(id);
         };
     }
-    img.src = protocol + getIndexEndpoint() + language + quality + path;
+    img.src = protocol + getIndexEndpoint(parseInt(id.replace(/\D/g,''))) + language + quality + path;
 }
 
 function displayCharacters(elem, i)
@@ -1805,7 +1814,7 @@ function addIndexImageGeneric(node, path, id, onerr = null)
         }
     }
     else img.onerror = onerr;
-    img.src = protocol + getIndexEndpoint() + language + "img_low/" + path;
+    img.src = protocol + getIndexEndpoint(parseInt(id.replace(/\D/g,''))) + language + "img_low/" + path;
     a.href = img.src.replace("img_low/", "img/")
 }
 

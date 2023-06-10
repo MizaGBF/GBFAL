@@ -23,6 +23,28 @@ summary {
     text-shadow: #000000 1px 0 10px;
 }
 
+.red-sum {
+    background: url(../assets/ui/button_bg_red.png) no-repeat;
+    background-size: 100% 100%;
+    width: 250px;
+    height: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #ffffff;
+    text-shadow: #000000 1px 0 10px;
+}
+
+.green-sum {
+    background: url(../assets/ui/button_bg_green.png) no-repeat;
+    background-size: 100% 100%;
+    width: 250px;
+    height: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #ffffff;
+    text-shadow: #000000 1px 0 10px;
+}
+
 button {
     background: url(../assets/ui/button_bg.png) no-repeat;
     background-size: 100% 100%;

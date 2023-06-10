@@ -35,6 +35,7 @@ class Parser():
         self.name_table = {}
         self.name_table_modified = False
         self.name_lock = Lock()
+        self.addition = {}
         self.re = re.compile("[123][07][1234]0\\d{4}00")
         self.vregex = re.compile("Game\.version = \"(\d+)\";")
         
@@ -65,8 +66,21 @@ class Parser():
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
                     json.dump(self.data, outfile)
                 print("data.json updated")
+                try:
+                    with open('json/changelog.json', mode='r', encoding='utf-8') as f:
+                        existing = {}
+                        for e in json.load(f).get('new', []):
+                            existing[e[0]] = e[1]
+                except:
+                    existing = {}
+                new = []
+                existing = existing | self.addition
+                self.addition = {}
+                for k, v in existing.items():
+                    new.append([k, v])
+                if len(new) > 50: new = new[len(new)-50:]
                 with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
-                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000)}, outfile)
+                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new}, outfile)
                 print("changelog.json updated")
         except Exception as e:
             print(e)
@@ -516,6 +530,7 @@ class Parser():
                 self.data['skins'][id+style] = data
             else:
                 self.data['characters'][id+style] = data
+            self.addition[id+style] = 3
         return True
 
     def sumUpdate(self, id):
@@ -552,6 +567,7 @@ class Parser():
         with self.lock:
             self.modified = True
             self.data['summons'][id] = data
+            self.addition[id] = 2
         return True
 
     def weapUpdate(self, id):
@@ -578,6 +594,7 @@ class Parser():
         with self.lock:
             self.modified = True
             self.data['weapons'][id] = data
+            self.addition[id] = 1
         return True
 
     def mobUpdate(self, id):
@@ -616,6 +633,7 @@ class Parser():
         with self.lock:
             self.modified = True
             self.data['enemies'][id] = data
+            self.addition[id] = 4
         return True
 
     def update_scene_file(self, id, uncaps = None):
@@ -643,6 +661,9 @@ class Parser():
                     result.append(s)
                 except:
                     pass
+            if id.startswith('399'):
+                with self.lock:
+                    self.addition[id] = 5
             return result
         except:
             return None
