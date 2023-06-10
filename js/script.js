@@ -64,7 +64,7 @@ function initChangelog(unusued)
         let json = JSON.parse(this.response);
         if(json.hasOwnProperty("new"))
         {
-            updated = json["new"];
+            updated = json["new"].reverse();
             if(updated.length > 0)
             {
                 let newarea = document.getElementById('updated');

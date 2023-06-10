@@ -74,7 +74,7 @@ class Parser():
                 except:
                     existing = {}
                 new = []
-                existing = self.addition | existing
+                existing = existing | self.addition
                 self.addition = {}
                 for k, v in existing.items():
                     new.append([k, v])
