@@ -404,7 +404,6 @@ function loadUnindexed(id)
         last_id = id;
         updateQuery(id);
     }
-    favButton(false, null, null);
     updateRelated(id);
 }
 
@@ -436,6 +435,7 @@ function lookup(id)
         else if(start == "37") check = "skins";
         else if(start == "20") check = "summons";
         else if(start == "10") check = "weapons";
+        favButton(false, null, null);
         if(check != null && id in index[check] && index[check][id] !== 0)
             loadIndexed(id, index[check][id]);
         else
@@ -1334,19 +1334,18 @@ function favButton(state, id, search_type)
     {
         let fav = document.getElementById('favorite');
         fav.style.display = null;
-        fav.src = "assets/ui/fav_0.png";
-        if(id != null)
+        fav.onclick = function() { toggleBookmark(id, search_type); };
+        for(let e of bookmarks)
         {
-            for(let e of bookmarks)
+            if(e[0] == id)
             {
-                if(e[0] == id)
-                {
+                if(fav.src != "assets/ui/fav_1.png")
                     fav.src = "assets/ui/fav_1.png";
-                    return;
-                }
+                return;
             }
-            fav.onclick = function() { toggleBookmark(id, search_type); };
         }
+        if(fav.src != "assets/ui/fav_0.png")
+            fav.src = "assets/ui/fav_0.png";
     }
     else
     {
