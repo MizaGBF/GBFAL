@@ -189,7 +189,7 @@ function loadIndexed(id, obj, shortened=false)
     let skycompass = null;
     let npcdata = null;
     let files = null;
-    if(id.length == 7) // enemies
+    if(search_type == 4) // enemies
     {
         assets = [
             ["Big Icon", "sp/assets/enemy/m/", "png", "img/", 0, false, false],
@@ -200,7 +200,7 @@ function loadIndexed(id, obj, shortened=false)
             ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 4, false, false]
         ];
     }
-    else if(id.startsWith("30") || id.startsWith("37")) // characters / skins
+    else if(search_type == 3) // characters / skins
     {
         assets = [
             ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", 5, true, false], // index, skycompass, side form
@@ -226,7 +226,7 @@ function loadIndexed(id, obj, shortened=false)
         skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
         npcdata = obj[7];
     }
-    else if(id.startsWith("39")) // npcs
+    else if(search_type == 5) // npcs
     {
         assets = [
             ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", -1, false, false], // index, skycompass, side form
@@ -236,7 +236,7 @@ function loadIndexed(id, obj, shortened=false)
         npcdata = obj[0];
         files = [id, id + "_01"];
     }
-    else if(id.startsWith("20")) // summons
+    else if(search_type == 2) // summons
     {
         assets = [
             ["Main Arts", "sp/assets/summon/b/", "png", "img_low/", 0, true, false], // index, skycompass, side form
@@ -247,12 +247,13 @@ function loadIndexed(id, obj, shortened=false)
             ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/", 0, false, false],
             ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/", 0, false, false],
             ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/", 0, false, false],
+            ["Quest Portraits", "sp/assets/summon/qm/", "png", "img/", 0, false, false],
             ["Summon Call Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
             ["Summon Damage Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
         ];
         skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
     }
-    else if(id.startsWith("10")) // weapons
+    else if(search_type == 1) // weapons
     {
         assets = [
             ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/", 0, false, false], // index, skycompass, side form
@@ -268,9 +269,10 @@ function loadIndexed(id, obj, shortened=false)
     {
         for(let asset of assets)
         {
-            files = (asset[4] == -1) ? files : obj[asset[4]];
-            if(files.length == 0) continue;
-            if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue;
+            files = (asset[4] == -1) ? files : obj[asset[4]]; // for npc
+            if(files.length == 0) continue; // empty list
+            if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue; // weapon sheet for mc
+            if(search_type == 2 && asset[0] == "Quest Portraits") files = [files[0], files[0]+"_hard", files[0]+"_ex", files[0]+"_high"]; // summon quest icon
             let div = addResult(asset[0], asset[0]);
             result_area.appendChild(div);
             
@@ -444,7 +446,7 @@ function lookup(id)
         else if(start == "37") check = "skins";
         else if(start == "20") check = "summons";
         else if(start == "10") check = "weapons";
-        else if(id.length == 9 and id[6] == "_") check = "job";
+        else if(id.length == 9 && id[6] == "_") check = "job";
         favButton(false, null, null);
         if(check != null && id in index[check] && index[check][id] !== 0)
             loadIndexed(id, index[check][id]);
@@ -797,6 +799,7 @@ function lookupSummon(summon_id)
         ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/"],
         ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/"],
         ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/"],
+        ["Quest Portraits", "sp/assets/summon/qm/", "png", "img/"],
         ["Summon Call Sheets", "sp/cjs/summon_", "png", "img_low/"],
         ["Summon Damage Sheets", "sp/cjs/summon_", "png", "img_low/"]
     ];
@@ -831,6 +834,11 @@ function lookupSummon(summon_id)
                     uncap_append[i] += typestring;
             }
             sheets = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_bg", "_bg1", "_bg2", "_bg3"];
+        }
+        else if(asset[0] == "Quest Portraits")
+        {
+            sheets = ["", "_hard", "_ex", "_high"];
+            uncap_append = uncaps;
         }
         else
         {
