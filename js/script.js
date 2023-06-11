@@ -172,13 +172,13 @@ function loadIndexed(id, obj, shortened=false)
     }
     else if(id.length == 7)
     {
-        newArea("Enemy", id, false);
+        newArea("Enemy", id, true);
         search_type = 4;
         updateQuery("e"+id);
     }
     else if(id.length == 6)
     {
-        newArea("Main Character", id, false);
+        newArea("Main Character", id, (obj[7].length != 0));
         search_type = 0;
         updateQuery(id);
     }
