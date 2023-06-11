@@ -176,7 +176,7 @@ function loadIndexed(id, obj, shortened=false)
         search_type = 4;
         updateQuery("e"+id);
     }
-    else if(id.length == 9)
+    else if(id.length == 6)
     {
         newArea("Main Character", id, false);
         search_type = 0;
@@ -187,6 +187,7 @@ function loadIndexed(id, obj, shortened=false)
     updateRelated(id);
     let assets = null;
     let skycompass = null;
+    let mc_skycompass = false;
     let npcdata = null;
     let files = null;
     if(search_type == 4) // enemies
@@ -265,6 +266,38 @@ function loadIndexed(id, obj, shortened=false)
             ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
         ];
     }
+    else if(search_type == 0) // MC
+    {
+        assets = [
+            ["Job Icons", "sp/ui/icon/job/", "png", "img/", 0, false, false], // index, skycompass, side form
+            ["Inventory Portraits", "sp/assets/leader/m/", "jpg", "img/", 1, false, false],
+            ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", "img/", 1, false, false],
+            ["Outfit Description Arts", "sp/assets/leader/skin/", "png", "img_low/", 1, false, false],
+            ["Home Arts", "sp/assets/leader/my/", "png", "img_low/", 3, true, false],
+            ["Full Arts", "sp/assets/leader/job_change/", "png", "img_low/", 3, false, false],
+            ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", "img_low/", 3, false, false],
+            ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", "img/", 0, false, false],
+            ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", "img/", 0, false, false],
+            ["Class Change Buttons", "sp/assets/leader/jlon/", "png", "img/", 2, false, false],
+            ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", "img_low/", 3, false, false],
+            ["Party Class Portraits", "sp/assets/leader/p/", "png", "img_low/", 3, false, false],
+            ["Profile Portraits", "sp/assets/leader/pm/", "png", "img_low/", 3, false, false],
+            ["Profile Board Portraits", "sp/assets/leader/talk/", "png", "img/", 3, false, false],
+            ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", "img/", 3, false, false],
+            ["Tower Portraits", "sp/assets/leader/t/", "png", "img_low/", 3, false, false],
+            ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", "img/", 3, false, false],
+            ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", "img/", 3, false, false],
+            ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", "img_low/", 3, false, false],
+            ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2, false, false],
+            ["Master Level Portraits", "sp/assets/leader/master_level/", "png", "img_low/", 2, false, false],
+            ["Sprites", "sp/assets/leader/sd/", "png", "img/", 4, false, false],
+            ["Character Sheets", "sp/cjs/", "png", "img_low/", 7, false, false],
+            ["Attack Effects", "sp/cjs/", "png", "img/", 8, false, false],
+            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 9, false, false]
+        ];
+        skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
+        mc_skycompass = true;
+    }
     if(assets != null)
     {
         for(let asset of assets)
@@ -308,6 +341,11 @@ function loadIndexed(id, obj, shortened=false)
                         if(file != obj[asset[4]][0]) continue;
                         ref.setAttribute('href', skycompass[0] + file.split('_')[0] + skycompass[1]);
                         img.src = skycompass[0] + file.split('_')[0] + skycompass[1];
+                    }
+                    else if(mc_skycompass)
+                    {
+                        ref.setAttribute('href', skycompass[0] + id + '_' + file.split('_')[2] + skycompass[1]);
+                        img.src = skycompass[0] + id + '_' + file.split('_')[2] + skycompass[1];
                     }
                     else
                     {
@@ -407,10 +445,15 @@ function loadUnindexed(id)
         last_id = id;
         updateQuery("e" + id);
     }
-    else if(id.length == 9)
+    else if(id.length == 9 && id[6] == "_") // retrocompatibility
     {
-        if(id[5] != '1')
-            id = id.slice(0, 5) + "1" + id.slice(6);
+        id = id.split('_')[0]
+        lookupMC(id);
+        last_id = id;
+        updateQuery(id);
+    }
+    else if(id.length == 6)
+    {
         lookupMC(id);
         last_id = id;
         updateQuery(id);
@@ -427,7 +470,8 @@ function lookup(id)
     if(
         (el.length == 2 && el[1] == "st2" && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || (el.length == 1 && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || 
         (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1)) && id.slice(1) != last_id) ||
-        (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6)) && id != last_id)
+        (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6)) && id != last_id) || // retrocompatibility
+        (id.length == 6 && !isNaN(id))
     )
     {
         let start = id.slice(0, 2);
@@ -446,7 +490,12 @@ function lookup(id)
         else if(start == "37") check = "skins";
         else if(start == "20") check = "summons";
         else if(start == "10") check = "weapons";
-        else if(id.length == 9 && id[6] == "_") check = "job";
+        else if(id.length == 9 && id[6] == "_")
+        {
+            id = id.split('_')[0];
+            check = "job";
+        }
+        else if(id.length == 6) check = "job";
         favButton(false, null, null);
         if(check != null && id in index[check] && index[check][id] !== 0)
             loadIndexed(id, index[check][id]);
@@ -499,7 +548,7 @@ function newArea(name, id, include_link, indexed=true)
         div.appendChild(l);
         div.appendChild(document.createElement('br'));
     }
-    if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371" || id.slice(0, 2) == "10" || (id.length == 9 && id[6] == '_'))
+    if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371" || id.slice(0, 2) == "10" || id.length == 6)
     {
         l = document.createElement('a');
         l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
@@ -1016,7 +1065,6 @@ function lookupEnemy(enemy_id)
 function lookupMC(mc_id)
 {
     if(blacklist.includes(mc_id)) return;
-    let job_ids = mc_id.split('_');
     let assets = [
         ["Job Icons", "sp/ui/icon/job/", "png", "img/", 0],
         ["Inventory Portraits", "sp/assets/leader/m/", "jpg", "img/", 1],
@@ -1039,77 +1087,57 @@ function lookupMC(mc_id)
         ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", "img_low/", 2],
         ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2],
         ["Master Level Portraits", "sp/assets/leader/master_level/", "png", "img_low/", 2],
-        ["Sprites", "sp/assets/leader/sd/", "png", "img/", 3]
+        ["Sprites", "sp/assets/leader/sd/", "png", "img/", 2]
     ];
-    // 0 = job_ids[0]
-    // 1 = job_ids[0] + "_01"
-    // 2 = mc_id + "_1_01"
-    // 3 = mc_id + "_1_01" (color variations)
-    newArea("Main Character", mc_id, false);
+    newArea("Main Character", mc_id, false, false);
     for(let asset of assets)
     {
         let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
-        let variations = ['01', '02', '03', '04', '05', '80'];
-        if(asset[4] >= 2)
+        let variations = null;
+        switch(asset[4])
         {
-            for(let i = 0; i < 2; ++i)
-            {
-                for(let vr of variations)
+            case 1: variations = ['_01']; break
+            case 2:
+                variations = [];
+                for(let mh of ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'])
                 {
-                    let job_final_id = job_ids[0].slice(0, 4) + vr;
-                    let path = asset[1] + job_final_id + "_" + job_ids[1] + "_" + i + "_01" + "." + asset[2];
-                    let img = document.createElement("img");
-                    let ref = document.createElement('a');
-                    ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-                    div.appendChild(ref);
-                    ref.appendChild(img);
-                    img.classList.add("loading");
-                    img.onerror = function() {
-                        let result = this.parentNode.parentNode;
-                        this.parentNode.remove();
-                        this.remove();
-                        if(result.childNodes.length <= 2) result.remove();
-                    }
-                    img.onload = function() {
-                        this.classList.remove("loading");
-                        this.classList.add("asset");
-                    }
-                    img.src = protocol + getMainEndpoint() + language + asset[3] + path;
+                    variations.push("_"+mh+'_0_01');
+                    variations.push("_"+mh+'_1_01');
                 }
-                // sky compass band aid
-                if(asset[0] === "Home Art")
-                {
-                    let path = job_ids[0] + "_" + i + "." + asset[2];
-                    let img = document.createElement("img");
-                    let ref = document.createElement('a');
-                    ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path);
-                    div.appendChild(ref);
-                    ref.appendChild(img);
-                    img.classList.add("loading");
-                    img.onerror = function() {
-                        let result = this.parentNode.parentNode;
-                        this.parentNode.remove();
-                        this.remove();
-                        if(result.childNodes.length <= 2) result.remove();
-                    }
-                    img.onload = function() {
-                        this.classList.remove("loading");
-                        this.classList.add("skycompass");
-                    }
-                    img.src = "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path;
-                }
-            }
+                break;
+            default: variations = ['']; break
         }
-        else
+        for(let vr of variations)
         {
-            for(let vr of variations)
+            let path = asset[1] + mc_id + vr + "." + asset[2];
+            let img = document.createElement("img");
+            let ref = document.createElement('a');
+            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+            div.appendChild(ref);
+            ref.appendChild(img);
+            img.classList.add("loading");
+            img.onerror = function() {
+                let result = this.parentNode.parentNode;
+                this.parentNode.remove();
+                this.remove();
+                if(result.childNodes.length <= 2) result.remove();
+            }
+            img.onload = function() {
+                this.classList.remove("loading");
+                this.classList.add("asset");
+            }
+            img.src = protocol + getMainEndpoint() + language + asset[3] + path;
+        }
+        for(let i = 0; i < 2; ++i)
+        {
+            // sky compass band aid
+            if(asset[0] === "Home Art")
             {
-                let job_final_id = job_ids[0].slice(0, 4) + vr;
-                let path = asset[1] + (asset[4] == 0 ? job_final_id : job_final_id + "_01") + "." + asset[2];
+                let path = mc_id + "_" + i + "." + asset[2];
                 let img = document.createElement("img");
                 let ref = document.createElement('a');
-                ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
+                ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path);
                 div.appendChild(ref);
                 ref.appendChild(img);
                 img.classList.add("loading");
@@ -1121,202 +1149,10 @@ function lookupMC(mc_id)
                 }
                 img.onload = function() {
                     this.classList.remove("loading");
-                    this.classList.add("asset");
+                    this.classList.add("skycompass");
                 }
-                img.src = protocol + getMainEndpoint() + language + asset[3] + path;
+                img.src = "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path;
             }
-        }
-    }
-    if(mc_index == null)
-        getJSON("json/job.json", lookupMCPlus, function(v){}, mc_id);
-    else
-        lookupMCPlus(mc_id);
-}
-
-var class_lookup = { // need to be manually updated..... :(
-    "150201_sw": ["dkf_sw", "dkf_kn"], // dark fencer
-    "200201_kn": ["acm_kn", "acm_gu"], // alchemist
-    "310401_sw": ["mcd_sw"], // mac do
-    "130201_wa": ["hrm_wa", "hrm_kn"], // hermit
-    "120401_wa": ["hlr_wa", "hlr_sp"], // iatromantis
-    "150301_sw": ["csr_sw", "csr_kn"], // chaos ruler
-    "170201_bw": ["sdw_bw", "sdw_gu"], // sidewinder
-    "240201_gu": ["gns_gu"], // gunslinger
-    "360001_me": ["vee_me"], // vyrn suit
-    "310701_sw": ["fal_sw"], // fallen
-    "400001_kt": ["szk_kt"], // zhuque
-    "450301_sw": ["rlc_sw", "rlc_gu"], // relic buster
-    "140301_kn": ["gzk_kn", "gzk_gu"], // bandit tycoon
-    "110001_sw": ["kni_sw", "kni_sp"], // knight
-    "270301_mc": ["ris_mc"], // rising force
-    "290201_gu": ["kks_gu"], // mechanic
-    "190101_sp": ["drg_sp", "drg_ax"], // dragoon
-    "140201_kn": ["hky_kn", "hky_gu"], // hawkeye
-    "240301_gu": ["sol_gu"], // soldier
-    "120301_wa": ["sag_wa", "sag_sp"], // sage
-    "120101_wa": ["cle_wa", "cle_sp"], // cleric
-    "150101_sw": ["ars_sw", "ars_kn"], // arcana dueler
-    "130301_wa": ["wrk_wa", "wrk_kn"], // warlock
-    "130401_wa": ["mnd_wa", "mnd_kn"], // warlock
-    "310601_sw": ["edg_sw"], // eternal 2
-    "120001_wa": ["pri_wa", "pri_sp"], // priest
-    "180101_mc": ["mst_kn", "mst_mc"], // bard
-    "200301_kn": ["dct_kn", "dct_gu"], // doctor
-    "220201_kt": ["smr_bw", "smr_kt"], // samurai
-    "140001_kn": ["thi_kn", "thi_gu"], // thief
-    "370601_me": ["bel_me"], // belial 1
-    "370701_me": ["ngr_me"], // cook
-    "330001_sp": ["sry_sp"], // qinglong
-    "370501_me": ["phm_me"], // anime s2 skin
-    "440301_bw": ["rbn_bw"], // robin hood
-    "160201_me": ["ogr_me"], // ogre
-    "210301_me": ["mhs_me", "mhs_kt"], // runeslayer
-    "310001_sw": ["lov_sw"], // lord of vermillion
-    "370801_me": ["frb_me"], // belial 2
-    "180201_mc": ["sps_kn", "sps_mc"], // superstar
-    "310301_sw": ["chd_sw"], // attack on titan
-    "125001_wa": ["snt_wa"], // santa
-    "110301_sw": ["spt_sw", "spt_sp"], // spartan
-    "310801_sw": ["ykt_sw"], // yukata
-    "110201_sw": ["hsb_sw", "hsb_sp"], // holy saber
-    "230301_sw": ["glr_sw", "glr_kt"], // glorybringer
-    "130101_wa": ["srr_wa", "srr_kn"], // sorcerer
-    "430301_wa": ["mnk_wa", "mnk_me"], // monk
-    "280301_kn": ["msq_kn"], // masquerade
-    "250201_wa": ["wmn_wa"], // mystic
-    "160001_me": ["grp_me"], // grappler
-    "110101_sw": ["frt_sw", "frt_sp"], // sentinel
-    "270201_mc": ["drm_mc"], // taiko
-    "300301_sw": ["crs_sw", "crs_kt"], // chrysaor
-    "360101_gu": ["rac_gu"], // platinum sky 2
-    "300201_sw": ["gda_sw", "gda_kt"], // gladiator
-    "100101_sw": ["wrr_sw", "wrr_ax"], // warrior
-    "170001_bw": ["rng_bw", "rng_gu"], // ranger
-    "280201_kn": ["dnc_kn"], // dancer
-    "410301_mc": ["lmb_ax", "lmb_mc"],
-    "100001_sw": ["fig_sw", "fig_ax"], // fighter
-    "180301_kn": ["els_kn", "els_mc"], // elysian
-    "250301_wa": ["knd_wa"], // nekomancer
-    "260201_kn": ["asa_kn"], // assassin
-    "370301_me": ["kjm_me"], // monster 3
-    "140101_kn": ["rdr_kn", "rdr_gu"], // raider
-    "180001_mc": ["hpt_kn", "hpt_mc"], // superstar
-    "370001_me": ["kjt_me"], // monster 1
-    "165001_me": ["stf_me"], // street fighter
-    "160301_me": ["rsr_me"], // luchador
-    "100201_sw": ["wms_sw", "wms_ax"], // weapon master
-    "170301_bw": ["hdg_bw", "hdg_gu"], // nighthound
-    "230201_sw": ["sdm_sw", "sdm_kt"], // swordmaster
-    "310201_sw": ["swm_sw"], // summer
-    "190301_sp": ["aps_sp", "aps_ax"], // apsaras
-    "100401_sw": ["vkn_sw", "vkn_ax"], // viking
-    "150001_sw": ["enh_sw", "enh_kn"], // enhancer
-    "220301_bw": ["kng_bw", "kng_kt"], // kengo
-    "120201_wa": ["bis_wa", "bis_sp"], // bishop
-    "310101_sw": ["ani_sw"], // anime season 1
-    "130001_wa": ["wiz_wa", "wiz_kn"], // wizard
-    "185001_kn": ["idl_kn", "idl_mc"], // idol
-    "100301_sw": ["bsk_sw", "bsk_ax"], // berserker
-    "160101_me": ["kun_me"], // kung fu artist
-    "370201_me": ["kjb_me"], // monster 2
-    "110401_sw": ["pld_sw", "pld_sp"], // paladin
-    "310501_sw": ["cnq_sw"], // eternal 1
-    "310901_sw": ["vss_sw"], // versus skin
-    "190001_sp": ["lnc_sp", "lnc_ax"], // lancer
-    "420301_sp": ["cav_sp", "cav_gu"], // cavalier
-    "190201_sp": ["vkr_sp", "vkr_ax"], // valkyrie
-    "260301_kn": ["tmt_kn"], // tormentor
-    "210201_kt": ["nnj_me", "nnj_kt"], // ninja
-    "370401_me": ["ybk_me"], // bird
-    "320001_kn": ["sut_kn"], // story dancer
-    "170101_bw": ["mrk_bw", "mrk_gu"], // archer
-    "311001_sw": ["gkn_sw"], // school
-    "340001_ax": ["gnb_ax"], // xuanwu
-    "360201_gu": ["ebi_gu"], // premium friday
-    "370901_me": ["byk_me"], // baihu
-    "460301_sw": ["ymt_sw", "ymt_kt"] // yamato
-}
-var class_ougi = {
-    "320001_kn": "1040115000", // school dancer
-    "340001_ax": "1040315700", // xuanwu
-    "400001_kt": "1040913700", // zhuque
-    "330001_sp": "1040216600", // qinglong
-    "370901_me": "1040617400", // baihu
-    "310501_sw": "1040016700", // eternal 1
-    "310601_sw": "1040016800", // eternal 2
-    "360101_gu": "1040508600", // platinum sky 2
-    "370801_me": "1040616000", // belial 2
-    "310701_sw": "1040016900", // fallen
-    "370001_me": "1040610300", // monster 1
-    "310901_sw": "1040019100", // versus
-    "370201_me": "1040610200", // monster 2
-    "370301_me": "1040610400", // monster 3
-    "370601_me": "1040614400", // belial 1
-    "370701_me": "1040615300", // cook
-    "310001_sw": "1040009100", // lord of vermillion
-    "310801_sw": "1040018800", // yukata
-    "311001_sw": "1040020200", // school
-    "310301_sw": "1040014200", // attack on titan
-    "360201_gu": "1040515800" // premium friday
-}
-
-function lookupMCPlus(mc_id)
-{
-    if(blacklist.includes(mc_id)) return;
-    let dupe_check = [];
-    if(mc_index == null) mc_index = JSON.parse(this.response);
-    let genders = ['_0_', '_1_'];
-    if(mc_id in class_lookup)
-    {
-        if(class_lookup[mc_id].length > 0)
-        {
-            let div = addResult("Sprite Sheets", "Sprite Sheets");
-            result_area.appendChild(div);
-            for(let cid of class_lookup[mc_id])
-            {
-                if(cid in mc_index)
-                {
-                    for(let elem of mc_index[cid])
-                    {
-                        for(let gender of genders)
-                        {
-                            let file_name = elem.replace('_0_', gender).split('/');
-                            file_name = file_name[file_name.length - 1];
-                            if(dupe_check.includes(file_name)) continue;
-                            else dupe_check.push(file_name);
-                            let img = document.createElement("img");
-                            let ref = document.createElement('a');
-                            ref.setAttribute('href', elem.replace('img_low/', 'img/').replace('_0_', gender));
-                            div.appendChild(ref);
-                            ref.appendChild(img);
-                            img.classList.add("loading");
-                            img.onerror = function() {
-                                let result = this.parentNode.parentNode;
-                                this.parentNode.remove();
-                                this.remove();
-                                if(result.childNodes.length <= 2) result.remove();
-                            }
-                            img.onload = function() {
-                                this.classList.remove("loading");
-                                this.classList.add("asset");
-                            }
-                            img.src = protocol + getMainEndpoint() + language + elem.replace('_0_', gender);
-                        }
-                    }
-                }
-                else
-                {
-                    div.appendChild(document.createTextNode("Sprite Sheets are missing, check this page again later"));
-                    return
-                }
-            }
-        }
-        if(mc_id in class_ougi)
-        {
-            if('weapons' in index && class_ougi[mc_id] in index['weapons'] && index['weapons'][class_ougi[mc_id]] !== 0)
-                loadIndexed(class_ougi[mc_id], index['weapons'][class_ougi[mc_id]], true);
-            else
-                lookupWeapon(class_ougi[mc_id], true);
         }
     }
 }
@@ -1349,7 +1185,8 @@ function updateDynamicList(dynarea, idlist)
             }
             case 0: // mc
             {
-                addIndexImage(dynarea, "sp/assets/leader/m/" + e[0].split('_')[0] + "_01.jpg", e[0]);
+                if(e[0].length == 9) e[0] = e[0].split('_')[0]; // retrocompatibility
+                addIndexImage(dynarea, "sp/assets/leader/m/" + e[0] + "_01.jpg", e[0]);
                 break;
             }
             case 4: // enemy
@@ -1820,7 +1657,7 @@ function displayMC(elem)
         let slist = {};
         for(const id in index["job"])
         {
-            slist[id] = ["sp/assets/leader/m/" + id.split('_')[0] + "_01.jpg", id];
+            slist[id] = ["sp/assets/leader/m/" + id + "_01.jpg", id];
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)

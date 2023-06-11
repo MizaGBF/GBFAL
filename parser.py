@@ -22,6 +22,8 @@ class Parser():
             "enemies":{},
             "skins":{},
             "job":{},
+            "job_wpn":{},
+            "job_key":{},
             "npcs":{},
             "background":{},
             "title":{}
@@ -48,6 +50,8 @@ class Parser():
         
         self.load()
         self.exclusion = set([])
+        self.job_list = None
+        self.mh = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']
 
     def load(self): # load data.json
         try:
@@ -96,6 +100,10 @@ class Parser():
         errs = []
         possibles = []
         self.new_elements = []
+        job_thread = 20
+        
+        if self.job_list is None:
+            self.job_list = self.init_job_list()
         
         #rarity
         for r in range(1, 5):
@@ -137,15 +145,17 @@ class Parser():
         # titles
         possibles.append(('title', 0, 1, self.newShared(errs), "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 20))
         
-        thread_count = len(possibles)+40
-        
-        print("Starting index update... (", thread_count, " threads )")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=thread_count) as executor:
-            # jop threads
-            futures = self.job_search(executor)
+        print("Starting index update... (", len(possibles)+job_thread, " threads )")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)+job_thread) as executor:
+            futures = []
             # start
             for p in possibles:
-                futures.append(executor.submit(self.subroutine, self.getEndpoint(), *p))
+                futures.append(executor.submit(self.subroutine, self.endpoint, *p))
+            # job
+            self.newShared(errs)
+            jkeys = list(self.job_list.keys())
+            for i in range(job_thread):
+                futures.append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         print("Index update done")
@@ -153,96 +163,360 @@ class Parser():
         self.save()
         self.build_relation()
 
-    def listjob(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
-        job_index = {}
-        mhs = set(mhs)
-        try:
-            with open('json/job.json', mode='r', encoding='utf-8') as f:
-                job_index = json.load(f)
-        except:
-            pass
-        count = 0
-        for k in job_index:
-            if k.split('_')[1] in mhs:
-                print(k)
-                count += 1
-        print(count, "result(s)")
+    def init_job_list(self):
+        print("Initializing job list...")
+        # existing classes
+        try: job_list = self.req("https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/js_low/constant/job.js", get=True).decode('utf-8')
+        except: return
+        a = job_list.find("var a={")
+        if a == -1: return
+        a+=len("var a={")
+        b = job_list.find("};", a)
+        if b == -b: return
+        job_list = job_list[a:b].split(',')
+        temp = {}
+        for j in job_list:
+            e = j.split(':')
+            temp[e[1]] = set()
+            for c in e[0].replace('_', ''):
+                temp[e[1]].add(c)
+            temp[e[1]] = "".join(list(temp[e[1]])).lower()
+        job_list = temp
+        # old skins
+        for e in [("125001","snt"), ("165001","stf"), ("185001", "idl")]:
+            job_list[e[0]] = e[1]
+        # new skins
+        with concurrent.futures.ThreadPoolExecutor(max_workers=60) as executor:
+            futures = []
+            for i in range(31, 41):
+                for j in range(0, 20):
+                    if str(i * 100 + j)+"01" in job_list: continue
+                    futures.append(executor.submit(self.init_job_list_sub, str(i * 100 + j)+"01"))
+            for future in concurrent.futures.as_completed(futures):
+                r = future.result()
+                if r is not None:
+                    job_list[r] = string.ascii_lowercase
+        print("Done")
+        return job_list
 
-    def dig_job_spritesheet(self, mhs=['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']):
-        job_index = {}
+    def init_job_list_sub(self, id):
         try:
-            with open('json/job.json', mode='r', encoding='utf-8') as f:
-                job_index = json.load(f)
+            self.req("https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id))
+            return id
         except:
-            pass
-        existing_list = set()
-        for k in job_index:
-            existing_list.add(k.split('_')[0])
-        shared = [Lock(), queue.Queue(), job_index]
-        generate_queue = True
-        i = 0
-        while i < len(mhs):
-            if len(mhs[i]) == 6 and mhs[i][3] == '_':
-                generate_queue = False
-                shared[1].put(mhs[i].split('_')[0])
-                mhs[i] = mhs[i].split('_')[1]
-                i += 1
-            elif len(mhs[i]) == 3:
-                generate_queue = False
-                shared[1].put(mhs[i])
-                mhs.pop(i)
-            else:
-                i += 1
-        if len(mhs) == 0:
-            mhs = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']
-        if generate_queue:
-            for a in string.ascii_lowercase:
-                for b in string.ascii_lowercase:
-                    for c in string.ascii_lowercase:
-                        d = a+b+c
-                        if d not in existing_list:
-                            shared[1].put(a+b+c)
-        print("Checking job spritesheets...")
+            return None
+
+    def search_job(self, start, step, keys, shared):
+        i = start
+        while i < len(keys):
+            if keys[i] in self.data["job"]: continue
+            cmh = []
+            colors = [1]
+            alts = []
+            # mh check
+            for mh in self.mh:
+                try:
+                    self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(keys[i], mh))
+                    cmh.append(mh)
+                except:
+                    continue
+            if len(cmh) > 0:
+                # alt check
+                for j in [2, 3, 4, 5, 80]:
+                    try:
+                        self.req("https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
+                        colors.append(j)
+                        if j >= 80:
+                            alts.append(j)
+                    except:
+                        continue
+                # set data
+                data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp
+                for j in alts:
+                    data[1].append(keys[i][:-2]+str(j).zfill(2)+"_01")
+                for k in range(2):
+                    data[2].append(keys[i]+"_"+cmh[0]+"_"+str(k)+"_01")
+                for j in [1]+alts:
+                    for k in range(2):
+                        data[3].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+                for j in colors:
+                    for k in range(2):
+                        data[4].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+                for j in colors:
+                    data[5].append(keys[i][:-2]+str(j).zfill(2))
+                
+                with self.lock:
+                    self.data["job"][keys[i]] = data
+                    self.modified = True
+                    self.addition[keys[i]] = 0
+            i += step
+        with shared[2]:
+            if shared[1]:
+                if len(keys) > 1: print("Job search is done")
+                shared[1] = False
+
+    def search_job_detail(self):
+        if self.job_list is None:
+            self.job_list = self.init_job_list()
+        print("Searching additional job data...")
+        futures = []
+        to_search = []
+        full_key_search = False
+        # key search
+        for k, v in self.data["job"].items():
+            if len(v[7]) == 0:
+                if self.job_list[k] != string.ascii_lowercase:
+                    to_search.append((0, self.job_list[k], k)) # keyword search type, letters, class id
+                else:
+                    full_key_search = True
+        # class weapon search
+        for i in range(0, 999):
+            err = 0
+            for j in range(10):
+                wid = "1040{}{}00".format(j, i)
+                if wid in self.data['weapons'] or wid in self.data["job_wpn"]:
+                    err = 0
+                    continue
+                to_search.append((1, wid)) # skin weapon search, id
+                err += 1
+                if err > 15: break
         with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = []
-            for count in range(100):
-                futures.append(executor.submit(self.dig_job_spritesheet_subroutine, shared, mhs))
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
+            for v in to_search:
+                if v[0] == 0:
+                    futures.append(executor.submit(self.detail_job_search, v[1], v[2]))
+                elif v[0] == 1:
+                    futures.append(executor.submit(self.detail_job_weapon_search, v[1]))
+            # full key search
+            if full_key_search:
+                time.sleep(10) # delay to give time to detail_job_search
+                for a in string.ascii_lowercase:
+                    for b in string.ascii_lowercase:
+                        for c in string.ascii_lowercase:
+                            d = a+b+c
+                            if d in self.data["job_key"]: continue
+                            futures.append(executor.submit(self.detail_job_search_single, d))
+                            time.sleep(0.005) # delay to give time to detail_job_search
+            count = 0
+            if len(futures) > 0:
+                for future in concurrent.futures.as_completed(futures):
+                    future.result()
+                    count += 1
+                    if count % 100 == 0:
+                        print("Progress: {:.1f}%".format(100*count/len(futures)))
+        print("Done")
+        self.save()
+
+    def detail_job_search(self, key, job):
+        cmh = self.data["job"][job][6]
+        a = key[0]
+        for b in key:
+            for c in key:
+                d = a+b+c
+                if d in self.data["job_key"] and self.data["job_key"][d] is not None: continue
+                passed = True
+                for mh in cmh:
+                    try:
+                        self.processManifest("{}_{}_0_01".format(d, mh))
+                    except:
+                        passed = False
+                        break
+                if passed:
+                    with self.lock:
+                        self.data["job_key"][d] = job
+                        self.modified = True
+                    print("Set", job, "to", d)
+
+    def detail_job_weapon_search(self, wid):
         try:
-            with open('json/job.json', mode='w', encoding='utf-8') as f:
-                json.dump(shared[2], f)
-            print("job.json updated")
+            self.req(self.imgUri + '_low/sp/assets/weapon/m/' + wid + ".jpg")
+            return
         except:
             pass
-
-    def dig_job_spritesheet_subroutine(self, shared, mhs):
-        while shared[1].qsize() > 0:
+        for k in [["phit_", ""], ["sp_", "_1_s2"]]:
             try:
-                permut = shared[1].get(block=False)
+                self.req(self.manifestUri + k[0] + wid + k[1] + ".js")
+                with self.lock:
+                    self.data["job_wpn"][wid] = None
+                    self.modified = True
+                print("Possible job skin related weapon:", wid)
+                break
             except:
-                time.sleep(0.001)
-                continue
-            for mh in mhs:
-                sheets = self.dig_job_spritesheet_image(permut, mh)
-                if len(sheets) != 0:
-                    print("Found:", permut, mh)
-                    with shared[0]:
-                        shared[2][permut + "_" + mh] = sheets
+                pass
 
-    def dig_job_spritesheet_image(self, permut, mh):
-        sheets = []
-        colors = [
-            ['01', '02', '03', '04', '05'],
-            ['80']
-        ]
-        for cl in colors:
-            for col in cl:
-                try:
-                    sheets += self.processManifest("{}_{}_0_{}".format(permut, mh, col))
-                except:
-                    if col == '01': return sheets
-        return sheets
+    def detail_job_search_single(self, key):
+        for mh in self.mh:
+            try:
+                self.processManifest("{}_{}_0_01".format(key, mh))
+                with self.lock:
+                    self.data["job_key"][key] = None
+                    self.modified = True
+                print("Unknown job key", key, "for mh", mh)
+                break
+            except:
+                pass
+
+    def edit_job(self):
+        while True:
+            print("")
+            print("[EDIT JOB MENU]")
+            print("[0] Set job data")
+            print("[1] List Unset Job Weapons")
+            print("[2] List Unset Job Keys")
+            print("[3] List Uncomplete Job")
+            print("[4] Export Data")
+            print("[5] Import Data")
+            print("[Any] Exit")
+            match input():
+                case "0":
+                    while True:
+                        s = input("Input job ID (leave blank to cancel):")
+                        if s == "":
+                            break
+                        elif s not in self.data["job"]:
+                            print("Unknown ID")
+                        else:
+                            jid = s
+                            for k, v in self.data['job_wpn'].items():
+                                if v == jid:
+                                    print(jid,"is set to weapon",k)
+                            for k, v in self.data['job_key'].items():
+                                if v == jid:
+                                    print(jid,"is set to key",k)
+                            while True:
+                                print("Input a valid weapon ID or a job key to set to this class (leave blank to cancel)")
+                                s = input().lower()
+                                if s in self.data['job_key']:
+                                    sheets = []
+                                    for v in self.data["job"][jid][4]:
+                                        try:
+                                            sheets += self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
+                                        except:
+                                            pass
+                                    self.data['job'][jid][7] = list(dict.fromkeys(sheets))
+                                    self.data['job_key'][s] = jid
+                                    self.modified = True
+                                    print(len(sheets),"sprites set to job", jid)
+                                elif s in self.data['job_wpn']:
+                                    # phit
+                                    try:
+                                        self.data['job'][jid][8] = list(dict.fromkeys(self.processManifest("phit_{}".format(s))))
+                                    except:
+                                        pass
+                                    # ougi
+                                    sheets = []
+                                    for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
+                                        try:
+                                            sheets += self.processManifest("sp_{}{}".format(s, u))
+                                        except:
+                                            pass
+                                    self.data['job'][jid][9] = list(dict.fromkeys(sheets))
+                                    print(len(self.data['job'][jid][8]),"attack sprites and",len(self.data['job'][jid][9]),"ougi sprites set to job", jid)
+                                    self.data['job_wpn'][s] = jid
+                                    self.modified = True
+                                elif s == "":
+                                    break
+                                else:
+                                    print("Unknown element", s)
+                case "1":
+                    tmp = []
+                    for k, v in self.data['job_wpn'].items():
+                        if v is None: tmp.append(k)
+                    if len(tmp) == 0:
+                        print("No unset weapon in memory")
+                    else:
+                        print("\n".join(tmp))
+                case "2":
+                    tmp = []
+                    for k, v in self.data['job_key'].items():
+                        if v is None: tmp.append(k)
+                    if len(tmp) == 0:
+                        print("No free key in memory")
+                    else:
+                        print("\n".join(tmp))
+                case "3":
+                    tmp = 0
+                    for k, v in self.data['job'].items():
+                        if len(v[7]) == 0:
+                            print(k, "has no sprites")
+                            tmp += 1
+                        elif len(v[8]) + len(v[9]) == 0 and 4100 > int(k[:4]) > 3100:
+                            print(k, "might be an uncomplete skin")
+                            tmp += 1
+                        if v is None: tmp.append(k)
+                    if tmp == 0:
+                        print("Everything seems complete")
+                case "4":
+                    tmp = {"lookup":{}, "weapon":{}, "unset_key":[], "unset_wpn":[]}
+                    for k in self.data['job']:
+                        tmp['lookup'][k] = None
+                    for k in self.data['job_key']:
+                        if self.data['job_key'][k] is None:
+                            tmp['unset_key'].append(k)
+                        else:
+                            tmp['lookup'][self.data['job_key'][k]] = k
+                    for k in self.data['job_wpn']:
+                        if self.data['job_wpn'][k] is None:
+                            tmp['unset_wpn'].append(k)
+                        else:
+                            tmp['weapon'][self.data['job_wpn'][k]] = k
+                    with open("json/job_data_export.json", mode="w", encoding="ascii") as f:
+                        json.dump(tmp, f, ensure_ascii=True, indent=4)
+                        print("Data exported to json/job_data_export.json")
+                case "5":
+                    try:
+                        with open("json/job_data_export.json", mode="r", encoding="ascii") as f:
+                            tmp = json.load(f)
+                            if 'lookup' not in tmp or 'weapon' not in tmp:
+                                raise Exception()
+                    except:
+                        print("Couldn't find, open or load json/job_data_export.json")
+                        tmp = None
+                    if tmp is not None and input("Are you sure? Press 'y' to continue:").lower() == 'y':
+                        print("Importing data...")
+                        try:
+                            for jid, s in tmp["lookup"].items():
+                                # add job if needed
+                                if jid not in self.data['job']:
+                                    self.search_job(0, 1, [jid], self.newShared([]))
+                                if s is not None:
+                                    # set key
+                                    sheets = []
+                                    for v in self.data["job"][jid][4]:
+                                        try:
+                                            sheets += self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
+                                        except:
+                                            pass
+                                    self.data['job'][jid][7] = list(dict.fromkeys(sheets))
+                                    self.data['job_key'][s] = jid
+                                    self.modified = True
+                                    print(len(sheets),"sprites set to job", jid)
+                            for jid, s in tmp["weapon"].items():
+                                if s is not None:
+                                    # phit
+                                    try:
+                                        self.data['job'][jid][8] = list(dict.fromkeys(self.processManifest("phit_{}".format(s))))
+                                    except:
+                                        pass
+                                    # ougi
+                                    sheets = []
+                                    for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
+                                        try:
+                                            sheets += self.processManifest("sp_{}{}".format(s, u))
+                                        except:
+                                            pass
+                                    self.data['job'][jid][9] = list(dict.fromkeys(sheets))
+                                    print(len(self.data['job'][jid][8]),"attack sprites and",len(self.data['job'][jid][9]),"ougi sprites set to job", jid)
+                                    self.data['job_wpn'][s] = jid
+                                    self.modified = True
+                            print("Job Data Import finished with success")
+                        except Exception as e:
+                            print("An error occured while processing ({}, {}), exiting to preserve data...".format(jid, s))
+                            print(e)
+                            exit(0)
+                case _:
+                    break
+        self.save()
 
     def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles = [""], maxerr=20):
         id = start
@@ -271,110 +545,6 @@ class Parser():
                             return
                     break
             id += step
-
-    def job_search(self, executor):
-        shared = [Lock(), queue.Queue(), False]
-        lookup = list(self.data['job'])
-        for i in range(10, 50):
-            for j in range(0, 10):
-                for k in range(0, 10):
-                    id = "{}{}{}01".format(i, j, k)
-                    exist = False
-                    for jid in lookup:
-                        if jid.startswith(id):
-                            exist = True
-                            break
-                    if not exist:
-                        shared[1].put(id)
-        futures = []
-        for i in range(40):
-            futures.append(executor.submit(self.subroutine_job, self.getEndpoint(), shared))
-        return futures
-
-    def subroutine_job(self, endpoint, shared):
-        mh = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']
-        while shared[1].qsize() > 0:
-            try:
-                id = shared[1].get(block=False)
-            except:
-                time.sleep(0.001)
-                continue
-            try:
-                path = "img_low/sp/assets/leader/m/{}_01.jpg".format(id)
-                self.req(endpoint + path)
-            except:
-                continue
-            for mhid in mh:
-                try:
-                    path = "img_low/sp/assets/leader/sd/{}_{}_0_01.png".format(id, mhid)
-                    self.req(endpoint + path)
-                    with shared[0]:
-                        self.data['job'][id + "_" + mhid] = 0
-                        self.modified = True
-                    break
-                except:
-                    pass
-        with shared[0]:
-            if not shared[2]:
-                shared[2] = True
-                print("Threads job are done")
-
-    def dig_job_chargeattack(self):
-        try:
-            with open('json/job_ca.json', mode='r', encoding='utf-8') as f:
-                index = set(json.load(f))
-        except:
-            index = set()
-        shared = [Lock(), queue.Queue(), index]
-        for i in range(10):
-            count = 0
-            j = 0
-            while count < 10 and j < 1000:
-                f = "1040{}{}00".format(i, str(j).zfill(3))
-                if f in self.data["weapons"]:
-                    count = 0
-                else:
-                    count += 1
-                    shared[1].put(f)
-                j += 1
-        print("Checking job charge attacks...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
-            futures = []
-            for count in range(100):
-                futures.append(executor.submit(self.dig_job_chargeattack_subroutine, shared))
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
-        try:
-            with open('json/job_ca.json', mode='w', encoding='utf-8') as f:
-                json.dump(list(shared[2]), f)
-            print("job_ca.json updated")
-        except:
-            pass
-
-    def dig_job_chargeattack_subroutine(self, shared):
-        while shared[1].qsize() > 0:
-            try:
-                file = shared[1].get(block=False)
-            except:
-                time.sleep(0.001)
-                continue
-            try:
-                self.req(self.imgUri + '_low/sp/assets/weapon/m/' + file + ".jpg")
-                continue
-            except:
-                pass
-            for k in [["phit_", ""], ["sp_", "_1_s2"]]:
-                try:
-                    self.req(self.manifestUri + k[0] + file + k[1] + ".js")
-                    print("Possible:", file)
-                    with shared[0]:
-                        shared[2].add(file)
-                    break
-                except:
-                    pass
-
-    def getEndpoint(self):
-        return self.endpoint
 
     def req(self, url, headers={}, get=False):
         if get:
@@ -1042,6 +1212,7 @@ class Parser():
                 if isinstance(n, int) and n != v:
                     print("Update detected.")
                     return
+        
 
 def print_help():
     print("Usage: python parser.py [option]")
@@ -1050,8 +1221,8 @@ def print_help():
     print("-update    : Manual JSON updates (Followed by IDs to check).")
     print("-updaterun : Like '-update' but also do '-run' after.")
     print("-index     : Check the index for missing content.")
-    print("-job       : Search Job spritesheets (Very time consuming). You can add specific ID, Mainhand ID or Job ID to reduce the search time.")
-    print("-jobca     : Search Job Attack spritesheets (Very time consuming).")
+    print("-job       : Search additional class related data (Very time consuming).")
+    print("-jobedit   : Manually edit job data (Command Line Menu).")
     print("-relation  : Update the relationship index.")
     print("-relinput  : Update to relationships.")
     print("-listjob   : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
@@ -1085,12 +1256,9 @@ if __name__ == '__main__':
         elif argv[1] == '-index':
             p.run_index_content()
         elif argv[1] == '-job':
-            if len(argv) == 2:
-                p.dig_job_spritesheet()
-            else:
-                p.dig_job_spritesheet(argv[2:])
-        elif argv[1] == '-jobca':
-            p.dig_job_chargeattack()
+            p.search_job_detail()
+        elif argv[1] == '-jobedit':
+            p.edit_job()
         elif argv[1] == '-relation':
             p.build_relation()
         elif argv[1] == '-relinput':
