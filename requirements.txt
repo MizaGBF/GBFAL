@@ -1,1 +1,2 @@
-httpx[http2]>=0.24.0
+httpx>=0.24.1
+beautifulsoup4==4.12.2

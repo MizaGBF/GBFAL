@@ -35,6 +35,7 @@ var timestamp = Date.now();
 var relations = {};
 var updated = [];
 var intervals = [];
+var typingTimer;
 
 function getMainEndpoint()
 {
@@ -47,9 +48,17 @@ function getIndexEndpoint(index)
     return endpoints[index % endpoints.length];
 }
 
+function typying()
+{
+    clearTimeout(typingTimer);
+}
+
 function filter()
 {
-    lookup(document.getElementById('filter').value.trim().toLowerCase());
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(function(){
+        lookup(document.getElementById('filter').value.trim().toLowerCase());
+    }, 1000);
 }
 
 function init()
@@ -86,6 +95,7 @@ function initIndex(unused)
 {
     try{
         index = JSON.parse(this.response);
+        index["lookup_reverse"] = Object.fromEntries(Object.entries(index["lookup"]).map(([key, value]) => [value, key]));
         result_area = document.getElementById('resultarea');
         let params = new URLSearchParams(window.location.search);
         let id = params.get("id");
@@ -463,8 +473,9 @@ function loadUnindexed(id)
 
 function lookup(id)
 {
-    if(blacklist.includes(id)) return;
+    if(blacklist.includes(id) || id == "") return;
     main_endp_count = -1;
+    document.getElementById('results').style.display = "none";
     f = document.getElementById('filter');
     let el = id.split("_");
     if(
@@ -529,6 +540,47 @@ function lookup(id)
             loadUnindexed(id);
         }
     }
+    else
+    {
+        let results = document.getElementById('results');
+        results.innerHTML = "";
+        let words = id.toLowerCase().split(' ');
+        console.log(words);
+        let positives = [];
+        for(const [key, value] of Object.entries(index['lookup_reverse']))
+        {
+            let matching = true;
+            for(const w of words)
+            {
+                if(!key.includes(w))
+                {
+                    matching = false;
+                    break;
+                }
+            }
+            if(matching)
+            {
+                positives.push([value, parseInt(value[0])]);
+                if(positives.length == 50) break;
+            }
+        }
+        updateDynamicList(results, positives);
+        results.style.display = null;
+        if(positives.length == 50)
+        {
+            results.appendChild(document.createElement("br"));
+            results.appendChild(document.createTextNode("(First 50 results)"));
+        }
+        else if(positives.length == 0)
+        {
+            results.appendChild(document.createTextNode("No Results"));
+        }
+        if(positives.length > 0)
+        {
+            results.insertBefore(document.createElement("br"), results.firstChild);
+            results.insertBefore(document.createTextNode("Results for \"" + id + "\""), results.firstChild);
+        }
+    }
 }
 
 function newArea(name, id, include_link, indexed=true)
@@ -554,6 +606,24 @@ function newArea(name, id, include_link, indexed=true)
         l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
         l.appendChild(document.createTextNode("Animation"));
         div.appendChild(l);
+    }
+    if(id in index["lookup"] && index["lookup"][id].split(' ').length > 1)
+    {
+        div.appendChild(document.createElement('br'));
+        let i = document.createElement('i');
+        i.appendChild(document.createTextNode("Search Tags: "));
+        div.appendChild(i);
+        for(let t of index["lookup"][id].split(' '))
+        {
+            console.log(t);
+            i = document.createElement('i');
+            i.classList.add("tag");
+            i.appendChild(document.createTextNode(t.charAt(0).toUpperCase() + t.slice(1) + " "));
+            i.onclick = function() {
+                lookup(t);
+            }
+            div.appendChild(i);
+        }
     }
     if(!indexed)
     {

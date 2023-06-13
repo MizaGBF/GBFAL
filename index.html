@@ -24,7 +24,7 @@
 <body onload="init()">
     <a id="to-title" href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div id="version">v5.4</div>
+        <div id="version">v6.0</div>
         <div id="timestamp">Last update</a>:</div>
     </div>
     <div id="to-bottom" class="clickable" onclick="window.scroll(0, document.body.scrollHeight);"><img src="assets/ui/button.png"></div>
@@ -34,13 +34,16 @@
             <ul>
                 <li>A valid ID looks like 3040000000.</li>
                 <li>You can find most of them on the wiki, under the extra tab.</li>
+                <li>You can also search characters, summons or weapons by Tags.</li>
                 <li>For Enemies, add 'e' before the ID. Example: <a href="?id=e6205703">e6205703</a> for School Belial.</li>
                 <li>For Classes, simply input the main class ID: <a href="?id=450301">450301</a> for Relic Buster.</li>
                 <li>Click on images to access their highest quality.</li>
             </ul>
         </span>
     </div>
-    <input type="text" id="filter" onkeyup="filter()" placeholder="Input an ID" style="width:500px">
+    <input type="text" id="filter" onkeydown="typying()" onkeyup="filter()" placeholder="Input an ID or Tag" style="width:500px">
+    <div id="results" class="result" style="display:none">
+    </div>
     <br>
     <details style="display:none">
         <summary class="red-sum">Updated</summary>
@@ -59,7 +62,7 @@
         </div>
     </details>
     <details style="display:none">
-        <summary>Related</summary>
+        <summary class="yellow-sum">Related</summary>
         <div id="related" class="result">
         </div>
     </details>

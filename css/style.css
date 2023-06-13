@@ -45,6 +45,17 @@ summary {
     text-shadow: #000000 1px 0 10px;
 }
 
+.yellow-sum {
+    background: url(../assets/ui/button_bg_yellow.png) no-repeat;
+    background-size: 100% 100%;
+    width: 250px;
+    height: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #ffffff;
+    text-shadow: #000000 1px 0 10px;
+}
+
 .tooltip {
     position: relative;
     top: 11px;
@@ -58,7 +69,7 @@ summary {
     background-color: #111111dd;
     color: #eee;
     text-align: left;
-    font-size: 25px;
+    font-size: 22px;
     padding: 5px 0;
     border-radius: 6px;
     position: absolute;
@@ -114,6 +125,11 @@ footer, #header {
     width: 144px;
     height: 39px;
     float: right;
+}
+
+.tag {
+    color: #ccccff;
+    cursor: pointer;
 }
 
 .popup {
@@ -188,7 +204,7 @@ small {
 
 .result-header {
     font-size: 24px;
-    width:600px;
+    width:650px;
     margin:auto;
 }
 

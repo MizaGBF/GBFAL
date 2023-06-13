@@ -7,6 +7,7 @@ import queue
 import time
 import string
 import re
+from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 
 # parser to generate json files (characters/skins only for now) and to index a list of all existing character, etc
@@ -26,7 +27,8 @@ class Parser():
             "job_key":{},
             "npcs":{},
             "background":{},
-            "title":{}
+            "title":{},
+            "lookup":{}
         }
         self.lock = Lock()
         self.modified = False
@@ -40,9 +42,17 @@ class Parser():
         self.addition = {}
         self.re = re.compile("[123][07][1234]0\\d{4}00")
         self.vregex = re.compile("Game\.version = \"(\d+)\";")
+        self.lookup_group = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000"], ["2040239000", "2040316000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000"], ["2040244000", "2040321000"], ["2040245000", "2040322000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400']]
+        self.other_lookup = {
+            "3020065000": "r character brown poppet trial",
+            "3030158000": "sr character blue poppet trial",
+            "3040097000": "ssr character sierokarte trial",
+            "2030004000": "sr summon fire not-playable",
+            "2030014000": "sr summon dark not-playable",
+        }
         
         limits = httpx.Limits(max_keepalive_connections=300, max_connections=300, keepalive_expiry=10)
-        self.client = httpx.Client(http2=False, limits=limits)
+        self.client = httpx.Client(limits=limits)
         self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
         self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
         self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
@@ -58,7 +68,7 @@ class Parser():
             with open('json/data.json', mode='r', encoding='utf-8') as f:
                 data = json.load(f)
                 if not isinstance(data, dict): return
-            for k in data:
+            for k in self.data:
                 self.data[k] = data.get(k, {})
         except Exception as e:
             print(e)
@@ -701,6 +711,7 @@ class Parser():
             else:
                 self.data['characters'][id+style] = data
             self.addition[id+style] = 3
+        self.generateNameLookup(id+style)
         return True
 
     def sumUpdate(self, id):
@@ -738,6 +749,7 @@ class Parser():
             self.modified = True
             self.data['summons'][id] = data
             self.addition[id] = 2
+        self.generateNameLookup(id)
         return True
 
     def weapUpdate(self, id):
@@ -765,6 +777,7 @@ class Parser():
             self.modified = True
             self.data['weapons'][id] = data
             self.addition[id] = 1
+        self.generateNameLookup(id)
         return True
 
     def mobUpdate(self, id):
@@ -849,6 +862,146 @@ class Parser():
             res.append(src)
         return res
 
+    def cleanName(self, name):
+        for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)']:
+            name = name.replace(k, '')
+        return name.strip()
+
+    def generateNameLookup(self, cid):
+        if not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30"): return
+        r = self.req("https://gbf.wiki/index.php?search={}".format(cid), get=True)
+        if r is not None:
+            try: content = r.decode('utf-8')
+            except: content = r.decode('iso-8859-1')
+            soup = BeautifulSoup(content, 'html.parser')
+            m = None
+            try:
+                res = soup.find_all("ul", class_="mw-search-results")[0].findChildren("li", class_="mw-search-result", recursive=False) # recuperate the search results
+                for r in res: # for each, get the title
+                    m = r.findChildren("div", class_="mw-search-result-heading", recursive=False)[0].findChildren("a", recursive=False)[0].attrs['title']
+                    break
+            except:
+                pass
+            if m is not None:
+                self.generateNameLookup_sub(cid, m)
+            else: # CN wiki fallback
+                try:
+                    r = self.req("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid), get=True)
+                    if r is not None:
+                        try: content = r.decode('utf-8')
+                        except: content = r.decode('iso-8859-1')
+                        soup = BeautifulSoup(content, 'html.parser')
+                        res = soup.find_all("div", class_="gbf-infobox-section")
+                        for r in res:
+                            a = str(r).find("https://gbf.wiki/")
+                            if a != -1:
+                                a+=len("https://gbf.wiki/")
+                                b = str(r).find('"', a)
+                                self.generateNameLookup_sub(cid, str(r)[a:b])
+                except:
+                    pass
+
+    def generateNameLookup_sub(self, cid, wiki_lookup):
+        data = {}
+        if cid.startswith("20"):
+            data["What"] = "Summon"
+        elif cid.startswith("10"):
+            data["What"] = "Weapon"
+            match cid[4]:
+                case '0': data['Proficiency'] = "Sword"
+                case '1': data['Proficiency'] = "Dagger"
+                case '2': data['Proficiency'] = "Spear"
+                case '3': data['Proficiency'] = "Axe"
+                case '4': data['Proficiency'] = "Staff"
+                case '5': data['Proficiency'] = "Gun"
+                case '6': data['Proficiency'] = "Melee"
+                case '7': data['Proficiency'] = "Bow"
+                case '8': data['Proficiency'] = "Harp"
+                case '9': data['Proficiency'] = "Katana"
+        elif cid.startswith("30"):
+            data["What"] = "Character"
+        else:
+            return
+        match cid[2]:
+            case '1': data['Rarity'] = 'N'
+            case '2': data['Rarity'] = 'R'
+            case '3': data['Rarity'] = 'SR'
+            case '4': data['Rarity'] = 'SSR'
+        try:
+            r = self.req("https://gbf.wiki/{}".format(wiki_lookup.replace(' ', '_')), get=True)
+            try: content = r.decode('utf-8')
+            except: content = r.decode('iso-8859-1')
+            soup = BeautifulSoup(content, 'html.parser')
+            tables = soup.find_all("table", class_='wikitable') # iterate all wikitable
+            data['Name'] = self.cleanName(wiki_lookup)
+            for t in tables:
+                try:
+                    body = t.findChildren("tbody", recursive=False)[0].findChildren("tr" , recursive=False) # check for tr tag
+                    for tr in body:
+                        for k in ["Race", "Element", "Gender", "JP"]:
+                            if str(tr).find(k) != -1 and k not in data:
+                                a = str(tr).find("/Category:")
+                                if k == "Race":
+                                    while a != -1:
+                                        a += len("/Category:")
+                                        b= str(tr).find("_", a)
+                                        s = str(tr)[a:b]
+                                        if s == "Other": s = "Unknown"
+                                        if "Type" not in data: data["Type"] = []
+                                        if s not in data["Type"]:
+                                            data["Type"].append(s)
+                                        a = str(tr).find("/Category:", b)
+                                elif k == "Gender":
+                                    if "Male" in str(tr): data[k] = "Male"
+                                    elif "Female" in str(tr): data[k] = "Female"
+                                    elif "Other" in str(tr): data[k] = "Other"
+                                    break
+                                elif k == "JP":
+                                    try: data['JP'] = tr.findChildren("td" , recursive=False)[0].text
+                                    except: pass
+                                    break
+                                elif a != -1:
+                                    a += len("/Category:")
+                                    b= str(tr).find("_", a)
+                                    data[k] = str(tr)[a:b]
+                                    break
+                                elif data["What"] == "Weapon" and k == "Element":
+                                    a += len("/Category:")
+                                    while True:
+                                        b= str(tr).find("Element_", a)
+                                        if b == -1: break
+                                        a = str(tr).find(".", b)
+                                        if a == -1: break;
+                                        if str(tr)[b+len("Element_"):a] in ["Fire", "Water", "Earth", "Wind", "Dark", "Light", "Special"]:
+                                            data[k] = str(tr)[b+len("Element_"):a]
+                                            break
+                                    if k in data:
+                                        break
+                except:
+                    pass
+                # series
+                try:
+                    imgs = t.findChildren("img", recursive=True)
+                    for img in imgs:
+                        if img.has_attr('alt') and 'Series' in img.attrs['alt']:
+                            if 'Series' not in data: data['Series'] = []
+                            data['Series'].append(img.attrs['alt'].split(' ')[1])
+                except:
+                    pass
+            if (data["What"] == "Weapon" and len(data.keys()) > 3) or (data["What"] != "Weapon" and len(data.keys()) > 2):
+                with self.lock:
+                    data["ID"] = cid
+                    tmp = []
+                    for v in data.values():
+                        if isinstance(v, list): tmp += v
+                        else: tmp.append(v)
+                    self.data["lookup"][cid] = " ".join(tmp).lower().replace('  ', ' ')
+                    self.modified = True
+                return True
+        except:
+            pass
+        return False
+
     def artCheck(self, id, style, uncaps):
         flags = {}
         for uncap in uncaps + ["81", "82", "83", "91", "92", "93"]:
@@ -909,6 +1062,71 @@ class Parser():
                     future.result()
         self.save()
         self.running = False
+        print("Done")
+
+    def buildLookup(self):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            print("Checking elements in need of update...")
+            futures = []
+            for t in ['characters', 'summons', 'weapons']:
+                for k in self.data[t]:
+                    if k not in self.data['lookup'] or self.data['lookup'][k] is None:
+                        if k in self.other_lookup:
+                            self.data['lookup'][k] = self.other_lookup[k]
+                            self.modified = True
+                        else:
+                            futures.append(executor.submit(self.generateNameLookup, k))
+            count = 0
+            countmax = len(futures)
+            print(countmax, "element(s) to update...")
+            if countmax > 0:
+                for future in concurrent.futures.as_completed(futures):
+                    future.result()
+                    count += 1
+                    if count % 100 == 0:
+                        print("Progress: {:.1f}%".format(100*count/countmax))
+        # second pass
+        for t in ['characters', 'summons', 'weapons']:
+            for k in self.data[t]:
+                if k not in self.data['lookup'] or self.data['lookup'][k] is None:
+                    for l in self.lookup_group:
+                        if k not in l: continue
+                        for m in l:
+                            if m != k and m in self.data['lookup'] and m is not None:
+                                self.data['lookup'][k] = self.data['lookup'][m].replace(m, k)
+                                self.modified = True
+                                print(k,"and",m,"matched up")
+                                break
+                            break
+                else:
+                    if k not in self.data['lookup'][k]:
+                        self.data['lookup'][k] = self.data['lookup'][k].strip() + " " + k
+                        self.modified = True
+        # print remaining
+        count = 0
+        for t in ['characters', 'summons', 'weapons']:
+            for k in self.data[t]:
+                if k not in self.data['lookup'] or self.data['lookup'][k] is None:
+                    count += 1
+        print(count, "element(s) remaining without data")
+        self.save()
+        self.running = False
+        print("Done")
+
+    def manualLookup(self):
+        for t in ['characters', 'summons', 'weapons']:
+            for k in self.data[t]:
+                if k not in self.data['lookup'] or self.data['lookup'][k] is None:
+                    print("##########################################")
+                    print("Input the Wiki URL string for ID", k, "(Leave blank to skip)")
+                    while True:
+                        s = input()
+                        if s == "": break
+                        if not self.generateNameLookup_sub(k, s):
+                            print("Page not found, try again")
+                        else:
+                            break
+        self.save()
         print("Done")
 
     def update_all_scene(self, full=False):
@@ -1212,7 +1430,6 @@ class Parser():
                 if isinstance(n, int) and n != v:
                     print("Update detected.")
                     return
-        
 
 def print_help():
     print("Usage: python parser.py [option]")
@@ -1223,6 +1440,8 @@ def print_help():
     print("-index     : Check the index for missing content.")
     print("-job       : Search additional class related data (Very time consuming).")
     print("-jobedit   : Manually edit job data (Command Line Menu).")
+    print("-lookup    : Update the lookup table (Time Consuming).")
+    print("-lookupfix : Manually edit the lookup table.")
     print("-relation  : Update the relationship index.")
     print("-relinput  : Update to relationships.")
     print("-listjob   : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
@@ -1259,6 +1478,10 @@ if __name__ == '__main__':
             p.search_job_detail()
         elif argv[1] == '-jobedit':
             p.edit_job()
+        elif argv[1] == '-lookup':
+            p.buildLookup()
+        elif argv[1] == '-lookupfix':
+            p.manualLookup()
         elif argv[1] == '-relation':
             p.build_relation()
         elif argv[1] == '-relinput':
