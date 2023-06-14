@@ -618,7 +618,15 @@ function newArea(name, id, include_link, indexed=true)
             console.log(t);
             i = document.createElement('i');
             i.classList.add("tag");
-            i.appendChild(document.createTextNode(t.charAt(0).toUpperCase() + t.slice(1) + " "));
+            switch(t)
+            {
+                case "ssr": i.appendChild(document.createTextNode("SSR ")); break;
+                case "sr": i.appendChild(document.createTextNode("SR ")); break;
+                default:
+                    if(t.length == 1) i.appendChild(document.createTextNode(t.toUpperCase() + " "));
+                    else i.appendChild(document.createTextNode(t.charAt(0).toUpperCase() + t.slice(1) + " "));
+                    break;
+            }
             i.onclick = function() {
                 lookup(t);
             }
