@@ -120,17 +120,13 @@ class Parser():
             # characters
             if r > 1:
                 self.newShared(errs)
-                for i in range(3):
-                    possibles.append(('characters', i, 3, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
+                for i in range(2):
+                    possibles.append(('characters', i, 2, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
             # summons
-            self.newShared(errs)
-            for i in range(2):
-                possibles.append(('summons', i, 2, errs[-1], "20"+str(r)+"0{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
+            possibles.append(('summons', 0, 1, self.newShared(errs), "20"+str(r)+"0{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
             # weapons
             for j in range(10):
-                self.newShared(errs)
-                for i in range(2):
-                    possibles.append(('weapons', i, 2, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
+                possibles.append(('weapons', 0, 1, self.newShared(errs), "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
         # skins
         self.newShared(errs)
         for i in range(2):
@@ -139,9 +135,7 @@ class Parser():
         for a in range(1, 10):
             for b in range(1, 4):
                 for d in [1, 2, 3]:
-                    self.newShared(errs)
-                    for i in range(2):
-                        possibles.append(('enemies', i, 2, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
+                    possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
         # npc
         self.newShared(errs)
         for i in range(7):
@@ -159,17 +153,23 @@ class Parser():
         # titles
         possibles.append(('title', 0, 1, self.newShared(errs), "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 20))
         
+        # job
+        self.newShared(errs)
+        jkeys = []
+        for k in list(self.job_list.keys()):
+            if k not in self.data["job"]:
+                jkeys.append(k)
+        if len(jkeys) > 0:
+            job_thread == 0
+
         print("Starting index update... (", len(possibles)+job_thread, " threads )")
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)+job_thread) as executor:
             futures = []
+            for i in range(job_thread):
+                futures.append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
             # start
             for p in possibles:
                 futures.append(executor.submit(self.subroutine, self.endpoint, *p))
-            # job
-            self.newShared(errs)
-            jkeys = list(self.job_list.keys())
-            for i in range(job_thread):
-                futures.append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
             for future in concurrent.futures.as_completed(futures):
                 future.result()
         print("Index update done")
