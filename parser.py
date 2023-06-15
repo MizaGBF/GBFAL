@@ -128,7 +128,9 @@ class Parser():
                 possibles.append(('summons', i, 2, errs[-1], "20"+str(r)+"0{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
             # weapons
             for j in range(10):
-                possibles.append(('weapons', 0, 1, self.newShared(errs), "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
+                self.newShared(errs)
+                for i in range(2):
+                    possibles.append(('weapons', i, 2, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
         # skins
         self.newShared(errs)
         for i in range(2):
@@ -137,7 +139,9 @@ class Parser():
         for a in range(1, 10):
             for b in range(1, 4):
                 for d in [1, 2, 3]:
-                    possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
+                    self.newShared(errs)
+                    for i in range(2):
+                        possibles.append(('enemies', i, 2, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
         # npc
         self.newShared(errs)
         for i in range(7):
