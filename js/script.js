@@ -206,7 +206,7 @@ function loadIndexed(id, obj, shortened=false)
             ["Big Icon", "sp/assets/enemy/m/", "png", "img/", 0, false, false],
             ["Small Icon", "sp/assets/enemy/s/", "png", "img/", 0, false, false],
             ["Sprite Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
-            ["Raid Appear Sheets", "sp/cjs/raid_appear_", "png", "img_low/", 2, false, false],
+            ["Raid Appear Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
             ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 3, false, false],
             ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 4, false, false]
         ];
