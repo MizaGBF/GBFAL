@@ -1260,7 +1260,7 @@ class Parser():
             else:
                 for eid in to_update:
                     futures.append(executor.submit(self.get_relation, eid))
-            print("Checking", len(futures), "new relationships...")
+            print("Checking for new relationships...")
             for future in concurrent.futures.as_completed(futures):
                 r = future.result()
                 try:
@@ -1278,7 +1278,7 @@ class Parser():
                         relation[eid].sort()
                 relation[n].sort()
             if len(new) > 0:
-                print("Checking with the name table...")
+                print("Comparing with the name table...")
                 for k in self.name_table:
                     ks = k.replace(',', '').split(' ')
                     for l in self.name_table:
