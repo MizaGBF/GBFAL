@@ -371,6 +371,7 @@ function loadIndexed(id, obj, shortened=false)
                     }
                     img.onload = function() {
                         this.classList.remove("loading");
+                        this.classList.add("asset");
                         this.classList.add("skycompass");
                     }
                     div.appendChild(ref);
@@ -778,6 +779,7 @@ function lookupCharacter(character_id) // old and slow, avoid using this
                                             }
                                             img.onload = function() {
                                                 this.classList.remove("loading");
+                                                this.classList.add("asset");
                                                 this.classList.add("skycompass");
                                             }
                                             img.src = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path;
@@ -1016,6 +1018,7 @@ function lookupSummon(summon_id)
             }
             img.onload = function() {
                 this.classList.remove("loading");
+                this.classList.add("asset");
                 this.classList.add("skycompass");
             }
             img.src = "https://media.skycompass.io/assets/archives/summons/" + summon_id + "/detail_l.png";
@@ -1227,6 +1230,7 @@ function lookupMC(mc_id)
                 }
                 img.onload = function() {
                     this.classList.remove("loading");
+                    this.classList.add("asset");
                     this.classList.add("skycompass");
                 }
                 img.src = "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path;
