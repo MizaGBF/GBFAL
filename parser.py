@@ -35,6 +35,7 @@ class Parser():
         self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
         self.multi_summon = ["2040414000"]
         self.chara_special = {"3710171000":"3710167000","3710170000":"3710167000","3710169000":"3710167000","3710168000":"3710167000"}
+        self.cut_ids = ["2040145000","2040147000","2040148000","2040150000","2040152000","2040153000","2040154000","2040200000"]
         self.new_elements = []
         self.name_table = {}
         self.name_table_modified = False
@@ -42,7 +43,7 @@ class Parser():
         self.addition = {}
         self.re = re.compile("[123][07][1234]0\\d{4}00")
         self.vregex = re.compile("Game\.version = \"(\d+)\";")
-        self.lookup_group = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000"], ["2040239000", "2040316000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000"], ["2040244000", "2040321000"], ["2040245000", "2040322000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400']]
+        self.lookup_group = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
         self.other_lookup = {
             "3020065000": "r character brown poppet trial",
             "3030158000": "sr character blue poppet trial",
@@ -120,26 +121,26 @@ class Parser():
             # characters
             if r > 1:
                 self.newShared(errs)
-                for i in range(2):
-                    possibles.append(('characters', i, 2, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"]))
+                for i in range(4):
+                    possibles.append(('characters', i, 4, errs[-1], "30"+str(r)+"0{}000", 3, "js/model/manifest/npc_", "_01{}.js", ["", "_st2"], 20))
             # summons
-            possibles.append(('summons', 0, 1, self.newShared(errs), "20"+str(r)+"0{}000", 3, "img_low/sp/assets/summon/m/", ".jpg"))
+            possibles.append(('summons', 0, 1, self.newShared(errs), "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js", [""], 20))
             # weapons
             for j in range(10):
-                possibles.append(('weapons', 0, 1, self.newShared(errs), "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg"))
+                possibles.append(('weapons', 0, 1, self.newShared(errs), "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg", [""], 20))
         # skins
         self.newShared(errs)
         for i in range(2):
-            possibles.append(('skins', i, 2, errs[-1], "3710{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg"))
+            possibles.append(('skins', i, 2, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01{}.js", [""], 20))
         # enemies
         for a in range(1, 10):
             for b in range(1, 4):
                 for d in [1, 2, 3]:
-                    possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 40))
+                    possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 25))
         # npc
         self.newShared(errs)
         for i in range(7):
-            possibles.append(('npcs', i, 7, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 80))
+            possibles.append(('npcs', i, 7, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 60))
         
         # backgrounds
         possibles.append(('background', 0, 1, self.newShared(errs), "event_{}", 1, "img_low/sp/raid/bg/", ".jpg", [""], 10))
@@ -532,23 +533,25 @@ class Parser():
                     break
         self.save()
 
-    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles = [""], maxerr=20):
+    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles, maxerr):
         id = start
+        is_js = ext.endswith('.js')
         while err[0] < maxerr and err[1]:
             f = file.format(str(id).zfill(zfill))
-            if f in self.data[index]:
-                with err[2]:
-                    err[0] = 0
-                id += step
-                continue
             for s in styles:
                 try:
-                    self.req(endpoint + path + f + ext.replace("{}", s))
+                    if f+s in self.data[index] and (not is_js or (is_js and self.data[index][f+s] != 0)):
+                        with err[2]:
+                            err[0] = 0
+                        continue
+                    if f in self.multi_summon: self.req(endpoint + path + f + ext.replace("_damage", "_a_damage"))
+                    else: self.req(endpoint + path + f + ext.replace("{}", s))
                     with err[2]:
                         err[0] = 0
-                        self.data[index][f + s] = 0
+                        self.data[index][f+s] = 0
                         self.modified = True
-                        self.new_elements.append(f + s)
+                        self.new_elements.append(f+s)
+                        print("New Element:",f+s)
                 except:
                     if s != "": break
                     with err[2]:
@@ -641,7 +644,7 @@ class Parser():
                         if form == "":
                             break
         data[0] = sheets
-        if len(uncaps) == 0:
+        if len(uncaps) == 0 and id+style not in self.cut_ids:
             return False
         # # # Assets
         # arts
@@ -730,7 +733,7 @@ class Parser():
                 uncaps.append("01" if uncap == "" else uncap[1:])
             except:
                 break
-        if len(uncaps) == 0:
+        if len(uncaps) == 0 and id not in self.cut_ids:
             return False
         multi = [""] if id not in self.multi_summon else ["", "_a", "_b", "_c", "_d", "_e"]
         # attack
@@ -1246,6 +1249,7 @@ class Parser():
             relation = {}
         futures = []
         new = []
+        modified = False
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
             if len(to_update) == 0:
                 for eid in self.data['characters']:
@@ -1260,11 +1264,12 @@ class Parser():
             else:
                 for eid in to_update:
                     futures.append(executor.submit(self.get_relation, eid))
+            if len(futures) == 0: return
             print("Checking for new relationships...")
             for future in concurrent.futures.as_completed(futures):
                 r = future.result()
                 try:
-                    if r[0] is None or (r[0] not in self.data['characters'] and r[0] not in self.data['summons'] and r[0] not in self.data['weapons'] and r[0] not in self.data['skins']): raise Exception()
+                    if r[0] is None or (r[0] not in self.data['characters'] and r[0] not in self.data['summons'] and r[0] not in self.data['weapons'] and r[0] not in self.data['skins']) or (r[0] in relation and len(r[1]) == len(relation[r[0]])): raise Exception()
                     relation[r[0]] = r[1]
                     new.append(r[0])
                 except:
@@ -1273,9 +1278,11 @@ class Parser():
                 for eid in relation[n]:
                     if eid not in relation:
                         relation[eid] = []
+                        modified = True
                     if n not in relation[eid]:
                         relation[eid].append(n)
                         relation[eid].sort()
+                        modified = True
                 relation[n].sort()
             if len(new) > 0:
                 print("Comparing with the name table...")
@@ -1292,16 +1299,19 @@ class Parser():
                     for eid in self.name_table[k]:
                         if eid not in relation:
                             relation[eid] = []
+                            modified = True
                         for oid in self.name_table[k]:
                             if oid == eid or oid in relation[eid]: continue
                             relation[eid].append(oid)
                             relation[eid].sort()
-                try:
-                    with open("json/relation.json", "w") as f:
-                        json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
-                    print("Relationships updated")
-                except:
-                    pass
+                            modified = True
+                if modified:
+                    try:
+                        with open("json/relation.json", "w") as f:
+                            json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
+                        print("Relationships updated")
+                    except:
+                        pass
             if self.name_table_modified:
                 try:
                     with open("json/relation_name.json", "w") as f:
