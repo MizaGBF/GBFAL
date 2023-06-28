@@ -474,7 +474,7 @@ function loadUnindexed(id)
 
 function lookup(id)
 {
-    if(blacklist.includes(id) || id == "") return;
+    if(blacklist.includes(id)) return;
     main_endp_count = -1;
     document.getElementById('results').style.display = "none";
     f = document.getElementById('filter');
@@ -545,6 +545,7 @@ function lookup(id)
     {
         let results = document.getElementById('results');
         results.innerHTML = "";
+        if(id == "") return;
         let words = id.toLowerCase().split(' ');
         console.log(words);
         let positives = [];
