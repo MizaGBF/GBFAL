@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 class Parser():
     def __init__(self):
         self.running = False
+        self.update_changelog = True
         self.queue = queue.Queue()
         self.quality = ("/img/", "/js/")
         self.data = {
@@ -81,22 +82,23 @@ class Parser():
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
                     json.dump(self.data, outfile)
                 print("data.json updated")
-                try:
-                    with open('json/changelog.json', mode='r', encoding='utf-8') as f:
+                if self.update_changelog:
+                    try:
+                        with open('json/changelog.json', mode='r', encoding='utf-8') as f:
+                            existing = {}
+                            for e in json.load(f).get('new', []):
+                                existing[e[0]] = e[1]
+                    except:
                         existing = {}
-                        for e in json.load(f).get('new', []):
-                            existing[e[0]] = e[1]
-                except:
-                    existing = {}
-                new = []
-                existing = existing | self.addition
-                self.addition = {}
-                for k, v in existing.items():
-                    new.append([k, v])
-                if len(new) > 100: new = new[len(new)-100:]
-                with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
-                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new}, outfile)
-                print("changelog.json updated")
+                    new = []
+                    existing = existing | self.addition
+                    self.addition = {}
+                    for k, v in existing.items():
+                        new.append([k, v])
+                    if len(new) > 100: new = new[len(new)-100:]
+                    with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
+                        json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new}, outfile)
+                    print("changelog.json updated")
         except Exception as e:
             print(e)
 
@@ -828,8 +830,8 @@ class Parser():
 
     def update_scene_file(self, id, uncaps = None):
         try:
-            expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2", "_suddenly", "_shy", "_shy2", "_weak"]
-            variationsA = ["", "_battle"]
+            expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2", "_suddenly", "_shy", "_shy2", "_weak"]
+            variationsA = ["", "_b", "_battle"]
             variationsB = ["", "_speed", "_up"]
             others = ["_up_speed"]
             specials = ["_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
@@ -843,6 +845,7 @@ class Parser():
                     for ex in expressions:
                         for B in variationsB:
                             scene_alts.append(uncap+A+ex+B)
+                
             scene_alts += others + specials
             result = []
             for s in scene_alts:
@@ -1032,9 +1035,8 @@ class Parser():
     def manualUpdate(self, ids):
         if len(ids) == 0:
             return
-        max_thread = 80
         self.running = True
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread+2) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
             for id in ids:
                 if len(id) >= 10:
@@ -1063,6 +1065,9 @@ class Parser():
                     tfinished += 1
                     if tfinished >= tcounter:
                         self.running = False
+                    elif tfinished % 10 == 0:
+                        print("Progress: {:.1f}%".format(100 * tfinished / tcounter))
+                print("Progress: 100%")
             else:
                 self.running = False
                 for future in concurrent.futures.as_completed(futures):
@@ -1142,12 +1147,12 @@ class Parser():
         to_update = {}
         to_update["npcs"] = []
         for id in self.data["npcs"]:
-            if full or (isinstance(self.data["npcs"][id], int) or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0])):
+            if isinstance(self.data["npcs"][id], int) or full or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0]):
                 to_update["npcs"].append((id, None))
         for k in ["characters", "skins"]:
             to_update[k] = []
             for id in self.data[k]:
-                if not isinstance(self.data[k][id], int) and (full or (len(self.data[k][id]) < 8 or self.data[k][id][7] is None or len(self.data[k][id][7]) == 0)):
+                if not isinstance(self.data[k][id], int) and (full or (len(self.data[k][id]) >= 8 and (self.data[k][id][7] is None or len(self.data[k][id][7]) == 0))):
                     uncaps = []
                     for u in self.data[k][id][5]:
                         uncaps.append(u.replace(id+"_", ""))
@@ -1445,6 +1450,46 @@ class Parser():
                     print("Update detected.")
                     return
 
+    def debug_output_scene_strings(self, recur=False):
+        print("Exporting all scene file suffixes...")
+        keys = set()
+        errs = []
+        for x in ["characters", "skins"]:
+            d = self.data[x]
+            for k, v in d.items():
+                try:
+                    if isinstance(v, list) and isinstance(v[7], list):
+                        for e in v[7]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
+                            else: keys.add(e)
+                except:
+                    errs.append(k)
+        for x in ["npcs"]:
+            for k, v in self.data[x].items():
+                try:
+                    if isinstance(v, list) and isinstance(v[0], list):
+                        for e in v[0]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
+                            else: keys.add(e)
+                except:
+                    errs.append(k)
+        if len(errs) > 0: # refresh elements with errors
+            if recur:
+                print("Still", len(errs), "elements incorrectly formed, manual debugging is necessary")
+            else:
+                tmp = self.update_changelog
+                self.update_changelog = False
+                print(len(errs), "elements incorrectly formed, attempting to update")
+                self.manualUpdate(errs)
+                self.debug_output_scene_strings()
+                self.update_changelog = tmp
+        else:
+            keys = list(keys)
+            keys.sort()
+            with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
+                json.dump(keys, f)
+            print("Data exported to 'json/debug_scene_strings.json'")
+
 def print_help():
     print("Usage: python parser.py [option]")
     print("options:")
@@ -1462,52 +1507,61 @@ def print_help():
     print("-scene     : Update scene index for characters/npcs with missing data (Time consuming).")
     print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
     print("-wait      : Wait an in-game update (Must be the first parameter, usable with others).")
+    print("-nochange  : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     time.sleep(2)
 
 if __name__ == '__main__':
     p = Parser()
     argv = sys.argv.copy()
-    if len(argv) > 1 and argv[1] == "-wait":
-        argv.pop(1)
-        p.wait()
-    if len(argv) < 2:
-        print_help()
+    # debug stuff
+    if "-debug_scene" in argv:
+        p.debug_output_scene_strings()
     else:
-        if argv[1] == '-run':
-            p.run()
-        elif argv[1] == '-updaterun':
-            if len(argv) == 2:
-                print_help()
-            else:
-                p.manualUpdate(argv[2:])
-                p.run()
-        elif argv[1] == '-update':
-            if len(argv) == 2:
-                print_help()
-            else:
-                p.manualUpdate(argv[2:])
-        elif argv[1] == '-index':
-            p.run_index_content()
-        elif argv[1] == '-job':
-            p.search_job_detail()
-        elif argv[1] == '-jobedit':
-            p.edit_job()
-        elif argv[1] == '-lookup':
-            p.buildLookup()
-        elif argv[1] == '-lookupfix':
-            p.manualLookup()
-        elif argv[1] == '-relation':
-            p.build_relation()
-        elif argv[1] == '-relinput':
-            p.relation_edit()
-        elif argv[1] == '-listjob':
-            if len(argv) == 2:
-                p.listjob()
-            else:
-                p.listjob(argv[2:])
-        elif argv[1] == '-scene':
-            p.update_all_scene()
-        elif argv[1] == '-scenefull':
-            p.update_all_scene(True)
-        else:
+        # normal stuff
+        if len(argv) > 1 and argv[1] == "-wait":
+            argv.pop(1)
+            p.wait()
+        if len(argv) > 1 and argv[1] == "-nochange":
+            argv.pop(1)
+            p.update_changelog = False
+        if len(argv) < 2:
             print_help()
+        else:
+            if argv[1] == '-run':
+                p.run()
+            elif argv[1] == '-updaterun':
+                if len(argv) == 2:
+                    print_help()
+                else:
+                    p.manualUpdate(argv[2:])
+                    p.run()
+            elif argv[1] == '-update':
+                if len(argv) == 2:
+                    print_help()
+                else:
+                    p.manualUpdate(argv[2:])
+            elif argv[1] == '-index':
+                p.run_index_content()
+            elif argv[1] == '-job':
+                p.search_job_detail()
+            elif argv[1] == '-jobedit':
+                p.edit_job()
+            elif argv[1] == '-lookup':
+                p.buildLookup()
+            elif argv[1] == '-lookupfix':
+                p.manualLookup()
+            elif argv[1] == '-relation':
+                p.build_relation()
+            elif argv[1] == '-relinput':
+                p.relation_edit()
+            elif argv[1] == '-listjob':
+                if len(argv) == 2:
+                    p.listjob()
+                else:
+                    p.listjob(argv[2:])
+            elif argv[1] == '-scene':
+                p.update_all_scene()
+            elif argv[1] == '-scenefull':
+                p.update_all_scene(True)
+            else:
+                print_help()

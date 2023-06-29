@@ -818,26 +818,14 @@ function lookupNPCChara(character_id, chara_data = null)
         ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"]
     ];
     
-    let expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2", "_suddenly", "_shy", "_shy2", "_weak"];
-    let variationsA = ["", "_battle"];
-    let variationsB = ["", "_speed", "_up"]
-    let others = ["_up_speed"];
-    let specials = ["_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
-    let scene_alts = [];
-    for(let uncap of uncaps)
-        for(let A of variationsA)
-            for(let ex of expressions)
-                for(let B of variationsB)
-                    scene_alts.push(uncap+A+ex+B);
-    scene_alts = scene_alts.concat(others, specials);
+    let scene_alts = ["", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_b", "_a_battle", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_speed", "_a_laugh3_up", "_a_laugh_speed", "_a_laugh_up", "_a_mood", "_a_mood2", "_a_mood2_up", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_speed", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_speed", "_a_think2_up", "_a_think_speed", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_white", "_a_wink", "_a_wink_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad2_up", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_speed", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shadow_up", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_shy2", "_b_shy2_up", "_b_shy_up", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think_up", "_b_up", "_b_weak", "_b_weak_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise2", "_battle_surprise2_up", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_body", "_body_speed", "_close", "_close_speed", "_close_up", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_laugh", "_laugh2", "_laugh2_speed", "_laugh2_up", "_laugh3", "_laugh3_speed", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_speed", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_suddenly", "_suddenly_speed", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink", "_wink_up"];
     
     for(let asset of assets)
     {
         let div = addResult(asset[0], asset[0]);
         result_area.appendChild(div);
         
-        let iterations =  (asset[0] != "Scene Arts") ? [].concat(expressions, others) : scene_alts;
-        for(let scene of iterations)
+        for(let scene of scene_alts)
         {
             let path = asset[1] +  character_id + scene + "." + asset[2];
             let img = document.createElement("img");
