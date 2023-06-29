@@ -831,7 +831,7 @@ class Parser():
     def update_scene_file(self, id, uncaps = None):
         try:
             expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2", "_suddenly", "_shy", "_shy2", "_weak"]
-            variationsA = ["", "_b", "_battle"]
+            variationsA = ["", "_a", "_b", "_battle"]
             variationsB = ["", "_speed", "_up"]
             others = ["_up_speed"]
             specials = ["_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
