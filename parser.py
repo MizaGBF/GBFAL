@@ -93,7 +93,7 @@ class Parser():
                 self.addition = {}
                 for k, v in existing.items():
                     new.append([k, v])
-                if len(new) > 50: new = new[len(new)-50:]
+                if len(new) > 100: new = new[len(new)-100:]
                 with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
                     json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new}, outfile)
                 print("changelog.json updated")
@@ -136,7 +136,7 @@ class Parser():
         for a in range(1, 10):
             for b in range(1, 4):
                 for d in [1, 2, 3]:
-                    possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 25))
+                    possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 50))
         # npc
         self.newShared(errs)
         for i in range(7):
