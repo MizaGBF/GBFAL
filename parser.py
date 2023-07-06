@@ -851,7 +851,7 @@ class Parser():
                 elif uncap != "": uncap = "_" + uncap
                 for s in self.scene_strings:
                     scene_alts.append(uncap+s)
-            scene_alts += self.scene_special_string
+            scene_alts += self.scene_special_strings
             result = []
             for s in scene_alts:
                 try:
