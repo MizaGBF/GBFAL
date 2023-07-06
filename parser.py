@@ -15,6 +15,7 @@ class Parser():
         self.running = False # control if the app is running
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
         self.style_queue = queue.Queue() # queue used to process character styles
+        self.scene_queue = queue.Queue() # queue used to retrieve npc data
         self.quality = ("/img/", "/js/") # image and js quality
         self.data = { # data structure
             "characters":{},
@@ -610,6 +611,72 @@ class Parser():
                     count += 1
         return count
 
+    def artCheck(self, id, style, uncaps): # build a list of flags for each uncap levels to determine what kind of arts to expect
+        flags = {}
+        for uncap in uncaps + ["81", "82", "83", "91", "92", "93"]:
+            for g in ["_1", ""]:
+                if flags.get(uncap, [False, False, False])[0]: continue
+                for m in ["_101", ""]:
+                    if flags.get(uncap, [False, False, False])[1]: continue
+                    for n in ["_01", ""]:
+                        if flags.get(uncap, [False, False, False])[2]: continue
+                        try:
+                            self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + "_" + uncap + style + g + m + n + ".jpg")
+                            if uncap not in flags:
+                                flags[uncap] = [False, False, False]
+                            flags[uncap][0] = flags[uncap][0] or (g == "_1")
+                            flags[uncap][1] = flags[uncap][1] or (m == "_101")
+                            flags[uncap][2] = flags[uncap][2] or (n == "_01")
+                        except:
+                            pass
+        return flags
+
+    def manualUpdate(self, ids): # called by -update or other function. manually update elements
+        if len(ids) == 0:
+            return
+        self.running = True
+        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
+            futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
+            for id in range(100): futures.append(executor.submit(self.bulkSceneRequest))
+            tcounter = len(futures)
+            for id in ids:
+                if len(id) >= 10:
+                    if id.startswith('2'):
+                        futures.append(executor.submit(self.sumUpdate, id))
+                    elif id.startswith('10'):
+                        futures.append(executor.submit(self.weapUpdate, id))
+                    elif id.startswith('39'):
+                        futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None))
+                    elif id.startswith('3'):
+                        el = id.split('_')
+                        if len(el) == 2:
+                            futures.append(executor.submit(self.charaUpdate, el[0], '_'+el[1]))
+                        else:
+                            futures.append(executor.submit(self.charaUpdate, id))
+                    else:
+                        pass
+                else:
+                    futures.append(executor.submit(self.mobUpdate, id))
+            tfinished = 0
+            tcounter = len(futures) - tcounter
+            if tcounter > 0:
+                print("Attempting to update", tcounter, "element(s)")
+                for future in concurrent.futures.as_completed(futures):
+                    future.result()
+                    tfinished += 1
+                    if tfinished >= tcounter:
+                        self.running = False
+                    elif tfinished % 10 == 0:
+                        print("Progress: {:.1f}%".format(100 * tfinished / tcounter))
+                print("Progress: 100%")
+            else:
+                self.running = False
+                for future in concurrent.futures.as_completed(futures):
+                    future.result()
+        self.save()
+        self.running = False
+        print("Done")
+
     # index chara/skin data
     def charaUpdate(self, id, style=""):
         data = [[], [], [], [], [], [], [], None] # sprite, phit, sp, aoe, single, general, sd, scene
@@ -828,8 +895,20 @@ class Parser():
                     scene_alts.append(A+ex+B)
         return scene_alts, specials
 
-    # return npc data for chara/skin/npc
-    def update_scene_file(self, id, uncaps = None):
+    def bulkSceneRequest(self): # used to make threaded requests for npc data retrieval
+        while self.running:
+            try:
+                id, suffix, data = self.scene_queue.get(block=True, timeout=0.1)
+            except:
+                time.sleep(0.1)
+                continue
+            try:
+                self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png".format(id, suffix))
+                data[suffix] = True
+            except:
+                data[suffix] = False
+
+    def update_scene_file(self, id, uncaps = None):  # return npc data for chara/skin/npc
         try:
             scene_alts = []
             if uncaps is None:
@@ -840,16 +919,22 @@ class Parser():
                 for s in self.scene_strings:
                     scene_alts.append(uncap+s)
             scene_alts += self.scene_special_strings
-            result = []
+            result = {}
             for s in scene_alts:
-                try:
-                    self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png".format(id, s))
-                    result.append(s)
-                except:
-                    pass
-            if id.startswith('399'):
-                with self.lock:
-                    self.addition[id] = 5
+                result[s] = None
+            for s in scene_alts:
+                self.scene_queue.put((id, s, result))
+            
+            time.sleep(40)
+            while True:
+                has_none = False
+                for k, v in result.items():
+                    if v is None:
+                        has_none = True
+                        break
+                time.sleep(5)
+                if not has_none: break
+            result = [k for k, v in result.items() if v == True]
             return result
         except:
             return None
@@ -1008,72 +1093,6 @@ class Parser():
         except:
             pass
         return False
-
-    # build a list of flags for each uncap levels to determine what kind of arts to expect
-    def artCheck(self, id, style, uncaps):
-        flags = {}
-        for uncap in uncaps + ["81", "82", "83", "91", "92", "93"]:
-            for g in ["_1", ""]:
-                if flags.get(uncap, [False, False, False])[0]: continue
-                for m in ["_101", ""]:
-                    if flags.get(uncap, [False, False, False])[1]: continue
-                    for n in ["_01", ""]:
-                        if flags.get(uncap, [False, False, False])[2]: continue
-                        try:
-                            self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + "_" + uncap + style + g + m + n + ".jpg")
-                            if uncap not in flags:
-                                flags[uncap] = [False, False, False]
-                            flags[uncap][0] = flags[uncap][0] or (g == "_1")
-                            flags[uncap][1] = flags[uncap][1] or (m == "_101")
-                            flags[uncap][2] = flags[uncap][2] or (n == "_01")
-                        except:
-                            pass
-        return flags
-
-    # called by -update or other function. manually update elements
-    def manualUpdate(self, ids):
-        if len(ids) == 0:
-            return
-        self.running = True
-        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
-            futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
-            for id in ids:
-                if len(id) >= 10:
-                    if id.startswith('2'):
-                        futures.append(executor.submit(self.sumUpdate, id))
-                    elif id.startswith('10'):
-                        futures.append(executor.submit(self.weapUpdate, id))
-                    elif id.startswith('39'):
-                        futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None))
-                    elif id.startswith('3'):
-                        el = id.split('_')
-                        if len(el) == 2:
-                            futures.append(executor.submit(self.charaUpdate, el[0], '_'+el[1]))
-                        else:
-                            futures.append(executor.submit(self.charaUpdate, id))
-                    else:
-                        pass
-                else:
-                    futures.append(executor.submit(self.mobUpdate, id))
-            tfinished = 0
-            tcounter = len(futures) - 2
-            if tcounter > 0:
-                print("Attempting to update", tcounter, "element(s)")
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()
-                    tfinished += 1
-                    if tfinished >= tcounter:
-                        self.running = False
-                    elif tfinished % 10 == 0:
-                        print("Progress: {:.1f}%".format(100 * tfinished / tcounter))
-                print("Progress: 100%")
-            else:
-                self.running = False
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()
-        self.save()
-        self.running = False
-        print("Done")
 
     def buildLookup(self): # build a list of element to lookup on the wiki
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
