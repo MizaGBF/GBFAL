@@ -659,20 +659,16 @@ class Parser():
                     futures.append(executor.submit(self.mobUpdate, id))
             tfinished = 0
             tcounter = len(futures) - tcounter
-            if tcounter > 0:
-                print("Attempting to update", tcounter, "element(s)")
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()
-                    tfinished += 1
-                    if tfinished >= tcounter:
-                        self.running = False
-                    elif tfinished % 10 == 0:
-                        print("Progress: {:.1f}%".format(100 * tfinished / tcounter))
-                print("Progress: 100%")
-            else:
-                self.running = False
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()
+            if tcounter > 0: print("Attempting to update", tcounter, "element(s)")
+            else: self.running = False
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+                tfinished += 1
+                if tfinished == tcounter:
+                    print("Progress: 100%")
+                    self.running = False
+                elif tfinished < tcounter and tfinished % 10 == 0:
+                    print("Progress: {:.1f}%".format(100 * tfinished / tcounter))
         self.save()
         self.running = False
         print("Done")
@@ -1165,7 +1161,7 @@ class Parser():
         to_update = {}
         to_update["npcs"] = []
         for id in self.data["npcs"]:
-            if isinstance(self.data["npcs"][id], int) or full or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0]):
+            if isinstance(self.data["npcs"][id], int) or full or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0]) == 0:
                 to_update["npcs"].append((id, None))
         for k in ["characters", "skins"]:
             to_update[k] = []
@@ -1177,20 +1173,25 @@ class Parser():
                     to_update[k].append((id, uncaps))
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = []
+            for k in range(100): futures.append(executor.submit(self.bulkSceneRequest))
+            countmax = len(futures)
             for k in to_update:
                 for e in to_update[k]:
                     futures.append(executor.submit(self.update_all_scene_sub, k, e[0], e[1]))
             count = 0
-            countmax = len(futures)
+            countmax = len(futures) - countmax
             print(countmax, "element(s) to update...")
-            if countmax > 0:
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()
-                    count += 1
-                    if count % 50 == 0:
-                        print("Progress: {:.1f}%".format(100*count/countmax))
+            if countmax == 0:
+                self.running = False
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+                count += 1
+                if count < countmax and count % 50 == 0:
+                    print("Progress: {:.1f}%".format(100*count/countmax))
+                elif count == countmax:
+                    print("Progress: 100%")
+                    self.running = False
         self.save()
-        self.running = False
         print("Done")
 
     def update_all_scene_sub(self, index, id, uncaps): # subroutine
