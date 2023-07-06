@@ -10,14 +10,13 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone
 
-# parser to generate json files (characters/skins only for now) and to index a list of all existing character, etc
 class Parser():
     def __init__(self):
-        self.running = False
-        self.update_changelog = True
-        self.queue = queue.Queue()
-        self.quality = ("/img/", "/js/")
-        self.data = {
+        self.running = False # control if the app is running
+        self.update_changelog = True # flag to enable or disable the generation of changelog.json
+        self.style_queue = queue.Queue() # queue used to process character styles
+        self.quality = ("/img/", "/js/") # image and js quality
+        self.data = { # data structure
             "characters":{},
             "summons":{},
             "weapons":{},
@@ -31,27 +30,36 @@ class Parser():
             "title":{},
             "lookup":{}
         }
-        self.lock = Lock()
-        self.modified = False
-        self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"]
-        self.multi_summon = ["2040414000"]
-        self.chara_special = {"3710171000":"3710167000","3710170000":"3710167000","3710169000":"3710167000","3710168000":"3710167000"}
-        self.cut_ids = ["2040145000","2040147000","2040148000","2040150000","2040152000","2040153000","2040154000","2040200000"]
-        self.new_elements = []
+        self.lock = Lock() # lock for self.data
+        self.modified = False # if set to true, data.json will be updated
+        self.new_elements = [] # new indexed element
+        self.addition = {} # new elements for changelog.json
+        self.mh = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'] # main hand keyword list
+        
+        # TO BE MANUALLY UPDATED
+        self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"] # known NULL characters such as Lyria, skins included
+        self.multi_summon = ["2040414000"] # summons with multiple calls
+        self.chara_special = {"3710171000":"3710167000","3710170000":"3710167000","3710169000":"3710167000","3710168000":"3710167000"} # bobobo skins reuse bobobo data
+        self.cut_ids = ["2040145000","2040147000","2040148000","2040150000","2040152000","2040153000","2040154000","2040200000"] # cut content (beta arcarum here)
+        
+        # relation processing
         self.name_table = {}
-        self.name_table_modified = False
+        self.name_table_modified = False 
         self.name_lock = Lock()
-        self.addition = {}
-        self.re = re.compile("[123][07][1234]0\\d{4}00")
-        self.vregex = re.compile("Game\.version = \"(\d+)\";")
-        self.lookup_group = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
-        self.other_lookup = {
+        
+        # search lookup processing
+        self.lookup_group = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]] # elements sharing names (to be updated manually)
+        self.other_lookup = { # special elements
             "3020065000": "r character brown poppet trial",
             "3030158000": "sr character blue poppet trial",
             "3040097000": "ssr character sierokarte trial",
             "2030004000": "sr summon fire not-playable",
             "2030014000": "sr summon dark not-playable",
         }
+        
+        # others
+        self.re = re.compile("[123][07][1234]0\\d{4}00")
+        self.vregex = re.compile("Game\.version = \"(\d+)\";")
         self.scene_strings, self.scene_special_strings = self.build_scene_strings()
         
         limits = httpx.Limits(max_keepalive_connections=300, max_connections=300, keepalive_expiry=10)
@@ -61,10 +69,10 @@ class Parser():
         self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
         self.endpoint = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/"
         
+        # startup
         self.load()
-        self.exclusion = set([])
+        self.exclusion = set([]) # a banned id list
         self.job_list = None
-        self.mh = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt']
 
     def load(self): # load data.json
         try:
@@ -103,14 +111,14 @@ class Parser():
         except Exception as e:
             print(e)
 
-    def newShared(self, errs):
+    def newShared(self, errs): # create a list to be shared by threads
         errs.append([])
         errs[-1].append(0)
         errs[-1].append(True)
         errs[-1].append(Lock())
         return errs[-1]
 
-    def run(self):
+    def run(self): # called by -run, update the indexed content
         errs = []
         possibles = []
         self.new_elements = []
@@ -181,10 +189,10 @@ class Parser():
         self.save()
         self.build_relation()
 
-    def init_job_list(self):
+    def init_job_list(self): # to be called once when needed
         print("Initializing job list...")
         # existing classes
-        try: job_list = self.req("https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/js_low/constant/job.js", get=True).decode('utf-8')
+        try: job_list = self.req("https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/js_low/constant/job.js", get=True).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
         except: return
         a = job_list.find("var a={")
         if a == -1: return
@@ -217,14 +225,14 @@ class Parser():
         print("Done")
         return job_list
 
-    def init_job_list_sub(self, id):
+    def init_job_list_sub(self, id): # subroutine for threading
         try:
             self.req("https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id))
             return id
         except:
             return None
 
-    def search_job(self, start, step, keys, shared):
+    def search_job(self, start, step, keys, shared): # search jobs to be indexed
         i = start
         while i < len(keys):
             if keys[i] in self.data["job"]: continue
@@ -273,7 +281,7 @@ class Parser():
                 if len(keys) > 1: print("Job search is done")
                 shared[1] = False
 
-    def search_job_detail(self):
+    def search_job_detail(self): # used by -job, more specific but also slower job detection system
         if self.job_list is None:
             self.job_list = self.init_job_list()
         print("Searching additional job data...")
@@ -325,7 +333,7 @@ class Parser():
         print("Done")
         self.save()
 
-    def detail_job_search(self, key, job):
+    def detail_job_search(self, key, job): # subroutine for threading
         cmh = self.data["job"][job][6]
         a = key[0]
         for b in key:
@@ -345,7 +353,7 @@ class Parser():
                         self.modified = True
                     print("Set", job, "to", d)
 
-    def detail_job_weapon_search(self, wid):
+    def detail_job_weapon_search(self, wid): # subroutine for threading
         try:
             self.req(self.imgUri + '_low/sp/assets/weapon/m/' + wid + ".jpg")
             return
@@ -362,7 +370,7 @@ class Parser():
             except:
                 pass
 
-    def detail_job_search_single(self, key):
+    def detail_job_search_single(self, key): # subroutine for threading
         for mh in self.mh:
             try:
                 self.processManifest("{}_{}_0_01".format(key, mh))
@@ -374,7 +382,7 @@ class Parser():
             except:
                 pass
 
-    def edit_job(self):
+    def edit_job(self): # CLI menu to manually fix data. to be used as a last resort
         while True:
             print("")
             print("[EDIT JOB MENU]")
@@ -536,7 +544,7 @@ class Parser():
                     break
         self.save()
 
-    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles, maxerr):
+    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles, maxerr): # run() subroutine
         id = start
         is_js = ext.endswith('.js')
         while err[0] < maxerr and err[1]:
@@ -566,7 +574,7 @@ class Parser():
                     break
             id += step
 
-    def req(self, url, headers={}, get=False):
+    def req(self, url, headers={}, get=False): # HEAD or GET request function. Set get to True when the content must be downloaded and read
         if get:
             response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
         else:
@@ -577,10 +585,10 @@ class Parser():
         else:
             return response.headers
 
-    def run_index_content(self):
+    def run_index_content(self): # called by -index. check and attempt to update incomplete content
         print("Checking index content...")
         to_update = []
-        for k in ["characters", "summons", "skins", "enemies", "npcs"]:
+        for k in ["characters", "summons", "skins", "weapons", "enemies", "npcs"]:
             for id in self.data[k]:
                 if self.data[k][id] == 0:
                     to_update.append(id)
@@ -590,11 +598,11 @@ class Parser():
         else:
             print("No elements need to be updated")
 
-    def styleProcessing(self):
+    def styleProcessing(self): # subroutine checking for content in style_queue
         count = 0
         while self.running:
             try:
-                id, styles = self.queue.get(block=True, timeout=0.1)
+                id, styles = self.style_queue.get(block=True, timeout=0.1)
             except:
                 continue
             for s in styles:
@@ -602,32 +610,7 @@ class Parser():
                     count += 1
         return count
 
-    def run_sub(self, start, step, err, file, index):
-        id = start
-        while err[1] and err[0] < 80 and self.running:
-            f = file.format(str(id).zfill(3))
-            if f not in self.data[index] or isinstance(self.data[index], int):
-                r = True
-                if f.startswith('20'):
-                    r = self.sumUpdate(f)
-                elif f.startswith('10'):
-                    r = self.weapUpdate(f)
-                elif len(f) == 7:
-                    r = self.mobUpdate(f)
-                else:
-                    r = self.charaUpdate(f)
-                if not r:
-                    with err[2]:
-                        err[0] += 1
-                        if err[0] >= 80:
-                            err[1] = False
-                            return
-                else:
-                    with err[2]:
-                        err[0] = 0
-                        err[3] += 1
-            id += step
-
+    # index chara/skin data
     def charaUpdate(self, id, style=""):
         data = [[], [], [], [], [], [], [], None] # sprite, phit, sp, aoe, single, general, sd, scene
         uncaps = []
@@ -670,7 +653,7 @@ class Parser():
         if len(targets) == 0:
             return False
         if not id.startswith("371") and style == "":
-            self.queue.put((id, ["_st2"])) # style check
+            self.style_queue.put((id, ["_st2"])) # style check
         # # # Other sheets
         # attack
         targets = [""]
@@ -723,7 +706,8 @@ class Parser():
             self.addition[id+style] = 3
         self.generateNameLookup(id+style)
         return True
-
+        
+    # index summon data
     def sumUpdate(self, id):
         data = [[], [], []] # general, call, damage
         uncaps = []
@@ -762,6 +746,7 @@ class Parser():
         self.generateNameLookup(id)
         return True
 
+    # index weapon data
     def weapUpdate(self, id):
         data = [[], [], []] # general, phit, sp
         # art
@@ -790,6 +775,7 @@ class Parser():
         self.generateNameLookup(id)
         return True
 
+    # index enemy data
     def mobUpdate(self, id):
         data = [[], [], [], [], [], None] # general, sprite, appear, ehit, esp, scene
         # icon
@@ -829,6 +815,7 @@ class Parser():
             self.addition[id] = 4
         return True
 
+    # called once. generate a list of string to check for npc data
     def build_scene_strings(self):
         expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2", "_suddenly", "_shy", "_shy2", "_weak"]
         variationsA = ["", "_a", "_b", "_battle"]
@@ -841,6 +828,7 @@ class Parser():
                     scene_alts.append(A+ex+B)
         return scene_alts, specials
 
+    # return npc data for chara/skin/npc
     def update_scene_file(self, id, uncaps = None):
         try:
             scene_alts = []
@@ -866,6 +854,7 @@ class Parser():
         except:
             return None
 
+    # extract json data from a manifest file
     def processManifest(self, file):
         manifest = self.req(self.manifestUri + file + ".js", get=True).decode('utf-8')
         st = manifest.find('manifest:') + len('manifest:')
@@ -877,11 +866,13 @@ class Parser():
             res.append(src)
         return res
 
+    # remove extra from wiki name
     def cleanName(self, name):
         for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)']:
             name = name.replace(k, '')
         return name.strip()
 
+    # check id on the wiki to retrieve element name
     def generateNameLookup(self, cid):
         if not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30"): return
         r = self.req("https://gbf.wiki/index.php?search={}".format(cid), get=True)
@@ -916,6 +907,7 @@ class Parser():
                 except:
                     pass
 
+    # subroutine. read the wiki page to extract element ata
     def generateNameLookup_sub(self, cid, wiki_lookup):
         data = {}
         if cid.startswith("20"):
@@ -1017,6 +1009,7 @@ class Parser():
             pass
         return False
 
+    # build a list of flags for each uncap levels to determine what kind of arts to expect
     def artCheck(self, id, style, uncaps):
         flags = {}
         for uncap in uncaps + ["81", "82", "83", "91", "92", "93"]:
@@ -1037,6 +1030,7 @@ class Parser():
                             pass
         return flags
 
+    # called by -update or other function. manually update elements
     def manualUpdate(self, ids):
         if len(ids) == 0:
             return
@@ -1081,7 +1075,7 @@ class Parser():
         self.running = False
         print("Done")
 
-    def buildLookup(self):
+    def buildLookup(self): # build a list of element to lookup on the wiki
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             print("Checking elements in need of update...")
             futures = []
@@ -1130,7 +1124,7 @@ class Parser():
         self.running = False
         print("Done")
 
-    def manualLookup(self):
+    def manualLookup(self): # for manual lookup. used as a last resort
         for t in ['characters', 'summons', 'weapons']:
             for k in self.data[t]:
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
@@ -1146,7 +1140,7 @@ class Parser():
         self.save()
         print("Done")
 
-    def update_all_scene(self, full=False):
+    def update_all_scene(self, full=False): # update npc data for every element (if full is true) or every non indexed elements
         self.running = True
         print("Updating scene data...")
         to_update = {}
@@ -1180,7 +1174,7 @@ class Parser():
         self.running = False
         print("Done")
 
-    def update_all_scene_sub(self, index, id, uncaps):
+    def update_all_scene_sub(self, index, id, uncaps): # subroutine
         r = self.update_scene_file(id, uncaps)
         if r is not None:
             with self.lock:
@@ -1190,7 +1184,7 @@ class Parser():
                 else:
                     self.data[index][id][-1] = r
 
-    def get_relation(self, eid):
+    def get_relation(self, eid): # retrieve element relation
         try:
             page = self.req("https://gbf.wiki/index.php?search={}".format(eid), get=True)
             try: page = page.decode('utf-8')
@@ -1243,7 +1237,7 @@ class Parser():
             except:
                 return eid, []
 
-    def build_relation(self, to_update=[]):
+    def build_relation(self, to_update=[]): # build a list of relation to update and call get_relation
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
@@ -1330,7 +1324,7 @@ class Parser():
                 except:
                     pass
 
-    def connect_relation(self, As, B):
+    def connect_relation(self, As, B): # connect relation between element A and B
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
@@ -1392,7 +1386,7 @@ class Parser():
             except:
                 pass
 
-    def relation_edit(self):
+    def relation_edit(self): # manual edit mode for relation
         while True:
             print("[0] Redo Relationship")
             print("[1] Add Relationship")
