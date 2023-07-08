@@ -208,7 +208,8 @@ function loadIndexed(id, obj, shortened=false)
             ["Sprite Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
             ["Raid Appear Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
             ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 3, false, false],
-            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 4, false, false]
+            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 4, false, false],
+            ["AOE Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 5, false, false]
         ];
     }
     else if(search_type == 3) // characters / skins
@@ -1091,7 +1092,8 @@ function lookupEnemy(enemy_id)
         ["Sprite Sheets", "sp/cjs/enemy_", "png", "img_low/"],
         ["Raid Appear Sheets", "sp/cjs/raid_appear_", "png", "img_low/"],
         ["Attack Effect Sheets", "sp/cjs/ehit_", "png", "img_low/"],
-        ["Charge Attack Sheets", "sp/cjs/esp_", "png", "img_low/"]
+        ["Charge Attack Sheets", "sp/cjs/esp_", "png", "img_low/"],
+        ["AOE Charge Attack Sheets", "sp/cjs/esp_", "png", "img_low/"]
     ];
     let appends = [""];
     let sheets = [""];
@@ -1100,6 +1102,12 @@ function lookupEnemy(enemy_id)
     for(let asset of assets)
     {
         sheets = asset[0].includes("Sheets") ? ["", "_a", "_b", "_c", "_d", "_e"] : [""];
+        appends = [""];
+        if(asset[0].includes("Charge Attack"))
+        {
+            if(asset[0].includes("AOE")) appends = ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10", "_11", "_12", "_13", "_14", "_15", "_16", "_17", "_18", "_19", "_20"];
+            else appends = ["_01_all", "_02_all", "_03_all", "_04_all", "_05_all", "_06_all", "_07_all", "_08_all", "_09_all", "_10_all", "_11_all", "_12_all", "_13_all", "_14_all", "_15_all", "_16_all", "_17_all", "_18_all", "_19_all", "_20_all"];
+        }
         appends = asset[0].includes("Charge Attack") ? ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10", "_11", "_12", "_13", "_14", "_15", "_16", "_17", "_18", "_19", "_20"] : [""];
         if(asset[0].includes("Icon")) appends = ["", "_a"];
         

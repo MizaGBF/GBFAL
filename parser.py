@@ -552,7 +552,7 @@ class Parser():
             f = file.format(str(id).zfill(zfill))
             for s in styles:
                 try:
-                    if f+s in self.data[index] and (not is_js or (is_js and self.data[index][f+s] != 0)):
+                    if False: #if f+s in self.data[index] and (not is_js or (is_js and self.data[index][f+s] != 0)):
                         with err[2]:
                             err[0] = 0
                         continue
@@ -840,7 +840,7 @@ class Parser():
 
     # index enemy data
     def mobUpdate(self, id):
-        data = [[], [], [], [], [], None] # general, sprite, appear, ehit, esp, scene
+        data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
         # icon
         try:
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/{}.png".format(id))
@@ -870,6 +870,11 @@ class Parser():
             try:
                 fn = "esp_{}_{}".format(id, str(i).zfill(2))
                 data[4] += self.processManifest(fn)
+            except:
+                pass
+            try:
+                fn = "esp_{}_{}_all".format(id, str(i).zfill(2))
+                data[5] += self.processManifest(fn)
             except:
                 pass
         with self.lock:
