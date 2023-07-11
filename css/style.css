@@ -279,3 +279,25 @@ a:active {
     color: yellow;
     font-size: 1em;
 }
+
+.sound-file {
+    background: url(../assets/ui/sound.png) no-repeat;
+    background-size: 100% 100%;
+    width: 120px;
+    height: 120px;
+    font-size: 16px;
+    color: black;
+    font-weight: bold;
+    text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+    text-align: center;
+    display: inline-block;
+    margin: 0px;
+    vertical-align: top;
+    position: relative;
+}
+
+.sound-link {
+    position: absolute;
+    bottom: 0;
+    left: 10px;
+}

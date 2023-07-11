@@ -200,6 +200,7 @@ function loadIndexed(id, obj, shortened=false)
     let mc_skycompass = false;
     let npcdata = null;
     let files = null;
+    let sounds = null;
     if(search_type == 4) // enemies
     {
         assets = [
@@ -237,6 +238,7 @@ function loadIndexed(id, obj, shortened=false)
         ];
         skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
         npcdata = obj[7];
+        sounds = obj[8];
     }
     else if(search_type == 5) // npcs
     {
@@ -420,6 +422,97 @@ function loadIndexed(id, obj, shortened=false)
     {
         lookupNPCChara(id, obj);
     }
+    if(sounds != null && sounds.length > 0) // indexed sounds data for characters
+    {
+        let sorted_sound = {"Generic":[]}
+        let checks = {
+            "": "Generic",
+            "_v_": "Standard",
+            "birthday": "Happy Birthday",
+            "year": "Happy New Year",
+            "alentine": "Valentine",
+            "hite": "White Day",
+            "alloween": "Halloween",
+            "mas": "Christmas",
+            "mypage": "My Page",
+            "introduce": "Recruit",
+            "formation": "Add to Party",
+            "evolution": "Evolution",
+            "zenith_up": "Extended Mastery",
+            "archive": "Journal",
+            "cutin": "Battle",
+            "attack": "Attack",
+            "kill": "Enemy Defeated",
+            "ability_them": "Offensive Skill",
+            "ability_us": "Buff Skill",
+            "ready": "CA Ready",
+            "mortal": "Charge Attack",
+            "chain": "Chain Burst",
+            "damage": "Damaged",
+            "healed": "Healed",
+            "power_down": "Debuffed",
+            "dying": "Dying",
+            "lose": "K.O.",
+            "win": "Win",
+            "player": "To Player",
+            "pair": "Banter"
+        }
+        for(let sound of sounds) // sorting
+        {
+            let found = false;
+            for(const [k, v] of Object.entries(checks))
+            {
+                if(k == "") continue;
+                if(sound.includes(k))
+                {
+                    found = true;
+                    if(!(v in sorted_sound)) sorted_sound[v] = [];
+                    sorted_sound[v].push(sound)
+                    break;
+                }
+            }
+            if(!found) sorted_sound["Generic"].push(sound);
+        }
+        if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
+        for(const [k, v] of Object.entries(checks))
+        {
+            if(v in sorted_sound)
+            {
+                let div = addResult(v, v + " Voices");
+                for(let sound of sorted_sound[v])
+                {
+                    let elem = document.createElement("div");
+                    elem.classList.add("sound-file");
+                    let s = sound.substring(1);
+                    switch(s.substring(0, 3))
+                    {
+                        case "03_": s = "5★_" + s.substring(3); break;
+                        case "04_": s = "6★_" + s.substring(3); break;
+                        case "05_": s = "7★_" + s.substring(3); break;
+                        default: s = "0★_" + s; break;
+                    }
+                    s = s.split('_');
+                    for(let i = 0; i < s.length; ++i)
+                    {
+                        elem.appendChild(document.createTextNode(s[i]));
+                        elem.appendChild(document.createElement('br'));
+                    }
+                    elem.onclick = function() {
+                        let audio = new Audio("https://prd-game-a5-granbluefantasy.akamaized.net/" + language + "sound/voice/" + id + sound + ".mp3");
+                        audio.play();
+                    }
+                    let a = document.createElement("a");
+                    a.href = "https://prd-game-a5-granbluefantasy.akamaized.net/" + language + "sound/voice/" + id + sound + ".mp3";
+                    a.classList.add("sound-link");
+                    let img = document.createElement("img");
+                    img.src = "assets/ui/open-sound.png";
+                    a.appendChild(img);
+                    elem.appendChild(a);
+                    div.appendChild(elem);
+                }
+            }
+        }
+    }
 }
 
 function loadUnindexed(id)
@@ -548,7 +641,6 @@ function lookup(id)
         results.innerHTML = "";
         if(id == "") return;
         let words = id.toLowerCase().split(' ');
-        console.log(words);
         let positives = [];
         for(const [key, value] of Object.entries(index['lookup_reverse']))
         {
@@ -618,7 +710,6 @@ function newArea(name, id, include_link, indexed=true)
         div.appendChild(i);
         for(let t of index["lookup"][id].split(' '))
         {
-            console.log(t);
             i = document.createElement('i');
             i.classList.add("tag");
             switch(t)

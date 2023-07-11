@@ -15,7 +15,7 @@ class Parser():
         self.running = False # control if the app is running
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
         self.style_queue = queue.Queue() # queue used to process character styles
-        self.scene_queue = queue.Queue() # queue used to retrieve npc data
+        self.request_queue = queue.Queue() # queue used to retrieve npc data
         self.quality = ("/img/", "/js/") # image and js quality
         self.data = { # data structure
             "characters":{},
@@ -193,7 +193,7 @@ class Parser():
     def init_job_list(self): # to be called once when needed
         print("Initializing job list...")
         # existing classes
-        try: job_list = self.req("https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/js_low/constant/job.js", get=True).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
+        try: job_list = self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js_low/constant/job.js", get=True).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
         except: return
         a = job_list.find("var a={")
         if a == -1: return
@@ -228,7 +228,7 @@ class Parser():
 
     def init_job_list_sub(self, id): # subroutine for threading
         try:
-            self.req("https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id))
+            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id))
             return id
         except:
             return None
@@ -251,7 +251,7 @@ class Parser():
                 # alt check
                 for j in [2, 3, 4, 5, 80]:
                     try:
-                        self.req("https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
+                        self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
                         colors.append(j)
                         if j >= 80:
                             alts.append(j)
@@ -552,7 +552,7 @@ class Parser():
             f = file.format(str(id).zfill(zfill))
             for s in styles:
                 try:
-                    if False: #if f+s in self.data[index] and (not is_js or (is_js and self.data[index][f+s] != 0)):
+                    if f+s in self.data[index] and (not is_js or (is_js and self.data[index][f+s] != 0)):
                         with err[2]:
                             err[0] = 0
                         continue
@@ -637,7 +637,7 @@ class Parser():
         self.running = True
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
-            for id in range(100): futures.append(executor.submit(self.bulkSceneRequest))
+            for id in range(100): futures.append(executor.submit(self.bulkRequest))
             tcounter = len(futures)
             for id in ids:
                 if len(id) >= 10:
@@ -646,7 +646,9 @@ class Parser():
                     elif id.startswith('10'):
                         futures.append(executor.submit(self.weapUpdate, id))
                     elif id.startswith('39'):
-                        futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None))
+                        try: scenes = set(self.data["npcs"][id][0])
+                        except: scenes = set()
+                        futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
                     elif id.startswith('3'):
                         el = id.split('_')
                         if len(el) == 2:
@@ -675,7 +677,7 @@ class Parser():
 
     # index chara/skin data
     def charaUpdate(self, id, style=""):
-        data = [[], [], [], [], [], [], [], None] # sprite, phit, sp, aoe, single, general, sd, scene
+        data = [[], [], [], [], [], [], [], None, None] # sprite, phit, sp, aoe, single, general, sd, scene, sound
         uncaps = []
         sheets = []
         altForm = False
@@ -759,7 +761,13 @@ class Parser():
             except:
                 pass
         data[4] = attacks
-        data[7] = self.update_scene_file(id+style, uncaps)
+        try: scenes = set(self.data['characters'][id+style][7])
+        except: scenes = set()
+        pending = self.request_scene_bulk(id+style, uncaps, scenes)
+        try: voices = set(self.data['characters'][id+style][8])
+        except: voices = set()
+        data[8] = self.update_chara_sound_file(id+style, uncaps, voices)
+        data[7] = self.process_scene_bulk(pending)
         with self.lock:
             self.modified = True
             if tid.startswith('37'):
@@ -896,20 +904,27 @@ class Parser():
                     scene_alts.append(A+ex+B)
         return scene_alts, specials
 
-    def bulkSceneRequest(self): # used to make threaded requests for npc data retrieval
+    def bulkRequest(self): # used to make threaded requests for npc data retrieval
         while self.running:
             try:
-                id, suffix, data = self.scene_queue.get(block=True, timeout=0.1)
+                base_url, id, suffix, data = self.request_queue.get(block=True, timeout=0.1)
             except:
                 time.sleep(0.1)
                 continue
             try:
-                self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png".format(id, suffix))
+                self.req(base_url.format(id, suffix))
                 data[suffix] = True
             except:
                 data[suffix] = False
 
-    def update_scene_file(self, id, uncaps = None):  # return npc data for chara/skin/npc
+    def update_scene_file(self, id, uncaps = None, existing = set()):  # return npc data for chara/skin/npc (the function is divided in two, see below)
+        r = self.request_scene_bulk(id, uncaps, existing)
+        if r is not None:
+            time.sleep(50)
+            return self.process_scene_bulk(r)
+        return None
+
+    def request_scene_bulk(self, id, uncaps = None, existing = set()):
         try:
             scene_alts = []
             if uncaps is None:
@@ -922,11 +937,20 @@ class Parser():
             scene_alts += self.scene_special_strings
             result = {}
             for s in scene_alts:
-                result[s] = None
+                if s in existing:
+                    result[s] = True
+                else:
+                    self.request_queue.put(("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", id, s, result))
+                    result[s] = None
             for s in scene_alts:
-                self.scene_queue.put((id, s, result))
-            
-            time.sleep(40)
+                self.request_queue.put(("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", id, s, result))
+            return result
+        except:
+            return None
+
+    def process_scene_bulk(self, result):
+        try:
+            if result is None: return None
             while True:
                 has_none = False
                 for k, v in result.items():
@@ -939,6 +963,147 @@ class Parser():
             return result
         except:
             return None
+
+    def update_all_sound(self): # update sound data for every character
+        self.running = True
+        print("Updating sound data...")
+        to_update = {}
+        for k in ["characters", "skins"]:
+            to_update[k] = []
+            for id in self.data[k]:
+                uncaps = []
+                for u in self.data[k][id][5]:
+                    uncaps.append(u.replace(id+"_", ""))
+                try: voices = set(self.data[k][id][8])
+                except: voices = set()
+                to_update[k].append((id, uncaps, voices))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+            futures = []
+            for k in to_update:
+                for e in to_update[k]:
+                    futures.append(executor.submit(self.update_all_sound_sub, k, e[0], e[1], e[2]))
+            count = 0
+            countmax = len(futures)
+            print(countmax, "element(s) to update...")
+            if countmax == 0:
+                self.running = False
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+                count += 1
+                if count < countmax and count % 20 == 0:
+                    print("Progress: {:.1f}%".format(100*count/countmax))
+                elif count == countmax:
+                    print("Progress: 100%")
+                    self.running = False
+        self.save()
+        print("Done")
+
+    def update_all_sound_sub(self, index, id, uncaps, voices): # subroutine
+        if index not in ["characters", "skins"]: return
+        r = self.update_chara_sound_file(id, uncaps, voices)
+        if len(self.data[index][id]) == 8: self.data[index][id].append(None)
+        if r is not None:
+            with self.lock:
+                self.modified = True
+                self.data[index][id][8] = r # character
+
+    def update_chara_sound_file(self, id, uncaps = None, existing = set()): # result all sounds (not multithreaded)
+        result = []
+        if uncaps is None:
+            uncaps = [""]
+        # standard stuff
+        for uncap in uncaps:
+            if "_f" in uncap or not uncap.replace("_", "").startswith("0"): continue # only need base uncaps
+            if uncap == "01": uncap = ""
+            elif uncap != "": uncap = "_" + uncap
+            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("_birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_valentine_mypage", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_christmas_mypage", 1), ("_Xmas", 1)]:
+                match mid: # opti
+                    case "_":
+                        suffixes = ["", "a", "b"]
+                        A = 1
+                        max_err = 1
+                    case "_v_":
+                        suffixes = ["", "a", "_a", "_1", "b", "_b", "_2"]
+                        A = 1
+                        max_err = 6
+                    case _:
+                        suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
+                        A = 0 if mid == "_cutin" else 1
+                        max_err = 1
+                searching = True
+                err = 0
+                while searching:
+                    exists = False
+                    for suffix in suffixes:
+                        f = "{}{}{}{}".format(uncap, mid, str(A).zfill(Z), suffix)
+                        if f in existing:
+                            result.append(f)
+                            exists = True
+                            err = 0
+                            break
+                    if not exists:
+                        for suffix in suffixes:
+                            try:
+                                f = "{}{}{}{}".format(uncap, mid, str(A).zfill(Z), suffix)
+                                self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f))
+                                result.append(f)
+                                if suffix in ["a", "_a", "_1"]: # gender stuff
+                                    try:
+                                        f = "{}{}{}{}".format(uncap, mid, str(A).zfill(Z), suffix.replace('a', 'b').replace('1', '2'))
+                                        self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f))
+                                        result.append(f)
+                                    except:
+                                        pass
+                                err = 0
+                                break
+                            except:
+                                if suffix == suffixes[-1] and A > 0:
+                                    err += 1
+                                    if err >= max_err:
+                                        searching = False
+                    A += 1
+        # chain burst
+        try:
+            f = "_chain_start"
+            if f not in existing: self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f))
+            result.append(f)
+        except:
+            pass
+        try:
+            f = "_chain{}_{}".format(1, 2)
+            if f not in existing: self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f))
+            for A in range(1, 7):
+                for B in range(2, 5):
+                    result.append("_chain{}_{}".format(A, B))
+        except:
+            pass
+        # banter
+        A = 1
+        B = 1
+        Z = None
+        while True:
+            success = False
+            for i in range(1, 3):
+                if Z is None or Z == i:
+                    try:
+                        f = "_pair_{}_{}".format(A, str(B).zfill(i))
+                        if f not in existing: self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f))
+                        result.append(f)
+                        success = True
+                        Z = i
+                        break
+                    except:
+                        pass
+            if success:
+                B += 1
+            else:
+                if B == 1:
+                    break
+                else:
+                    A += 1
+                    B = 1
+        result.sort()
+        return result
 
     # extract json data from a manifest file
     def processManifest(self, file):
@@ -1167,7 +1332,9 @@ class Parser():
         to_update["npcs"] = []
         for id in self.data["npcs"]:
             if isinstance(self.data["npcs"][id], int) or full or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0]) == 0:
-                to_update["npcs"].append((id, None))
+                try: scenes = set(self.data["npcs"][id][0])
+                except: scenes = set()
+                to_update["npcs"].append((id, None, scenes))
         for k in ["characters", "skins"]:
             to_update[k] = []
             for id in self.data[k]:
@@ -1175,14 +1342,16 @@ class Parser():
                     uncaps = []
                     for u in self.data[k][id][5]:
                         uncaps.append(u.replace(id+"_", ""))
-                    to_update[k].append((id, uncaps))
+                    try: scenes = set(self.data["npcs"][id][7])
+                    except: scenes = set()
+                    to_update[k].append((id, uncaps, scenes))
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = []
-            for k in range(100): futures.append(executor.submit(self.bulkSceneRequest))
+            for k in range(100): futures.append(executor.submit(self.bulkRequest))
             countmax = len(futures)
             for k in to_update:
                 for e in to_update[k]:
-                    futures.append(executor.submit(self.update_all_scene_sub, k, e[0], e[1]))
+                    futures.append(executor.submit(self.update_all_scene_sub, k, e[0], e[1], e[2]))
             count = 0
             countmax = len(futures) - countmax
             print(countmax, "element(s) to update...")
@@ -1199,15 +1368,15 @@ class Parser():
         self.save()
         print("Done")
 
-    def update_all_scene_sub(self, index, id, uncaps): # subroutine
-        r = self.update_scene_file(id, uncaps)
+    def update_all_scene_sub(self, index, id, uncaps, scenes): # subroutine
+        r = self.update_scene_file(id, uncaps, scenes)
         if r is not None:
             with self.lock:
                 self.modified = True
                 if index == "npcs" and self.data[index][id] == 0:
                     self.data[index][id] = [r]
                 else:
-                    self.data[index][id][-1] = r
+                    self.data[index][id][7] = r
 
     def get_relation(self, eid): # retrieve element relation
         try:
@@ -1530,6 +1699,7 @@ def print_help():
     print("-listjob   : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
     print("-scene     : Update scene index for characters/npcs with missing data (Time consuming).")
     print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
+    print("-sound     : Update sound index for characters (Very ime consuming).")
     print("-wait      : Wait an in-game update (Must be the first parameter, usable with others).")
     print("-nochange  : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     time.sleep(2)
@@ -1587,5 +1757,7 @@ if __name__ == '__main__':
                 p.update_all_scene()
             elif argv[1] == '-scenefull':
                 p.update_all_scene(True)
+            elif argv[1] == '-sound':
+                p.update_all_sound()
             else:
                 print_help()
