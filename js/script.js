@@ -333,6 +333,7 @@ function loadIndexed(id, obj, shortened=false)
                     img.src = protocol + getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
                 ref.setAttribute('href', img.src.replace("img_low", "img"));
                 img.classList.add("loading");
+                img.setAttribute('loading', 'lazy');
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -348,6 +349,7 @@ function loadIndexed(id, obj, shortened=false)
                 if(skycompass != null && asset[5]) // skycompass
                 {
                     img = document.createElement("img");
+                    img.setAttribute('loading', 'lazy');
                     ref = document.createElement('a');
                     if(!skycompass[2])
                     {
@@ -402,6 +404,7 @@ function loadIndexed(id, obj, shortened=false)
                 img.src = protocol + getMainEndpoint() + language + asset[3] + asset[1] + id + file + "." + asset[2];
                 ref.setAttribute('href', img.src.replace("img_low", "img"));
                 img.classList.add("loading");
+                img.setAttribute('loading', 'lazy');
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -895,6 +898,7 @@ function lookupCharacter(character_id) // old and slow, avoid using this
                                         div.appendChild(ref);
                                         ref.appendChild(img);
                                         img.classList.add("loading");
+                                        img.setAttribute('loading', 'lazy');
                                         img.onerror = function() {
                                             let result = this.parentNode.parentNode;
                                             this.parentNode.remove();
@@ -916,6 +920,7 @@ function lookupCharacter(character_id) // old and slow, avoid using this
                                             div.appendChild(ref);
                                             ref.appendChild(img);
                                             img.classList.add("loading");
+                                            img.setAttribute('loading', 'lazy');
                                             img.onerror = function() {
                                                 let result = this.parentNode.parentNode;
                                                 this.parentNode.remove();
@@ -978,6 +983,7 @@ function lookupNPCChara(character_id, chara_data = null)
             div.appendChild(ref);
             ref.appendChild(img);
             img.classList.add("loading");
+            img.setAttribute('loading', 'lazy');
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
@@ -1034,6 +1040,7 @@ function lookupNPC(npc_id)
             div.appendChild(ref);
             ref.appendChild(img);
             img.classList.add("loading");
+            img.setAttribute('loading', 'lazy');
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
@@ -1121,6 +1128,7 @@ function lookupSummon(summon_id)
                 div.appendChild(ref);
                 ref.appendChild(img);
                 img.classList.add("loading");
+                img.setAttribute('loading', 'lazy');
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -1143,6 +1151,7 @@ function lookupSummon(summon_id)
             div.appendChild(ref);
             ref.appendChild(img);
             img.classList.add("loading");
+            img.setAttribute('loading', 'lazy');
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
@@ -1210,6 +1219,7 @@ function lookupWeapon(weapon_id, shortened=false)
                 div.appendChild(ref);
                 ref.appendChild(img);
                 img.classList.add("loading");
+                img.setAttribute('loading', 'lazy');
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -1267,6 +1277,7 @@ function lookupEnemy(enemy_id)
                 div.appendChild(ref);
                 ref.appendChild(img);
                 img.classList.add("loading");
+                img.setAttribute('loading', 'lazy');
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
@@ -1338,6 +1349,7 @@ function lookupMC(mc_id)
             div.appendChild(ref);
             ref.appendChild(img);
             img.classList.add("loading");
+            img.setAttribute('loading', 'lazy');
             img.onerror = function() {
                 let result = this.parentNode.parentNode;
                 this.parentNode.remove();
@@ -1362,6 +1374,7 @@ function lookupMC(mc_id)
                 div.appendChild(ref);
                 ref.appendChild(img);
                 img.classList.add("loading");
+                img.setAttribute('loading', 'lazy');
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
