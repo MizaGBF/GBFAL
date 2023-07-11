@@ -21,6 +21,7 @@ summary {
     margin-right: auto;
     color: #ffffff;
     text-shadow: #000000 1px 0 10px;
+    font-size: 30px;
 }
 
 .red-sum {
@@ -32,6 +33,7 @@ summary {
     margin-right: auto;
     color: #ffffff;
     text-shadow: #000000 1px 0 10px;
+    font-size: 30px;
 }
 
 .green-sum {
@@ -43,6 +45,7 @@ summary {
     margin-right: auto;
     color: #ffffff;
     text-shadow: #000000 1px 0 10px;
+    font-size: 30px;
 }
 
 .yellow-sum {
@@ -54,6 +57,7 @@ summary {
     margin-right: auto;
     color: #ffffff;
     text-shadow: #000000 1px 0 10px;
+    font-size: 30px;
 }
 
 .tooltip {

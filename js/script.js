@@ -163,7 +163,7 @@ function loadIndexed(id, obj, shortened=false)
                 search_type = 2;
                 break;
             case '3':
-                if(id[1] == '9')
+                if(id[1] == '9' || id[2] == '5')
                 {
                     newArea("NPC", id, true);
                     search_type = 5;
@@ -447,7 +447,7 @@ function loadIndexed(id, obj, shortened=false)
             "ability_us": "Buff Skill",
             "ready": "CA Ready",
             "mortal": "Charge Attack",
-            "chain": "Chain Burst",
+            "chain": "Chain Burst Banter",
             "damage": "Damaged",
             "healed": "Healed",
             "power_down": "Debuffed",
@@ -478,7 +478,7 @@ function loadIndexed(id, obj, shortened=false)
         {
             if(v in sorted_sound)
             {
-                let div = addResult(v, v + " Voices");
+                let div = sorted_sound[v].length > 15 ? addVoiceResult(v, v + " Voices", sorted_sound[v].length) : addResult(v, v + " Voices");
                 for(let sound of sorted_sound[v])
                 {
                     let elem = document.createElement("div");
@@ -486,15 +486,35 @@ function loadIndexed(id, obj, shortened=false)
                     let s = sound.substring(1);
                     switch(s.substring(0, 3))
                     {
+                        case "02_": s = "4★_" + s.substring(3); break;
                         case "03_": s = "5★_" + s.substring(3); break;
                         case "04_": s = "6★_" + s.substring(3); break;
                         case "05_": s = "7★_" + s.substring(3); break;
                         default: s = "0★_" + s; break;
                     }
                     s = s.split('_');
+                    let isCB = false;
                     for(let i = 0; i < s.length; ++i)
                     {
-                        elem.appendChild(document.createTextNode(s[i]));
+                        switch(s[i])
+                        {
+                            case "chain1": elem.appendChild(document.createTextNode("Fire CB")); isCB = true; break;
+                            case "chain2": elem.appendChild(document.createTextNode("Water CB")); isCB = true; break;
+                            case "chain3": elem.appendChild(document.createTextNode("Earth CB")); isCB = true; break;
+                            case "chain4": elem.appendChild(document.createTextNode("Wind CB")); isCB = true; break;
+                            case "chain5": elem.appendChild(document.createTextNode("Light CB")); isCB = true; break;
+                            case "chain6": elem.appendChild(document.createTextNode("Dark CB")); isCB = true; break;
+                            case "s1": elem.appendChild(document.createTextNode("Scene 1")); break;
+                            case "s2": elem.appendChild(document.createTextNode("Scene 2")); break;
+                            case "s3": elem.appendChild(document.createTextNode("Scene 3")); break;
+                            case "s4": elem.appendChild(document.createTextNode("Scene 4")); break;
+                            case "s5": elem.appendChild(document.createTextNode("Scene 5")); break;
+                            case "s6": elem.appendChild(document.createTextNode("Scene 6")); break;
+                            default:
+                                if(isCB) elem.appendChild(document.createTextNode(s[i] + " chains"));
+                                else elem.appendChild(document.createTextNode(s[i]));
+                                break;
+                        }
                         elem.appendChild(document.createElement('br'));
                     }
                     elem.onclick = function() {
@@ -515,6 +535,35 @@ function loadIndexed(id, obj, shortened=false)
     }
 }
 
+function addVoiceResult(identifier, name, file_count)
+{
+    let div = document.createElement("div");
+    div.classList.add("result");
+    if(identifier == "Generic" || identifier == "Standard")
+    {
+        let tooltip = document.createElement("div");
+        tooltip.classList.add("tooltip");
+        let img = document.createElement("img");
+        img.src = "assets/ui/question.png";
+        tooltip.appendChild(img);
+        let span = document.createElement("span");
+        span.classList.add("tooltiptext");
+        span.innerHTML = "For older units, a lot of files might be regrouped under this category";
+        tooltip.appendChild(span);
+        div.appendChild(tooltip);
+    }
+    div.setAttribute("data-id", identifier);
+    div.appendChild(document.createTextNode(name));
+    div.appendChild(document.createElement("br"));
+    let details = document.createElement("details");
+    let summary = document.createElement("summary");
+    summary.innerHTML = file_count + " Files";
+    details.appendChild(summary);
+    div.appendChild(details);
+    result_area.appendChild(div);
+    return details;
+}
+
 function loadUnindexed(id)
 {
     if(blacklist.includes(id)) return;
@@ -529,7 +578,7 @@ function loadUnindexed(id)
                 lookupSummon(id);
                 break;
             case '3':
-                if(id[1] == '9')
+                if(id[1] == '9' || id[2] == '5')
                 {
                     lookupNPC(id);
                 }
@@ -591,6 +640,7 @@ function lookup(id)
             id = id.slice(1);
             check = "enemies";
         }
+        else if(id.slice(0, 3) == "305") check = "npcs"; // for lyria and stuff
         else if(start == "30") check = "characters";
         else if(start == "39") check = "npcs";
         else if(start == "37") check = "skins";
@@ -604,7 +654,9 @@ function lookup(id)
         else if(id.length == 6) check = "job";
         favButton(false, null, null);
         if(check != null && id in index[check] && index[check][id] !== 0)
+        {
             loadIndexed(id, index[check][id]);
+        }
         else
         {
             if(check != null && id in index[check] && index[check][id] == 0)
@@ -1584,14 +1636,14 @@ function updateHistory(id, search_type)
         document.getElementById('history').parentNode.style.display = "none";
         return;
     }
-    else if(lastsearches.length > 10)
+    else if(lastsearches.length > 20)
     {
-        lastsearches = lastsearches.slice(lastsearches.length - 10);
+        lastsearches = lastsearches.slice(lastsearches.length - 20);
     }
     let histarea = document.getElementById('history');
     histarea.parentNode.style.display = null;
     histarea.innerHTML = "";
-    updateDynamicList(histarea, lastsearches);
+    updateDynamicList(histarea, lastsearches.slice().reverse());
     histarea.appendChild(document.createElement("br"));
     let btn = document.createElement("button");
     btn.innerHTML = "Clear";
@@ -1785,6 +1837,32 @@ function displayEnemies(elem, i)
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
             addIndexImage(node, slist[k][0], slist[k][1], null, "img/");
+    }
+    this.onclick = null;
+}
+
+function displayMainNPC(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areamainnpc');
+    let onerr = function() {
+        this.onerror = function() {
+            this.remove();
+        }
+        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
+        this.className = "preview";
+    }
+    if("npcs" in index)
+    {
+        let slist = {};
+        for(const id in index["npcs"])
+        {
+            if(id.startsWith("39")) continue;
+            slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
+        }
+        const keys = Object.keys(slist).sort();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1], onerr);
     }
     this.onclick = null;
 }

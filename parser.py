@@ -90,7 +90,23 @@ class Parser():
             if self.modified:
                 self.modified = False
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
-                    json.dump(self.data, outfile)
+                    # custom json indentation
+                    outfile.write("{\n")
+                    keys = list(self.data.keys())
+                    for k, v in self.data.items():
+                        outfile.write('"{}":{}\n'.format(k, '{'))
+                        last = list(v.keys())[-1]
+                        for i, d in v.items():
+                            outfile.write('"{}":'.format(i))
+                            json.dump(d, outfile, separators=(',', ':'), ensure_ascii=False)
+                            if i != last:
+                                outfile.write(",")
+                            outfile.write("\n")
+                        outfile.write("}")
+                        if k != keys[-1]:
+                            outfile.write(",")
+                        outfile.write("\n")
+                    outfile.write("}")
                 print("data.json updated")
                 if self.update_changelog:
                     try:
@@ -153,6 +169,7 @@ class Parser():
         self.newShared(errs)
         for i in range(7):
             possibles.append(('npcs', i, 7, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 60))
+        possibles.append(('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 2))
         
         # backgrounds
         possibles.append(('background', 0, 1, self.newShared(errs), "event_{}", 1, "img_low/sp/raid/bg/", ".jpg", [""], 10))
@@ -645,7 +662,7 @@ class Parser():
                         futures.append(executor.submit(self.sumUpdate, id))
                     elif id.startswith('10'):
                         futures.append(executor.submit(self.weapUpdate, id))
-                    elif id.startswith('39'):
+                    elif id.startswith('39') or id.startswith('305'):
                         try: scenes = set(self.data["npcs"][id][0])
                         except: scenes = set()
                         futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
@@ -761,6 +778,8 @@ class Parser():
             except:
                 pass
         data[4] = attacks
+        # scenes and sounds
+        uncaps = [u for u in uncaps if ("_" not in u and u.startswith("0"))] # format uncaps (remove useless ones)
         try: scenes = set(self.data['characters'][id+style][7])
         except: scenes = set()
         pending = self.request_scene_bulk(id+style, uncaps, scenes)
@@ -920,8 +939,14 @@ class Parser():
     def update_scene_file(self, id, uncaps = None, existing = set()):  # return npc data for chara/skin/npc (the function is divided in two, see below)
         r = self.request_scene_bulk(id, uncaps, existing)
         if r is not None:
-            time.sleep(50)
-            return self.process_scene_bulk(r)
+            l = 1 if uncaps is None else len(uncaps)
+            time.sleep(5+10*l) # take a break, waiting for the requests to go through
+            res = self.process_scene_bulk(r)
+            if res is not None and len(res) > 0 and (id.startswith('399') or id.startswith('305')):
+                with self.lock:
+                    self.addition[id] = 5
+                    self.modified = True
+            return res
         return None
 
     def request_scene_bulk(self, id, uncaps = None, existing = set()):
@@ -935,13 +960,17 @@ class Parser():
                 for s in self.scene_strings:
                     scene_alts.append(uncap+s)
             scene_alts += self.scene_special_strings
+            if id.startswith("305"):
+                scene_alts += ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
             result = {}
             for s in scene_alts:
                 if s in existing:
                     result[s] = True
                 else:
-                    self.request_queue.put(("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", id, s, result))
                     result[s] = None
+            for s in result:
+                if result[s] is None:
+                    self.request_queue.put(("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", id, s, result))
             for s in scene_alts:
                 self.request_queue.put(("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", id, s, result))
             return result
@@ -957,8 +986,8 @@ class Parser():
                     if v is None:
                         has_none = True
                         break
-                time.sleep(5)
                 if not has_none: break
+                time.sleep(5)
             result = [k for k, v in result.items() if v == True]
             return result
         except:
@@ -973,11 +1002,13 @@ class Parser():
             for id in self.data[k]:
                 uncaps = []
                 for u in self.data[k][id][5]:
-                    uncaps.append(u.replace(id+"_", ""))
+                    uu = u.replace(id+"_", "")
+                    if "_" not in uu and uu.startswith("0") and uu != "02":
+                        uncaps.append(uu)
                 try: voices = set(self.data[k][id][8])
                 except: voices = set()
                 to_update[k].append((id, uncaps, voices))
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = []
             for k in to_update:
                 for e in to_update[k]:
@@ -1013,10 +1044,10 @@ class Parser():
             uncaps = [""]
         # standard stuff
         for uncap in uncaps:
-            if "_f" in uncap or not uncap.replace("_", "").startswith("0"): continue # only need base uncaps
             if uncap == "01": uncap = ""
+            elif uncap == "02": continue # seems unused
             elif uncap != "": uncap = "_" + uncap
-            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("_birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_valentine_mypage", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_christmas_mypage", 1), ("_Xmas", 1)]:
+            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1)]:
                 match mid: # opti
                     case "_":
                         suffixes = ["", "a", "b"]
@@ -1102,8 +1133,69 @@ class Parser():
                 else:
                     A += 1
                     B = 1
-        result.sort()
-        return result
+        # seasonal scenes
+        flags = set()
+        for suffix in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
+            if "valentine" in suffix[0].lower():
+                t = "valentine"
+            elif "white" in suffix[0].lower():
+                t = "white"
+            elif "birth" in suffix[0].lower():
+                t = "birthday"
+            elif "halloween" in suffix[0].lower():
+                t = "halloween"
+            elif "newyear" in suffix[0].lower():
+                t = "newyear"
+            elif "mas" in suffix[0].lower():
+                t = "christmas"
+            if t in flags: continue
+            A = 0
+            while True:
+                try:
+                    f = suffix[0] + str(A)
+                    if f not in existing: self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f))
+                    result.append(f)
+                except:
+                    break
+                A += 1
+            if A > 0:
+                flags.add(t)
+        for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
+            #if suffix not in flags: continue
+            for s in range(1, 6):
+                exists = False
+                for A in range(1, 10): # check if already indexed
+                    if "_s{}_{}{}".format(s, suffix, A) in existing:
+                        exists = True
+                        break
+                if exists: continue
+                exists = False
+                err = 0
+                A = 1
+                while err < 5:
+                    try:
+                        f = "_s{}_{}{}".format(s, suffix, A)
+                        self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f))
+                        result.append(f)
+                        success = True
+                        err = 0
+                        exists = True
+                    except:
+                        err += 1
+                    A += 1
+                if not exists:
+                    break
+        # sorting
+        A = []
+        B = []
+        for k in result:
+            if k.split("_")[1] in ["02", "03", "04", "05"]:
+                B.append(k)
+            else:
+                A.append(k)
+        A.sort()
+        B.sort()
+        return A+B
 
     # extract json data from a manifest file
     def processManifest(self, file):
@@ -1341,7 +1433,9 @@ class Parser():
                 if not isinstance(self.data[k][id], int) and (full or (len(self.data[k][id]) >= 8 and (self.data[k][id][7] is None or len(self.data[k][id][7]) == 0))):
                     uncaps = []
                     for u in self.data[k][id][5]:
-                        uncaps.append(u.replace(id+"_", ""))
+                        uu = u.replace(id+"_", "")
+                        if "_" not in uu and uu.startswith("0"):
+                            uncaps.append(uu)
                     try: scenes = set(self.data["npcs"][id][7])
                     except: scenes = set()
                     to_update[k].append((id, uncaps, scenes))
@@ -1373,7 +1467,7 @@ class Parser():
         if r is not None:
             with self.lock:
                 self.modified = True
-                if index == "npcs" and self.data[index][id] == 0:
+                if index == "npcs":
                     self.data[index][id] = [r]
                 else:
                     self.data[index][id][7] = r
@@ -1404,7 +1498,7 @@ class Parser():
                     with self.name_lock:
                         if name not in self.name_table:
                             self.name_table[name] = []
-                        if eid not in self.name_table[name] and not eid.startswith('399'):
+                        if eid not in self.name_table[name] and not eid.startswith('399') and not eid.startswith('305'):
                             self.name_table[name].append(eid)
                             self.name_table_modified = True
                 try: page = page.decode('utf-8')
