@@ -626,9 +626,9 @@ function lookup(id)
     f = document.getElementById('filter');
     let el = id.split("_");
     if(
-        (el.length == 2 && el[1] == "st2" && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || (el.length == 1 && el[0].length == 10 && !isNaN(el[0]) && id != last_id) || 
-        (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1)) && id.slice(1) != last_id) ||
-        (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6)) && id != last_id) || // retrocompatibility
+        (el.length == 2 && el[1] == "st2" && el[0].length == 10 && !isNaN(el[0])) || (el.length == 1 && el[0].length == 10 && !isNaN(el[0])) || 
+        (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1))) ||
+        (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6))) || // retrocompatibility
         (id.length == 6 && !isNaN(id))
     )
     {
@@ -649,12 +649,13 @@ function lookup(id)
         else if(start == "37") check = "skins";
         else if(start == "20") check = "summons";
         else if(start == "10") check = "weapons";
-        else if(id.length == 9 && id[6] == "_")
+        else if(id.length == 9 && id[6] == "_") // retrocompatibility
         {
             id = id.split('_')[0];
             check = "job";
         }
         else if(id.length == 6) check = "job";
+        if(id == last_id) return; // quit if already loaded
         favButton(false, null, null);
         if(check != null && id in index[check] && index[check][id] !== 0)
         {
