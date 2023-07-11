@@ -6297,7 +6297,10 @@
 "6205792":[["6205792"],["enemy_6205792.png"],["raid_appear_6205792.png"],["ehit_6205792.png"],["esp_6205792_01.png"],["esp_6205792_02_all.png","esp_6205792_03_all.png"]],
 "8104113":[["8104113"],["enemy_8104113_a.png","enemy_8104113_b.png","enemy_8104113_c.png"],["raid_appear_8104113.png"],[],[],["esp_8104113_03_all_a.png","esp_8104113_03_all_b.png","esp_8104113_03_all_c.png"]],
 "1201052":[["1201052"],["enemy_1201052.png"],[],["ehit_1201052.png"],["esp_1201052_01.png"],["esp_1201052_02_all.png","esp_1201052_03_all.png"]],
-"4300952":[["4300952"],["enemy_4300952.png"],[],["ehit_4300952.png"],[],["esp_4300952_01_all.png","esp_4300952_02_all.png"]]
+"4300952":[["4300952"],["enemy_4300952.png"],[],["ehit_4300952.png"],[],["esp_4300952_01_all.png","esp_4300952_02_all.png"]],
+"5101063":[["5101063"],["enemy_5101063_a.png","enemy_5101063_b.png","enemy_5101063_c.png"],["raid_appear_5101063.png"],["ehit_5101063.png"],[],[]],
+"5101073":[["5101073"],["enemy_5101073_a.png","enemy_5101073_b.png"],[],[],[],[]],
+"9102223":[["9102223"],["enemy_9102223_a.png","enemy_9102223_b.png","enemy_9102223_c.png"],["raid_appear_9102223.png"],[],[],[]]
 },
 "skins":{
 "3710001000":[["npc_3710001000_01.png"],[],["nsp_3710001000_01.png"],[],[],["3710001000_01"],["3710001000_01"],[""],["_ability_them1","_ability_them2","_ability_them3","_ability_them4","_ability_us1","_ability_us2","_ability_us3","_ability_us4","_cutin1","_cutin2","_lose1","_lose2","_mypage1","_mypage2","_mypage3","_mypage4","_v_001","_v_002","_v_003","_v_004","_v_005","_v_006","_v_007","_v_008","_v_009","_win1","_win2"]],
@@ -9078,7 +9081,12 @@
 "3993148000":[["","_up"]],
 "3050000000":[["","_up","_laugh","_laugh_up","_laugh2","_laugh2_up","_laugh3","_laugh3_up","_sad","_sad_speed","_sad_up","_angry","_angry_speed","_angry_up","_shadow","_shadow_up","_surprise","_surprise_speed","_surprise_up","_ef","_suddenly","_suddenly_up","_a","_b_sad","_valentine","_valentine2","_birthday","_birthday2","_birthday3","_birthday3_a","_birthday3_b"]],
 "3050001000":[["","_speed","_up","_laugh","_laugh_up","_laugh2","_laugh2_up","_sad","_sad_up","_angry","_angry_speed","_angry_up","_angry2","_angry2_speed","_angry2_up","_shadow","_surprise","_surprise_speed","_surprise_up","_mood","_mood_speed","_mood_up","_mood2","_mood2_up","_speed2","_a","_b","_birthday","_birthday2","_birthday3","_birthday3_a"]],
-"3050002000":[["","_up","_laugh","_laugh_up","_sad","_sad_up","_shadow","_close","_close_up","_serious","_serious_up","_serious2","_serious2_up","_surprise","_surprise_up","_surprise2","_surprise2_up","_think","_think_up"]]
+"3050002000":[["","_up","_laugh","_laugh_up","_sad","_sad_up","_shadow","_close","_close_up","_serious","_serious_up","_serious2","_serious2_up","_surprise","_surprise_up","_surprise2","_surprise2_up","_think","_think_up"]],
+"3993154000":[[""]],
+"3993151000":[["","_up","_shadow","_a","_a_speed","_a_up"]],
+"3993155000":[[""]],
+"3993153000":[["","_up","_laugh","_laugh_up","_close","_close_up","_serious","_serious_up","_serious2","_serious2_up"]],
+"3993150000":[["","_up","_shout","_shout_up","_shout2","_shout2_up","_angry","_angry_up","_angry2","_angry2_up","_close","_close_up","_serious","_serious_up","_serious2","_serious2_up","_surprise","_surprise_up","_surprise2","_surprise2_up","_think","_think_up"]]
 },
 "background":{
 "common_001":0,
@@ -9803,7 +9811,8 @@
 "event_507":0,
 "event_509":0,
 "event_510":0,
-"event_511":0
+"event_511":0,
+"26ra":0
 },
 "title":{
 "1":0,
@@ -13752,6 +13761,7 @@
 "1040516000":"weapon gun ssr czar's belchzooka fire ヌシブロウ・バズーカ 1040516000",
 "1030305700":"weapon axe sr scorching_fan fire 灼熱扇 1030305700",
 "1040421900":"weapon staff ssr sea of dreams dark シーオブドリーム 1040421900",
-"1040712600":"weapon bow ssr fugaku vista bow earth 富嶽景弓 1040712600"
+"1040712600":"weapon bow ssr fugaku vista bow earth 富嶽景弓 1040712600",
+"1040218500":"weapon spear ssr exo kshathra exo earth 神槍エクス・クシャスラ 1040218500"
 }
 }
