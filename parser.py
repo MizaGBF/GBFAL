@@ -195,13 +195,22 @@ class Parser():
         print("Starting index update... (", len(possibles)+job_thread, " threads )")
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)+job_thread) as executor:
             futures = []
+            s = time.time()
             for i in range(job_thread):
                 futures.append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
             # start
             for p in possibles:
                 futures.append(executor.submit(self.subroutine, self.endpoint, *p))
+            countmax = len(futures)
+            count = 0
             for future in concurrent.futures.as_completed(futures):
                 future.result()
+                count += 1
+                if count >= countmax:
+                    print("Progress: 100%")
+                    print("Finished in {:.2f} seconds".format(time.time() - s))
+                elif count % 10 == 0:
+                    print("Progress: {:.1f}%".format(90*count/countmax))
         print("Index update done")
         self.manualUpdate(self.new_elements)
         self.save()
@@ -586,7 +595,6 @@ class Parser():
                     with err[2]:
                         err[0] += 1
                         if err[0] >= maxerr:
-                            if err[1]: print("Group", index, "("+file.format('X'*zfill)+")", "is done")
                             err[1] = False
                             return
                     break
@@ -656,6 +664,7 @@ class Parser():
             futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
             for id in range(100): futures.append(executor.submit(self.bulkRequest))
             tcounter = len(futures)
+            s = time.time()
             for id in ids:
                 if len(id) >= 10:
                     if id.startswith('2'):
@@ -685,6 +694,7 @@ class Parser():
                 tfinished += 1
                 if tfinished == tcounter:
                     print("Progress: 100%")
+                    print("Finished in {:.2f} seconds".format(time.time() - s))
                     self.running = False
                 elif tfinished < tcounter and tfinished % 10 == 0:
                     print("Progress: {:.1f}%".format(100 * tfinished / tcounter))
@@ -1010,6 +1020,7 @@ class Parser():
                 to_update[k].append((id, uncaps, voices))
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = []
+            s = time.time()
             for k in to_update:
                 for e in to_update[k]:
                     futures.append(executor.submit(self.update_all_sound_sub, k, e[0], e[1], e[2]))
@@ -1023,6 +1034,7 @@ class Parser():
                 count += 1
                 if count < countmax and count % 20 == 0:
                     print("Progress: {:.1f}%".format(100*count/countmax))
+                    print("Finished in {:.2f} seconds".format(time.time() - s))
                 elif count == countmax:
                     print("Progress: 100%")
                     self.running = False
@@ -1443,6 +1455,7 @@ class Parser():
             futures = []
             for k in range(100): futures.append(executor.submit(self.bulkRequest))
             countmax = len(futures)
+            s = time.time()
             for k in to_update:
                 for e in to_update[k]:
                     futures.append(executor.submit(self.update_all_scene_sub, k, e[0], e[1], e[2]))
@@ -1458,6 +1471,7 @@ class Parser():
                     print("Progress: {:.1f}%".format(100*count/countmax))
                 elif count == countmax:
                     print("Progress: 100%")
+                    print("Finished in {:.2f} seconds".format(time.time() - s))
                     self.running = False
         self.save()
         print("Done")
