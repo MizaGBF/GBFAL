@@ -222,7 +222,8 @@ function loadIndexed(id, obj, shortened=false)
             ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", 5, false, false],
             ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", 5, false, false],
             ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", 5, false, false],
-            ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_low/", 5, false, false],
+            ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_mid/", 5, false, false],
+            ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", "img/", 6, false, false],
             ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", 5, false, false],
             ["Tower Portraits", "sp/assets/npc/t/", "png", "img_low/", 5, false, false],
             ["Detail Banners", "sp/assets/npc/detail/", "png", "img_low/", 5, false, false],
@@ -257,6 +258,7 @@ function loadIndexed(id, obj, shortened=false)
             ["Main Arts", "sp/assets/summon/b/", "png", "img_low/", 0, true, false], // index, skycompass, side form
             ["Home Arts", "sp/assets/summon/my/", "png", "img_low/", 0, false, false],
             ["Gacha Art", "sp/assets/summon/g/", "png", "img_low/", 0, false, false],
+            ["Gacha Header", "sp/gacha/header/", "png", "img_low/", 0, false, false],
             ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/", 0, false, false],
             ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/", 0, false, false],
             ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/", 0, false, false],
@@ -273,7 +275,9 @@ function loadIndexed(id, obj, shortened=false)
     {
         assets = [
             ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/", 0, false, false], // index, skycompass, side form
-            ["Gacha Art", "sp/assets/weapon/g/", "jpg", "img_low/", 0, false, false],
+            ["Gacha Art", "sp/assets/weapon/g/", "png", "img_low/", 0, false, false],
+            ["Gacha Cover", "sp/gacha/cjs_cover/", "png", "img_mid/", 0, false, false],
+            ["Gacha Header", "sp/gacha/header/", "png", "img_low/", 0, false, false],
             ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", 0, false, false],
             ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", 0, false, false],
             ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", 0, false, false],
@@ -322,6 +326,7 @@ function loadIndexed(id, obj, shortened=false)
             if(files.length == 0) continue; // empty list
             if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue; // weapon sheet for mc
             if(search_type == 2 && asset[0] == "Quest Portraits") files = [files[0], files[0]+"_hard", files[0]+"_ex", files[0]+"_high"]; // summon quest icon
+            else if(asset[0] == "Gacha Cover") files = [files[0]+"_1", files[0]+"_3"];
             let div = addResult(asset[0], asset[0]);
             result_area.appendChild(div);
             
@@ -817,11 +822,12 @@ function lookupCharacter(character_id) // old and slow, avoid using this
     let assets = [
         ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", false, true, false, true], // skin folder, gendered/multi, spritesheet, bonus
         ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", false, true, false, true],
-        ["Gacha Arts", "sp/assets/npc/b/", "png", "img_low/", false, false, false, false],
+        ["Gacha Arts", "sp/assets/npc/gacha/", "png", "img_low/", false, false, false, false],
         ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", false, true, false, true],
         ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", true, true, false, true],
         ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", true, true, false, true],
-        ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_low/", true, true, false, true],
+        ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_mid/", true, true, false, true],
+        ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", "img/", false, false, false, false],
         ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", true, true, false, true],
         ["Tower Portraits", "sp/assets/npc/t/", "png", "img_low/", true, true, false, true],
         ["Detail Banners", "sp/assets/npc/detail/", "png", "img_low/", true, true, false, true],
@@ -1068,6 +1074,7 @@ function lookupSummon(summon_id)
         ["Main Arts", "sp/assets/summon/b/", "png", "img_low/"],
         ["Home Arts", "sp/assets/summon/my/", "png", "img_low/"],
         ["Gacha Art", "sp/assets/summon/g/", "png", "img_low/"],
+        ["Gacha Header", "sp/gacha/header/", "png", "img_low/"],
         ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/"],
@@ -1180,6 +1187,8 @@ function lookupWeapon(weapon_id, shortened=false)
     let assets = [
         ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/"],
         ["Gacha Art", "sp/assets/weapon/g/", "png", "img_low/"],
+        ["Gacha Cover", "sp/gacha/cjs_cover/", "png", "img_mid/"],
+        ["Gacha Header", "sp/gacha/header/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/"],
         ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/"],
@@ -1198,6 +1207,10 @@ function lookupWeapon(weapon_id, shortened=false)
         {
             case "Battle Sprites":
                 appends = ["", "_1", "_2"];
+                sheets = [""];
+                break;
+            case "Gacha Cover":
+                appends = ["_1", "_3"];
                 sheets = [""];
                 break;
             case "Attack Effects":
