@@ -218,6 +218,7 @@ function loadIndexed(id, obj, shortened=false)
         assets = [
             ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", 5, true, false], // index, skycompass, side form
             ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", 5, false, false],
+            ["Gacha Arts", "sp/assets/npc/gacha/", "png", "img_low/", 6, false, false],
             ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", 5, false, false],
             ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", 5, false, false],
             ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", 5, false, false],
@@ -255,6 +256,7 @@ function loadIndexed(id, obj, shortened=false)
         assets = [
             ["Main Arts", "sp/assets/summon/b/", "png", "img_low/", 0, true, false], // index, skycompass, side form
             ["Home Arts", "sp/assets/summon/my/", "png", "img_low/", 0, false, false],
+            ["Gacha Art", "sp/assets/summon/g/", "png", "img_low/", 0, false, false],
             ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/", 0, false, false],
             ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/", 0, false, false],
             ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/", 0, false, false],
@@ -271,6 +273,7 @@ function loadIndexed(id, obj, shortened=false)
     {
         assets = [
             ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/", 0, false, false], // index, skycompass, side form
+            ["Gacha Art", "sp/assets/weapon/g/", "jpg", "img_low/", 0, false, false],
             ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", 0, false, false],
             ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", 0, false, false],
             ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", 0, false, false],
@@ -814,6 +817,7 @@ function lookupCharacter(character_id) // old and slow, avoid using this
     let assets = [
         ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", false, true, false, true], // skin folder, gendered/multi, spritesheet, bonus
         ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", false, true, false, true],
+        ["Gacha Arts", "sp/assets/npc/b/", "png", "img_low/", false, false, false, false],
         ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", false, true, false, true],
         ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", true, true, false, true],
         ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", true, true, false, true],
@@ -1063,6 +1067,7 @@ function lookupSummon(summon_id)
     assets = [
         ["Main Arts", "sp/assets/summon/b/", "png", "img_low/"],
         ["Home Arts", "sp/assets/summon/my/", "png", "img_low/"],
+        ["Gacha Art", "sp/assets/summon/g/", "png", "img_low/"],
         ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/"],
@@ -1174,6 +1179,7 @@ function lookupWeapon(weapon_id, shortened=false)
     if(blacklist.includes(weapon_id)) return;
     let assets = [
         ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/"],
+        ["Gacha Art", "sp/assets/weapon/g/", "png", "img_low/"],
         ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/"],
         ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/"],
         ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/"],
