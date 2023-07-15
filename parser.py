@@ -696,7 +696,7 @@ class Parser():
                     print("Progress: 100%")
                     print("Finished in {:.2f} seconds".format(time.time() - s))
                     self.running = False
-                elif tfinished < tcounter and tfinished % 10 == 0:
+                elif tfinished < tcounter and tfinished % 40 == 0:
                     print("Progress: {:.1f}%".format(100 * tfinished / tcounter))
         self.save()
         self.running = False
@@ -922,10 +922,10 @@ class Parser():
 
     # called once. generate a list of string to check for npc data
     def build_scene_strings(self):
-        expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2", "_suddenly", "_shy", "_shy2", "_weak"]
+        expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak"]
         variationsA = ["", "_a", "_b", "_battle"]
         variationsB = ["", "_speed", "_up"]
-        specials = ["_up_speed", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+        specials = ["_eyeline", "_up_speed", "_a_up_speed", "_b_up_speed", "_c_up_speed", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
         scene_alts = []
         for A in variationsA:
             for ex in expressions:
@@ -950,7 +950,7 @@ class Parser():
         r = self.request_scene_bulk(id, uncaps, existing)
         if r is not None:
             l = 1 if uncaps is None else len(uncaps)
-            time.sleep(5+10*l) # take a break, waiting for the requests to go through
+            time.sleep(10*l) # take a break, waiting for the requests to go through
             res = self.process_scene_bulk(r)
             if res is not None and len(res) > 0 and (id.startswith('399') or id.startswith('305')):
                 with self.lock:
@@ -991,13 +991,10 @@ class Parser():
         try:
             if result is None: return None
             while True:
-                has_none = False
-                for k, v in result.items():
-                    if v is None:
-                        has_none = True
-                        break
-                if not has_none: break
-                time.sleep(5)
+                if None in set(result.values()):
+                    time.sleep(4)
+                else:
+                    break
             result = [k for k, v in result.items() if v == True]
             return result
         except:
@@ -1432,33 +1429,27 @@ class Parser():
     def update_all_scene(self, full=False): # update npc data for every element (if full is true) or every non indexed elements
         self.running = True
         print("Updating scene data...")
-        to_update = {}
-        to_update["npcs"] = []
-        for id in self.data["npcs"]:
-            if isinstance(self.data["npcs"][id], int) or full or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0]) == 0:
-                try: scenes = set(self.data["npcs"][id][0])
-                except: scenes = set()
-                to_update["npcs"].append((id, None, scenes))
-        for k in ["characters", "skins"]:
-            to_update[k] = []
-            for id in self.data[k]:
-                if not isinstance(self.data[k][id], int) and (full or (len(self.data[k][id]) >= 8 and (self.data[k][id][7] is None or len(self.data[k][id][7]) == 0))):
-                    uncaps = []
-                    for u in self.data[k][id][5]:
-                        uu = u.replace(id+"_", "")
-                        if "_" not in uu and uu.startswith("0"):
-                            uncaps.append(uu)
-                    try: scenes = set(self.data["npcs"][id][7])
-                    except: scenes = set()
-                    to_update[k].append((id, uncaps, scenes))
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = []
             for k in range(100): futures.append(executor.submit(self.bulkRequest))
             countmax = len(futures)
+            for k in ["characters", "skins"]:
+                for id in self.data[k]:
+                    if not isinstance(self.data[k][id], int) and (full or (len(self.data[k][id]) >= 8 and (self.data[k][id][7] is None or len(self.data[k][id][7]) == 0))):
+                        uncaps = []
+                        for u in self.data[k][id][5]:
+                            uu = u.replace(id+"_", "")
+                            if "_" not in uu and uu.startswith("0"):
+                                uncaps.append(uu)
+                        try: scenes = set(self.data["npcs"][id][7])
+                        except: scenes = set()
+                        futures.append(executor.submit(self.update_all_scene_sub, k, id, uncaps, scenes))
+            for id in self.data["npcs"]:
+                if isinstance(self.data["npcs"][id], int) or full or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0]) == 0:
+                    try: scenes = set(self.data["npcs"][id][0])
+                    except: scenes = set()
+                    futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
             s = time.time()
-            for k in to_update:
-                for e in to_update[k]:
-                    futures.append(executor.submit(self.update_all_scene_sub, k, e[0], e[1], e[2]))
             count = 0
             countmax = len(futures) - countmax
             print(countmax, "element(s) to update...")
@@ -1481,9 +1472,9 @@ class Parser():
         if r is not None:
             with self.lock:
                 self.modified = True
-                if index == "npcs":
+                if index == "npcs": # npcs
                     self.data[index][id] = [r]
-                else:
+                else: # characters / skins
                     self.data[index][id][7] = r
 
     def get_relation(self, eid): # retrieve element relation
