@@ -1222,7 +1222,7 @@ class Parser():
     def cleanName(self, name):
         for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)']:
             name = name.replace(k, '')
-        return name.strip()
+        return name.strip().strip('_')
 
     # check id on the wiki to retrieve element name
     def generateNameLookup(self, cid):

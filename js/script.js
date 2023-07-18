@@ -29,7 +29,8 @@ var blacklist = [
 ]
 var index = {};
 var mc_index = null;
-var lastsearches = [];
+var searchHistory = [];
+var searchResults = [];
 var bookmarks = [];
 var timestamp = Date.now();
 var relations = {};
@@ -630,7 +631,6 @@ function lookup(id)
 {
     if(blacklist.includes(id)) return;
     main_endp_count = -1;
-    document.getElementById('results').style.display = "none";
     f = document.getElementById('filter');
     let el = id.split("_");
     if(
@@ -640,6 +640,7 @@ function lookup(id)
         (id.length == 6 && !isNaN(id))
     )
     {
+        // process id
         let start = id.slice(0, 2);
         let check = null;
         if(f.value == "" || f.value != id)
@@ -664,6 +665,22 @@ function lookup(id)
         }
         else if(id.length == 6) check = "job";
         if(id == last_id) return; // quit if already loaded
+        // disable search results if not relevant to current id
+        let found = false;
+        for(const el of searchResults)
+        {
+            if(el[0] == id)
+            {
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+        {
+            document.getElementById('results').style.display = "none";
+            searchResults = [];
+        }
+        // remove fav button before loading
         favButton(false, null, null);
         if(check != null && id in index[check] && index[check][id] !== 0)
         {
@@ -739,6 +756,7 @@ function lookup(id)
             results.insertBefore(document.createElement("br"), results.firstChild);
             results.insertBefore(document.createTextNode("Results for \"" + id + "\""), results.firstChild);
         }
+        searchResults = positives;
     }
 }
 
@@ -1641,42 +1659,41 @@ function updateHistory(id, search_type)
     // update local storage
     try
     {
-        lastsearches = localStorage.getItem("history");
-        if(lastsearches == null)
+        searchHistory = localStorage.getItem("history");
+        if(searchHistory == null)
         {
-            lastsearches = [];
+            searchHistory = [];
         }
         else
         {
-            lastsearches = JSON.parse(lastsearches);
+            searchHistory = JSON.parse(searchHistory);
+            if(searchHistory.length > 20) searchHistory = searchHistory.slice(searchHistory.length - 20); // resize if too big to not cause problems
         }
     }
     catch
     {
-        lastsearches = [];
+        searchHistory = [];
     }
     if(id != null)
     {
-        for(let e of lastsearches)
+        for(let e of searchHistory)
         {
             if(e[0] == id) return; // don't update if already in
         }
-        lastsearches.push([id, search_type]);
-        localStorage.setItem("history", JSON.stringify(lastsearches));
+        searchHistory.push([id, search_type]);
+        if(searchHistory.length > 20) searchHistory = searchHistory.slice(searchHistory.length - 20);
+        console.log(searchHistory);
+        localStorage.setItem("history", JSON.stringify(searchHistory));
     }
-    if(lastsearches.length == 0)
+    if(searchHistory.length == 0)
     {
         document.getElementById('history').parentNode.style.display = "none";
         return;
     }
-    else if(lastsearches.length > 20)
-    {
-        lastsearches = lastsearches.slice(lastsearches.length - 20);
-    }
     let histarea = document.getElementById('history');
     histarea.parentNode.style.display = null;
     histarea.innerHTML = "";
-    updateDynamicList(histarea, lastsearches.slice().reverse());
+    updateDynamicList(histarea, searchHistory.slice().reverse());
     histarea.appendChild(document.createElement("br"));
     let btn = document.createElement("button");
     btn.innerHTML = "Clear";
