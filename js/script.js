@@ -266,6 +266,7 @@ function loadIndexed(id, obj, shortened=false)
             ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/", 0, false, false],
             ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/", 0, false, false],
             ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/", 0, false, false],
+            ["Result Portraits", "sp/assets/summon/btn/", "png", "img/", 0, false, false],
             ["Quest Portraits", "sp/assets/summon/qm/", "png", "img/", 0, false, false],
             ["Summon Call Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
             ["Summon Damage Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
@@ -307,6 +308,7 @@ function loadIndexed(id, obj, shortened=false)
             ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", "img/", 3, false, false],
             ["Tower Portraits", "sp/assets/leader/t/", "png", "img_low/", 3, false, false],
             ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", "img/", 3, false, false],
+            ["Result Portraits", "sp/assets/leader/btn/", "png", "img/", 3, false, false],
             ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", "img/", 3, false, false],
             ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", "img_low/", 3, false, false],
             ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2, false, false],
@@ -1099,6 +1101,7 @@ function lookupSummon(summon_id)
         ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/"],
         ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/"],
         ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/"],
+        ["Result Portraits", "sp/assets/summon/btn/", "png", "img/"],
         ["Quest Portraits", "sp/assets/summon/qm/", "png", "img/"],
         ["Summon Call Sheets", "sp/cjs/summon_", "png", "img_low/"],
         ["Summon Damage Sheets", "sp/cjs/summon_", "png", "img_low/"]
@@ -1353,6 +1356,7 @@ function lookupMC(mc_id)
         ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", "img/", 2],
         ["Tower Portraits", "sp/assets/leader/t/", "png", "img_low/", 2],
         ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", "img/", 2],
+        ["Result Portraits", "sp/assets/leader/btn/", "png", "img/", 2],
         ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", "img/", 2],
         ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", "img_low/", 2],
         ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2],
