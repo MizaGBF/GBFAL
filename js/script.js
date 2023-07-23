@@ -220,6 +220,8 @@ function loadIndexed(id, obj, shortened=false)
             ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", 5, true, false], // index, skycompass, side form
             ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", 5, false, false],
             ["Gacha Arts", "sp/assets/npc/gacha/", "png", "img_low/", 6, false, false],
+            ["News Art", "sp/banner/notice/update_char_", "png", "img_low/", 6, false, false],
+            ["Pose News Arts", "sp/assets/npc/add_pose/", "png", "img_low/", 6, false, false],
             ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", 5, false, false],
             ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", 5, false, false],
             ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", 5, false, false],
@@ -327,12 +329,14 @@ function loadIndexed(id, obj, shortened=false)
         {
             files = (asset[4] == -1) ? files : obj[asset[4]]; // for npc
             if(files.length == 0) continue; // empty list
+            // exceptions
             if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue; // weapon sheet for mc
             if(search_type == 2 && asset[0] == "Quest Portraits") files = [files[0], files[0]+"_hard", files[0]+"_ex", files[0]+"_high"]; // summon quest icon
             else if(asset[0] == "Gacha Cover") files = [files[0]+"_1", files[0]+"_3"];
+            else if(asset[0] == "News Art") files = [id];
+            
             let div = addResult(asset[0], asset[0]);
             result_area.appendChild(div);
-            
             for(let file of files)
             {
                 if(!asset[6] && (file.endsWith('_f') || file.endsWith('_f1'))) continue;
