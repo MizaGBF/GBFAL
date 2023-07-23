@@ -672,9 +672,7 @@ class Parser():
                     elif id.startswith('10'):
                         futures.append(executor.submit(self.weapUpdate, id))
                     elif id.startswith('39') or id.startswith('305'):
-                        try: scenes = set(self.data["npcs"][id][0])
-                        except: scenes = set()
-                        futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
+                        futures.append(executor.submit(self.npcUpdate, id))
                     elif id.startswith('3'):
                         el = id.split('_')
                         if len(el) == 2:
@@ -806,7 +804,24 @@ class Parser():
             self.addition[id+style] = 3
         self.generateNameLookup(id+style)
         return True
-        
+
+    # index npc data
+    def npcUpdate(self, id):
+        data = [[], []] # npc, voice
+        try: scenes = set(self.data["npcs"][id][0])
+        except: scenes = set()
+        pending = self.request_scene_bulk(id, [""], scenes)
+        try: voices = set(self.data['npcs'][id][1])
+        except: voices = set()
+        data[1] = self.update_chara_sound_file(id, [""], voices)
+        data[0] = self.process_scene_bulk(pending)
+        if len(data[0]) + len(data[1]) == 0: return False
+        with self.lock:
+            self.modified = True
+            self.data['npcs'][id] = data
+            self.addition[id] = 5
+        return True
+
     # index summon data
     def sumUpdate(self, id):
         data = [[], [], []] # general, call, damage
@@ -951,12 +966,7 @@ class Parser():
         if r is not None:
             l = 1 if uncaps is None else len(uncaps)
             time.sleep(10*l) # take a break, waiting for the requests to go through
-            res = self.process_scene_bulk(r)
-            if res is not None and len(res) > 0 and (id.startswith('399') or id.startswith('305')):
-                with self.lock:
-                    self.addition[id] = 5
-                    self.modified = True
-            return res
+            return self.process_scene_bulk(r)
         return None
 
     def request_scene_bulk(self, id, uncaps = None, existing = set()):
@@ -1003,7 +1013,11 @@ class Parser():
     def update_all_sound(self): # update sound data for every character
         self.running = True
         print("Updating sound data...")
-        to_update = {}
+        to_update = {"npcs":[]}
+        for id in self.data['npcs']:
+            try: voices = set(self.data['npcs'][id][1])
+            except: voices = set()
+            to_update['npcs'].append((id, [""], voices))
         for k in ["characters", "skins"]:
             to_update[k] = []
             for id in self.data[k]:
@@ -1029,23 +1043,26 @@ class Parser():
             for future in concurrent.futures.as_completed(futures):
                 future.result()
                 count += 1
-                if count < countmax and count % 20 == 0:
-                    print("Progress: {:.1f}%".format(100*count/countmax))
-                    print("Finished in {:.2f} seconds".format(time.time() - s))
+                if count < countmax and count % 80 == 0:
+                    print("Progress: {:.1f}%".format(95*count/countmax))
                 elif count == countmax:
                     print("Progress: 100%")
+                    print("Finished in {:.2f} seconds".format(time.time() - s))
                     self.running = False
         self.save()
         print("Done")
 
     def update_all_sound_sub(self, index, id, uncaps, voices): # subroutine
-        if index not in ["characters", "skins"]: return
+        if index not in ["characters", "skins", "npcs"]: return
         r = self.update_chara_sound_file(id, uncaps, voices)
         if len(self.data[index][id]) == 8: self.data[index][id].append(None)
         if r is not None:
             with self.lock:
                 self.modified = True
-                self.data[index][id][8] = r # character
+                if index == 'npcs':
+                    self.data[index][id][1] = r # npc
+                else:
+                    self.data[index][id][8] = r # character
 
     def update_chara_sound_file(self, id, uncaps = None, existing = set()): # result all sounds (not multithreaded)
         result = []
@@ -1056,7 +1073,7 @@ class Parser():
             if uncap == "01": uncap = ""
             elif uncap == "02": continue # seems unused
             elif uncap != "": uncap = "_" + uncap
-            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1)]:
+            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1)]:
                 match mid: # opti
                     case "_":
                         suffixes = ["", "a", "b"]
@@ -1473,7 +1490,7 @@ class Parser():
             with self.lock:
                 self.modified = True
                 if index == "npcs": # npcs
-                    self.data[index][id] = [r]
+                    self.data[index][id][0] = r
                 else: # characters / skins
                     self.data[index][id][7] = r
 
@@ -1798,7 +1815,7 @@ def print_help():
     print("-listjob   : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
     print("-scene     : Update scene index for characters/npcs with missing data (Time consuming).")
     print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
-    print("-sound     : Update sound index for characters (Very ime consuming).")
+    print("-sound     : Update sound index for characters (Very time consuming).")
     print("-wait      : Wait an in-game update (Must be the first parameter, usable with others).")
     print("-nochange  : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     time.sleep(2)

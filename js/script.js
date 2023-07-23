@@ -276,6 +276,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
             ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", -1, false, false]
         ];
         npcdata = obj[0];
+        sounds = obj[1];
         files = [id, id + "_01"];
     }
     else if(search_type == 2) // summons
