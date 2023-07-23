@@ -7,72 +7,80 @@ Event: https://media.skycompass.io/assets/archives/events/ID/image/NUM_free.png
 
 */
 
-var protocol = "https://";
+// endpoints
 var endpoints = [
-    "prd-game-a-granbluefantasy.akamaized.net/",
-    "prd-game-a1-granbluefantasy.akamaized.net/",
-    "prd-game-a2-granbluefantasy.akamaized.net/",
-    "prd-game-a3-granbluefantasy.akamaized.net/",
-    "prd-game-a4-granbluefantasy.akamaized.net/",
-    "prd-game-a5-granbluefantasy.akamaized.net/"
+    "https://prd-game-a-granbluefantasy.akamaized.net/",
+    "https://prd-game-a1-granbluefantasy.akamaized.net/",
+    "https://prd-game-a2-granbluefantasy.akamaized.net/",
+    "https://prd-game-a3-granbluefantasy.akamaized.net/",
+    "https://prd-game-a4-granbluefantasy.akamaized.net/",
+    "https://prd-game-a5-granbluefantasy.akamaized.net/"
 ];
 var main_endp_count = -1;
-var language = "assets_en/";
+var language = "assets_en/"; // change to "assets/" for japanese
+
+// tracking last id loaded
 var last_id = null;
 var last_style = null;
+
+// result div
 var result_area = null;
+
+// constant, list of null characters/skins
 var null_characters = [
     "3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"
 ];
+// add id here to disable some elements
 var blacklist = [
 
-]
-var index = {};
-var mc_index = null;
-var searchHistory = [];
-var searchResults = [];
-var bookmarks = [];
-var timestamp = Date.now();
-var relations = {};
-var updated = [];
-var intervals = [];
-var typingTimer;
+];
 
-function getMainEndpoint()
+var index = {}; // data index (loaded from data.json)
+var searchHistory = []; // search history
+var searchResults = []; // search results
+var bookmarks = []; // bookmarks
+var timestamp = Date.now(); // timestamp (loaded from changelog.json)
+var relations = {}; // relations of loaded elements
+var updated = []; // list of recently updated elements (loaded from changelog.json)
+var intervals = []; // on screen notifications
+var typingTimer; // typing timer timeout
+
+function getMainEndpoint() // return one of the endpoint, one after the other (to benefit from the sharding)
 {
     main_endp_count = (main_endp_count + 1) % endpoints.length;
     return endpoints[main_endp_count];
 }
 
-function getIndexEndpoint(index)
+function getIndexEndpoint(index) // return one of the endpoint based on the index value passed
 {
     return endpoints[index % endpoints.length];
 }
 
-function typying()
+function typying() // clear timeout when typying (onkeydown event)
 {
     clearTimeout(typingTimer);
 }
 
-function filter()
+function filter() // called by the search filter (onkeyup event)
 {
     clearTimeout(typingTimer);
-    typingTimer = setTimeout(function(){
+    typingTimer = setTimeout(function(){ // set a timeout of 1s before executing lookup
         lookup(document.getElementById('filter').value.trim().toLowerCase());
     }, 1000);
 }
 
-function init()
+function init() // entry point, called by body onload
 {
-    getJSON("json/changelog.json?" + timestamp, initChangelog, initChangelog, null);
-    toggleBookmark(null, null);
+    getJSON("json/changelog.json?" + timestamp, initChangelog, initChangelog, null); // load changelog
+    toggleBookmark(null, null); // init bookmark
+    updateHistory(null, 0); // init history
 }
 
-function initChangelog(unusued)
+function initChangelog(unused)
 {
-    try{
+    try{ // load content of changelog.json
         let json = JSON.parse(this.response);
-        if(json.hasOwnProperty("new"))
+        if(json.hasOwnProperty("new")) // set updated
         {
             updated = json["new"].reverse();
             if(updated.length > 0)
@@ -82,37 +90,51 @@ function initChangelog(unusued)
                 updateDynamicList(newarea, updated);
             }
         }
-        let date = (new Date(json['timestamp'])).toISOString();
+        let date = (new Date(json.timestamp)).toISOString();
         document.getElementById('timestamp').innerHTML += " " + date.split('T')[0] + " " + date.split('T')[1].split(':').slice(0, 2).join(':') + " UTC";
-        timestamp = json['timestamp'];
-    }catch{
+        timestamp = json.timestamp; // set timestamp
+    } catch(err) {
         document.getElementById('timestamp').innerHTML = "";
     }
+    // load other json
     getJSON("json/relation.json?" + timestamp, initRelation, function(unused){}, null);
     getJSON("json/data.json?" + timestamp, initIndex, initIndex, null);
 }
 
-function initIndex(unused)
+function swap(json)  // swap keys and values from an object
+{
+    var ret = {};
+    for(var key in json)
+    {
+        ret[json[key]] = key;
+    }
+    return ret;
+}
+
+function initIndex(unused) // load data.json
 {
     try{
-        index = JSON.parse(this.response);
-        index["lookup_reverse"] = Object.fromEntries(Object.entries(index["lookup"]).map(([key, value]) => [value, key]));
-        result_area = document.getElementById('resultarea');
-        let params = new URLSearchParams(window.location.search);
+        index = JSON.parse(this.response); // read
+        index["lookup_reverse"] = swap(index["lookup"]); // create reversed lookup
+        result_area = document.getElementById('resultarea'); // set result_area
+        let params = new URLSearchParams(window.location.search); // process url param if any
         let id = params.get("id");
-        updateHistory(null, 0);
-        if(id != null) lookup(id);
-    }catch{
+        if(id != null) lookup(id); // lookup if id param is set
+    } catch(err) {
         getJSON("json/data.json?" + timestamp, initIndex, initIndex, null); // try again
     }
 }
 
-function initRelation(unused)
+function initRelation(unused) // load relation.json
 {
-    relations = JSON.parse(this.response);
+    try{
+        relations = JSON.parse(this.response);
+    } catch(err) {
+        
+    }
 }
 
-function updateQuery(id)
+function updateQuery(id) // update url parameters
 {
     let params = new URLSearchParams(window.location.search);
     let current_id = params.get("id");
@@ -124,7 +146,7 @@ function updateQuery(id)
     }
 }
 
-function getJSON(url, callback, err_callback, id) {
+function getJSON(url, callback, err_callback, id) { // generic function to request a file. id is a parameter which can be passed to callbacks
     var xhr = new XMLHttpRequest();
     xhr.ontimeout = function () {
         err_callback.apply(xhr);
@@ -145,7 +167,7 @@ function getJSON(url, callback, err_callback, id) {
 
 // =================================================================================================
 // main stuff
-function loadIndexed(id, obj, shortened=false)
+function loadIndexed(id, obj, indexed=true) // load an element from data.json
 {
     let search_type;
     if(id.length == 10 || id.length == 14)
@@ -153,25 +175,22 @@ function loadIndexed(id, obj, shortened=false)
         switch(id[0])
         {
             case '1':
-                if(!shortened)
-                {
-                    newArea("Weapon", id, true);
-                    search_type = 1;
-                }
+                newArea("Weapon", id, true, indexed);
+                search_type = 1;
                 break;
             case '2':
-                newArea("Summon", id, true);
+                newArea("Summon", id, true, indexed);
                 search_type = 2;
                 break;
             case '3':
                 if(id[1] == '9' || id[2] == '5')
                 {
-                    newArea("NPC", id, true);
+                    newArea("NPC", id, true, indexed);
                     search_type = 5;
                 }
                 else
                 {
-                    newArea("Character", id, true);
+                    newArea("Character", id, true, indexed);
                     search_type = 3;
                 }
                 break;
@@ -183,18 +202,21 @@ function loadIndexed(id, obj, shortened=false)
     }
     else if(id.length == 7)
     {
-        newArea("Enemy", id, true);
+        newArea("Enemy", id, false, indexed);
         search_type = 4;
         updateQuery("e"+id);
     }
     else if(id.length == 6)
     {
-        newArea("Main Character", id, (obj[7].length != 0));
+        newArea("Main Character", id, true, (obj[7].length != 0) && indexed);
         search_type = 0;
         updateQuery(id);
     }
-    updateHistory(id, search_type);
-    favButton(true, id, search_type);
+    if(indexed)
+    {
+        updateHistory(id, search_type);
+        favButton(true, id, search_type);
+    }
     updateRelated(id);
     let assets = null;
     let skycompass = null;
@@ -202,6 +224,7 @@ function loadIndexed(id, obj, shortened=false)
     let npcdata = null;
     let files = null;
     let sounds = null;
+    let melee = false;
     if(search_type == 4) // enemies
     {
         assets = [
@@ -289,6 +312,7 @@ function loadIndexed(id, obj, shortened=false)
             ["Attack Effects", "sp/cjs/", "png", "img/", 1, false, false],
             ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
         ];
+        melee = (id[4] == "6");
     }
     else if(search_type == 0) // MC
     {
@@ -330,10 +354,23 @@ function loadIndexed(id, obj, shortened=false)
             files = (asset[4] == -1) ? files : obj[asset[4]]; // for npc
             if(files.length == 0) continue; // empty list
             // exceptions
-            if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue; // weapon sheet for mc
-            if(search_type == 2 && asset[0] == "Quest Portraits") files = [files[0], files[0]+"_hard", files[0]+"_ex", files[0]+"_high"]; // summon quest icon
-            else if(asset[0] == "Gacha Cover") files = [files[0]+"_1", files[0]+"_3"];
-            else if(asset[0] == "News Art") files = [id];
+            switch(asset[0])
+            {
+                case "Quest Portraits":
+                    if(search_type == 2)
+                        files = [files[0], files[0]+"_hard", files[0]+"_ex", files[0]+"_high"]; // summon quest icon
+                    break;
+                case "Gacha Cover": // gacha cover
+                    files = [files[0]+"_1", files[0]+"_3"];
+                    break;
+                case "News Art": // character news art
+                    files = [id];
+                    break;
+                case "Battle Sprites":
+                    if(melee) // melee weapon sprites
+                        files = [files[0]+"_1", files[0]+"_2"];
+                    break;
+            };
             
             let div = addResult(asset[0], asset[0]);
             result_area.appendChild(div);
@@ -343,9 +380,9 @@ function loadIndexed(id, obj, shortened=false)
                 let img = document.createElement("img");
                 let ref = document.createElement('a');
                 if(file.endsWith(".png") || file.endsWith(".jpg"))
-                    img.src = protocol + getMainEndpoint() + language + asset[3] + asset[1] + file;
+                    img.src = getMainEndpoint() + language + asset[3] + asset[1] + file;
                 else
-                    img.src = protocol + getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
+                    img.src = getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
                 ref.setAttribute('href', img.src.replace("img_low", "img"));
                 img.classList.add("loading");
                 img.setAttribute('loading', 'lazy');
@@ -354,11 +391,11 @@ function loadIndexed(id, obj, shortened=false)
                     this.parentNode.remove();
                     this.remove();
                     if(result.childNodes.length <= 2) result.remove();
-                }
+                };
                 img.onload = function() {
                     this.classList.remove("loading");
                     this.classList.add("asset");
-                }
+                };
                 div.appendChild(ref);
                 ref.appendChild(img);
                 if(skycompass != null && asset[5]) // skycompass
@@ -388,12 +425,12 @@ function loadIndexed(id, obj, shortened=false)
                         this.parentNode.remove();
                         this.remove();
                         if(result.childNodes.length <= 2) result.remove();
-                    }
+                    };
                     img.onload = function() {
                         this.classList.remove("loading");
                         this.classList.add("asset");
                         this.classList.add("skycompass");
-                    }
+                    };
                     div.appendChild(ref);
                     ref.appendChild(img);
                 }
@@ -416,7 +453,7 @@ function loadIndexed(id, obj, shortened=false)
                 if(asset[0] == "Raid Bubble Arts" && file.endsWith('_up')) continue; // ignore those
                 let img = document.createElement("img");
                 let ref = document.createElement('a');
-                img.src = protocol + getMainEndpoint() + language + asset[3] + asset[1] + id + file + "." + asset[2];
+                img.src = getMainEndpoint() + language + asset[3] + asset[1] + id + file + "." + asset[2];
                 ref.setAttribute('href', img.src.replace("img_low", "img"));
                 img.classList.add("loading");
                 img.setAttribute('loading', 'lazy');
@@ -425,20 +462,15 @@ function loadIndexed(id, obj, shortened=false)
                     this.parentNode.remove();
                     this.remove();
                     if(result.childNodes.length <= 2) result.remove();
-                }
+                };
                 img.onload = function() {
                     this.classList.remove("loading");
                     this.classList.add("asset");
-                }
+                };
                 div.appendChild(ref);
                 ref.appendChild(img);
             }
         }
-    }
-    // non indexed
-    else if(id.length >= 10 && id[0] == '3') // character npc files, at the end
-    {
-        lookupNPCChara(id, obj);
     }
     if(sounds != null && sounds.length > 0) // indexed sounds data for characters
     {
@@ -538,7 +570,7 @@ function loadIndexed(id, obj, shortened=false)
                     elem.onclick = function() {
                         let audio = new Audio("https://prd-game-a5-granbluefantasy.akamaized.net/" + language + "sound/voice/" + id + sound + ".mp3");
                         audio.play();
-                    }
+                    };
                     let a = document.createElement("a");
                     a.href = "https://prd-game-a5-granbluefantasy.akamaized.net/" + language + "sound/voice/" + id + sound + ".mp3";
                     a.classList.add("sound-link");
@@ -553,7 +585,7 @@ function loadIndexed(id, obj, shortened=false)
     }
 }
 
-function addVoiceResult(identifier, name, file_count)
+function addVoiceResult(identifier, name, file_count) // add voice elements for characters
 {
     let div = document.createElement("div");
     div.classList.add("result");
@@ -582,55 +614,75 @@ function addVoiceResult(identifier, name, file_count)
     return details;
 }
 
-function loadUnindexed(id)
+function loadUnindexed(id)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder
 {
-    if(blacklist.includes(id)) return;
-    if(id.length == 10 || id.length == 14)
+    data = null;
+    if(id.length == 10) // general
     {
         switch(id[0])
         {
-            case '1':
-                lookupWeapon(id);
+            case '1': // weapons
+                data = [[id],["phit_" + id + ".png","phit_" + id + "_1.png","phit_" + id + "_2.png"],["sp_" + id + "_0_a.png","sp_" + id + "_0_b.png","sp_" + id + "_1_a.png","sp_" + id + "_1_b.png"]];
                 break;
-            case '2':
-                lookupSummon(id);
+            case '2': // summons
+                data = [[id,id + "_02"],["summon_" + id + "_01_attack_a.png","summon_" + id + "_01_attack_b.png","summon_" + id + "_01_attack_c.png","summon_" + id + "_01_attack_d.png","summon_" + id + "_02_attack_a.png","summon_" + id + "_02_attack_b.png","summon_" + id + "_02_attack_c.png"],["summon_" + id + "_01_damage.png","summon_" + id + "_02_damage.png"]];
                 break;
-            case '3':
-                if(id[1] == '9' || id[2] == '5')
+            case '3': // npcs (styles unsupported)
+                switch(id[1])
                 {
-                    lookupNPC(id);
-                }
-                else
-                {
-                    lookupCharacter(id);
-                }
+                    case '0': // playable
+                        switch(id[2])
+                        {
+                            case '5': // special npc
+                                data = [["","_up","_laugh","_laugh_up","_laugh2","_laugh2_up","_laugh3","_laugh3_up","_sad","_sad_speed","_sad_up","_angry","_angry_speed","_angry_up","_shadow","_shadow_up","_surprise","_surprise_speed","_surprise_up","_suddenly","_suddenly_up","_suddenly2","_suddenly2_up","_ef","_weak","_weak_up","_a","_b_sad","_valentine","_valentine2","_birthday","_birthday2","_birthday3","_birthday3_a","_birthday3_b"]];
+                                break;
+                            default: // playable r, sr, ssr
+                                data = [["npc_" + id + "_01.png","npc_" + id + "_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],["", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_speed", "_a_laugh3_up", "_a_laugh_speed", "_a_laugh_up", "_a_mood", "_a_mood2", "_a_mood2_up", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_speed", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly2", "_a_suddenly2_up", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_speed", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_speed", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad2_up", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_speed", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shadow_up", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_shy2", "_b_shy2_up", "_b_shy_up", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly2", "_b_suddenly2_up", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think3", "_b_think3_up", "_b_think_up", "_b_up", "_b_up_speed", "_b_weak", "_b_weak_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise2", "_battle_surprise2_up", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b", "_body", "_body_speed", "_c_up_speed", "_close", "_close_speed", "_close_up", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_eyeline", "_laugh", "_laugh2", "_laugh2_speed", "_laugh2_up", "_laugh3", "_laugh3_speed", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_speed", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_suddenly", "_suddenly2", "_suddenly2_up", "_suddenly_speed", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think3", "_think3_up", "_think4", "_think4_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink", "_wink_up"],[]];
+                                break;
+                        };
+                        break;
+                    case '7': // skins
+                        switch(id[2])
+                        {
+                            case '1': // special npc
+                                data = [["npc_" + id + "_01.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_01.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],["", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_speed", "_a_laugh3_up", "_a_laugh_speed", "_a_laugh_up", "_a_mood", "_a_mood2", "_a_mood2_up", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_speed", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly2", "_a_suddenly2_up", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_speed", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_speed", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad2_up", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_speed", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shadow_up", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_shy2", "_b_shy2_up", "_b_shy_up", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly2", "_b_suddenly2_up", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think3", "_b_think3_up", "_b_think_up", "_b_up", "_b_up_speed", "_b_weak", "_b_weak_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise2", "_battle_surprise2_up", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b", "_body", "_body_speed", "_c_up_speed", "_close", "_close_speed", "_close_up", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_eyeline", "_laugh", "_laugh2", "_laugh2_speed", "_laugh2_up", "_laugh3", "_laugh3_speed", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_speed", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_suddenly", "_suddenly2", "_suddenly2_up", "_suddenly_speed", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think3", "_think3_up", "_think4", "_think4_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink", "_wink_up"],[]];
+                                break;
+                            default: // playable r, sr, ssr
+                                return;
+                        };
+                        break;
+                    case '8': // event battles
+                        data = [["npc_" + id + "_01.png","npc_" + id + "_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],[],[]];
+                        break;
+                    case '9': // npcs
+                        data = [["", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_speed", "_a_laugh3_up", "_a_laugh_speed", "_a_laugh_up", "_a_mood", "_a_mood2", "_a_mood2_up", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_speed", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly2", "_a_suddenly2_up", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_speed", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_speed", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad2_up", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_speed", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shadow_up", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_shy2", "_b_shy2_up", "_b_shy_up", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly2", "_b_suddenly2_up", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think3", "_b_think3_up", "_b_think_up", "_b_up", "_b_up_speed", "_b_weak", "_b_weak_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise2", "_battle_surprise2_up", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b", "_body", "_body_speed", "_c_up_speed", "_close", "_close_speed", "_close_up", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_eyeline", "_laugh", "_laugh2", "_laugh2_speed", "_laugh2_up", "_laugh3", "_laugh3_speed", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_speed", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_suddenly", "_suddenly2", "_suddenly2_up", "_suddenly_speed", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think3", "_think3_up", "_think4", "_think4_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink", "_wink_up"]];
+                        break;
+                };
                 break;
             default:
                 return;
         };
-        last_id = id;
-        updateQuery(id);
     }
-    else if(id.length == 7)
+    else if(id.length == 7) // enemies
     {
-        lookupEnemy(id);
-        last_id = id;
-        updateQuery("e" + id);
+        data = [[id],["enemy_" + id + "_a.png","enemy_" + id + "_b.png","enemy_" + id + "_c.png"],["raid_appear_" + id + ".png"],["ehit_" + id + ".png"],["esp_" + id + "_01.png","esp_" + id + "_02.png","esp_" + id + "_03.png"],["esp_" + id + "_01_all.png","esp_" + id + "_02_all.png","esp_" + id + "_03_all.png"]];
     }
-    else if(id.length == 9 && id[6] == "_") // retrocompatibility
+    else if(id.length == 9 && id[6] == "_") // mc id + proficiency
     {
-        id = id.split('_')[0]
-        lookupMC(id);
-        last_id = id;
-        updateQuery(id);
+        id = id.split('_')[0];
+        prof = id.split('_')[1];
+        data = [[id],[id + "_01"],[id + "_" + prof + "_0_01",id + "_" + prof + "_1_01"],[id + "_" + prof + "_0_01",id + "_" + prof + "_1_01"],[id + "_" + prof + "_0_01",id + "_" + prof + "_1_01"],[id],["" + prof + ""],[],[],[]];
     }
-    else if(id.length == 6)
+    else if(id.length == 6) // mc
     {
-        lookupMC(id);
-        last_id = id;
-        updateQuery(id);
+        data = [[id],[id + "_01"],[],[],[],[id],[],[],[],[]];
     }
-    updateRelated(id);
+    if(data != null)
+    {
+        last_id = id;
+        updateQuery((id.length == 7) ? "e"+id : id);
+        loadIndexed(id, data, false);
+    }
 }
 
 function lookup(id)
@@ -811,14 +863,14 @@ function newArea(name, id, include_link, indexed=true)
             }
             i.onclick = function() {
                 lookup(t);
-            }
+            };
             div.appendChild(i);
         }
     }
     if(!indexed)
     {
         div.appendChild(document.createElement('br'));
-        div.appendChild(document.createTextNode("This element isn't indexed, assets might be missing"));
+        div.appendChild(document.createTextNode("This element isn't indexed, assets will be missing"));
     }
 }
 
@@ -832,610 +884,6 @@ function addResult(identifier, name)
     div.appendChild(document.createElement("br"));
     result_area.appendChild(div);
     return div;
-}
-
-function lookupCharacter(character_id) // old and slow, avoid using this
-{
-    if(blacklist.includes(character_id)) return;
-    let el = character_id.split("_");
-    character_id = el[0];
-    style = "";
-    if(el.length > 1) style = "_"+el[1];
-    // add manual style later?
-    
-    let assets = [
-        ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", false, true, false, true], // skin folder, gendered/multi, spritesheet, bonus
-        ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", false, true, false, true],
-        ["Gacha Arts", "sp/assets/npc/gacha/", "png", "img_low/", false, false, false, false],
-        ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", false, true, false, true],
-        ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", true, true, false, true],
-        ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", true, true, false, true],
-        ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_mid/", true, true, false, true],
-        ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", "img/", false, false, false, false],
-        ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", true, true, false, true],
-        ["Tower Portraits", "sp/assets/npc/t/", "png", "img_low/", true, true, false, true],
-        ["Detail Banners", "sp/assets/npc/detail/", "png", "img_low/", true, true, false, true],
-        ["Sprites", "sp/assets/npc/sd/", "png", "img/", false, false, false, false],
-        ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", "img/", false, true, false, true],
-        ["Twitter Arts", "sp/assets/npc/sns/", "jpg", "img_low/", false, true, false, true],
-        ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", "img_low/", false, true, false, true],
-        ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", "img_low/", false, true, false, true],
-        ["Character Sheets", "sp/cjs/npc_", "png", "img_low/", false, false, true, false],
-        ["Attack Effect Sheets", "sp/cjs/phit_", "png", "img_low/", false, false, true, false],
-        ["Charge Attack Sheets", "sp/cjs/nsp_", "png", "img_low/", false, false, true, false],
-        ["AOE Skill Sheets", "sp/cjs/ab_all_", "png", "img_low/", false, false, true, false],
-        ["Single Target Skill Sheets", "sp/cjs/ab_", "png", "img_low/", false, false, true, false]
-    ];
-    let uncaps = ["_01", "_02"];
-    if(character_id[1] != '0') uncaps = ["_01"];
-    let styles = ["", "_st2"];
-    let bonus = ["_81", "_82", "_83", "_91"];
-    let alts = ["", "_f", "_f1", "_f_01"];
-    
-    
-    let is_character_skin = character_id[1] == '7';
-    newArea("Character", character_id, true, false);
-    for(let asset of assets)
-    {
-        let uncap_append = asset[7] ? uncaps.concat(bonus) : uncaps;
-        let alt_append = asset[0].includes("Sheets") ? alts : [""];
-        let skin_folders = (is_character_skin && asset[4]) ? ["", "skin/"] : [""];
-        let skin_appends = (is_character_skin && asset[4]) ? ["", "_s1", "_s2", "_s3", "_s4", "_s5", "_s6"] : [""];
-        let gendered = asset[5] ? ["", "_0", "_1"] : [""];
-        let multi = asset[5] ? ["", "_101", "_102", "_103", "_104", "_105"] : [""];
-        let sheet = asset[6] ? ((asset[1].includes("nsp_") || asset[1].includes("npc_")) ? ["", "_s2", "_s3", "_a", "_s2_a", "_s3_a", "_b", "_s2_b", "_s3_b", "_c", "_s2_c", "_s3_c"] : ["", "_a", "_b", "_c"]) : [""];
-        let extra = [""];
-        
-        // lyria / young cat fix
-        if(null_characters.includes(character_id))
-        {
-            multi = [""];
-            if(asset[0].includes("Portraits") || asset[0].includes("Chain")) extra = ["", "_01", "_02", "_03", "_04", "_05", "_06"];
-            else if(asset[0].includes("Twitter") || asset[0].includes("Sheets")) extra = [""];
-            else if(!is_character_skin) extra = ["_01"];
-            else extra = [""];
-        }
-        
-        // phit fix
-        if(asset[0] === "Attack Effect Sheets") uncap_append = [""];
-        
-        // skill fix
-        if(asset[0].includes("Skill"))
-        {
-            uncap_append = [""];
-            alt_append = ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08"];
-        }
-        
-        let div = addResult(asset[0], asset[0]);
-        result_area.appendChild(div);
-        for(let uncap of uncap_append)
-        {
-            if(uncap != "_01") style_append = [""]; // style limited to _01 for now
-            for(let alt of alt_append)
-            {
-                for(let gender of gendered)
-                {
-                    for(let unit of multi)
-                    {
-                        for(let ex of extra)
-                        {
-                            for(let s_f of skin_folders)
-                            {
-                                for(let s_a of skin_appends)
-                                {
-                                    for(let sh of sheet)
-                                    {
-                                        if(s_a != "" && s_f == "") continue;
-                                        let path = asset[1] + s_f + character_id + uncap + style + alt + gender + unit + ex + s_a + sh + "." + asset[2];
-                                        let img = document.createElement("img");
-                                        let ref = document.createElement('a');
-                                        ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-                                        div.appendChild(ref);
-                                        ref.appendChild(img);
-                                        img.classList.add("loading");
-                                        img.setAttribute('loading', 'lazy');
-                                        img.onerror = function() {
-                                            let result = this.parentNode.parentNode;
-                                            this.parentNode.remove();
-                                            this.remove();
-                                            if(result.childNodes.length <= 2) result.remove();
-                                        }
-                                        img.onload = function() {
-                                            this.classList.remove("loading");
-                                            this.classList.add("asset");
-                                        }
-                                        img.src = protocol + getMainEndpoint() + language + asset[3] + path;
-                                        // sky compass band aid
-                                        if(asset[0] === "Main Arts")
-                                        {
-                                            let path = character_id + uncap + style + alt + gender + unit + s_a + sh + "." + asset[2];
-                                            let img = document.createElement("img");
-                                            let ref = document.createElement('a');
-                                            ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path);
-                                            div.appendChild(ref);
-                                            ref.appendChild(img);
-                                            img.classList.add("loading");
-                                            img.setAttribute('loading', 'lazy');
-                                            img.onerror = function() {
-                                                let result = this.parentNode.parentNode;
-                                                this.parentNode.remove();
-                                                this.remove();
-                                                if(result.childNodes.length <= 2) result.remove();
-                                            }
-                                            img.onload = function() {
-                                                this.classList.remove("loading");
-                                                this.classList.add("asset");
-                                                this.classList.add("skycompass");
-                                            }
-                                            img.src = "https://media.skycompass.io/assets/customizes/characters/1138x1138/" + path;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // character npc files, at the end
-    lookupNPCChara(character_id);
-}
-
-function lookupNPCChara(character_id, chara_data = null)
-{
-    let uncaps = [""];
-    if(chara_data != null)
-    {
-        for(let el of chara_data[5])
-        {
-            let u = '_'+el.split('.')[0].split(character_id.split('_')[0])[1].split('_')[1];
-            if(u != '_01' && !u.startsWith('_8') && !u.includes('f')) uncaps.push(u);
-        }
-    }
-    else
-    {
-        uncaps = ["", "_02"];
-    }
-    let assets = [
-        ["Raid Bubble Arts", "sp/raid/navi_face/", "png", "img/"],
-        ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"]
-    ];
-    
-    let scene_alts = ["", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_speed", "_a_laugh3_up", "_a_laugh_speed", "_a_laugh_up", "_a_mood", "_a_mood2", "_a_mood2_up", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_speed", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly2", "_a_suddenly2_up", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_speed", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_speed", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad2_up", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_speed", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shadow_up", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_shy2", "_b_shy2_up", "_b_shy_up", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly2", "_b_suddenly2_up", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think3", "_b_think3_up", "_b_think_up", "_b_up", "_b_up_speed", "_b_weak", "_b_weak_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise2", "_battle_surprise2_up", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b", "_body", "_body_speed", "_c_up_speed", "_close", "_close_speed", "_close_up", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_eyeline", "_laugh", "_laugh2", "_laugh2_speed", "_laugh2_up", "_laugh3", "_laugh3_speed", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_speed", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_suddenly", "_suddenly2", "_suddenly2_up", "_suddenly_speed", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think3", "_think3_up", "_think4", "_think4_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink", "_wink_up"];
-    
-    for(let asset of assets)
-    {
-        let div = addResult(asset[0], asset[0]);
-        result_area.appendChild(div);
-        
-        for(let scene of scene_alts)
-        {
-            let path = asset[1] +  character_id + scene + "." + asset[2];
-            let img = document.createElement("img");
-            let ref = document.createElement('a');
-            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-            div.appendChild(ref);
-            ref.appendChild(img);
-            img.classList.add("loading");
-            img.setAttribute('loading', 'lazy');
-            img.onerror = function() {
-                let result = this.parentNode.parentNode;
-                this.parentNode.remove();
-                this.remove();
-                if(result.childNodes.length <= 2) result.remove();
-            }
-            img.onload = function() {
-                this.classList.remove("loading");
-                this.classList.add("asset");
-            }
-            img.src = protocol + getMainEndpoint() + language + asset[3] + path;
-        }
-    }
-}
-
-function lookupNPC(npc_id)
-{
-    if(blacklist.includes(npc_id)) return;
-    let assets = [
-        ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/"],
-        ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/"],
-        ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/"],
-        ["Raid Bubble Arts", "sp/raid/navi_face/", "png", "img/"],
-        ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/"]
-    ];
-    let expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_serious", "_serious2", "_suddenly", "_suddenly2", "_ecstasy", "_ecstasy2", "_ef", "_body", "_speed2"];
-    let variationsA = ["", "_battle"];
-    let variationsB = ["", "_speed", "_up"]
-    let others = ["_up_speed"];
-    let specials = ["_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
-    let scene_alts = [];
-    for(let uncap of [""])
-        for(let A of variationsA)
-            for(let ex of expressions)
-                for(let B of variationsB)
-                    scene_alts.push(uncap+A+ex+B);
-    scene_alts = scene_alts.concat(others, specials);
-    
-    newArea("NPC", npc_id, true, false);
-    for(let asset of assets)
-    {
-        let div = addResult(asset[0], asset[0]);
-        result_area.appendChild(div);
-
-        let iterations = ["", "_01"];
-        if(asset[0] == "Raid Bubble Arts") iterations = [].concat(expressions, others);
-        else if(asset[0] == "Scene Arts") iterations = scene_alts.slice();
-        for(let scene of iterations)
-        {
-            let path = asset[1] + npc_id + scene + "." + asset[2];
-            let img = document.createElement("img");
-            let ref = document.createElement('a');
-            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-            div.appendChild(ref);
-            ref.appendChild(img);
-            img.classList.add("loading");
-            img.setAttribute('loading', 'lazy');
-            img.onerror = function() {
-                let result = this.parentNode.parentNode;
-                this.parentNode.remove();
-                this.remove();
-                if(result.childNodes.length <= 2) result.remove();
-            }
-            img.onload = function() {
-                this.classList.remove("loading");
-                this.classList.add("asset");
-            }
-            img.src = protocol + getMainEndpoint() + language + asset[3] + path;
-        }
-    }
-}
-
-function lookupSummon(summon_id)
-{
-    if(blacklist.includes(summon_id)) return;
-    assets = [
-        ["Main Arts", "sp/assets/summon/b/", "png", "img_low/"],
-        ["Home Arts", "sp/assets/summon/my/", "png", "img_low/"],
-        ["Gacha Art", "sp/assets/summon/g/", "png", "img_low/"],
-        ["Gacha Header", "sp/gacha/header/", "png", "img_low/"],
-        ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/"],
-        ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/"],
-        ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/"],
-        ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/"],
-        ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/"],
-        ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/"],
-        ["Result Portraits", "sp/assets/summon/btn/", "png", "img/"],
-        ["Quest Portraits", "sp/assets/summon/qm/", "png", "img/"],
-        ["Summon Call Sheets", "sp/cjs/summon_", "png", "img_low/"],
-        ["Summon Damage Sheets", "sp/cjs/summon_", "png", "img_low/"]
-    ];
-    let multi_summons = ['2040414000']
-    let uncaps = ["", "_01", "_02", "_03"];
-    let sheets = [""];
-    let uncap_append = [];
-    
-    newArea("Summon", summon_id, true, false);
-    for(let asset of assets)
-    {
-        if(asset[0].includes('Sheets'))
-        {
-            let typestring = asset[0].includes('Call') ? "_attack" : "_damage";
-            if(multi_summons.includes(summon_id))
-            {
-                let capp = JSON.parse(JSON.stringify(uncaps));
-                let multistrings = ["", "_a", "_b", "_c", "_d", "_e", "_f"];
-                uncap_append = []
-                for(let m of multistrings)
-                {
-                    for(let ca of capp)
-                    {
-                        uncap_append.push(ca + m + typestring);
-                    }
-                }
-            }
-            else
-            {
-                uncap_append = JSON.parse(JSON.stringify(uncaps));
-                for(let i = 0; i < uncap_append.length; ++i)
-                    uncap_append[i] += typestring;
-            }
-            sheets = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_bg", "_bg1", "_bg2", "_bg3"];
-        }
-        else if(asset[0] == "Quest Portraits")
-        {
-            sheets = ["", "_hard", "_ex", "_high"];
-            uncap_append = uncaps;
-        }
-        else
-        {
-            sheets = [""];
-            uncap_append = uncaps;
-        }
-        
-        let div = addResult(asset[0], asset[0]);
-        result_area.appendChild(div);
-        for(let uncap of uncap_append)
-        {
-            for(let sheet of sheets)
-            {
-                let path = asset[1] + summon_id + uncap + sheet + "." + asset[2];
-                let img = document.createElement("img");
-                let ref = document.createElement('a');
-                ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-                div.appendChild(ref);
-                ref.appendChild(img);
-                img.classList.add("loading");
-                img.setAttribute('loading', 'lazy');
-                img.onerror = function() {
-                    let result = this.parentNode.parentNode;
-                    this.parentNode.remove();
-                    this.remove();
-                    if(result.childNodes.length <= 2) result.remove();
-                }
-                img.onload = function() {
-                    this.classList.remove("loading");
-                    this.classList.add("asset");
-                }
-                img.src = protocol + getMainEndpoint() + language + asset[3] + path;
-            }
-        }
-        // sky compass band aid
-        if(asset[0] === "Main Arts")
-        {
-            let img = document.createElement("img");
-            let ref = document.createElement('a');
-            ref.setAttribute('href', "https://media.skycompass.io/assets/archives/summons/" + summon_id + "/detail_l.png");
-            div.appendChild(ref);
-            ref.appendChild(img);
-            img.classList.add("loading");
-            img.setAttribute('loading', 'lazy');
-            img.onerror = function() {
-                let result = this.parentNode.parentNode;
-                this.parentNode.remove();
-                this.remove();
-                if(result.childNodes.length <= 2) result.remove();
-            }
-            img.onload = function() {
-                this.classList.remove("loading");
-                this.classList.add("asset");
-                this.classList.add("skycompass");
-            }
-            img.src = "https://media.skycompass.io/assets/archives/summons/" + summon_id + "/detail_l.png";
-        }
-    }
-}
-
-function lookupWeapon(weapon_id, shortened=false)
-{
-    if(blacklist.includes(weapon_id)) return;
-    let assets = [
-        ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/"],
-        ["Gacha Art", "sp/assets/weapon/g/", "png", "img_low/"],
-        ["Gacha Cover", "sp/gacha/cjs_cover/", "png", "img_mid/"],
-        ["Gacha Header", "sp/gacha/header/", "png", "img_low/"],
-        ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/"],
-        ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/"],
-        ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/"],
-        ["Battle Sprites", "sp/cjs/", "png", "img/"],
-        ["Attack Effects", "sp/cjs/phit_", "png", "img/"],
-        ["Charge Attack Sheets", "sp/cjs/sp_", "png", "img_low/"]
-    ];
-    let appends = [""];
-    let sheets = [""];
-    
-    if(!shortened) newArea("Weapon", weapon_id, true, false);
-    for(let asset of assets)
-    {
-        if(shortened && asset[0] != "Attack Effects" && asset[0] != "Charge Attack Sheets") continue;
-        switch(asset[0])
-        {
-            case "Battle Sprites":
-                appends = ["", "_1", "_2"];
-                sheets = [""];
-                break;
-            case "Gacha Cover":
-                appends = ["_1", "_3"];
-                sheets = [""];
-                break;
-            case "Attack Effects":
-                appends = ["", "_f1", "_1", "_1_f1", "_2", "_2_f1"];
-                sheets = ["", "_a", "_b", "_c", "_d", "_e"];
-                break;
-            case "Charge Attack Sheets":
-                appends = ["", "_f1", "_1", "_1_f1", "_2", "_2_f1", "_0_s2", "_s2", "_f1_s2", "_1_s2", "_1_f1_s2", "_2_s2", "_2_f1_s2"];
-                sheets = ["", "_a", "_b", "_c", "_d", "_e"];
-                break;
-            default:
-                appends = [""];
-                sheets = [""];
-        };
-        
-        let div = addResult(asset[0], asset[0]);
-        result_area.appendChild(div);
-        for(let append of appends)
-        {
-            for(let sheet of sheets)
-            {
-                let path = asset[1] + weapon_id + append + sheet + "." + asset[2];
-                let img = document.createElement("img");
-                let ref = document.createElement('a');
-                ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-                div.appendChild(ref);
-                ref.appendChild(img);
-                img.classList.add("loading");
-                img.setAttribute('loading', 'lazy');
-                img.onerror = function() {
-                    let result = this.parentNode.parentNode;
-                    this.parentNode.remove();
-                    this.remove();
-                    if(result.childNodes.length <= 2) result.remove();
-                }
-                img.onload = function() {
-                    this.classList.remove("loading");
-                    this.classList.add("asset");
-                }
-                img.src = protocol + getMainEndpoint() + language + asset[3] + path;
-            }
-        }
-    }
-}
-
-function lookupEnemy(enemy_id)
-{
-    if(blacklist.includes(enemy_id)) return;
-    let assets = [
-        ["Big Icon", "sp/assets/enemy/m/", "png", "img/"],
-        ["Small Icon", "sp/assets/enemy/s/", "png", "img/"],
-        ["Sprite Sheets", "sp/cjs/enemy_", "png", "img_low/"],
-        ["Raid Appear Sheets", "sp/cjs/raid_appear_", "png", "img_low/"],
-        ["Attack Effect Sheets", "sp/cjs/ehit_", "png", "img_low/"],
-        ["Charge Attack Sheets", "sp/cjs/esp_", "png", "img_low/"],
-        ["AOE Charge Attack Sheets", "sp/cjs/esp_", "png", "img_low/"]
-    ];
-    let appends = [""];
-    let sheets = [""];
-    
-    newArea("Enemy", enemy_id, false, false);
-    for(let asset of assets)
-    {
-        sheets = asset[0].includes("Sheets") ? ["", "_a", "_b", "_c", "_d", "_e"] : [""];
-        appends = [""];
-        if(asset[0].includes("Charge Attack"))
-        {
-            if(asset[0].includes("AOE")) appends = ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10", "_11", "_12", "_13", "_14", "_15", "_16", "_17", "_18", "_19", "_20"];
-            else appends = ["_01_all", "_02_all", "_03_all", "_04_all", "_05_all", "_06_all", "_07_all", "_08_all", "_09_all", "_10_all", "_11_all", "_12_all", "_13_all", "_14_all", "_15_all", "_16_all", "_17_all", "_18_all", "_19_all", "_20_all"];
-        }
-        appends = asset[0].includes("Charge Attack") ? ["_01", "_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10", "_11", "_12", "_13", "_14", "_15", "_16", "_17", "_18", "_19", "_20"] : [""];
-        if(asset[0].includes("Icon")) appends = ["", "_a"];
-        
-        let div = addResult(asset[0], asset[0]);
-        result_area.appendChild(div);
-        for(let append of appends)
-        {
-            for(let sheet of sheets)
-            {
-                let path = asset[1] + enemy_id + append+sheet + "." + asset[2];
-                let img = document.createElement("img");
-                let ref = document.createElement('a');
-                ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-                div.appendChild(ref);
-                ref.appendChild(img);
-                img.classList.add("loading");
-                img.setAttribute('loading', 'lazy');
-                img.onerror = function() {
-                    let result = this.parentNode.parentNode;
-                    this.parentNode.remove();
-                    this.remove();
-                    if(result.childNodes.length <= 2) result.remove();
-                }
-                img.onload = function() {
-                    this.classList.remove("loading");
-                    this.classList.add("asset");
-                }
-                img.src = protocol + getMainEndpoint() + language + asset[3] + path;
-            }
-        }
-    }
-}
-
-function lookupMC(mc_id)
-{
-    if(blacklist.includes(mc_id)) return;
-    let assets = [
-        ["Job Icons", "sp/ui/icon/job/", "png", "img/", 0],
-        ["Inventory Portraits", "sp/assets/leader/m/", "jpg", "img/", 1],
-        ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", "img/", 1],
-        ["Outfit Description Arts", "sp/assets/leader/skin/", "png", "img_low/", 1],
-        ["Home Arts", "sp/assets/leader/my/", "png", "img_low/", 2],
-        ["Full Arts", "sp/assets/leader/job_change/", "png", "img_low/", 2],
-        ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", "img_low/", 2],
-        ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", "img/", 0],
-        ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", "img/", 0],
-        ["Class Change Buttons", "sp/assets/leader/jlon/", "png", "img/", 2],
-        ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", "img_low/", 2],
-        ["Party Class Portraits", "sp/assets/leader/p/", "png", "img_low/", 2],
-        ["Profile Portraits", "sp/assets/leader/pm/", "png", "img_low/", 2],
-        ["Profile Board Portraits", "sp/assets/leader/talk/", "png", "img/", 2],
-        ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", "img/", 2],
-        ["Tower Portraits", "sp/assets/leader/t/", "png", "img_low/", 2],
-        ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", "img/", 2],
-        ["Result Portraits", "sp/assets/leader/btn/", "png", "img/", 2],
-        ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", "img/", 2],
-        ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", "img_low/", 2],
-        ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2],
-        ["Master Level Portraits", "sp/assets/leader/master_level/", "png", "img_low/", 2],
-        ["Sprites", "sp/assets/leader/sd/", "png", "img/", 2]
-    ];
-    newArea("Main Character", mc_id, false, false);
-    for(let asset of assets)
-    {
-        let div = addResult(asset[0], asset[0]);
-        result_area.appendChild(div);
-        let variations = null;
-        switch(asset[4])
-        {
-            case 1: variations = ['_01']; break
-            case 2:
-                variations = [];
-                for(let mh of ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'])
-                {
-                    variations.push("_"+mh+'_0_01');
-                    variations.push("_"+mh+'_1_01');
-                }
-                break;
-            default: variations = ['']; break
-        }
-        for(let vr of variations)
-        {
-            let path = asset[1] + mc_id + vr + "." + asset[2];
-            let img = document.createElement("img");
-            let ref = document.createElement('a');
-            ref.setAttribute('href', protocol + endpoints[0] + language + "img/" + path);
-            div.appendChild(ref);
-            ref.appendChild(img);
-            img.classList.add("loading");
-            img.setAttribute('loading', 'lazy');
-            img.onerror = function() {
-                let result = this.parentNode.parentNode;
-                this.parentNode.remove();
-                this.remove();
-                if(result.childNodes.length <= 2) result.remove();
-            }
-            img.onload = function() {
-                this.classList.remove("loading");
-                this.classList.add("asset");
-            }
-            img.src = protocol + getMainEndpoint() + language + asset[3] + path;
-        }
-        for(let i = 0; i < 2; ++i)
-        {
-            // sky compass band aid
-            if(asset[0] === "Home Art")
-            {
-                let path = mc_id + "_" + i + "." + asset[2];
-                let img = document.createElement("img");
-                let ref = document.createElement('a');
-                ref.setAttribute('href', "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path);
-                div.appendChild(ref);
-                ref.appendChild(img);
-                img.classList.add("loading");
-                img.setAttribute('loading', 'lazy');
-                img.onerror = function() {
-                    let result = this.parentNode.parentNode;
-                    this.parentNode.remove();
-                    this.remove();
-                    if(result.childNodes.length <= 2) result.remove();
-                }
-                img.onload = function() {
-                    this.classList.remove("loading");
-                    this.classList.add("asset");
-                    this.classList.add("skycompass");
-                }
-                img.src = "https://media.skycompass.io/assets/customizes/jobs/1138x1138/" + path;
-            }
-        }
-    }
 }
 
 // =================================================================================================
@@ -1480,10 +928,10 @@ function updateDynamicList(dynarea, idlist)
                 let onerr = function() {
                     this.onerror = function() {
                         this.remove();
-                    }
+                    };
                     this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
                     this.className = "preview";
-                }
+                };
                 addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], onerr);
                 break;
             }
@@ -1564,15 +1012,15 @@ function exportBookmark()
             bookmarks = JSON.parse(bookmarks);
         }
     }
-    catch
+    catch(err)
     {
         bookmarks = [];
     }
     navigator.clipboard.writeText(JSON.stringify(bookmarks));
     let div = document.createElement('div');
     div.className = 'popup';
-    div.textContent ='Bookmarks have been copied'
-    document.body.appendChild(div)
+    div.textContent ='Bookmarks have been copied';
+    document.body.appendChild(div);
     intervals.push(setInterval(rmPopup, 2500, div));
 }
 
@@ -1588,7 +1036,7 @@ function importBookmark()
             while(i < tmp.length)
             {
                 let e = tmp[i];
-                if(typeof e != 'object' || e.length != 2 || typeof e[0] != 'string' || typeof e[1] != 'number') return
+                if(typeof e != 'object' || e.length != 2 || typeof e[0] != 'string' || typeof e[1] != 'number') return;
                 if(last_id == e[0]) fav = true;
                 ++i;
             }
@@ -1598,12 +1046,12 @@ function importBookmark()
             else document.getElementById('favorite').src = "assets/ui/fav_0.png";
             let div = document.createElement('div');
             div.className = 'popup';
-            div.textContent ='Bookmarks have been imported with success'
-            document.body.appendChild(div)
+            div.textContent ='Bookmarks have been imported with success';
+            document.body.appendChild(div);
             intervals.push(setInterval(rmPopup, 2500, div));
             updateBookmark();
         }
-        catch {}
+        catch(err) {}
     });
 }
 
@@ -1627,7 +1075,7 @@ function toggleBookmark(id, search_type)
             bookmarks = JSON.parse(bookmarks);
         }
     }
-    catch
+    catch(err)
     {
         bookmarks = [];
     }
@@ -1678,7 +1126,7 @@ function updateHistory(id, search_type)
             if(searchHistory.length > 20) searchHistory = searchHistory.slice(searchHistory.length - 20); // resize if too big to not cause problems
         }
     }
-    catch
+    catch(err)
     {
         searchHistory = [];
     }
@@ -1690,7 +1138,6 @@ function updateHistory(id, search_type)
         }
         searchHistory.push([id, search_type]);
         if(searchHistory.length > 20) searchHistory = searchHistory.slice(searchHistory.length - 20);
-        console.log(searchHistory);
         localStorage.setItem("history", JSON.stringify(searchHistory));
     }
     if(searchHistory.length == 0)
@@ -1759,7 +1206,7 @@ function updateRelated(id)
                         this.onerror = null;
                         this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
                         this.className = "preview";
-                    }
+                    };
                     addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e, onerr);
                     break;
                 }
@@ -1782,7 +1229,7 @@ function addIndexImage(node, path, id, onerr = null, quality="img_low/")
     {
         img.onerror = function() {
             this.remove();
-        }
+        };
     }
     else img.onerror = onerr;
     img.onload = function() {
@@ -1793,8 +1240,8 @@ function addIndexImage(node, path, id, onerr = null, quality="img_low/")
             window.scrollTo(0, 0);
             lookup(id);
         };
-    }
-    img.src = protocol + getIndexEndpoint(parseInt(id.replace(/\D/g,''))) + language + quality + path;
+    };
+    img.src = getIndexEndpoint(parseInt(id.replace(/\D/g,''))) + language + quality + path;
 }
 
 function displayCharacters(elem, i)
@@ -1909,7 +1356,7 @@ function displayMainNPC(elem)
         }
         this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
         this.className = "preview";
-    }
+    };
     if("npcs" in index)
     {
         let slist = {};
@@ -1934,10 +1381,10 @@ function displayNPC(elem, i)
     let onerr = function() {
         this.onerror = function() {
             this.remove();
-        }
+        };
         this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
         this.className = "preview";
-    }
+    };
     if("npcs" in index)
     {
         let slist = {};
@@ -1984,17 +1431,17 @@ function addIndexImageGeneric(node, path, id, onerr = null)
     img.onload = function() {
         this.classList.remove("loading");
         this.classList.add("preview");
-    }
+    };
     if(onerr == null)
     {
         img.onerror = function() {
             this.parentNode.remove();
             this.remove();
-        }
+        };
     }
     else img.onerror = onerr;
-    img.src = protocol + getIndexEndpoint(parseInt(id.replace(/\D/g,''))) + language + "img_low/" + path;
-    a.href = img.src.replace("img_low/", "img/")
+    img.src = getIndexEndpoint(parseInt(id.replace(/\D/g,''))) + language + "img_low/" + path;
+    a.href = img.src.replace("img_low/", "img/");
 }
 
 function displayBG(elem, i=null)
