@@ -167,8 +167,10 @@ class Parser():
                     possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 50))
         # npc
         self.newShared(errs)
-        for i in range(7):
+        for i in range(7): # assets
             possibles.append(('npcs', i, 7, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 60))
+        for i in range(7): # sounds
+            possibles.append(('npcs', i, 7, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3", [""], 60))
         possibles.append(('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 2))
         
         # backgrounds
@@ -578,7 +580,9 @@ class Parser():
             f = file.format(str(id).zfill(zfill))
             for s in styles:
                 try:
-                    if f+s in self.data[index] and (not is_js or (is_js and self.data[index][f+s] != 0)):
+                    if f+s in self.data[index]:
+                        if is_js and self.data[index][f+s] == 0:
+                            self.new_elements.append(f+s)
                         with err[2]:
                             err[0] = 0
                         continue
@@ -659,6 +663,7 @@ class Parser():
     def manualUpdate(self, ids): # called by -update or other function. manually update elements
         if len(ids) == 0:
             return
+        ids = list(set(ids)) # remove dupes
         self.running = True
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]

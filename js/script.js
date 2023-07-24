@@ -1381,7 +1381,8 @@ function displayNPC(elem, i)
     let end = start + 499000;
     let onerr = function() {
         this.onerror = function() {
-            this.remove();
+            this.src = "assets/ui/sound_only.png";
+            this.className = "sound-only";
         };
         this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
         this.className = "preview";

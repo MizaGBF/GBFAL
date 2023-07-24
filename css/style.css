@@ -168,6 +168,10 @@ footer, #header {
     border-radius: 10px;
 }
 
+.sound-only {
+    max-height: 80px;
+}
+
 img {
     object-fit: contain;
 }
