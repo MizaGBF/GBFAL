@@ -1373,12 +1373,12 @@ function displayMainNPC(elem)
     this.onclick = null;
 }
 
-function displayNPC(elem, i)
+function displayNPC(elem, i, n)
 {
     elem.removeAttribute("onclick");
     let node = document.getElementById('areanpc'+i);
     let start = 3990000000 + i * 1000;
-    let end = start + 499000;
+    let end = start + n * 1000;
     let onerr = function() {
         this.onerror = function() {
             this.src = "assets/ui/sound_only.png";
@@ -1393,7 +1393,7 @@ function displayNPC(elem, i)
         for(const id in index["npcs"])
         {
             let t = parseInt(id);
-            if(t < start || t > end) continue;
+            if(t < start || t >= end) continue;
             slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
         }
         const keys = Object.keys(slist).sort();

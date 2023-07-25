@@ -24,7 +24,7 @@
 <body onload="init()">
     <a id="to-title" href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div id="version">v7.9</div>
+        <div id="version">v7.10</div>
         <div id="timestamp">Last update</a>:</div>
     </div>
     <div id="to-bottom" class="clickable" onclick="window.scroll(0, document.body.scrollHeight);"><img src="assets/ui/button.png"></div>
@@ -461,58 +461,126 @@
         <summary>NPC</summary>
         <div class="subdetails">
             <details onclick="displayMainNPC(this)">
-                <summary>Main</summary>
+                <summary>Special</summary>
                 <h3 class="result" id="areamainnpc">
                     <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
-            <details onclick="displayNPC(this, 0)">
-                <summary>0 - 499</summary>
-                <h3 class="result" id="areanpc0">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
+            <details>
+                <summary>0 - 999</summary>
+                <div class="subdetails">
+                    <details onclick="displayNPC(this, 0, 250)">
+                        <summary>0 - 249</summary>
+                        <h3 class="result" id="areanpc0">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 250, 250)">
+                        <summary>250 - 499</summary>
+                        <h3 class="result" id="areanpc250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 500, 250)">
+                        <summary>500 - 749</summary>
+                        <h3 class="result" id="areanpc500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 750, 250)">
+                        <summary>750 - 999</summary>
+                        <h3 class="result" id="areanpc750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
             </details>
-            <details onclick="displayNPC(this, 500)">
-                <summary>500 - 999</summary>
-                <h3 class="result" id="areanpc500">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
+            <details>
+                <summary>1000 - 1999</summary>
+                <div class="subdetails">
+                    <details onclick="displayNPC(this, 1000, 250)">
+                        <summary>1000 - 1249</summary>
+                        <h3 class="result" id="areanpc0">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 1250, 250)">
+                        <summary>1250 - 1499</summary>
+                        <h3 class="result" id="areanpc250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 1500, 250)">
+                        <summary>1500 - 1749</summary>
+                        <h3 class="result" id="areanpc500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 1750, 250)">
+                        <summary>1750 - 1999</summary>
+                        <h3 class="result" id="areanpc750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
             </details>
-            <details onclick="displayNPC(this, 1000)">
-                <summary>1000 - 1499</summary>
-                <h3 class="result" id="areanpc1000">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
+            <details>
+                <summary>2000 - 2999</summary>
+                <div class="subdetails">
+                    <details onclick="displayNPC(this, 2000, 250)">
+                        <summary>2000 - 2249</summary>
+                        <h3 class="result" id="areanpc2000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 2250, 250)">
+                        <summary>2250 - 2499</summary>
+                        <h3 class="result" id="areanpc2250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 2500, 250)">
+                        <summary>2500 - 2749</summary>
+                        <h3 class="result" id="areanpc2500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 2750, 250)">
+                        <summary>2750 - 2999</summary>
+                        <h3 class="result" id="areanpc2750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
             </details>
-            <details onclick="displayNPC(this, 1500)">
-                <summary>1500 - 1999</summary>
-                <h3 class="result" id="areanpc1500">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayNPC(this, 2000)">
-                <summary>2000 - 2499</summary>
-                <h3 class="result" id="areanpc2000">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayNPC(this, 2500)">
-                <summary>2500 - 2999</summary>
-                <h3 class="result" id="areanpc2500">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayNPC(this, 3000)">
-                <summary>3000 - 3499</summary>
-                <h3 class="result" id="areanpc3000">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
-            </details>
-            <details onclick="displayNPC(this, 3500)">
-                <summary>3500 - 3999</summary>
-                <h3 class="result" id="areanpc3500">
-                    <small>Non-exhaustive list</small><br>
-                </h3>
+            <details>
+                <summary>3000 - 3999</summary>
+                <div class="subdetails">
+                    <details onclick="displayNPC(this, 3000, 250)">
+                        <summary>3000 - 3249</summary>
+                        <h3 class="result" id="areanpc3000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 3250, 250)">
+                        <summary>3250 - 3499</summary>
+                        <h3 class="result" id="areanpc3250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 3500, 250)">
+                        <summary>3500 - 3749</summary>
+                        <h3 class="result" id="areanpc3500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayNPC(this, 3750, 250)">
+                        <summary>3750 - 3999</summary>
+                        <h3 class="result" id="areanpc3750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
             </details>
         </div>
     </details>
