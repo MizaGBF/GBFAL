@@ -859,15 +859,20 @@ class Parser():
 
     # index npc data
     def npcUpdate(self, id):
-        data = [[], []] # npc, voice
-        try: scenes = set(self.data["npcs"][id][0])
+        data = [False, [], []] # journal flag, npc, voice
+        try:
+            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/{}.jpg".format(id))
+            data[0] = True
+        except:
+            pass
+        try: scenes = set(self.data["npcs"][id][1])
         except: scenes = set()
         pending = self.request_scene_bulk(id, [""], scenes)
-        try: voices = set(self.data['npcs'][id][1])
+        try: voices = set(self.data['npcs'][id][2])
         except: voices = set()
-        data[1] = self.update_chara_sound_file(id, [""], voices)
-        data[0] = self.process_scene_bulk(pending)
-        if len(data[0]) + len(data[1]) == 0: return False
+        data[2] = self.update_chara_sound_file(id, [""], voices)
+        data[1] = self.process_scene_bulk(pending)
+        if not data[0] and len(data[1]) + len(data[2]) == 0: return False
         with self.lock:
             self.modified = True
             self.data['npcs'][id] = data
@@ -1067,7 +1072,7 @@ class Parser():
         print("Updating sound data...")
         to_update = {"npcs":[]}
         for id in self.data['npcs']:
-            try: voices = set(self.data['npcs'][id][1])
+            try: voices = set(self.data['npcs'][id][2])
             except: voices = set()
             to_update['npcs'].append((id, [""], voices))
         for k in ["characters", "skins"]:
@@ -1112,7 +1117,7 @@ class Parser():
             with self.lock:
                 self.modified = True
                 if index == 'npcs':
-                    self.data[index][id][1] = r # npc
+                    self.data[index][id][2] = r # npc
                 else:
                     self.data[index][id][8] = r # character
 
@@ -1515,7 +1520,7 @@ class Parser():
                         futures.append(executor.submit(self.update_all_scene_sub, k, id, uncaps, scenes))
             for id in self.data["npcs"]:
                 if isinstance(self.data["npcs"][id], int) or full or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0]) == 0:
-                    try: scenes = set(self.data["npcs"][id][0])
+                    try: scenes = set(self.data["npcs"][id][1])
                     except: scenes = set()
                     futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
             s = time.time()
@@ -1542,7 +1547,7 @@ class Parser():
             with self.lock:
                 self.modified = True
                 if index == "npcs": # npcs
-                    self.data[index][id][0] = r
+                    self.data[index][id][1] = r
                 else: # characters / skins
                     self.data[index][id][7] = r
 
