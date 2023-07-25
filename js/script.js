@@ -72,8 +72,6 @@ function filter() // called by the search filter (onkeyup event)
 function init() // entry point, called by body onload
 {
     getJSON("json/changelog.json?" + timestamp, initChangelog, initChangelog, null); // load changelog
-    toggleBookmark(null, null); // init bookmark
-    updateHistory(null, 0); // init history
 }
 
 function initChangelog(unused)
@@ -81,15 +79,7 @@ function initChangelog(unused)
     try{ // load content of changelog.json
         let json = JSON.parse(this.response);
         if(json.hasOwnProperty("new")) // set updated
-        {
             updated = json["new"].reverse();
-            if(updated.length > 0)
-            {
-                let newarea = document.getElementById('updated');
-                newarea.parentNode.style.display = null;
-                updateDynamicList(newarea, updated);
-            }
-        }
         let date = (new Date(json.timestamp)).toISOString();
         document.getElementById('timestamp').innerHTML += " " + date.split('T')[0] + " " + date.split('T')[1].split(':').slice(0, 2).join(':') + " UTC";
         timestamp = json.timestamp; // set timestamp
@@ -119,6 +109,14 @@ function initIndex(unused) // load data.json
         result_area = document.getElementById('resultarea'); // set result_area
         let params = new URLSearchParams(window.location.search); // process url param if any
         let id = params.get("id");
+        if(updated.length > 0) // init Updated list
+        {
+            let newarea = document.getElementById('updated');
+            newarea.parentNode.style.display = null;
+            updateDynamicList(newarea, updated);
+        }
+        toggleBookmark(null, null); // init bookmark
+        updateHistory(null, 0); // init history
         if(id != null) lookup(id); // lookup if id param is set
     } catch(err) {
         getJSON("json/data.json?" + timestamp, initIndex, initIndex, null); // try again
@@ -926,14 +924,30 @@ function updateDynamicList(dynarea, idlist)
             }
             case 5: // npc
             {
-                let onerr = function() {
-                    this.onerror = function() {
-                        this.remove();
+                if("npcs" in index && e[0] in index["npcs"] && index["npcs"][e[0]] != 0)
+                {
+                    if(index["npcs"][e[0]][0])
+                        addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], null);
+                    else if(index["npcs"][e[0]][1].length > 0)
+                        addIndexImage(dynarea, "sp/quest/scene/character/body/" + e[0] + index["npcs"][e[0]][1][0] + ".png", e[0], null).className = "preview";
+                    else
+                        addIndexImage(dynarea, "assets/ui/sound_only.png", e[0], null, "local").className = "sound-only";
+                }
+                else // old, might not be needed anymore
+                {
+                    let onerr = function() {
+                        this.onerror = function() {
+                            this.onerror = function() {
+                                this.remove();
+                            };
+                            this.src = "assets/ui/sound_only.png";
+                            this.className = "sound-only";
+                        };
+                        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
+                        this.className = "preview";
                     };
-                    this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
-                    this.className = "preview";
-                };
-                addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], onerr);
+                    addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], onerr);
+                }
                 break;
             }
         }
@@ -1390,7 +1404,7 @@ function displayNPC(elem, i, n)
             if(t < start || t >= end) continue;
             if(data != 0)
             {
-                if(data[0]) slist[id] = ["sp/assets/npc/m/" + id + ".jpg", id, null];
+                if(data[0]) slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id, null];
                 else if(data[1].length > 0) slist[id] = ["sp/quest/scene/character/body/" + id + data[1][0] + ".png", id, "preview"];
                 else slist[id] = ["assets/ui/sound_only.png", id, "sound-only"];
             }
