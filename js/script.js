@@ -44,6 +44,7 @@ var relations = {}; // relations of loaded elements
 var updated = []; // list of recently updated elements (loaded from changelog.json)
 var intervals = []; // on screen notifications
 var typingTimer; // typing timer timeout
+var audio = null; // last played audio
 
 function getMainEndpoint() // return one of the endpoint, one after the other (to benefit from the sharding)
 {
@@ -567,7 +568,8 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                         elem.appendChild(document.createElement('br'));
                     }
                     elem.onclick = function() {
-                        let audio = new Audio("https://prd-game-a5-granbluefantasy.akamaized.net/" + language + "sound/voice/" + id + sound + ".mp3");
+                        if(audio != null) audio.pause();
+                        audio = new Audio("https://prd-game-a5-granbluefantasy.akamaized.net/" + language + "sound/voice/" + id + sound + ".mp3");
                         audio.play();
                     };
                     let a = document.createElement("a");
