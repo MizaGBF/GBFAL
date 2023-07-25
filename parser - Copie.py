@@ -137,164 +137,86 @@ class Parser():
 
     def run(self): # called by -run, update the indexed content
         errs = []
+        possibles = []
         self.new_elements = []
         job_thread = 20
-        max_thread = 100
-        running_count = 0
         
-        # job keys to check
-        self.newShared(errs)
-        jkeys = []
         if self.job_list is None:
             self.job_list = self.init_job_list()
+        
+        #rarity
+        for r in range(1, 5):
+            # characters
+            if r > 1:
+                self.newShared(errs)
+                for i in range(4):
+                    possibles.append(('characters', i, 4, errs[-1], "30"+str(r)+"0{}000", 3, "js/model/manifest/npc_", "_01{}.js", ["", "_st2"], 20))
+            # summons
+            possibles.append(('summons', 0, 1, self.newShared(errs), "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js", [""], 20))
+            # weapons
+            for j in range(10):
+                possibles.append(('weapons', 0, 1, self.newShared(errs), "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg", [""], 20))
+        # skins
+        self.newShared(errs)
+        for i in range(2):
+            possibles.append(('skins', i, 2, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01{}.js", [""], 20))
+        # enemies
+        for a in range(1, 10):
+            for b in range(1, 4):
+                for d in [1, 2, 3]:
+                    possibles.append(('enemies', 0, 1, self.newShared(errs), str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 50))
+        # npc
+        self.newShared(errs)
+        for i in range(7): # assets
+            possibles.append(('npcs', i, 7, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 60))
+        for i in range(7): # sounds
+            possibles.append(('npcs', i, 7, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3", [""], 60))
+        possibles.append(('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 2))
+        
+        # backgrounds
+        possibles.append(('background', 0, 1, self.newShared(errs), "event_{}", 1, "img_low/sp/raid/bg/", ".jpg", [""], 10))
+        possibles.append(('background', 0, 1, self.newShared(errs), "common_{}", 3, "img_low/sp/raid/bg/", ".jpg", [""], 10))
+        possibles.append(('background', 0, 1, self.newShared(errs), "main_{}", 1, "img_low/sp/guild/custom/bg/", ".png", [""], 10))
+        for i in ["ra", "rb", "rc"]:
+            possibles.append(('background', 0, 1, self.newShared(errs), "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
+        for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
+            possibles.append(('background', 0, 1, self.newShared(errs), i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
+        
+        # titles
+        possibles.append(('title', 0, 1, self.newShared(errs), "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 20))
+        
+        # job
+        self.newShared(errs)
+        jkeys = []
         for k in list(self.job_list.keys()):
             if k not in self.data["job"]:
                 jkeys.append(k)
         if len(jkeys) > 0:
             job_thread == 0
-    
-        tasks = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread) as executor: # Note: Threads of each categories will run together, in the limit set by max_thead, to ensure no problem with their errs variable
+
+        print("Starting index update... (", len(possibles)+job_thread, " threads )")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(possibles)+job_thread) as executor:
+            futures = []
             s = time.time()
-            # start job threads first
-            tasks['job'] = {'futures':[], 'todo':[]}
             for i in range(job_thread):
-                tasks['job']['todo'].append(None) # array size is used later
-                tasks['job']['futures'].append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
-                running_count += 1
-
-            # prepare the rest
-            #rarity
-            for r in range(1, 5):
-                # weapons
-                for j in range(10):
-                    self.newShared(errs)
-                    tasks['weapons{}{}'.format(r, j)] = {'todo':[]}
-                    for i in range(10):
-                        tasks['weapons{}{}'.format(r, j)]['todo'].append(('weapons', i, 10, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg", [""], 20))
-                # summons
-                self.newShared(errs)
-                tasks['summons{}'.format(r)] = {'todo':[]}
-                for i in range(5):
-                    tasks['summons{}'.format(r)]['todo'].append(('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js", [""], 20))
-                # characters
-                if r > 1:
-                    self.newShared(errs)
-                    tasks['characters{}'.format(r)] = {'todo':[]}
-                    for i in range(5):
-                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "js/model/manifest/npc_", "_01{}.js", ["", "_st2"], 20))
-            # skins
-            self.newShared(errs)
-            tasks['skins'] = {'todo':[]}
-            for i in range(5):
-                tasks['skins']['todo'].append(('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01{}.js", [""], 20))
-            # enemies
-            for a in range(1, 10):
-                for b in range(1, 4):
-                    for d in [1, 2, 3]:
-                        self.newShared(errs)
-                        tasks['enemies{}{}{}'.format(a,b,d)] = {'todo':[]}
-                        for i in range(5):
-                            tasks['enemies{}{}{}'.format(a,b,d)]['todo'].append(('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 50))
-            # npc
-            self.newShared(errs)
-            tasks['npcs_asset'] = {'todo':[]}
-            for i in range(10): # assets
-                tasks['npcs_asset']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 60))
-            self.newShared(errs)
-            tasks['npcs_sound'] = {'todo':[]}
-            for i in range(10): # sounds
-                tasks['npcs_sound']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3", [""], 60))
-            tasks['npcs_sp'] = {'todo':[]}
-            tasks['npcs_sp']['todo'].append(('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 2))
-            
-            # backgrounds
-            for i in ["event_{}", "common_{}", "main_{}"]:
-                self.newShared(errs)
-                tasks['bg'+i] = {'todo':[]}
-                for j in range(5):
-                    tasks['bg'+i]['todo'].append(('background', j, 5, errs[-1], i, 1, "img_low/sp/raid/bg/", ".jpg", [""], 10))
-            for i in ["ra", "rb", "rc"]:
-                self.newShared(errs)
-                tasks['bg'+i] = {'todo':[]}
-                for j in range(5):
-                    tasks['bg'+i]['todo'].append(('background', j, 5, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
-            for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
-                self.newShared(errs)
-                tasks['bg'+i[0]+'-'+i[1]] = {'todo':[]}
-                for j in range(5):
-                    tasks['bg'+i[0]+'-'+i[1]]['todo'].append(('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
-            
-            # titles
-            self.newShared(errs)
-            tasks['title'] = {'todo':[]}
-            for i in range(5):
-                tasks['title']['todo'].append(('title', i, 5, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 20))
-
-            countmax = 0
+                futures.append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
+            # start
+            for p in possibles:
+                futures.append(executor.submit(self.subroutine, self.endpoint, *p))
+            countmax = len(futures)
             count = 0
-            for k, v in tasks.items(): # count max threads
-                countmax += len(v['todo'])
-
-            while True:
-                if len(tasks.keys()) == 0: # finished
-                    break
-                # add missing threads
-                for k, v in tasks.items():
-                    if 'futures' not in v and len(v['todo'])+running_count < max_thread:
-                        tasks[k]['futures'] = []
-                        for p in v['todo']:
-                            tasks[k]['futures'].append(executor.submit(self.run_subroutine, self.endpoint, *p))
-                            running_count += 1
-                # collect futures
-                for k, v in tasks.items():
-                    if 'futures' in v:
-                        for future in concurrent.futures.as_completed(v['futures']):
-                            future.result()
-                            running_count -= 1
-                            count += 1
-                            if count >= countmax:
-                                print("Progress: 100%")
-                                print("Finished in {:.2f} seconds".format(time.time() - s))
-                            elif count % 80 == 0:
-                                print("Progress: {:.1f}%".format(100*count/countmax))
-                        tasks.pop(k)
-                        break
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+                count += 1
+                if count >= countmax:
+                    print("Progress: 100%")
+                    print("Finished in {:.2f} seconds".format(time.time() - s))
+                elif count % 10 == 0:
+                    print("Progress: {:.1f}%".format(90*count/countmax))
         print("Index update done")
         self.manualUpdate(self.new_elements)
         self.save()
         self.build_relation()
-
-    def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles, maxerr): # run() subroutine (see above)
-        id = start
-        is_js = ext.endswith('.js')
-        while err[0] < maxerr and err[1]:
-            f = file.format(str(id).zfill(zfill))
-            for s in styles:
-                try:
-                    if f+s in self.data[index]:
-                        if is_js and self.data[index][f+s] == 0:
-                            self.new_elements.append(f+s)
-                        with err[2]:
-                            err[0] = 0
-                        continue
-                    if f in self.multi_summon: self.req(endpoint + path + f + ext.replace("_damage", "_a_damage"))
-                    else: self.req(endpoint + path + f + ext.replace("{}", s))
-                    with err[2]:
-                        err[0] = 0
-                        self.data[index][f+s] = 0
-                        self.modified = True
-                        self.new_elements.append(f+s)
-                        print("New Element:",f+s)
-                except:
-                    if s != "": break
-                    with err[2]:
-                        err[0] += 1
-                        if err[0] >= maxerr:
-                            err[1] = False
-                            return
-                    break
-            id += step
 
     def init_job_list(self): # to be called once when needed
         print("Initializing job list...")
@@ -650,6 +572,37 @@ class Parser():
                 case _:
                     break
         self.save()
+
+    def subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles, maxerr): # run() subroutine
+        id = start
+        is_js = ext.endswith('.js')
+        while err[0] < maxerr and err[1]:
+            f = file.format(str(id).zfill(zfill))
+            for s in styles:
+                try:
+                    if f+s in self.data[index]:
+                        if is_js and self.data[index][f+s] == 0:
+                            self.new_elements.append(f+s)
+                        with err[2]:
+                            err[0] = 0
+                        continue
+                    if f in self.multi_summon: self.req(endpoint + path + f + ext.replace("_damage", "_a_damage"))
+                    else: self.req(endpoint + path + f + ext.replace("{}", s))
+                    with err[2]:
+                        err[0] = 0
+                        self.data[index][f+s] = 0
+                        self.modified = True
+                        self.new_elements.append(f+s)
+                        print("New Element:",f+s)
+                except:
+                    if s != "": break
+                    with err[2]:
+                        err[0] += 1
+                        if err[0] >= maxerr:
+                            err[1] = False
+                            return
+                    break
+            id += step
 
     def req(self, url, headers={}, get=False): # HEAD or GET request function. Set get to True when the content must be downloaded and read
         if get:
