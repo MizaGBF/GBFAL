@@ -872,7 +872,15 @@ class Parser():
         except: voices = set()
         data[2] = self.update_chara_sound_file(id, [""], voices)
         data[1] = self.process_scene_bulk(pending)
-        if not data[0] and len(data[1]) + len(data[2]) == 0: return False
+        if not data[0] and len(data[1]) == 0:
+            if len(data[2]) == 0: return False # nothing, quit
+            # check if proceed regardless
+            keys = list(self.data['npcs'].keys()) # get keys
+            keys = keys[max(0, len(keys)-100):] # last 100 (or less)
+            keys = [k for k in keys if self.data['npcs'][k] != 0] # remove unvalid ones
+            keys.sort() # sort
+            if int(keys[-1]) <= int(id): # doesn't proceed with sound only if there is no valid npc further
+                return False
         with self.lock:
             self.modified = True
             self.data['npcs'][id] = data
