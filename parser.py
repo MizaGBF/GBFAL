@@ -878,7 +878,7 @@ class Parser():
             keys = list(self.data['npcs'].keys()) # get keys
             keys = keys[max(0, len(keys)-100):] # last 100 (or less)
             keys = [k for k in keys if self.data['npcs'][k] != 0] # remove unvalid ones
-            keys.sort() # sort
+            keys.sort() # sort so that the highest id is further right
             if int(keys[-1]) <= int(id): # doesn't proceed with sound only if there is no valid npc further
                 return False
         with self.lock:
