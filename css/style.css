@@ -168,6 +168,13 @@ footer, #header {
     border-radius: 10px;
 }
 
+.preview-width {
+    max-width: 140px;
+    max-height: 80px;
+    border: 2px solid #808080;
+    border-radius: 10px;
+}
+
 .sound-only {
     max-height: 80px;
 }

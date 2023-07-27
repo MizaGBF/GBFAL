@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 class Parser():
     def __init__(self):
         self.running = False # control if the app is running
-        self.update_changelog = True # flag to enable or disable the generation of changelog.json
+        self.update_changelog = False # flag to enable or disable the generation of changelog.json
         self.style_queue = queue.Queue() # queue used to process character styles
         self.request_queue = queue.Queue() # queue used to retrieve npc data
         self.quality = ("/img/", "/js/") # image and js quality
@@ -29,6 +29,7 @@ class Parser():
             "npcs":{},
             "background":{},
             "title":{},
+            "suptix":{},
             "lookup":{}
         }
         self.lock = Lock() # lock for self.data
@@ -229,7 +230,12 @@ class Parser():
             self.newShared(errs)
             tasks['title'] = {'todo':[]}
             for i in range(5):
-                tasks['title']['todo'].append(('title', i, 5, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 20))
+                tasks['title']['todo'].append(('title', i, 5, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 15))
+            # suptix
+            self.newShared(errs)
+            tasks['suptix'] = {'todo':[]}
+            for i in range(5):
+                tasks['suptix']['todo'].append(('suptix', i, 5, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg", [""], 15))
 
             countmax = 0
             count = 0
@@ -733,7 +739,7 @@ class Parser():
                             futures.append(executor.submit(self.charaUpdate, id))
                     else:
                         pass
-                else:
+                elif len(id) >= 6:
                     futures.append(executor.submit(self.mobUpdate, id))
             tfinished = 0
             tcounter = len(futures) - tcounter

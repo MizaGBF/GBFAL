@@ -1450,7 +1450,7 @@ function displayMC(elem)
     this.onclick = null;
 }
 
-function addIndexImageGeneric(node, path, id, onerr = null)
+function addIndexImageGeneric(node, path, id, onerr, className = "preview")
 {
     let a = document.createElement("a");
     let img = document.createElement("img");
@@ -1461,7 +1461,7 @@ function addIndexImageGeneric(node, path, id, onerr = null)
     img.setAttribute('loading', 'lazy');
     img.onload = function() {
         this.classList.remove("loading");
-        this.classList.add("preview");
+        this.classList.add(className);
     };
     if(onerr == null)
     {
@@ -1520,6 +1520,24 @@ function displayTitle(elem)
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
             addIndexImageGeneric(node, "sp/top/bg/bg_" + slist[k] + ".jpg", slist[k], null);
+    }
+    this.onclick = null;
+}
+
+function displaySuptix(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areasuptix');
+    if("suptix" in index)
+    {
+        let slist = {};
+        for(const id in index["suptix"])
+        {
+            slist[id.padStart(9, "0")] = id;
+        }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImageGeneric(node, "sp/gacha/campaign/surprise/top_" + slist[k] + ".jpg", slist[k], null, "preview-width");
     }
     this.onclick = null;
 }
