@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 class Parser():
     def __init__(self):
         self.running = False # control if the app is running
-        self.update_changelog = False # flag to enable or disable the generation of changelog.json
+        self.update_changelog = True # flag to enable or disable the generation of changelog.json
         self.style_queue = queue.Queue() # queue used to process character styles
         self.request_queue = queue.Queue() # queue used to retrieve npc data
         self.quality = ("/img/", "/js/") # image and js quality
