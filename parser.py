@@ -846,11 +846,21 @@ class Parser():
         data[4] = attacks
         # scenes and sounds
         uncaps = [u for u in uncaps if ("_" not in u and u.startswith("0"))] # format uncaps (remove useless ones)
-        try: scenes = set(self.data['characters'][id+style][7])
-        except: scenes = set()
+        try:
+            if tid.startswith('37'):
+                scenes = set(self.data['skins'][id+style][7])
+            else:
+                scenes = set(self.data['characters'][id+style][7])
+        except:
+            scenes = set()
         pending = self.request_scene_bulk(id+style, uncaps, scenes)
-        try: voices = set(self.data['characters'][id+style][8])
-        except: voices = set()
+        try:
+            if tid.startswith('37'):
+                voices = set(self.data['skins'][id+style][8])
+            else:
+                voices = set(self.data['characters'][id+style][8])
+        except:
+            voices = set()
         data[8] = self.update_chara_sound_file(id+style, uncaps, voices)
         data[7] = self.process_scene_bulk(pending)
         with self.lock:
