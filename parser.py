@@ -870,7 +870,7 @@ class Parser():
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/{}.jpg".format(id))
             data[0] = True
         except:
-            pass
+            if id.startswith("305"): return False # don't continue for special npcs
         try: scenes = set(self.data["npcs"][id][1])
         except: scenes = set()
         pending = self.request_scene_bulk(id, [""], scenes)
