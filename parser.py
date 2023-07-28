@@ -23,7 +23,7 @@ class Parser():
             "weapons":{},
             "enemies":{},
             "skins":{},
-            "job":{},
+            'job':{},
             "job_wpn":{},
             "job_key":{},
             "npcs":{},
@@ -149,7 +149,7 @@ class Parser():
         if self.job_list is None:
             self.job_list = self.init_job_list()
         for k in list(self.job_list.keys()):
-            if k not in self.data["job"]:
+            if k not in self.data['job']:
                 jkeys.append(k)
         if len(jkeys) > 0:
             job_thread == 0
@@ -348,7 +348,7 @@ class Parser():
     def search_job(self, start, step, keys, shared): # search jobs to be indexed
         i = start
         while i < len(keys):
-            if keys[i] in self.data["job"]: continue
+            if keys[i] in self.data['job']: continue
             cmh = []
             colors = [1]
             alts = []
@@ -385,7 +385,7 @@ class Parser():
                     data[5].append(keys[i][:-2]+str(j).zfill(2))
                 
                 with self.lock:
-                    self.data["job"][keys[i]] = data
+                    self.data['job'][keys[i]] = data
                     self.modified = True
                     self.addition[keys[i]] = 0
             i += step
@@ -402,7 +402,7 @@ class Parser():
         to_search = []
         full_key_search = False
         # key search
-        for k, v in self.data["job"].items():
+        for k, v in self.data['job'].items():
             if len(v[7]) == 0:
                 if self.job_list[k] != string.ascii_lowercase:
                     to_search.append((0, self.job_list[k], k)) # keyword search type, letters, class id
@@ -447,7 +447,7 @@ class Parser():
         self.save()
 
     def detail_job_search(self, key, job): # subroutine for threading
-        cmh = self.data["job"][job][6]
+        cmh = self.data['job'][job][6]
         a = key[0]
         for b in key:
             for c in key:
@@ -512,7 +512,7 @@ class Parser():
                         s = input("Input job ID (leave blank to cancel):")
                         if s == "":
                             break
-                        elif s not in self.data["job"]:
+                        elif s not in self.data['job']:
                             print("Unknown ID")
                         else:
                             jid = s
@@ -527,7 +527,7 @@ class Parser():
                                 s = input().lower()
                                 if s in self.data['job_key']:
                                     sheets = []
-                                    for v in self.data["job"][jid][4]:
+                                    for v in self.data['job'][jid][4]:
                                         try:
                                             sheets += self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
                                         except:
@@ -621,7 +621,7 @@ class Parser():
                                 if s is not None:
                                     # set key
                                     sheets = []
-                                    for v in self.data["job"][jid][4]:
+                                    for v in self.data['job'][jid][4]:
                                         try:
                                             sheets += self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
                                         except:
@@ -633,10 +633,12 @@ class Parser():
                             for jid, s in tmp["weapon"].items():
                                 if s is not None:
                                     # phit
-                                    try:
-                                        self.data['job'][jid][8] = list(dict.fromkeys(self.processManifest("phit_{}".format(s))))
-                                    except:
-                                        pass
+                                    self.data['job'][jid][8] = []
+                                    for u in ["", "_2", "_3"]:
+                                        try:
+                                            self.data['job'][jid][8] += list(dict.fromkeys(self.processManifest("phit_{}{}".format(s, u))))
+                                        except:
+                                            pass
                                     # ougi
                                     sheets = []
                                     for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
@@ -809,11 +811,12 @@ class Parser():
             targets.append("_" + uncaps[i])
         attacks = []
         for t in targets:
-            try:
-                fn = "phit_{}{}{}".format(tid, t, style)
-                attacks += self.processManifest(fn)
-            except:
-                break
+            for u in ["", "_2", "_3"]:
+                try:
+                    fn = "phit_{}{}{}{}".format(tid, t, style, u)
+                    attacks += self.processManifest(fn)
+                except:
+                    break
         data[1] = attacks
         # ougi
         attacks = []
@@ -952,11 +955,12 @@ class Parser():
         except:
             return False
         # attack
-        try:
-            fn = "phit_{}".format(id)
-            data[1] += self.processManifest(fn)
-        except:
-            pass
+        for u in ["", "_2", "_3"]:
+            try:
+                fn = "phit_{}{}".format(id, u)
+                data[1] += self.processManifest(fn)
+            except:
+                pass
         # ougi
         for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
             try:
