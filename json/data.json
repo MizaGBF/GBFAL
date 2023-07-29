@@ -3905,7 +3905,9 @@
 "1030799000":[["1030799000"],[],[]],
 "1020399000":[["1020399000"],[],[]],
 "1020199000":[["1020199000"],[],[]],
-"1030399000":[["1030399000"],[],[]]
+"1030399000":[["1030399000"],[],[]],
+"1039900000":[["1039900000"],[],[]],
+"1029900000":[["1029900000"],[],[]]
 },
 "enemies":{
 "1200011":[["1200011"],["enemy_1200011_a.png","enemy_1200011_b.png"],[],[],["esp_1200011_02.png"],[]],
@@ -13918,6 +13920,8 @@
 "1020199000":"weapon dagger r angel knife upgraders light エンジェルナイフ 1020199000",
 "1020899000":"weapon harp r angel harp upgraders light エンジェルハープ 1020899000",
 "1030599000":"weapon gun sr archangel gun upgraders light アークエンジェルガン 1030599000",
-"1030399000":"weapon axe sr archangel axe upgraders light アークエンジェルアクス 1030399000"
+"1030399000":"weapon axe sr archangel axe upgraders light アークエンジェルアクス 1030399000",
+"1039900000":"weapon katana sr skill jewel upgraders dark スキルジュエル 1039900000",
+"1029900000":"weapon katana r skill shard upgraders dark スキルシャード 1029900000"
 }
 }

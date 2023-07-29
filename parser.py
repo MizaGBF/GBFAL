@@ -950,7 +950,7 @@ class Parser():
         data = [[], [], []] # general, phit, sp
         # art
         try:
-            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/weapon/ls/{}.jpg".format(id))
+            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/weapon/m/{}.jpg".format(id))
             data[0].append("{}".format(id))
         except:
             return False
