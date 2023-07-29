@@ -596,9 +596,6 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                     a.onclick = function(event) {
                         event.stopPropagation();
                     };
-                    let img = document.createElement("img");
-                    img.src = "assets/ui/open-sound.png";
-                    a.appendChild(img);
                     elem.appendChild(a);
                     div.appendChild(elem);
                 }
