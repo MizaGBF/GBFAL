@@ -550,6 +550,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 {
                     let elem = document.createElement("div");
                     elem.classList.add("sound-file");
+                    elem.classList.add("clickable");
                     let s = sound.substring(1);
                     switch(s.substring(0, 3))
                     {
@@ -592,6 +593,9 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                     let a = document.createElement("a");
                     a.href = "https://prd-game-a5-granbluefantasy.akamaized.net/" + language + "sound/voice/" + id + sound + ".mp3";
                     a.classList.add("sound-link");
+                    a.onclick = function(event) {
+                        event.stopPropagation();
+                    };
                     let img = document.createElement("img");
                     img.src = "assets/ui/open-sound.png";
                     a.appendChild(img);

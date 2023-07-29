@@ -213,8 +213,7 @@ small {
 }
 
 .loading {
-    background: #ff0000;
-    background: url(../assets/ui/loading.gif); 
+    background: url(../assets/ui/loading.gif) no-repeat;
     width: 32px;
     height: 32px;
 }
@@ -330,5 +329,9 @@ a:active {
 .sound-link {
     position: absolute;
     bottom: 0;
-    left: 10px;
+    left: 20px;
+}
+
+.sound-link > img{
+    width: 80px;
 }
