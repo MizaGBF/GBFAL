@@ -894,6 +894,21 @@ function newArea(name, id, include_link, indexed=true)
         div.appendChild(document.createElement('br'));
         div.appendChild(document.createTextNode("This element isn't indexed, assets will be missing"));
     }
+    else if(name == "Partner") // partner chara matching
+    {
+        let cid = "30" + id.slice(2);
+        if("characters" in index && cid in index["characters"])
+        {
+            div.appendChild(document.createTextNode("Character: "));
+            let i = document.createElement('i');
+            i.classList.add("tag");
+            i.onclick = function() {
+                lookup(cid);
+            };
+            i.appendChild(document.createTextNode(cid)); 
+            div.appendChild(i);
+        }
+    }
 }
 
 function addResult(identifier, name, file_count = 0)
