@@ -169,47 +169,56 @@ function getJSON(url, callback, err_callback, id) { // generic function to reque
 function loadIndexed(id, obj, indexed=true) // load an element from data.json
 {
     let search_type;
-    if(id.length == 10 || id.length == 14)
+    switch(id.length)
     {
-        switch(id[0])
-        {
-            case '1':
-                newArea("Weapon", id, true, indexed);
-                search_type = 1;
-                break;
-            case '2':
-                newArea("Summon", id, true, indexed);
-                search_type = 2;
-                break;
-            case '3':
-                if(id[1] == '9' || id[2] == '5')
-                {
-                    newArea("NPC", id, true, indexed);
-                    search_type = 5;
-                }
-                else
-                {
-                    newArea("Character", id, true, indexed);
-                    search_type = 3;
-                }
-                break;
-            default:
-                return;
-        };
-        last_id = id;
-        updateQuery(id);
-    }
-    else if(id.length == 7)
-    {
-        newArea("Enemy", id, false, indexed);
-        search_type = 4;
-        updateQuery("e"+id);
-    }
-    else if(id.length == 6)
-    {
-        newArea("Main Character", id, true, (obj[7].length != 0) && indexed);
-        search_type = 0;
-        updateQuery(id);
+        case 10:
+        case 14:
+            switch(id[0])
+            {
+                case '1':
+                    newArea("Weapon", id, true, indexed);
+                    search_type = 1;
+                    break;
+                case '2':
+                    newArea("Summon", id, true, indexed);
+                    search_type = 2;
+                    break;
+                case '3':
+                    switch(id[1])
+                    {
+                        case '9':
+                        case '5':
+                            newArea("NPC", id, true, indexed);
+                            search_type = 5;
+                            break;
+                        case '8':
+                            newArea("Partner", id, false, indexed);
+                            search_type = 6;
+                            break;
+                        default:
+                            newArea("Character", id, true, indexed);
+                            search_type = 3;
+                            break;
+                    }
+                    break;
+                default:
+                    return;
+            };
+            last_id = id;
+            updateQuery(id);
+            break;
+        case 7:
+            newArea("Enemy", id, false, indexed);
+            search_type = 4;
+            updateQuery("e"+id);
+            break;
+        case 6:
+            newArea("Main Character", id, true, (obj[7].length != 0) && indexed);
+            search_type = 0;
+            updateQuery(id);
+            break;
+        default:
+            return;
     }
     if(indexed)
     {
@@ -224,128 +233,138 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
     let files = null;
     let sounds = null;
     let melee = false;
-    if(search_type == 4) // enemies
+    switch(search_type)
     {
-        assets = [
-            ["Big Icon", "sp/assets/enemy/m/", "png", "img/", 0, false, false],
-            ["Small Icon", "sp/assets/enemy/s/", "png", "img/", 0, false, false],
-            ["Sprite Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
-            ["Raid Appear Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
-            ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 3, false, false],
-            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 4, false, false],
-            ["AOE Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 5, false, false]
-        ];
-    }
-    else if(search_type == 3) // characters / skins
-    {
-        assets = [
-            ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", 5, true, false], // index, skycompass, side form
-            ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", 5, false, false],
-            ["Gacha Arts", "sp/assets/npc/gacha/", "png", "img_low/", 6, false, false],
-            ["News Art", "sp/banner/notice/update_char_", "png", "img_low/", 6, false, false],
-            ["Pose News Arts", "sp/assets/npc/add_pose/", "png", "img_low/", 6, false, false],
-            ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", 5, false, false],
-            ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", 5, false, false],
-            ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", 5, false, false],
-            ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_mid/", 5, false, false],
-            ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", "img/", 6, false, false],
-            ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", 5, false, false],
-            ["Tower Portraits", "sp/assets/npc/t/", "png", "img_low/", 5, false, false],
-            ["Detail Banners", "sp/assets/npc/detail/", "png", "img_low/", 5, false, false],
-            ["Sprites", "sp/assets/npc/sd/", "png", "img/", 6, false, false],
-            ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", "img/", 5, false, true],
-            ["Twitter Arts", "sp/assets/npc/sns/", "jpg", "img_low/", 5, false, false],
-            ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", "img_low/", 5, false, false],
-            ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", "img_low/", 5, false, false],
-            ["Character Sheets", "sp/cjs/", "png", "img_low/", 0, false, false],
-            ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
-            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
-            ["AOE Skill Sheets", "sp/cjs/", "png", "img_low/", 5, false, false],
-            ["Single Target Skill Sheets", "sp/cjs/", "png", "img_low/", 3, false, false]
-        ];
-        skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
-        npcdata = obj[7];
-        sounds = obj[8];
-    }
-    else if(search_type == 5) // npcs
-    {
-        assets = [
-            ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", -1, false, false], // index, skycompass, side form
-            ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", -1, false, false],
-            ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", -1, false, false]
-        ];
-        npcdata = obj[1];
-        sounds = obj[2];
-        files = [id, id + "_01"];
-    }
-    else if(search_type == 2) // summons
-    {
-        assets = [
-            ["Main Arts", "sp/assets/summon/b/", "png", "img_low/", 0, true, false], // index, skycompass, side form
-            ["Home Arts", "sp/assets/summon/my/", "png", "img_low/", 0, false, false],
-            ["Gacha Art", "sp/assets/summon/g/", "png", "img_low/", 0, false, false],
-            ["Gacha Header", "sp/gacha/header/", "png", "img_low/", 0, false, false],
-            ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/", 0, false, false],
-            ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/", 0, false, false],
-            ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/", 0, false, false],
-            ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/", 0, false, false],
-            ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/", 0, false, false],
-            ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/", 0, false, false],
-            ["Result Portraits", "sp/assets/summon/btn/", "png", "img/", 0, false, false],
-            ["Quest Portraits", "sp/assets/summon/qm/", "png", "img/", 0, false, false],
-            ["Summon Call Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
-            ["Summon Damage Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
-        ];
-        skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
-    }
-    else if(search_type == 1) // weapons
-    {
-        assets = [
-            ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/", 0, false, false], // index, skycompass, side form
-            ["Gacha Art", "sp/assets/weapon/g/", "png", "img_low/", 0, false, false],
-            ["Gacha Cover", "sp/gacha/cjs_cover/", "png", "img_mid/", 0, false, false],
-            ["Gacha Header", "sp/gacha/header/", "png", "img_low/", 0, false, false],
-            ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", 0, false, false],
-            ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", 0, false, false],
-            ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", 0, false, false],
-            ["Battle Sprites", "sp/cjs/", "png", "img/", 0, false, false],
-            ["Attack Effects", "sp/cjs/", "png", "img/", 1, false, false],
-            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
-        ];
-        melee = (id[4] == "6");
-    }
-    else if(search_type == 0) // MC
-    {
-        assets = [
-            ["Job Icons", "sp/ui/icon/job/", "png", "img/", 0, false, false], // index, skycompass, side form
-            ["Inventory Portraits", "sp/assets/leader/m/", "jpg", "img/", 1, false, false],
-            ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", "img/", 1, false, false],
-            ["Outfit Description Arts", "sp/assets/leader/skin/", "png", "img_low/", 1, false, false],
-            ["Home Arts", "sp/assets/leader/my/", "png", "img_low/", 3, true, false],
-            ["Full Arts", "sp/assets/leader/job_change/", "png", "img_low/", 3, false, false],
-            ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", "img_low/", 3, false, false],
-            ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", "img/", 0, false, false],
-            ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", "img/", 0, false, false],
-            ["Class Change Buttons", "sp/assets/leader/jlon/", "png", "img/", 2, false, false],
-            ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", "img_low/", 3, false, false],
-            ["Party Class Portraits", "sp/assets/leader/p/", "png", "img_low/", 3, false, false],
-            ["Profile Portraits", "sp/assets/leader/pm/", "png", "img_low/", 3, false, false],
-            ["Profile Board Portraits", "sp/assets/leader/talk/", "png", "img/", 3, false, false],
-            ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", "img/", 3, false, false],
-            ["Tower Portraits", "sp/assets/leader/t/", "png", "img_low/", 3, false, false],
-            ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", "img/", 3, false, false],
-            ["Result Portraits", "sp/assets/leader/btn/", "png", "img/", 3, false, false],
-            ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", "img/", 3, false, false],
-            ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", "img_low/", 3, false, false],
-            ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2, false, false],
-            ["Master Level Portraits", "sp/assets/leader/master_level/", "png", "img_low/", 2, false, false],
-            ["Sprites", "sp/assets/leader/sd/", "png", "img/", 4, false, false],
-            ["Character Sheets", "sp/cjs/", "png", "img_low/", 7, false, false],
-            ["Attack Effects", "sp/cjs/", "png", "img/", 8, false, false],
-            ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 9, false, false]
-        ];
-        skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
-        mc_skycompass = true;
+        case 4: // enemies
+            assets = [
+                ["Big Icon", "sp/assets/enemy/m/", "png", "img/", 0, false, false],
+                ["Small Icon", "sp/assets/enemy/s/", "png", "img/", 0, false, false],
+                ["Sprite Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
+                ["Raid Appear Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
+                ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 3, false, false],
+                ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 4, false, false],
+                ["AOE Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 5, false, false]
+            ];
+            break;
+        case 6: // partners
+            assets = [
+                ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", 5, false, false],
+                ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", "img/", 5, false, true],
+                ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", "img_low/", 5, false, false],
+                ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", "img_low/", 5, false, false],
+                ["Character Sheets", "sp/cjs/", "png", "img_low/", 0, false, false],
+                ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
+                ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
+                ["AOE Skill Sheets", "sp/cjs/", "png", "img_low/", 3, false, false],
+                ["Single Target Skill Sheets", "sp/cjs/", "png", "img_low/", 4, false, false]
+            ];
+            break;
+        case 3: // characters / skins
+            assets = [
+                ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", 5, true, false], // index, skycompass, side form
+                ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", 5, false, false],
+                ["Gacha Arts", "sp/assets/npc/gacha/", "png", "img_low/", 6, false, false],
+                ["News Art", "sp/banner/notice/update_char_", "png", "img_low/", 6, false, false],
+                ["Pose News Arts", "sp/assets/npc/add_pose/", "png", "img_low/", 6, false, false],
+                ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", 5, false, false],
+                ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", 5, false, false],
+                ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", 5, false, false],
+                ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_mid/", 5, false, false],
+                ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", "img/", 6, false, false],
+                ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", 5, false, false],
+                ["Tower Portraits", "sp/assets/npc/t/", "png", "img_low/", 5, false, false],
+                ["Detail Banners", "sp/assets/npc/detail/", "png", "img_low/", 5, false, false],
+                ["Sprites", "sp/assets/npc/sd/", "png", "img/", 6, false, false],
+                ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", "img/", 5, false, true],
+                ["Twitter Arts", "sp/assets/npc/sns/", "jpg", "img_low/", 5, false, false],
+                ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", "img_low/", 5, false, false],
+                ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", "img_low/", 5, false, false],
+                ["Character Sheets", "sp/cjs/", "png", "img_low/", 0, false, false],
+                ["Attack Effect Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
+                ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
+                ["AOE Skill Sheets", "sp/cjs/", "png", "img_low/", 3, false, false],
+                ["Single Target Skill Sheets", "sp/cjs/", "png", "img_low/", 4, false, false]
+            ];
+            skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
+            npcdata = obj[7];
+            sounds = obj[8];
+            break;
+        case 5: // npcs
+            assets = [
+                ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", -1, false, false], // index, skycompass, side form
+                ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", -1, false, false],
+                ["Inventory Portraits", "sp/assets/npc/m/", "jpg", "img_low/", -1, false, false]
+            ];
+            npcdata = obj[1];
+            sounds = obj[2];
+            files = [id, id + "_01"];
+            break;
+        case 2: // summons
+            assets = [
+                ["Main Arts", "sp/assets/summon/b/", "png", "img_low/", 0, true, false], // index, skycompass, side form
+                ["Home Arts", "sp/assets/summon/my/", "png", "img_low/", 0, false, false],
+                ["Gacha Art", "sp/assets/summon/g/", "png", "img_low/", 0, false, false],
+                ["Gacha Header", "sp/gacha/header/", "png", "img_low/", 0, false, false],
+                ["Detail Arts", "sp/assets/summon/detail/", "png", "img_low/", 0, false, false],
+                ["Inventory Portraits", "sp/assets/summon/m/", "jpg", "img_low/", 0, false, false],
+                ["Square Portraits", "sp/assets/summon/s/", "jpg", "img_low/", 0, false, false],
+                ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", "img_low/", 0, false, false],
+                ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", "img_low/", 0, false, false],
+                ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", "img/", 0, false, false],
+                ["Result Portraits", "sp/assets/summon/btn/", "png", "img/", 0, false, false],
+                ["Quest Portraits", "sp/assets/summon/qm/", "png", "img/", 0, false, false],
+                ["Summon Call Sheets", "sp/cjs/", "png", "img_low/", 1, false, false],
+                ["Summon Damage Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
+            ];
+            skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
+            break;
+        case 1: // weapons{
+            assets = [
+                ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/", 0, false, false], // index, skycompass, side form
+                ["Gacha Art", "sp/assets/weapon/g/", "png", "img_low/", 0, false, false],
+                ["Gacha Cover", "sp/gacha/cjs_cover/", "png", "img_mid/", 0, false, false],
+                ["Gacha Header", "sp/gacha/header/", "png", "img_low/", 0, false, false],
+                ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", 0, false, false],
+                ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", 0, false, false],
+                ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", 0, false, false],
+                ["Battle Sprites", "sp/cjs/", "png", "img/", 0, false, false],
+                ["Attack Effects", "sp/cjs/", "png", "img/", 1, false, false],
+                ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
+            ];
+            melee = (id[4] == "6");
+            break;
+        case 0: // MC
+            assets = [
+                ["Job Icons", "sp/ui/icon/job/", "png", "img/", 0, false, false], // index, skycompass, side form
+                ["Inventory Portraits", "sp/assets/leader/m/", "jpg", "img/", 1, false, false],
+                ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", "img/", 1, false, false],
+                ["Outfit Description Arts", "sp/assets/leader/skin/", "png", "img_low/", 1, false, false],
+                ["Home Arts", "sp/assets/leader/my/", "png", "img_low/", 3, true, false],
+                ["Full Arts", "sp/assets/leader/job_change/", "png", "img_low/", 3, false, false],
+                ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", "img_low/", 3, false, false],
+                ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", "img/", 0, false, false],
+                ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", "img/", 0, false, false],
+                ["Class Change Buttons", "sp/assets/leader/jlon/", "png", "img/", 2, false, false],
+                ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", "img_low/", 3, false, false],
+                ["Party Class Portraits", "sp/assets/leader/p/", "png", "img_low/", 3, false, false],
+                ["Profile Portraits", "sp/assets/leader/pm/", "png", "img_low/", 3, false, false],
+                ["Profile Board Portraits", "sp/assets/leader/talk/", "png", "img/", 3, false, false],
+                ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", "img/", 3, false, false],
+                ["Tower Portraits", "sp/assets/leader/t/", "png", "img_low/", 3, false, false],
+                ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", "img/", 3, false, false],
+                ["Result Portraits", "sp/assets/leader/btn/", "png", "img/", 3, false, false],
+                ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", "img/", 3, false, false],
+                ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", "img_low/", 3, false, false],
+                ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2, false, false],
+                ["Master Level Portraits", "sp/assets/leader/master_level/", "png", "img_low/", 2, false, false],
+                ["Sprites", "sp/assets/leader/sd/", "png", "img/", 4, false, false],
+                ["Character Sheets", "sp/cjs/", "png", "img_low/", 7, false, false],
+                ["Attack Effects", "sp/cjs/", "png", "img/", 8, false, false],
+                ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 9, false, false]
+            ];
+            skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
+            mc_skycompass = true;
+            break;
     }
     if(assets != null)
     {
@@ -372,8 +391,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                     break;
             };
             
-            let div = addResult(asset[0], asset[0]);
-            result_area.appendChild(div);
+            let div = addResult(asset[0], asset[0], (indexed ? files.length : 0));
             for(let file of files)
             {
                 if(!asset[6] && (file.endsWith('_f') || file.endsWith('_f1'))) continue;
@@ -446,8 +464,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
         for(let asset of assets)
         {
             if(npcdata.length == 0) continue;
-            let div = addResult(asset[0], asset[0]);
-            result_area.appendChild(div);
+            let div = addResult(asset[0], asset[0], (indexed ? npcdata.length : 0));
             for(let file of npcdata)
             {
                 if(asset[0] == "Raid Bubble Arts" && file.endsWith('_up')) continue; // ignore those
@@ -652,8 +669,8 @@ function loadUnindexed(id)// minimal load of an element not indexed or not fully
                                 return;
                         };
                         break;
-                    case '8': // event battles
-                        data = [["npc_" + id + "_01.png","npc_" + id + "_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],[],[]];
+                    case '8': // partners
+                        data = [["npc_" + id + "_01.png","npc_" + id + "_0_01.png","npc_" + id + "_1_01.png","npc_" + id + "_02.png","npc_" + id + "_0_02.png","npc_" + id + "_1_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_01_0","" + id + "_01_1","" + id + "_02","" + id + "_02_0","" + id + "_02_1"]];
                         break;
                     case '9': // npcs
                         data = [true, ["", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_speed", "_a_laugh3_up", "_a_laugh_speed", "_a_laugh_up", "_a_mood", "_a_mood2", "_a_mood2_up", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_speed", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly2", "_a_suddenly2_up", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_speed", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_speed", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad2_up", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_speed", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shadow_up", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_shy2", "_b_shy2_up", "_b_shy_up", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly2", "_b_suddenly2_up", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think3", "_b_think3_up", "_b_think_up", "_b_up", "_b_up_speed", "_b_weak", "_b_weak_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise2", "_battle_surprise2_up", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b", "_body", "_body_speed", "_c_up_speed", "_close", "_close_speed", "_close_up", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_eyeline", "_laugh", "_laugh2", "_laugh2_speed", "_laugh2_up", "_laugh3", "_laugh3_speed", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_speed", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_suddenly", "_suddenly2", "_suddenly2_up", "_suddenly_speed", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think3", "_think3_up", "_think4", "_think4_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink", "_wink_up"],[]];
@@ -699,7 +716,7 @@ function lookup(id)
         (id.length == 6 && !isNaN(id))
     )
     {
-        // process id
+        // process id // NOTE TO SELF: replace this trash by a switch later
         let start = id.slice(0, 2);
         let check = null;
         if(f.value == "" || f.value != id)
@@ -713,6 +730,7 @@ function lookup(id)
         }
         else if(id.slice(0, 3) == "305") check = "npcs"; // for lyria and stuff
         else if(start == "30") check = "characters";
+        else if(start == "38") check = "partners";
         else if(start == "39") check = "npcs";
         else if(start == "37") check = "skins";
         else if(start == "20") check = "summons";
@@ -769,6 +787,9 @@ function lookup(id)
                         break;
                     case "job":
                         favButton(true, id, 0);
+                        break;
+                    case "partners":
+                        favButton(true, id, 6);
                         break;
                 }
             }
@@ -875,7 +896,7 @@ function newArea(name, id, include_link, indexed=true)
     }
 }
 
-function addResult(identifier, name)
+function addResult(identifier, name, file_count = 0)
 {
     let div = document.createElement("div");
     div.classList.add("result");
@@ -883,8 +904,21 @@ function addResult(identifier, name)
     div.setAttribute("data-id", identifier);
     div.appendChild(document.createTextNode(name));
     div.appendChild(document.createElement("br"));
-    result_area.appendChild(div);
-    return div;
+    if(file_count > 20)
+    {
+        let details = document.createElement("details");
+        let summary = document.createElement("summary");
+        summary.innerHTML = file_count + " Files";
+        details.appendChild(summary);
+        div.appendChild(details);
+        result_area.appendChild(div);
+        return details;
+    }
+    else
+    {
+        result_area.appendChild(div);
+        return div;
+    }
 }
 
 // =================================================================================================
@@ -949,6 +983,37 @@ function updateDynamicList(dynarea, idlist)
                         this.className = "preview";
                     };
                     addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], onerr);
+                }
+                break;
+            }
+            case 6: // partners
+            {
+                if('partners' in index && index['partners'][e[0]] != 0 && index['partners'][e[0]][5].length > 0)
+                {
+                    let onerr;
+                    if(index['partners'][e[0]][5].length > 1)
+                    {
+                        onerr = function() {
+                            this.onerror = function() {
+                                this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
+                            };
+                            this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/" + index['partners'][e[0]][5][1] + ".jpg";
+                        };
+                    }
+                    else
+                    {
+                        onerr = function() {
+                            this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
+                        };
+                    }
+                    addIndexImage(dynarea, "sp/assets/npc/raid_normal/" + index['partners'][e[0]][5][0] + ".jpg", e[0], onerr, "img_low/").classList.add("preview-partner");
+                }
+                else
+                {
+                    let onerr = function() {
+                        this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
+                    };
+                    addIndexImage(dynarea, "sp/assets/npc/raid_normal/" + e[0] + "_01.jpg", e[0], onerr, "img_low/").classList.add("preview-partner");
                 }
                 break;
             }
@@ -1283,6 +1348,50 @@ function displayCharacters(elem, i)
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
             addIndexImage(node, slist[k][0], slist[k][1]);
+    }
+    this.onclick = null;
+}
+
+function displayPartners(elem, i)
+{
+    i = JSON.stringify(i);
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areapartners'+i);
+    let onerr_basic = function() {
+        this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
+    };
+    if("partners" in index)
+    {
+        let slist = {};
+        for(const [id, data] of Object.entries(index["partners"]))
+        {
+            if(id[2] != i) continue;
+            if(data != 0 && data[5].length > 0)
+            {
+                let onerr;
+                if(data[5].length > 1)
+                {
+                    onerr = function() { // failsafe
+                        this.onerror = function() {
+                            this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
+                        };
+                        this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/" + data[5][1] + ".jpg";
+                    };
+                }
+                else
+                {
+                    onerr = onerr_basic;
+                }
+                slist[id.padEnd(15, "0")] = ["sp/assets/npc/raid_normal/" + data[5][0] + ".jpg", id, onerr];
+            }
+            else
+            {
+                slist[id.padEnd(15, "0")] = ["sp/assets/npc/raid_normal/" + id + "_01.jpg", id, onerr_basic];
+            }
+        }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1], slist[k][2], "img_low/").classList.add("preview-partner");
     }
     this.onclick = null;
 }

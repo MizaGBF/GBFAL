@@ -24,7 +24,7 @@
 <body onload="init()">
     <a id="to-title" href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div id="version">v7.12</div>
+        <div id="version">v7.13</div>
         <div id="timestamp">Last update</a>:</div>
     </div>
     <div id="to-bottom" class="clickable" onclick="window.scroll(0, document.body.scrollHeight);"><img src="assets/ui/button.png"></div>
@@ -33,10 +33,10 @@
         <span class="tooltiptext">
             <ul>
                 <li>A valid ID looks like 3040000000.</li>
-                <li>You can find most of them on the wiki, under the extra tab.</li>
-                <li>You can also search characters, summons or weapons by Tags.</li>
-                <li>For Enemies, add 'e' before the ID. Example: <a href="?id=e6205703">e6205703</a> for School Belial.</li>
-                <li>For Classes, simply input the main class ID: <a href="?id=450301">450301</a> for Relic Buster.</li>
+                <li>You can find most of them on the wiki,<br>under the extra tab.</li>
+                <li>You can also search characters, summons or weapons<br>by Tags.</li>
+                <li>For Enemies, add 'e' before the ID. Example:<br><a href="?id=e6205703">e6205703</a> for School Belial.</li>
+                <li>For Classes, simply input the main class ID:<br><a href="?id=450301">450301</a> for Relic Buster.</li>
                 <li>Click on images to access their highest quality.</li>
             </ul>
         </span>
@@ -90,6 +90,17 @@
                     <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
+            <div class="tooltip tooltip-left">
+                <img src="assets/ui/question.png">
+                <span class="tooltiptext">
+                    <ul>
+                        <li>Characters are any characters you can put in your<br>party.</li>
+                        <li>ID first digit is a 3.</li>
+                        <li>ID second digit is a 0. Skins use a 7.</li>
+                        <li>ID third digit is the rarity. Skins use 1 (N rarity).</li>
+                    </ul>
+                </span>
+            </div>
         </div>
     </details>
     <details onclick="displaySkins(this)">
@@ -97,6 +108,53 @@
         <h3 class="result" id="areaskins">
             <small>Non-exhaustive list</small><br>
         </h3>
+    </details>
+    <details>
+        <summary>Partners</summary>
+        <div class="subdetails">
+            <details onclick="displayPartners(this, 9)">
+                <summary>Main</summary>
+                <h3 class="result" id="areapartners9">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayPartners(this, 8)">
+                <summary>Special</summary>
+                <h3 class="result" id="areapartners8">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayPartners(this, 4)">
+                <summary>SSR</summary>
+                <h3 class="result" id="areapartners4">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayPartners(this, 3)">
+                <summary>SR</summary>
+                <h3 class="result" id="areapartners3">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayPartners(this, 2)">
+                <summary>R</summary>
+                <h3 class="result" id="areapartners2">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <div class="tooltip tooltip-left">
+                <img src="assets/ui/question.png">
+                <span class="tooltiptext">
+                    <ul>
+                        <li>Partners are special characters lent to you<br>for story or event quests.</li>
+                        <li>Except <a href="?id=3840396000">Lucifer</a>, all R, SR and SSR ones should<br>match their playable<br>counterparts.</li>
+                        <li>ID are similar to characters.</li>
+                        <li>ID second digit is a 8.</li>
+                        <li>ID third digit can be the rarity, 8 (for special characters)<br> or9 (for main characters).</li>
+                    </ul>
+                </span>
+            </div>
+        </div>
     </details>
     <details>
         <summary>Summons</summary>
@@ -125,6 +183,17 @@
                     <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
+            <div class="tooltip tooltip-left">
+                <img src="assets/ui/question.png">
+                <span class="tooltiptext">
+                    <ul>
+                        <li>Summons are any summons you can put in your party.</li>
+                        <li>ID first digit is a 2.</li>
+                        <li>ID second digit is a 0.</li>
+                        <li>ID third digit is the rarity.</li>
+                    </ul>
+                </span>
+            </div>
         </div>
     </details>
     <details>
@@ -390,6 +459,18 @@
                     </details>
                 </div>
             </details>
+            <div class="tooltip tooltip-left">
+                <img src="assets/ui/question.png">
+                <span class="tooltiptext">
+                    <ul>
+                        <li>Weapons are any weapons you can put in your party.</li>
+                        <li>ID first digit is a 1.</li>
+                        <li>ID second digit is a 0.</li>
+                        <li>ID third digit is the rarity.</li>
+                        <li>ID fifth digit is the type.</li>
+                    </ul>
+                </span>
+            </div>
         </div>
     </details>
     <details onclick="displayMC(this)">
@@ -455,6 +536,16 @@
                     <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
+            <div class="tooltip tooltip-left">
+                <img src="assets/ui/question.png">
+                <span class="tooltiptext">
+                    <ul>
+                        <li>Enemies are foes that you fight in battles.</li>
+                        <li>ID first digit is the type.</li>
+                        <li>ID second digit is the fight type.</li>
+                    </ul>
+                </span>
+            </div>
         </div>
     </details>
     <details>
@@ -582,6 +673,17 @@
                     </details>
                 </div>
             </details>
+            <div class="tooltip tooltip-left">
+                <img src="assets/ui/question.png">
+                <span class="tooltiptext">
+                    <ul>
+                        <li>NPCS are any elements you can find in the journal<br>and see during cutscenes.</li>
+                        <li>ID first digit is a 3, like characters.</li>
+                        <li>ID second digit is a 9. 0 for special NPCs like Lyria.</li>
+                        <li>ID third digit is a 9. 5 for special NPCs like Lyria.</li>
+                    </ul>
+                </span>
+            </div>
         </div>
     </details>
     <details>

@@ -19,6 +19,7 @@ class Parser():
         self.quality = ("/img/", "/js/") # image and js quality
         self.data = { # data structure
             "characters":{},
+            "partners":{},
             "summons":{},
             "weapons":{},
             "enemies":{},
@@ -178,12 +179,39 @@ class Parser():
                 tasks['summons{}'.format(r)] = {'todo':[]}
                 for i in range(5):
                     tasks['summons{}'.format(r)]['todo'].append(('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js", [""], 20))
-                # characters
                 if r > 1:
+                    # characters
                     self.newShared(errs)
                     tasks['characters{}'.format(r)] = {'todo':[]}
                     for i in range(5):
-                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "js/model/manifest/npc_", "_01{}.js", ["", "_st2"], 20))
+                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"], 20))
+                    # partners
+                    self.newShared(errs)
+                    tasks['partners{}'.format(r)] = {'todo':[]}
+                    for i in range(5):
+                        tasks['partners{}'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg", [""], 20))
+                    self.newShared(errs)
+                    tasks['partners{}-1'.format(r)] = {'todo':[]}
+                    for i in range(5):
+                        tasks['partners{}-1'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js", [""], 20))
+                    self.newShared(errs)
+                    tasks['partners{}-2'.format(r)] = {'todo':[]}
+                    for i in range(5):
+                        tasks['partners{}-2'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js", [""], 20))
+            # other partners
+            for r in range(8, 10):
+                self.newShared(errs)
+                tasks['partners{}'.format(r)] = {'todo':[]}
+                for i in range(5):
+                    tasks['partners{}'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg", [""], 20))
+                self.newShared(errs)
+                tasks['partners{}-1'.format(r)] = {'todo':[]}
+                for i in range(5):
+                    tasks['partners{}-1'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js", [""], 20))
+                self.newShared(errs)
+                tasks['partners{}-2'.format(r)] = {'todo':[]}
+                for i in range(5):
+                    tasks['partners{}-2'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js", [""], 20))
             # skins
             self.newShared(errs)
             tasks['skins'] = {'todo':[]}
@@ -267,8 +295,8 @@ class Parser():
                         tasks.pop(k)
                         break
         print("Index update done")
-        self.manualUpdate(self.new_elements)
         self.save()
+        self.manualUpdate(self.new_elements)
         self.build_relation()
 
     def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles, maxerr): # run() subroutine (see above)
@@ -279,7 +307,7 @@ class Parser():
             for s in styles:
                 try:
                     if f+s in self.data[index]:
-                        if is_js and self.data[index][f+s] == 0:
+                        if self.data[index][f+s] == 0 and (is_js or index in ["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"]):
                             self.new_elements.append(f+s)
                         with err[2]:
                             err[0] = 0
@@ -695,35 +723,36 @@ class Parser():
                     count += 1
         return count
 
-    def artCheck(self, id, style, uncaps): # build a list of flags for each uncap levels to determine what kind of arts to expect
-        flags = {}
-        for uncap in uncaps + ["81", "82", "83", "91", "92", "93"]:
-            for g in ["_1", ""]:
-                if flags.get(uncap, [False, False, False])[0]: continue
-                for m in ["_101", ""]:
-                    if flags.get(uncap, [False, False, False])[1]: continue
-                    for n in ["_01", ""]:
-                        if flags.get(uncap, [False, False, False])[2]: continue
-                        try:
-                            self.req(self.imgUri + "_low/sp/assets/npc/m/" + id + "_" + uncap + style + g + m + n + ".jpg")
-                            if uncap not in flags:
-                                flags[uncap] = [False, False, False]
-                            flags[uncap][0] = flags[uncap][0] or (g == "_1")
-                            flags[uncap][1] = flags[uncap][1] or (m == "_101")
-                            flags[uncap][2] = flags[uncap][2] or (n == "_01")
-                        except:
-                            pass
-        return flags
-
     def manualUpdate(self, ids): # called by -update or other function. manually update elements
         if len(ids) == 0:
             return
         ids = list(set(ids)) # remove dupes
         self.running = True
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
-            futures = [executor.submit(self.styleProcessing), executor.submit(self.styleProcessing)]
-            for id in range(100): futures.append(executor.submit(self.bulkRequest))
+            futures = []
+            # check what kind of ids we deal with
+            has_chara = False
+            has_npc = False
+            for id in ids:
+                if len(id) == 0:
+                    match(id[:2]):
+                        case "30":
+                            has_chara = True
+                            has_npc = True
+                        case "37":
+                            has_npc = True
+                        case "39":
+                            has_npc = True
+                    if has_chara and has_npc:
+                        break
+            if has_chara: # add styleprocessing
+                for id in range(4):
+                    futures.append(executor.submit(self.styleProcessing))
+            if has_npc: # add bulkrequest for scene processing
+                for id in range(80):
+                    futures.append(executor.submit(self.bulkRequest))
             tcounter = len(futures)
+            telem = 0
             s = time.time()
             for id in ids:
                 if len(id) >= 10:
@@ -733,19 +762,39 @@ class Parser():
                         futures.append(executor.submit(self.weapUpdate, id))
                     elif id.startswith('39') or id.startswith('305'):
                         futures.append(executor.submit(self.npcUpdate, id))
+                    elif id.startswith('38'):
+                        try:
+                            pid = int(id)
+                            futures.append(executor.submit(self.partnerUpdate, str(pid), 10)) # separate in multiple threads to speed up
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+1), 10))
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+2), 10))
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+3), 10))
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+4), 10))
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+5), 10))
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+6), 10))
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+7), 10))
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+8), 10))
+                            futures.append(executor.submit(self.partnerUpdate, str(pid+9), 10))
+                        except:
+                            continue
                     elif id.startswith('3'):
                         el = id.split('_')
-                        if len(el) == 2:
+                        if len(el) > 2:
+                            continue
+                        elif len(el) == 2:
                             futures.append(executor.submit(self.charaUpdate, el[0], '_'+el[1]))
                         else:
                             futures.append(executor.submit(self.charaUpdate, id))
                     else:
-                        pass
+                        continue
+                    telem += 1
                 elif len(id) >= 6:
                     futures.append(executor.submit(self.mobUpdate, id))
-            tfinished = 0
+                    telem += 1
             tcounter = len(futures) - tcounter
-            if tcounter > 0: print("Attempting to update", tcounter, "element(s)")
+            tfinished = 0
+            tstep = max(20, tcounter // 25)
+            if tcounter > 0: print("Attempting to update", telem, "element(s)")
             else: self.running = False
             for future in concurrent.futures.as_completed(futures):
                 future.result()
@@ -754,11 +803,45 @@ class Parser():
                     print("Progress: 100%")
                     print("Finished in {:.2f} seconds".format(time.time() - s))
                     self.running = False
-                elif tfinished < tcounter and tfinished % 40 == 0:
-                    print("Progress: {:.1f}%".format(100 * tfinished / tcounter))
+                elif tfinished < tcounter and tfinished % tstep == 0:
+                    print("Progress: {:.1f}%".format(92 * tfinished / tcounter))
         self.save()
         self.running = False
         print("Done")
+
+    def update_all_partner(self): # make a list of partners and potential partners to update
+        t = self.update_changelog
+        self.update_changelog = False
+        ids = list(self.data.get('partners', {}).keys())
+        for id in self.data.get('characters', {}):
+            if 'st' in id: continue
+            ids.append("38" + id[2:])
+        self.manualUpdate(ids)
+        self.update_changelog = t
+
+    def artCheck(self, id, style, uncaps): # build a list of flags for each uncap levels to determine what kind of arts to expect
+        flags = {}
+        if id.startswith("38"):
+            uncaps = ["01", "02", "03", "04"]
+        else:
+            uncaps = uncaps + ["81", "82", "83", "91", "92", "93"]
+        for uncap in uncaps:
+            for g in ["_1", ""]:
+                if flags.get(uncap, [False, False, False])[0]: continue
+                for m in ["_101", ""]:
+                    if flags.get(uncap, [False, False, False])[1]: continue
+                    for n in ["_01", ""]:
+                        if flags.get(uncap, [False, False, False])[2]: continue
+                        try:
+                            self.req(self.imgUri + "_low/sp/assets/npc/raid_normal/" + id + "_" + uncap + style + g + m + n + ".jpg")
+                            if uncap not in flags:
+                                flags[uncap] = [False, False, False]
+                            flags[uncap][0] = flags[uncap][0] or (g == "_1")
+                            flags[uncap][1] = flags[uncap][1] or (m == "_101")
+                            flags[uncap][2] = flags[uncap][2] or (n == "_01")
+                        except:
+                            pass
+        return flags
 
     # index chara/skin data
     def charaUpdate(self, id, style=""):
@@ -874,6 +957,147 @@ class Parser():
                 self.data['characters'][id+style] = data
             self.addition[id+style] = 3
         self.generateNameLookup(id+style)
+        return True
+
+    def partnerUpdate(self, id, thread_step): # for partners # WARNING it's hell and not optimized
+        is_mc = id.startswith("389")
+        try:
+            data = self.data['partners'][str((int(id) // 1000) * 1000)]
+            if data == 0: raise Exception()
+        except:
+            data = [[], [], [], [], [], []] # sprite, phit, sp, aoe, single, general
+        tid = id
+        id = str((int(id) // 1000) * 1000)
+        style = "" # placeholder
+        max_err = 15 if id == "3890005000" else max(5, thread_step // 3)  # placeholder
+        # build set of existing element
+        lookup = []
+        for i in data[0]:
+            if i.startswith("npc_"):
+                lookup.append(i.split('_')[1])
+        for i in data[1]:
+            if i.startswith("phit_"):
+                lookup.append(i.split('_')[1])
+        for i in data[2]:
+            if i.startswith("nsp_"):
+                lookup.append(i.split('_')[1])
+        for i in data[3]:
+            if i.startswith("ab_all_"):
+                lookup.append(i.split('_')[2])
+        for i in data[4]:
+            if i.startswith("ab_"):
+                lookup.append(i.split('_')[1])
+        for i in data[5]:
+            lookup.append(i.split('_')[0])
+        lookup = set(lookup)
+        edited = False
+        err = 0
+        # search loop
+        while err < max_err:
+            if tid in lookup:
+                err = 0
+            else:
+                tmp = [[], [], [], [], [], []]
+                uncaps = []
+                sheets = []
+                altForm = False
+                # # # Assets
+                # arts
+                flags = self.artCheck(tid, style, [])
+                targets = []
+                for uncap in flags:
+                    # main
+                    base_fn = "{}_{}{}".format(tid, uncap, style)
+                    uf = flags[uncap]
+                    for g in (["_0", "_1"] if (uf[0] is True) else [""]):
+                        for m in (["_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
+                            for n in (["_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
+                                for af in (["", "_f", "_f1"] if altForm else [""]):
+                                    targets.append(base_fn + af + g + m + n)
+                tmp[5] = targets
+                # # # Main sheets
+                for uncap in (["0_01", "1_01", "0_02", "1_02"] if is_mc else ["01", "02", "03", "04"]):
+                    for ftype in ["", "_s2"]:
+                        for form in ["", "_f", "_f1", "_f_01"]:
+                            try:
+                                fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
+                                sheets += self.processManifest(fn)
+                                if form == "": uncaps.append(uncap)
+                                else: altForm = True
+                            except:
+                                if form == "":
+                                    break
+                tmp[0] = sheets
+                if is_mc: uncaps = ["01", "02"]
+                # # # Other sheets
+                # attack
+                targets = [""]
+                for i in range(2, len(uncaps)):
+                    targets.append("_" + uncaps[i])
+                attacks = []
+                for t in targets:
+                    for u in ["", "_2", "_3"]:
+                        try:
+                            fn = "phit_{}{}{}{}".format(tid, t, style, u)
+                            attacks += self.processManifest(fn)
+                        except:
+                            break
+                tmp[1] = attacks
+                # ougi
+                attacks = []
+                for uncap in uncaps:
+                    for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
+                        for catype in ["", "_s2", "_s3", "_s2_b"]:
+                            try:
+                                fn = "nsp_{}_{}{}{}{}".format(tid, uncap, style, form, catype)
+                                attacks += self.processManifest(fn)
+                                break
+                            except:
+                                pass
+                tmp[2] = attacks
+                # skills
+                attacks = []
+                for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                    try:
+                        fn = "ab_all_{}{}_{}".format(tid, style, el)
+                        attacks += self.processManifest(fn)
+                    except:
+                        pass
+                tmp[3] = attacks
+                attacks = []
+                for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                    try:
+                        fn = "ab_{}{}_{}".format(tid, style, el)
+                        attacks += self.processManifest(fn)
+                    except:
+                        pass
+                tmp[4] = attacks
+                # verification
+                l = 0
+                for i, e in enumerate(tmp):
+                    if len(e) > 0:
+                        l += len(e)
+                        data[i] += e
+                if l == 0:
+                    err += 1
+                else:
+                    err = 0
+                    edited = True
+            tid = str(int(tid) + thread_step)
+            if tid[-4] != id[-4]: # end if we reached 1000 or more
+                break
+        print(id, "finished:", edited)
+        if not edited:
+            return False
+        with self.lock:
+            self.modified = True
+            if id+style not in self.data['partners']:
+                self.data['partners'][id+style] = data
+            else:
+                for i, e in enumerate(data):
+                    self.data['partners'][id+style][i] = list(set(self.data['partners'][id+style][i] + e))
+                    self.data['partners'][id+style][i].sort()
+            self.addition[id+style] = 6
         return True
 
     # index npc data
@@ -1901,6 +2125,7 @@ def print_help():
     print("-scene     : Update scene index for characters/npcs with missing data (Time consuming).")
     print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
     print("-sound     : Update sound index for characters (Very time consuming).")
+    print("-partner   : Update data for partner characters (Very time consuming).")
     print("-wait      : Wait an in-game update (Must be the first parameter, usable with others).")
     print("-nochange  : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     time.sleep(2)
@@ -1960,5 +2185,7 @@ if __name__ == '__main__':
                 p.update_all_scene(True)
             elif argv[1] == '-sound':
                 p.update_all_sound()
+            elif argv[1] == '-partner':
+                p.update_all_partner()
             else:
                 print_help()

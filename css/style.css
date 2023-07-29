@@ -65,9 +65,17 @@ summary {
     top: 11px;
     cursor: pointer;
     display: inline-block;
+    margin: 0px;
 }
 
-.tooltip .tooltiptext {
+.tooltip-left
+{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.tooltiptext {
     visibility: hidden;
     width: 600px;
     background-color: #111111dd;
@@ -158,11 +166,20 @@ footer, #header {
     border-radius: 5px;
     border-style: solid;
     margin:auto;
+    position: relative;
 }
 
 .preview {
     padding-right: 32.7975px;
     padding-left: 32.7975px;
+    max-height: 80px;
+    border: 2px solid #808080;
+    border-radius: 10px;
+}
+
+.preview-partner {
+    padding-right: 50.5px;
+    padding-left: 50.5px;
     max-height: 80px;
     border: 2px solid #808080;
     border-radius: 10px;
