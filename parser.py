@@ -23,7 +23,7 @@ class Parser():
             "weapons":{},
             "enemies":{},
             "skins":{},
-            'job':{},
+            "job":{},
             "job_wpn":{},
             "job_key":{},
             "npcs":{},
