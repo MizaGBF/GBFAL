@@ -27,37 +27,16 @@ summary {
 .red-sum {
     background: url(../assets/ui/button_bg_red.png) no-repeat;
     background-size: 100% 100%;
-    width: 250px;
-    height: 40px;
-    margin-left: auto;
-    margin-right: auto;
-    color: #ffffff;
-    text-shadow: #000000 1px 0 10px;
-    font-size: 30px;
 }
 
 .green-sum {
     background: url(../assets/ui/button_bg_green.png) no-repeat;
     background-size: 100% 100%;
-    width: 250px;
-    height: 40px;
-    margin-left: auto;
-    margin-right: auto;
-    color: #ffffff;
-    text-shadow: #000000 1px 0 10px;
-    font-size: 30px;
 }
 
 .yellow-sum {
     background: url(../assets/ui/button_bg_yellow.png) no-repeat;
     background-size: 100% 100%;
-    width: 250px;
-    height: 40px;
-    margin-left: auto;
-    margin-right: auto;
-    color: #ffffff;
-    text-shadow: #000000 1px 0 10px;
-    font-size: 30px;
 }
 
 .tooltip {
@@ -94,7 +73,7 @@ summary {
 button {
     background: url(../assets/ui/button_bg.png) no-repeat;
     background-size: 100% 100%;
-    width: 220x;
+    width: 220px;
     height: 40px;
     margin-left: auto;
     margin-right: auto;
@@ -169,24 +148,18 @@ footer, #header {
 }
 
 .preview {
-    padding-right: 32.7975px;
-    padding-left: 32.7975px;
-    max-height: 80px;
-    border: 2px solid #808080;
-    border-radius: 10px;
-}
-
-.preview-partner {
-    padding-right: 50.5px;
-    padding-left: 50.5px;
-    max-height: 80px;
+    min-width : 138px;
+    max-width : 138px;
+    height: 78px;
     border: 2px solid #808080;
     border-radius: 10px;
 }
 
 .preview-width {
-    max-width: 140px;
-    max-height: 80px;
+    min-width : 138px;
+    max-width: 138px;
+    min-height: 78px;
+    max-height: 78px;
     border: 2px solid #808080;
     border-radius: 10px;
 }
@@ -206,10 +179,6 @@ small {
 #titleheader {
     border: 5px solid #000000;
     border-radius: 10px;
-}
-
-#version {
-    font-size: 16px;
 }
 
 .loading {
@@ -245,6 +214,7 @@ small {
     font-size: 40px;
     border-radius: 10px;
     border-style: solid;
+    width:500px;
 }
 
 #manual {
@@ -332,4 +302,118 @@ a:active {
     left: 25px;
     width: 70px;
     height: 20px;
+}
+
+@media (hover: none) { /* mobile stuff */
+    #titleheader {
+        min-width: 800px;
+    }
+
+    summary {
+        width: 450px;
+        height: 72px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        font-size: 40px;
+    }
+
+    .tooltip {
+        top: 33px;
+    }
+    
+    .tooltip > img {
+        width: 104px;
+        height: 104px;
+    }
+
+    .tooltiptext {
+        width: 900px;
+        font-size: 33px;
+    }
+
+    button {
+        width: 330px;
+        height: 60px;
+        font-size: 40px;
+    }
+
+    footer, #header {
+        font-size: 30px;
+        width:400px;
+    }
+
+    #to-top, #to-bottom {
+        width: 90px;
+        height: 90px;
+    }
+
+    #to-top > img, #to-bottom > img {
+        width: 90px;
+        height: 90px;
+    }
+
+    .result-header {
+        font-size: 30px;
+        width:800px;
+    }
+
+    .sound-file {
+        width: 240px;
+        height: 240px;
+        font-size: 32px;
+    }
+
+    .sound-link {
+        bottom: 2px;
+        left: 50px;
+        width: 140px;
+        height: 25px;
+        background: #ff0000;
+    }
+
+    #filter {
+        font-size: 50px;
+        border-radius: 10px;
+        border-style: solid;
+        width: 700px;
+    }
+
+    .asset {
+        min-width: min(200px, 40%);
+        max-width: min(350px, 50%);
+    }
+
+    .skycompass {
+        min-width: min(200px, 40%);
+        max-width: min(350px, 50%);
+        max-height: 350px;
+        background: url(../assets/ui/skycompass.png) no-repeat bottom left 0% / 25%;
+    }
+
+    #favorite {
+        width: 216px;
+        height: 58.5px;
+    }
+    
+    .mobile-big > img {
+        height: 160px;
+        min-height: 160px;
+    }
+
+    .preview {
+        min-width : 278px;
+        max-width : 278px;
+        height: 158px;
+    }
+
+    .preview-width {
+        min-width : 278px;
+        max-width: 278px;
+        min-height: 158px;
+        max-height: 158px;
+    }
+
+    .sound-only {
+        max-height: 160px;
+    }
 }

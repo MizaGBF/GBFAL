@@ -941,6 +941,7 @@ function addResult(identifier, name, file_count = 0)
 // bookmark, history, relation
 function updateDynamicList(dynarea, idlist)
 {
+    dynarea.classList.add("mobile-big");
     for(let e of idlist)
     {
         switch(e[1])
@@ -1022,14 +1023,14 @@ function updateDynamicList(dynarea, idlist)
                             this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
                         };
                     }
-                    addIndexImage(dynarea, "sp/assets/npc/raid_normal/" + index['partners'][e[0]][5][0] + ".jpg", e[0], onerr, "img_low/").classList.add("preview-partner");
+                    addIndexImage(dynarea, "sp/assets/npc/raid_normal/" + index['partners'][e[0]][5][0] + ".jpg", e[0], onerr, "img_low/").classList.add("preview");
                 }
                 else
                 {
                     let onerr = function() {
                         this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
                     };
-                    addIndexImage(dynarea, "sp/assets/npc/raid_normal/" + e[0] + "_01.jpg", e[0], onerr, "img_low/").classList.add("preview-partner");
+                    addIndexImage(dynarea, "sp/assets/npc/raid_normal/" + e[0] + "_01.jpg", e[0], onerr, "img_low/").classList.add("preview");
                 }
                 break;
             }
@@ -1407,7 +1408,7 @@ function displayPartners(elem, i)
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
-            addIndexImage(node, slist[k][0], slist[k][1], slist[k][2], "img_low/").classList.add("preview-partner");
+            addIndexImage(node, slist[k][0], slist[k][1], slist[k][2], "img_low/").classList.add("preview");
     }
     this.onclick = null;
 }
