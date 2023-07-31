@@ -4446,7 +4446,11 @@
 "1020199000":[["1020199000"],[],[]],
 "1030399000":[["1030399000"],[],[]],
 "1039900000":[["1039900000"],[],[]],
-"1029900000":[["1029900000"],[],[]]
+"1029900000":[["1029900000"],[],[]],
+"1040218600":0,
+"1040024700":0,
+"1040516200":0,
+"1040815800":0
 },
 "enemies":{
 "1200011":[["1200011"],["enemy_1200011_a.png","enemy_1200011_b.png"],[],[],["esp_1200011_02.png"],[]],
@@ -9701,7 +9705,11 @@
 "3993169000":[false,["","_up","_laugh","_laugh_up","_shout","_shout_up","_up_speed"],[]],
 "3993179000":[false,["","_up","_laugh","_laugh_up","_laugh2","_laugh2_up","_laugh3","_laugh3_up","_shout","_shout_up","_angry","_angry_up","_serious","_serious_up","_serious2","_serious2_up","_surprise","_surprise_up"],[]],
 "3993173000":[false,["","_up"],[]],
-"3993183000":[false,["","_up","_up_speed"],[]]
+"3993183000":[false,["","_up","_up_speed"],[]],
+"3993186000":0,
+"3993185000":0,
+"3993187000":0,
+"3993207000":0
 },
 "background":{
 "common_001":0,
@@ -14461,6 +14469,10 @@
 "1030599000":"weapon gun sr archangel gun upgraders light アークエンジェルガン 1030599000",
 "1030399000":"weapon axe sr archangel axe upgraders light アークエンジェルアクス 1030399000",
 "1039900000":"weapon katana sr skill jewel upgraders dark スキルジュエル 1039900000",
-"1029900000":"weapon katana r skill shard upgraders dark スキルシャード 1029900000"
+"1029900000":"weapon katana r skill shard upgraders dark スキルシャード 1029900000",
+"1040617600":"weapon melee ssr king's thruster water キング・ア・スラスト 1040617600",
+"3040472000":"character ssr fediel summer water draph other フェディエル 3040472000",
+"3040473000":"character ssr yurius summer light human male ユリウス 3040473000",
+"3040475000":"character ssr dorothy and claudia summer fire human female 3040475000"
 }
 }
