@@ -708,9 +708,8 @@ function lookup(id)
 {
     main_endp_count = -1;
     f = document.getElementById('filter');
-    let el = id.split("_");
     if(
-        (el.length == 2 && el[1] == "st2" && el[0].length == 10 && !isNaN(el[0])) || (el.length == 1 && el[0].length == 10 && !isNaN(el[0])) || 
+        (id.length == 10 && !isNaN(id)) || 
         (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1))) ||
         (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6))) || // retrocompatibility
         (id.length == 6 && !isNaN(id))
