@@ -816,10 +816,10 @@
 "3040469000":[["npc_3040469000_01_a.png","npc_3040469000_01_b.png","npc_3040469000_02_a.png","npc_3040469000_02_b.png"],["phit_3040469000.png"],["nsp_3040469000_01_s2_a.png","nsp_3040469000_01_s2_b.png","nsp_3040469000_01_s2_c.png","nsp_3040469000_02_s2_a.png","nsp_3040469000_02_s2_b.png","nsp_3040469000_02_s2_c.png"],["ab_all_3040469000_01.png","ab_all_3040469000_02.png"],["ab_3040469000_01.png"],["3040469000_01","3040469000_02"],["3040469000_01","3040469000_02"],[],["_ability_them1","_ability_them2","_ability_them3","_ability_us1","_ability_us2","_ability_us3","_archive01","_archive02","_attack01","_attack02","_attack03","_attack04","_attack05","_attack06","_attack07","_attack08","_attack09","_attack10","_attack11","_attack12","_attack13","_cutin1","_cutin2","_damage01","_damage02","_dying01","_dying02","_formation01","_formation02","_formation03","_healed01","_healed02","_introduce1","_kill01","_kill02","_lose1","_lose2","_mortal1","_mortal2","_mortal3","_mypage1","_mypage2_1","_mypage3","_power_down01","_power_down02","_power_down03","_ready01","_ready02","_to_player1","_to_player2","_to_player3","_to_player4","_v_001","_v_002","_v_003","_v_004","_v_005","_v_006","_v_007","_win1","_win2","_zenith_up01","_zenith_up02","_zenith_up03"]],
 "3040471000":[["npc_3040471000_01_a.png","npc_3040471000_01_b.png","npc_3040471000_02_a.png","npc_3040471000_02_b.png"],["phit_3040471000.png"],["nsp_3040471000_01_s2_a.png","nsp_3040471000_01_s2_b.png","nsp_3040471000_01_s2_c.png","nsp_3040471000_02_s2_a.png","nsp_3040471000_02_s2_b.png","nsp_3040471000_02_s2_c.png"],["ab_all_3040471000_01.png"],["ab_3040471000_01.png","ab_3040471000_02.png"],["3040471000_01","3040471000_02"],["3040471000_01","3040471000_02"],["","_up","_a","_a_up","_a_shadow"],["_ability_them1","_ability_them2","_ability_them3","_ability_us1","_ability_us2","_ability_us3","_archive01","_archive02","_attack01","_attack02","_attack03","_attack04","_attack05","_attack06","_attack07","_attack08","_attack09","_attack10","_attack11","_attack12","_attack13","_cutin1","_cutin2","_damage01","_damage02","_dying01","_dying02","_evolution01","_formation01","_formation02","_formation03","_healed01","_healed02","_introduce1","_kill01","_kill02","_lose1","_lose2","_mortal1","_mortal2","_mortal3","_mypage1","_mypage2","_mypage3","_power_down01","_power_down02","_power_down03","_ready01","_ready02","_to_player1","_to_player2","_to_player3","_to_player4","_v_001","_v_002","_v_003","_win1","_win2","_zenith_up01","_zenith_up02","_zenith_up03"]],
 "3040470000":[["npc_3040470000_01_a.png","npc_3040470000_01_b.png","npc_3040470000_02_a.png","npc_3040470000_02_b.png"],["phit_3040470000.png","phit_3040470000_2.png","phit_3040470000_3.png"],["nsp_3040470000_01_s2_a.png","nsp_3040470000_01_s2_b.png","nsp_3040470000_01_s2_c.png","nsp_3040470000_02_s2_a.png","nsp_3040470000_02_s2_b.png","nsp_3040470000_02_s2_c.png"],["ab_all_3040470000_01.png"],["ab_3040470000_01.png","ab_3040470000_03.png"],["3040470000_01","3040470000_02"],["3040470000_01","3040470000_02"],["","_up","_up_speed"],["_ability_them1","_ability_them2","_ability_them3","_ability_them4","_ability_us1","_ability_us2","_ability_us3","_ability_us4","_archive01","_archive02","_attack01","_attack02","_attack03","_attack04","_attack05","_attack06","_attack07","_attack08","_attack09","_attack10","_attack11","_attack12","_attack13","_cutin1","_cutin2","_damage01","_damage02","_damage03","_dying01","_dying02","_dying03","_dying04","_evolution01","_evolution02","_formation01","_formation02","_formation03","_healed01","_healed02","_healed03","_introduce1","_kill01","_kill02","_kill03","_kill04","_lose1","_lose2","_mortal1","_mortal2","_mortal3","_mypage1","_mypage2","_mypage3","_power_down01","_power_down02","_power_down03","_power_down04","_ready01","_ready02","_ready03","_ready04","_to_player1","_to_player2","_to_player3","_to_player4","_v_001","_v_002","_win1","_win2","_win3","_win4","_zenith_up01","_zenith_up02","_zenith_up03"]],
-"3040473000":0,
-"3040475000":0,
-"3040474000":0,
-"3040472000":0
+"3040473000":[["npc_3040473000_01.png","npc_3040473000_02.png"],["phit_3040473000.png"],["nsp_3040473000_01_s2_a.png","nsp_3040473000_01_s2_b.png","nsp_3040473000_02_s2_a.png","nsp_3040473000_02_s2_b.png"],["ab_all_3040473000_01.png","ab_all_3040473000_02.png","ab_all_3040473000_03.png"],[],["3040473000_01","3040473000_01_0","3040473000_01_1","3040473000_02","3040473000_02_0","3040473000_02_1"],["3040473000_01","3040473000_02"],["","_up","_up_speed"],["_ability_them1","_ability_them2","_ability_them3","_ability_them4","_ability_us1","_ability_us2","_ability_us3","_archive01","_archive02","_attack01","_attack02","_attack03","_attack04","_attack05","_attack06","_attack07","_attack08","_attack09","_attack10","_cutin1","_cutin2","_damage01","_damage02","_dying01","_dying02","_evolution01","_evolution02","_formation01","_formation02","_formation03","_healed01","_healed02","_introduce1","_kill01","_kill02","_lose1","_lose2","_mortal1","_mortal2","_mortal3","_mortal4","_mortal5","_mortal6","_mypage1","_mypage2","_mypage3","_power_down01","_power_down02","_power_down03","_ready01","_ready02","_to_player1","_to_player2","_to_player3","_to_player4","_v_001","_v_002","_v_003","_v_004","_v_005","_v_006","_v_007","_v_008","_v_009","_v_010","_win1","_win2","_zenith_up01","_zenith_up02","_zenith_up03"]],
+"3040475000":[["npc_3040475000_01_a.png","npc_3040475000_01_b.png","npc_3040475000_01_f1_a.png","npc_3040475000_01_f1_b.png","npc_3040475000_01_f1_c.png","npc_3040475000_02_a.png","npc_3040475000_02_b.png","npc_3040475000_02_f1_a.png","npc_3040475000_02_f1_b.png","npc_3040475000_02_f1_c.png"],["phit_3040475000.png"],["nsp_3040475000_01.png","nsp_3040475000_01_f1.png","nsp_3040475000_02.png","nsp_3040475000_02_f1.png"],["ab_all_3040475000_01.png","ab_all_3040475000_02.png","ab_all_3040475000_03.png","ab_all_3040475000_04.png"],["ab_3040475000_01.png","ab_3040475000_02.png","ab_3040475000_03.png","ab_3040475000_04.png"],["3040475000_01","3040475000_01_f","3040475000_01_f1","3040475000_02","3040475000_02_f","3040475000_02_f1"],["3040475000_01","3040475000_02"],["","_speed","_up","_up_speed"],["_ability_them1","_ability_them2","_ability_them3","_ability_them4","_ability_them5","_ability_them6","_ability_us1","_ability_us2","_ability_us3","_ability_us4","_ability_us5","_ability_us6","_archive01","_archive02","_attack01","_attack02","_attack03","_attack04","_attack05","_attack06","_attack07","_attack08","_attack09","_attack10","_attack11","_attack12","_attack13","_attack14","_attack15","_attack16","_cutin1","_cutin2","_damage01","_damage02","_damage03","_damage04","_dying01","_dying02","_dying03","_dying04","_evolution01_1","_evolution01_2","_formation01","_formation02","_formation03","_formation04","_healed01","_healed02","_healed03","_healed04","_introduce1_1","_introduce1_2","_kill01","_kill02","_kill03","_kill04","_lose1","_lose2","_mortal1","_mortal2","_mortal3","_mortal4","_mortal5","_mortal6","_mortal7_1","_mortal7_2","_mortal8_1","_mortal8_2","_mortal9_1","_mortal9_2","_mypage1_1","_mypage1_2","_mypage2_1","_mypage2_2","_mypage3_1","_mypage3_2","_pair_1_1","_pair_1_2","_power_down01","_power_down02","_power_down03","_power_down04","_ready01","_ready02","_ready03","_ready04","_to_player1","_to_player2","_to_player3","_to_player4","_to_player5","_to_player6","_to_player7","_to_player8","_win1_1","_win1_2","_win2_1","_win2_2","_zenith_up01","_zenith_up02","_zenith_up03","_zenith_up04"]],
+"3040474000":[["npc_3040474000_01_a.png","npc_3040474000_01_b.png","npc_3040474000_01_c.png","npc_3040474000_02_a.png","npc_3040474000_02_b.png","npc_3040474000_02_c.png"],["phit_3040474000.png","phit_3040474000_2.png","phit_3040474000_3.png"],["nsp_3040474000_01_s2_a.png","nsp_3040474000_01_s2_b.png","nsp_3040474000_01_s2_c.png","nsp_3040474000_02_s2_a.png","nsp_3040474000_02_s2_b.png","nsp_3040474000_02_s2_c.png"],["ab_all_3040474000_01.png","ab_all_3040474000_02.png"],["ab_3040474000_01.png","ab_3040474000_02.png","ab_3040474000_03.png"],["3040474000_01","3040474000_02"],["3040474000_01","3040474000_02"],[],["_ability_them1","_ability_them2","_ability_them3","_ability_us1","_ability_us2","_ability_us3","_archive01","_archive02","_attack01","_attack02","_attack03","_attack04","_attack05","_attack06","_attack07","_attack08","_attack09","_attack10","_attack11","_attack12","_attack13","_attack14","_cutin1","_cutin2","_damage01","_damage02","_dying01","_dying02","_evolution01","_formation01","_formation02","_formation03","_healed01","_healed02","_introduce1","_kill01","_kill02","_lose1","_lose2","_mortal1","_mortal2","_mypage1","_mypage2","_mypage3","_power_down01","_power_down02","_power_down03","_ready01","_ready02","_to_player1","_to_player2","_to_player3","_to_player4","_v_001","_v_002","_win1","_win2","_zenith_up01","_zenith_up02","_zenith_up03"]],
+"3040472000":[["npc_3040472000_01.png","npc_3040472000_02.png"],["phit_3040472000.png"],["nsp_3040472000_01_s2_a.png","nsp_3040472000_01_s2_b.png","nsp_3040472000_01_s2_c.png","nsp_3040472000_02_s2_a.png","nsp_3040472000_02_s2_b.png","nsp_3040472000_02_s2_c.png"],["ab_all_3040472000_01.png","ab_all_3040472000_02.png","ab_all_3040472000_03.png"],["ab_3040472000_01.png"],["3040472000_01","3040472000_01_0","3040472000_01_1","3040472000_02","3040472000_02_0","3040472000_02_1"],["3040472000_01","3040472000_02"],[],["_ability_them1","_ability_them2","_ability_them3","_ability_us1","_ability_us2","_ability_us3","_archive01","_archive02","_attack01","_attack02","_attack03","_attack04","_attack05","_attack06","_attack07","_attack08","_attack09","_attack10","_attack11","_attack12","_attack13","_attack14","_cutin1","_cutin2","_damage01","_damage02","_dying01","_dying02","_evolution01","_formation01","_formation02","_formation03","_healed01","_healed02","_introduce1","_kill01","_kill02","_lose1","_lose2","_mortal1","_mortal2","_mortal3","_mypage1","_mypage2","_mypage3","_power_down01","_power_down02","_power_down03","_ready01","_ready02","_to_player1","_to_player2","_to_player3","_to_player4","_v_001","_v_002","_v_003","_v_004","_v_005","_v_006","_v_007","_v_008","_v_009","_v_010","_win1","_win2","_zenith_up01","_zenith_up02","_zenith_up03"]]
 },
 "partners":{
 "3820005000":[[],[],[],[],[],["3820005000_01","3820005000_02"]],
@@ -1798,7 +1798,7 @@
 "2040153000":[[],[],[]],
 "2040154000":[[],[],[]],
 "2040200000":[[],[],[]],
-"2040420000":0
+"2040420000":[["2040420000"],["summon_2040420000_01_attack_a.png","summon_2040420000_01_attack_b.png"],["summon_2040420000_01_damage.png"]]
 },
 "weapons":{
 "1010100100":[["1010100100"],[],[]],
@@ -4447,10 +4447,10 @@
 "1030399000":[["1030399000"],[],[]],
 "1039900000":[["1039900000"],[],[]],
 "1029900000":[["1029900000"],[],[]],
-"1040218600":0,
-"1040024700":0,
-"1040516200":0,
-"1040815800":0
+"1040218600":[["1040218600"],["phit_1040218600.png"],["sp_1040218600_0_s2.png","sp_1040218600_1_s2.png"]],
+"1040024700":[["1040024700"],["phit_1040024700.png"],["sp_1040024700_0_s2.png","sp_1040024700_1_s2.png"]],
+"1040516200":[["1040516200"],["phit_1040516200.png"],["sp_1040516200_0_s2.png","sp_1040516200_1_s2.png"]],
+"1040815800":[["1040815800"],["phit_1040815800.png"],["sp_1040815800_0_s2.png","sp_1040815800_1_s2.png"]]
 },
 "enemies":{
 "1200011":[["1200011"],["enemy_1200011_a.png","enemy_1200011_b.png"],[],[],["esp_1200011_02.png"],[]],
@@ -9706,10 +9706,10 @@
 "3993179000":[false,["","_up","_laugh","_laugh_up","_laugh2","_laugh2_up","_laugh3","_laugh3_up","_shout","_shout_up","_angry","_angry_up","_serious","_serious_up","_serious2","_serious2_up","_surprise","_surprise_up"],[]],
 "3993173000":[false,["","_up"],[]],
 "3993183000":[false,["","_up","_up_speed"],[]],
-"3993186000":0,
-"3993185000":0,
-"3993187000":0,
-"3993207000":0
+"3993186000":[false,["","_up","_shadow","_up_speed"],[]],
+"3993185000":[false,["","_up","_up_speed"],[]],
+"3993187000":[false,["","_up","_shadow"],[]],
+"3993207000":[false,["","_up","_up_speed"],[]]
 },
 "background":{
 "common_001":0,
@@ -14473,6 +14473,12 @@
 "1040617600":"weapon melee ssr king's thruster water キング・ア・スラスト 1040617600",
 "3040472000":"character ssr fediel summer water draph other フェディエル 3040472000",
 "3040473000":"character ssr yurius summer light human male ユリウス 3040473000",
-"3040475000":"character ssr dorothy and claudia summer fire human female 3040475000"
+"3040475000":"character ssr dorothy and claudia summer fire human female 3040475000",
+"2040420000":"summon ssr cerberus dark primal female ケルベロス 2040420000",
+"1040815800":"weapon harp ssr fediel float water  1040815800",
+"1040516200":"weapon gun ssr shine and silence fire  1040516200",
+"1040218600":"weapon spear ssr tentacular javelin light  1040218600",
+"1040024700":"weapon sword ssr sunset blaze wind  1040024700",
+"1030305800":"weapon axe sr kombu_dashi water 魂武堕支 1030305800"
 }
 }

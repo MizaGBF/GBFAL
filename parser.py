@@ -734,7 +734,7 @@ class Parser():
             has_chara = False
             has_npc = False
             for id in ids:
-                if len(id) == 0:
+                if len(id) == 10:
                     match(id[:2]):
                         case "30":
                             has_chara = True
@@ -748,6 +748,7 @@ class Parser():
             if has_chara: # add styleprocessing
                 for id in range(4):
                     futures.append(executor.submit(self.styleProcessing))
+                print("style")
             if has_npc: # add bulkrequest for scene processing
                 for id in range(80):
                     futures.append(executor.submit(self.bulkRequest))
@@ -887,6 +888,15 @@ class Parser():
             return False
         if not id.startswith("371") and style == "":
             self.style_queue.put((id, ["_st2"])) # style check
+        # starting scene check early
+        try:
+            if tid.startswith('37'):
+                scenes = set(self.data['skins'][id+style][7])
+            else:
+                scenes = set(self.data['characters'][id+style][7])
+        except:
+            scenes = set()
+        pending = self.request_scene_bulk(id+style, uncaps, scenes)
         # # # Other sheets
         # attack
         targets = [""]
@@ -932,14 +942,6 @@ class Parser():
         data[4] = attacks
         # scenes and sounds
         uncaps = [u for u in uncaps if ("_" not in u and u.startswith("0"))] # format uncaps (remove useless ones)
-        try:
-            if tid.startswith('37'):
-                scenes = set(self.data['skins'][id+style][7])
-            else:
-                scenes = set(self.data['characters'][id+style][7])
-        except:
-            scenes = set()
-        pending = self.request_scene_bulk(id+style, uncaps, scenes)
         try:
             if tid.startswith('37'):
                 voices = set(self.data['skins'][id+style][8])
