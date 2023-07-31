@@ -1279,10 +1279,9 @@ function updateHistory(id, search_type)
 function updateRelated(id)
 {
     let relarea = document.getElementById('related');
+    let idlist = [];
     if(id in relations)
     {
-        relarea.parentNode.style.display = relations[id].length > 0 ? null : "none";
-        relarea.innerHTML = "";
         for(let e of relations[id])
         {
             let indice = -1;
@@ -1290,47 +1289,16 @@ function updateRelated(id)
             else if(e.startsWith('39')) indice = 5;
             else if(e.includes('_') && !e.includes('_st')) indice = 0;
             else indice = parseInt(e[0]);
-            switch(indice)
-            {
-                case 3: // character, skin, ...
-                {
-                    if(e.includes('_st'))
-                        addIndexImage(relarea, "sp/assets/npc/m/" + e.split('_')[0] + "_01_" + e.split('_')[1] + ".jpg", e);
-                    else
-                        addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e);
-                    break;
-                }
-                case 2: // summon
-                {
-                    addIndexImage(relarea, "sp/assets/summon/m/" + e + ".jpg", e);
-                    break;
-                }
-                case 1: // summon
-                {
-                    addIndexImage(relarea, "sp/assets/weapon/m/" + e + ".jpg", e);
-                    break;
-                }
-                case 0: // mc
-                {
-                    addIndexImage(relarea, "sp/assets/leader/m/" + e.split('_')[0] + "_01.jpg", e);
-                    break;
-                }
-                case 4: // enemy
-                {
-                    addIndexImage(relarea, "sp/assets/enemy/m/" + e + ".png", "e" + e);
-                    break;
-                }
-                case 5: // npc
-                {
-                    let onerr = function() {
-                        this.onerror = null;
-                        this.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/"+this.src.split('/').slice(-1)[0].split('_')[0]+".png";
-                        this.className = "preview";
-                    };
-                    addIndexImage(relarea, "sp/assets/npc/m/" + e + "_01.jpg", e, onerr);
-                    break;
-                }
-            }
+            if(indice != -1) idlist.push([e, indice]);
+        }
+        if(idlist.length > 0)
+        {
+            relarea.parentNode.style.display = null;
+            updateDynamicList(relarea, idlist);
+        }
+        else
+        {
+            relarea.parentNode.style.display = "none";
         }
     }
     else relarea.parentNode.style.display = "none";
@@ -1744,7 +1712,7 @@ function displaySuptix(elem)
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
-            addIndexImageGeneric(node, "sp/gacha/campaign/surprise/top_" + slist[k] + ".jpg", slist[k], null, "preview-width");
+            addIndexImageGeneric(node, "sp/gacha/campaign/surprise/top_" + slist[k] + ".jpg", slist[k], null, "preview-wide");
     }
     this.onclick = null;
 }

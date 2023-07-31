@@ -155,7 +155,7 @@ footer, #header {
     border-radius: 10px;
 }
 
-.preview-width {
+.preview-wide {
     min-width : 138px;
     max-width: 138px;
     min-height: 78px;
@@ -406,7 +406,7 @@ a:active {
         height: 158px;
     }
 
-    .preview-width {
+    .preview-wide {
         min-width : 278px;
         max-width: 278px;
         min-height: 158px;
