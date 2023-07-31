@@ -1351,10 +1351,10 @@ function displayCharacters(elem, i, r_start, r_end, sr_start, sr_end, ssr_start,
                     if(val < r_start || val >= r_end) continue;
                     break;
                 case "3":
-                    if(val < r_start || val >= r_end) continue;
+                    if(val < sr_start || val >= sr_end) continue;
                     break;
                 case "4":
-                    if(val < r_start || val >= r_end) continue;
+                    if(val < ssr_start || val >= ssr_end) continue;
                     break;
             }
             let uncap = "_01";
