@@ -706,7 +706,6 @@ function loadUnindexed(id)// minimal load of an element not indexed or not fully
 
 function lookup(id)
 {
-    if(blacklist.includes(id)) return;
     main_endp_count = -1;
     f = document.getElementById('filter');
     let el = id.split("_");
@@ -717,6 +716,7 @@ function lookup(id)
         (id.length == 6 && !isNaN(id))
     )
     {
+        if(blacklist.includes(id)) return;
         // process id // NOTE TO SELF: replace this trash by a switch later
         let start = id.slice(0, 2);
         let check = null;
@@ -800,6 +800,7 @@ function lookup(id)
     else
     {
         let results = document.getElementById('results');
+        results.style.display = "none";
         results.innerHTML = "";
         if(id == "") return;
         let words = id.toLowerCase().split(' ');
@@ -948,15 +949,36 @@ function updateDynamicList(dynarea, idlist)
         {
             case 3: // character, skin, ...
             {
-                if(e[0].includes('_st'))
-                    addIndexImage(dynarea, "sp/assets/npc/m/" + e[0].split('_')[0] + "_01_" + e[0].split('_')[1] + ".jpg", e[0]);
-                else
-                    addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0]);
+                let uncap = "_01";
+                if(e[0][1] != 7 && "characters" in index && e[0] in index["characters"])
+                {
+                    let data = index["characters"][e[0]];
+                    if(data != 0)
+                    {
+                        for(const f of data[6])
+                            if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
+                    }
+                }
+                addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + uncap + ".jpg", e[0]);
                 break;
             }
             case 2: // summon
             {
-                addIndexImage(dynarea, "sp/assets/summon/m/" + e[0] + ".jpg", e[0]);
+                let onerr = null;
+                let uncap = "";
+                if("summons" in index && e[0] in index["summons"])
+                {
+                    let data = index["summons"][e[0]];
+                    if(data != 0)
+                    {
+                        for(const f of data[0])
+                            if(f.includes("_")) uncap = f.slice(10);
+                        onerr = function() {
+                            this.src = "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/m/2999999999.jpg";
+                        };
+                    }
+                }
+                addIndexImage(dynarea, "sp/assets/summon/m/" + e[0] + uncap + ".jpg", e[0], onerr);
                 break;
             }
             case 1: // weapon
@@ -1345,7 +1367,7 @@ function addIndexImage(node, path, id, onerr = null, quality="img_low/")
     return img;
 }
 
-function displayCharacters(elem, i)
+function displayCharacters(elem, i, r_start, r_end, sr_start, sr_end, ssr_start, ssr_end)
 {
     i = JSON.stringify(i);
     elem.removeAttribute("onclick");
@@ -1353,14 +1375,28 @@ function displayCharacters(elem, i)
     if("characters" in index)
     {
         let slist = {};
-        for(const id in index["characters"])
+        for(const [id, data] of Object.entries(index["characters"]))
         {
-            if(id[2] != i) continue;
-            let el = id.split("_");
-            if(el.length == 2)
-                slist[id.padEnd(15, "0")] = ["sp/assets/npc/m/" + el[0] + "_01_" + el[1] + ".jpg", id];
-            else
-                slist[id.padEnd(15, "0")] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
+            let val = parseInt(id.slice(4, 7));
+            switch(id[2])
+            {
+                case "2":
+                    if(val < r_start || val >= r_end) continue;
+                    break;
+                case "3":
+                    if(val < r_start || val >= r_end) continue;
+                    break;
+                case "4":
+                    if(val < r_start || val >= r_end) continue;
+                    break;
+            }
+            let uncap = "_01";
+            if(data != 0)
+            {
+                for(const f of data[6])
+                    if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
+            }
+            slist[id.padEnd(15, "0")] = ["sp/assets/npc/m/" + id + uncap + ".jpg", id];
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
@@ -1413,22 +1449,64 @@ function displayPartners(elem, i)
     this.onclick = null;
 }
 
-function displaySummons(elem, i)
+function displaySummonsSSR(elem, i, n)
 {
     i = JSON.stringify(i);
     elem.removeAttribute("onclick");
     let node = document.getElementById('areasummons'+i);
+    let start = 2040000000 + n * 1000;
+    let end = start + 200 * 1000;
+    let onerr = function() {
+        this.src = "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/m/2999999999.jpg";
+    };
     if("summons" in index)
     {
         let slist = {};
-        for(const id in index["summons"])
+        for(const [id, data] of Object.entries(index["summons"]))
         {
-            if(id[2] != i) continue;
-            slist[id] = ["sp/assets/summon/m/" + id + ".jpg", id];
+            if(id[2] != "4") continue;
+            let t = parseInt(id);
+            if(t < start || t >= end) continue;
+            let uncap = "";
+            if(data != 0)
+            {
+                for(const f of data[0])
+                    if(f.includes("_")) uncap = f.slice(10);
+            }
+            slist[id] = ["sp/assets/summon/m/" + id + uncap + ".jpg", id, data != 0];
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
-            addIndexImage(node, slist[k][0], slist[k][1]);
+            addIndexImage(node, slist[k][0], slist[k][1], (slist[k][2] ? onerr : null));
+    }
+    this.onclick = null;
+}
+
+function displaySummons(elem, i)
+{
+    i = JSON.stringify(i);
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areasummonsrare'+i);
+    let onerr = function() {
+        this.src = "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/m/2999999999.jpg";
+    };
+    if("summons" in index)
+    {
+        let slist = {};
+        for(const [id, data] of Object.entries(index["summons"]))
+        {
+            if(id[2] != i) continue;
+            let uncap = "";
+            if(data != 0)
+            {
+                for(const f of data[0])
+                    if(f.includes("_")) uncap = f.slice(10);
+            }
+            slist[id] = ["sp/assets/summon/m/" + id + uncap + ".jpg", id, data != 0];
+        }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            addIndexImage(node, slist[k][0], slist[k][1], (slist[k][2] ? onerr : null));
     }
     this.onclick = null;
 }
@@ -1454,15 +1532,19 @@ function displayWeapons(elem, r, i)
     this.onclick = null;
 }
 
-function displaySkins(elem)
+function displaySkins(elem, i)
 {
     elem.removeAttribute("onclick");
-    let node = document.getElementById('areaskins');
+    let start = 3710000000 + i * 1000;
+    let end = start + 100 * 1000;
+    let node = document.getElementById('areaskins' + i);
     if("skins" in index)
     {
         let slist = {};
         for(const id in index["skins"])
         {
+            let t = parseInt(id);
+            if(t < start || t >= end) continue;
             slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
         }
         const keys = Object.keys(slist).sort().reverse();

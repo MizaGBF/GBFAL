@@ -21,7 +21,7 @@ summary {
     margin-right: auto;
     color: #ffffff;
     text-shadow: #000000 1px 0 10px;
-    font-size: 30px;
+    font-size: 28px;
 }
 
 .red-sum {
@@ -314,7 +314,7 @@ a:active {
         height: 72px;
         margin-top: 20px;
         margin-bottom: 20px;
-        font-size: 40px;
+        font-size: 38px;
     }
 
     .tooltip {

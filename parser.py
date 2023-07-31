@@ -14,7 +14,6 @@ class Parser():
     def __init__(self):
         self.running = False # control if the app is running
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
-        self.style_queue = queue.Queue() # queue used to process character styles
         self.request_queue = queue.Queue() # queue used to retrieve npc data
         self.quality = ("/img/", "/js/") # image and js quality
         self.data = { # data structure
@@ -173,50 +172,50 @@ class Parser():
                     self.newShared(errs)
                     tasks['weapons{}{}'.format(r, j)] = {'todo':[]}
                     for i in range(10):
-                        tasks['weapons{}{}'.format(r, j)]['todo'].append(('weapons', i, 10, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg", [""], 20))
+                        tasks['weapons{}{}'.format(r, j)]['todo'].append(('weapons', i, 10, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg",  20))
                 # summons
                 self.newShared(errs)
                 tasks['summons{}'.format(r)] = {'todo':[]}
                 for i in range(5):
-                    tasks['summons{}'.format(r)]['todo'].append(('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js", [""], 20))
+                    tasks['summons{}'.format(r)]['todo'].append(('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js",  20))
                 if r > 1:
                     # characters
                     self.newShared(errs)
                     tasks['characters{}'.format(r)] = {'todo':[]}
                     for i in range(5):
-                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", ["", "_st2"], 20))
+                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", 20))
                     # partners
                     self.newShared(errs)
                     tasks['partners{}'.format(r)] = {'todo':[]}
                     for i in range(5):
-                        tasks['partners{}'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg", [""], 20))
+                        tasks['partners{}'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg",  20))
                     self.newShared(errs)
                     tasks['partners{}-1'.format(r)] = {'todo':[]}
                     for i in range(5):
-                        tasks['partners{}-1'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js", [""], 20))
+                        tasks['partners{}-1'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js",  20))
                     self.newShared(errs)
                     tasks['partners{}-2'.format(r)] = {'todo':[]}
                     for i in range(5):
-                        tasks['partners{}-2'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js", [""], 20))
+                        tasks['partners{}-2'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20))
             # other partners
             for r in range(8, 10):
                 self.newShared(errs)
                 tasks['partners{}'.format(r)] = {'todo':[]}
                 for i in range(5):
-                    tasks['partners{}'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg", [""], 20))
+                    tasks['partners{}'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg",  20))
                 self.newShared(errs)
                 tasks['partners{}-1'.format(r)] = {'todo':[]}
                 for i in range(5):
-                    tasks['partners{}-1'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js", [""], 20))
+                    tasks['partners{}-1'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js",  20))
                 self.newShared(errs)
                 tasks['partners{}-2'.format(r)] = {'todo':[]}
                 for i in range(5):
-                    tasks['partners{}-2'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js", [""], 20))
+                    tasks['partners{}-2'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20))
             # skins
             self.newShared(errs)
             tasks['skins'] = {'todo':[]}
             for i in range(5):
-                tasks['skins']['todo'].append(('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01{}.js", [""], 20))
+                tasks['skins']['todo'].append(('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01{}.js",  20))
             # enemies
             for a in range(1, 10):
                 for b in range(1, 4):
@@ -224,46 +223,46 @@ class Parser():
                         self.newShared(errs)
                         tasks['enemies{}{}{}'.format(a,b,d)] = {'todo':[]}
                         for i in range(5):
-                            tasks['enemies{}{}{}'.format(a,b,d)]['todo'].append(('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", [""], 50))
+                            tasks['enemies{}{}{}'.format(a,b,d)]['todo'].append(('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png",  50))
             # npc
             self.newShared(errs)
             tasks['npcs_asset'] = {'todo':[]}
             for i in range(10): # assets
-                tasks['npcs_asset']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 60))
+                tasks['npcs_asset']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  60))
             self.newShared(errs)
             tasks['npcs_sound'] = {'todo':[]}
             for i in range(10): # sounds
-                tasks['npcs_sound']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3", [""], 60))
+                tasks['npcs_sound']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  60))
             tasks['npcs_sp'] = {'todo':[]}
-            tasks['npcs_sp']['todo'].append(('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png", [""], 2))
+            tasks['npcs_sp']['todo'].append(('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  2))
             
             # backgrounds
             for i in ["event_{}", "common_{}", "main_{}"]:
                 self.newShared(errs)
                 tasks['bg'+i] = {'todo':[]}
                 for j in range(5):
-                    tasks['bg'+i]['todo'].append(('background', j, 5, errs[-1], i, 1, "img_low/sp/raid/bg/", ".jpg", [""], 10))
+                    tasks['bg'+i]['todo'].append(('background', j, 5, errs[-1], i, 1, "img_low/sp/raid/bg/", ".jpg",  10))
             for i in ["ra", "rb", "rc"]:
                 self.newShared(errs)
                 tasks['bg'+i] = {'todo':[]}
                 for j in range(5):
-                    tasks['bg'+i]['todo'].append(('background', j, 5, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
+                    tasks['bg'+i]['todo'].append(('background', j, 5, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg",  50))
             for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
                 self.newShared(errs)
                 tasks['bg'+i[0]+'-'+i[1]] = {'todo':[]}
                 for j in range(5):
-                    tasks['bg'+i[0]+'-'+i[1]]['todo'].append(('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg", [""], 50))
+                    tasks['bg'+i[0]+'-'+i[1]]['todo'].append(('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg",  50))
             
             # titles
             self.newShared(errs)
             tasks['title'] = {'todo':[]}
             for i in range(5):
-                tasks['title']['todo'].append(('title', i, 5, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg", [""], 15))
+                tasks['title']['todo'].append(('title', i, 5, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg",  15))
             # suptix
             self.newShared(errs)
             tasks['suptix'] = {'todo':[]}
             for i in range(5):
-                tasks['suptix']['todo'].append(('suptix', i, 5, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg", [""], 15))
+                tasks['suptix']['todo'].append(('suptix', i, 5, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg",  15))
 
             countmax = 0
             count = 0
@@ -299,35 +298,33 @@ class Parser():
         self.manualUpdate(self.new_elements)
         self.build_relation()
 
-    def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, styles, maxerr): # run() subroutine (see above)
+    def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, maxerr): # run() subroutine (see above)
         id = start
         is_js = ext.endswith('.js')
         while err[0] < maxerr and err[1]:
             f = file.format(str(id).zfill(zfill))
-            for s in styles:
-                try:
-                    if f+s in self.data[index]:
-                        if self.data[index][f+s] == 0 and (is_js or index in ["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"]):
-                            self.new_elements.append(f+s)
-                        with err[2]:
-                            err[0] = 0
-                        continue
-                    if f in self.multi_summon: self.req(endpoint + path + f + ext.replace("_damage", "_a_damage"))
-                    else: self.req(endpoint + path + f + ext.replace("{}", s))
+            try:
+                if f in self.data[index]:
+                    if self.data[index][f] == 0 and (is_js or index in ["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"]):
+                        self.new_elements.append(f)
                     with err[2]:
                         err[0] = 0
-                        self.data[index][f+s] = 0
-                        self.modified = True
-                        self.new_elements.append(f+s)
-                        print("New Element:",f+s)
-                except:
-                    if s != "": break
-                    with err[2]:
-                        err[0] += 1
-                        if err[0] >= maxerr:
-                            err[1] = False
-                            return
-                    break
+                    continue
+                if f in self.multi_summon: self.req(endpoint + path + f + ext.replace("_damage", "_a_damage"))
+                else: self.req(endpoint + path + f + ext)
+                with err[2]:
+                    err[0] = 0
+                    self.data[index][f] = 0
+                    self.modified = True
+                    self.new_elements.append(f)
+                    print("New Element:",f)
+            except:
+                with err[2]:
+                    err[0] += 1
+                    if err[0] >= maxerr:
+                        err[1] = False
+                        return
+                break
             id += step
 
     def init_job_list(self): # to be called once when needed
@@ -711,18 +708,6 @@ class Parser():
         else:
             print("No elements need to be updated")
 
-    def styleProcessing(self): # subroutine checking for content in style_queue
-        count = 0
-        while self.running:
-            try:
-                id, styles = self.style_queue.get(block=True, timeout=0.1)
-            except:
-                continue
-            for s in styles:
-                if self.charaUpdate(id, s):
-                    count += 1
-        return count
-
     def manualUpdate(self, ids): # called by -update or other function. manually update elements
         if len(ids) == 0:
             return
@@ -731,24 +716,11 @@ class Parser():
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = []
             # check what kind of ids we deal with
-            has_chara = False
             has_npc = False
             for id in ids:
-                if len(id) == 10:
-                    match(id[:2]):
-                        case "30":
-                            has_chara = True
-                            has_npc = True
-                        case "37":
-                            has_npc = True
-                        case "39":
-                            has_npc = True
-                    if has_chara and has_npc:
-                        break
-            if has_chara: # add styleprocessing
-                for id in range(4):
-                    futures.append(executor.submit(self.styleProcessing))
-                print("style")
+                if len(id) == 10 and id[:2] in ["30", "37", "39"]:
+                    has_npc = True
+                    break
             if has_npc: # add bulkrequest for scene processing
                 for id in range(80):
                     futures.append(executor.submit(self.bulkRequest))
@@ -779,13 +751,7 @@ class Parser():
                         except:
                             continue
                     elif id.startswith('3'):
-                        el = id.split('_')
-                        if len(el) > 2:
-                            continue
-                        elif len(el) == 2:
-                            futures.append(executor.submit(self.charaUpdate, el[0], '_'+el[1]))
-                        else:
-                            futures.append(executor.submit(self.charaUpdate, id))
+                        futures.append(executor.submit(self.charaUpdate, id))
                     else:
                         continue
                     telem += 1
@@ -845,120 +811,127 @@ class Parser():
         return flags
 
     # index chara/skin data
-    def charaUpdate(self, id, style=""):
-        data = [[], [], [], [], [], [], [], None, None] # sprite, phit, sp, aoe, single, general, sd, scene, sound
-        uncaps = []
-        sheets = []
-        altForm = False
-        # # # Main sheets
-        tid = self.chara_special.get(id, id) # special substitution (mostly for bobobo)
-        for uncap in ["01", "02", "03", "04"]:
-            for ftype in ["", "_s2"]:
-                for form in ["", "_f", "_f1", "_f_01"]:
-                    try:
-                        fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
-                        sheets += self.processManifest(fn)
-                        if form == "": uncaps.append(uncap)
-                        else: altForm = True
-                    except:
-                        if form == "":
-                            break
-        data[0] = sheets
-        if len(uncaps) == 0 and id+style not in self.cut_ids:
-            return False
-        # # # Assets
-        # arts
-        flags = self.artCheck(id, style, uncaps)
-        targets = []
-        sd = []
-        for uncap in flags:
-            # main
-            base_fn = "{}_{}{}".format(id, uncap, style)
-            uf = flags[uncap]
-            for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
-                    for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
-                        for af in (["", "_f", "_f1"] if altForm else [""]):
-                            targets.append(base_fn + af + g + m + n)
-            # sprites
-            sd.append(base_fn)
-        data[5] = targets
-        data[6] = sd
-        if len(targets) == 0:
-            return False
-        if not id.startswith("371") and style == "":
-            self.style_queue.put((id, ["_st2"])) # style check
-        # starting scene check early
-        try:
-            if tid.startswith('37'):
-                scenes = set(self.data['skins'][id+style][7])
-            else:
-                scenes = set(self.data['characters'][id+style][7])
-        except:
-            scenes = set()
-        pending = self.request_scene_bulk(id+style, uncaps, scenes)
-        # # # Other sheets
-        # attack
-        targets = [""]
-        for i in range(2, len(uncaps)):
-            targets.append("_" + uncaps[i])
-        attacks = []
-        for t in targets:
-            for u in ["", "_2", "_3"]:
+    def charaUpdate(self, id):
+        data = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
+        for style in ["", "_st2"]:
+            uncaps = []
+            sheets = []
+            altForm = False
+            if id.startswith("371") and style != "": # skin & style check
+                break
+            # # # Main sheets
+            tid = self.chara_special.get(id, id) # special substitution (mostly for bobobo)
+            for uncap in ["01", "02", "03", "04"]:
+                for ftype in ["", "_s2"]:
+                    for form in ["", "_f", "_f1", "_f_01"]:
+                        try:
+                            fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
+                            sheets += self.processManifest(fn)
+                            if form == "": uncaps.append(uncap)
+                            else: altForm = True
+                        except:
+                            if form == "":
+                                break
+            data[0] += sheets
+            if len(uncaps) == 0:
+                if style == "": return False
+                continue
+            # # # Assets
+            # arts
+            flags = self.artCheck(id, style, uncaps)
+            targets = []
+            sd = []
+            for uncap in flags:
+                # main
+                base_fn = "{}_{}{}".format(id, uncap, style)
+                uf = flags[uncap]
+                for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                    for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
+                        for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
+                            for af in (["", "_f", "_f1"] if altForm else [""]):
+                                targets.append(base_fn + af + g + m + n)
+                # sprites
+                sd.append(base_fn)
+            data[5] += targets
+            data[6] += sd
+            if len(targets) == 0:
+                if style == "": return False
+                continue
+            if style == "":
+                # starting scene check early
                 try:
-                    fn = "phit_{}{}{}{}".format(tid, t, style, u)
+                    if tid.startswith('37'):
+                        scenes = set(self.data['skins'][id][7])
+                    else:
+                        scenes = set(self.data['characters'][id][7])
+                except:
+                    scenes = set()
+                pending = self.request_scene_bulk(id, uncaps, scenes)
+            # # # Other sheets
+            # attack
+            targets = [""]
+            for i in range(2, len(uncaps)):
+                targets.append("_" + uncaps[i])
+            attacks = []
+            for t in targets:
+                for u in ["", "_2", "_3"]:
+                    try:
+                        fn = "phit_{}{}{}{}".format(tid, t, style, u)
+                        attacks += self.processManifest(fn)
+                    except:
+                        break
+            data[1] += attacks
+            # ougi
+            attacks = []
+            for uncap in uncaps:
+                for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
+                    for catype in ["", "_s2", "_s3"]:
+                        try:
+                            fn = "nsp_{}_{}{}{}{}".format(tid, uncap, style, form, catype)
+                            attacks += self.processManifest(fn)
+                            break
+                        except:
+                            pass
+            data[2] += attacks
+            # skills
+            attacks = []
+            for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                try:
+                    fn = "ab_all_{}{}_{}".format(tid, style, el)
                     attacks += self.processManifest(fn)
                 except:
-                    break
-        data[1] = attacks
-        # ougi
-        attacks = []
-        for uncap in uncaps:
-            for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
-                for catype in ["", "_s2", "_s3"]:
-                    try:
-                        fn = "nsp_{}_{}{}{}{}".format(tid, uncap, style, form, catype)
-                        attacks += self.processManifest(fn)
-                        break
-                    except:
-                        pass
-        data[2] = attacks
-        # skills
-        attacks = []
-        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-            try:
-                fn = "ab_all_{}{}_{}".format(tid, style, el)
-                attacks += self.processManifest(fn)
-            except:
-                pass
-        data[3] = attacks
-        attacks = []
-        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-            try:
-                fn = "ab_{}{}_{}".format(tid, style, el)
-                attacks += self.processManifest(fn)
-            except:
-                pass
-        data[4] = attacks
-        # scenes and sounds
-        uncaps = [u for u in uncaps if ("_" not in u and u.startswith("0"))] # format uncaps (remove useless ones)
-        try:
-            if tid.startswith('37'):
-                voices = set(self.data['skins'][id+style][8])
-            else:
-                voices = set(self.data['characters'][id+style][8])
-        except:
-            voices = set()
-        data[8] = self.update_chara_sound_file(id+style, uncaps, voices)
-        data[7] = self.process_scene_bulk(pending)
+                    pass
+            data[3] += attacks
+            attacks = []
+            for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                try:
+                    fn = "ab_{}{}_{}".format(tid, style, el)
+                    attacks += self.processManifest(fn)
+                except:
+                    pass
+            data[4] += attacks
+            if style == "":
+                # scenes and sounds
+                uncaps = [u for u in uncaps if ("_" not in u and u.startswith("0"))] # format uncaps (remove useless ones)
+                try:
+                    if tid.startswith('37'):
+                        voices = set(self.data['skins'][id][8])
+                    else:
+                        voices = set(self.data['characters'][id][8])
+                except:
+                    voices = set()
+                r = self.update_chara_sound_file(id, uncaps, voices)
+                if r is not None: data[8] += r
+                r = self.process_scene_bulk(pending)
+                if r is not None: data[7] += r
         with self.lock:
             self.modified = True
             if tid.startswith('37'):
-                self.data['skins'][id+style] = data
+                self.data['skins'][id] = data
             else:
-                self.data['characters'][id+style] = data
-            self.addition[id+style] = 3
-        self.generateNameLookup(id+style)
+                self.data['characters'][id] = data
+            self.addition[id] = 3
+        self.generateNameLookup(id)
         return True
 
     def partnerUpdate(self, id, thread_step): # for partners # WARNING it's hell and not optimized
@@ -1088,18 +1061,17 @@ class Parser():
             tid = str(int(tid) + thread_step)
             if tid[-4] != id[-4]: # end if we reached 1000 or more
                 break
-        print(id, "finished:", edited)
         if not edited:
             return False
         with self.lock:
             self.modified = True
-            if id+style not in self.data['partners']:
-                self.data['partners'][id+style] = data
+            if id not in self.data['partners']:
+                self.data['partners'][id] = data
             else:
                 for i, e in enumerate(data):
-                    self.data['partners'][id+style][i] = list(set(self.data['partners'][id+style][i] + e))
-                    self.data['partners'][id+style][i].sort()
-            self.addition[id+style] = 6
+                    self.data['partners'][id][i] = list(set(self.data['partners'][id][i] + e))
+                    self.data['partners'][id][i].sort()
+            self.addition[id] = 6
         return True
 
     # index npc data
@@ -1677,6 +1649,7 @@ class Parser():
                     pass
             if (data["What"] == "Weapon" and len(data.keys()) > 3) or (data["What"] != "Weapon" and len(data.keys()) > 2):
                 with self.lock:
+                    if cid in self.cut_ids: data["Cut-Content"] = "cut-content"
                     data["ID"] = cid
                     tmp = []
                     for v in data.values():

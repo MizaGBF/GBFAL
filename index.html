@@ -24,7 +24,7 @@
 <body onload="init()">
     <a id="to-title" href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div>v7.14</div>
+        <div>v7.15</div>
         <div id="timestamp">Last update</a>:</div>
     </div>
     <div id="to-bottom" class="clickable" onclick="window.scroll(0, document.body.scrollHeight);"><img src="assets/ui/button.png"></div>
@@ -37,6 +37,7 @@
                 <li>You can also search characters, summons or weapons<br>by Tags.</li>
                 <li>For Enemies, add 'e' before the ID. Example:<br><a href="?id=e6205703">e6205703</a> for School Belial.</li>
                 <li>For Classes, simply input the main class ID:<br><a href="?id=450301">450301</a> for Relic Buster.</li>
+                <li>Character styles are part of their base characters.<br>Example: <a href="?id=3040088000">Yngwie</a>.</li>
                 <li>Click on images to access their highest quality.</li>
             </ul>
         </span>
@@ -72,22 +73,55 @@
     <details>
         <summary>Characters</summary>
         <div class="subdetails">
-            <details onclick="displayCharacters(this, 4)">
-                <summary>SSR</summary>
+            <details onclick="displayCharacters(this, 10, 0, -1, 0, -1, 443, 508)">
+                <summary>Rabbit 2023</summary>
+                <h3 class="result mobile-big" id="areacharacters10">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 9, 0, -1, 0, -1, 379, 443)">
+                <summary>Tiger 2022</summary>
+                <h3 class="result mobile-big" id="areacharacters9">
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 8, 74, 75, 0, -1, 316, 379)">
+                <summary>Ox 2021</summary>
+                <h3 class="result mobile-big" id="areacharacters8">
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 7, 73, 74, 281, 323, 256, 316)">
+                <summary>Rat 2020</summary>
+                <h3 class="result mobile-big" id="areacharacters7">
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 6, 72, 73, 263, 281, 199, 256)">
+                <summary>Pig 2019</summary>
+                <h3 class="result mobile-big" id="areacharacters6">
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 5, 71, 72, 233, 263, 149, 199)">
+                <summary>Dog 2018</summary>
+                <h3 class="result mobile-big" id="areacharacters5">
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 4, 0, -1, 173, 233, 108, 149)">
+                <summary>Chicken 2017</summary>
                 <h3 class="result mobile-big" id="areacharacters4">
-                    <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
-            <details onclick="displayCharacters(this, 3)">
-                <summary>SR</summary>
+            <details onclick="displayCharacters(this, 3, 47, 71, 113, 173, 72, 108)">
+                <summary>Monkey 2016</summary>
                 <h3 class="result mobile-big" id="areacharacters3">
-                    <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
-            <details onclick="displayCharacters(this, 2)">
-                <summary>R</summary>
+            <details onclick="displayCharacters(this, 2, 30, 47, 51, 113, 30, 72)">
+                <summary>Sheep 2015</summary>
                 <h3 class="result mobile-big" id="areacharacters2">
-                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 1, 0, 30, 0, 51, 0, 30)">
+                <summary>2014</summary>
+                <h3 class="result mobile-big" id="areacharacters1">
                 </h3>
             </details>
             <div class="tooltip tooltip-left">
@@ -103,11 +137,28 @@
             </div>
         </div>
     </details>
-    <details onclick="displaySkins(this)">
+    <details>
         <summary>Skins</summary>
-        <h3 class="result mobile-big" id="areaskins">
-            <small>Non-exhaustive list</small><br>
-        </h3>
+        <div class="subdetails">
+            <details onclick="displaySkins(this, 200)">
+                <summary>200 - 299</summary>
+                <h3 class="result mobile-big" id="areaskins200">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displaySkins(this, 100)">
+                <summary>100 - 199</summary>
+                <h3 class="result mobile-big" id="areaskins100">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displaySkins(this, 0)">
+                <summary>000 - 099</summary>
+                <h3 class="result mobile-big" id="areaskins0">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+        </div>
     </details>
     <details>
         <summary>Partners</summary>
@@ -159,27 +210,36 @@
     <details>
         <summary>Summons</summary>
         <div class="subdetails">
-            <details onclick="displaySummons(this, 4)">
-                <summary>SSR</summary>
-                <h3 class="result  mobile-big" id="areasummons4">
-                    <small>Non-exhaustive list</small><br>
+            <details onclick="displaySummonsSSR(this, 3, 400)">
+                <summary>SSR 400-599</summary>
+                <h3 class="result mobile-big" id="areasummons3">
+                </h3>
+            </details>
+            <details onclick="displaySummonsSSR(this, 2, 200)">
+                <summary>SSR 200-399</summary>
+                <h3 class="result mobile-big" id="areasummons2">
+                </h3>
+            </details>
+            <details onclick="displaySummonsSSR(this, 1, 0)">
+                <summary>SSR 000-199</summary>
+                <h3 class="result mobile-big" id="areasummons1">
                 </h3>
             </details>
             <details onclick="displaySummons(this, 3)">
                 <summary>SR</summary>
-                <h3 class="result  mobile-big" id="areasummons3">
+                <h3 class="result  mobile-big" id="areasummonsrare3">
                     <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
             <details onclick="displaySummons(this, 2)">
                 <summary>R</summary>
-                <h3 class="result  mobile-big" id="areasummons2">
+                <h3 class="result  mobile-big" id="areasummonsrare2">
                     <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
             <details onclick="displaySummons(this, 1)">
                 <summary>N</summary>
-                <h3 class="result  mobile-big" id="areasummons1">
+                <h3 class="result  mobile-big" id="areasummonsrare1">
                     <small>Non-exhaustive list</small><br>
                 </h3>
             </details>
