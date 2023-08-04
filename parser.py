@@ -160,11 +160,11 @@ class Parser():
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread) as executor: # Note: Threads of each categories will run together, in the limit set by max_thead, to ensure no problem with their errs variable
             s = time.time()
             # start job threads first
-            """tasks['job'] = {'futures':[], 'todo':[]}
+            tasks['job'] = {'futures':[], 'todo':[]}
             for i in range(job_thread):
                 tasks['job']['todo'].append(None) # array size is used later
                 tasks['job']['futures'].append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
-                running_count += 1"""
+                running_count += 1
 
             # prepare the rest
             #rarity
