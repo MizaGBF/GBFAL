@@ -699,7 +699,7 @@ class Parser():
     def run_index_content(self): # called by -index. check and attempt to update incomplete content
         print("Checking index content...")
         to_update = []
-        for k in ["characters", "summons", "skins", "weapons", "enemies", "npcs"]:
+        for k in self.preemptive_add:
             for id in self.data[k]:
                 if self.data[k][id] == 0:
                     to_update.append(id)
@@ -997,7 +997,7 @@ class Parser():
                         for form in ["", "_f", "_f1", "_f_01"]:
                             try:
                                 fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
-                                sheets += self.processManifest(fn)
+                                sheets += self.processManifest(fn, True)
                                 if form == "": uncaps.append(uncap)
                                 else: altForm = True
                             except:
@@ -1015,7 +1015,7 @@ class Parser():
                     for u in ["", "_2", "_3"]:
                         try:
                             fn = "phit_{}{}{}{}".format(tid, t, style, u)
-                            attacks += self.processManifest(fn)
+                            attacks += self.processManifest(fn, True)
                         except:
                             break
                 tmp[1] = attacks
@@ -1026,7 +1026,7 @@ class Parser():
                         for catype in ["", "_s2", "_s3", "_s2_b"]:
                             try:
                                 fn = "nsp_{}_{}{}{}{}".format(tid, uncap, style, form, catype)
-                                attacks += self.processManifest(fn)
+                                attacks += self.processManifest(fn, True)
                                 break
                             except:
                                 pass
@@ -1036,7 +1036,7 @@ class Parser():
                 for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
                     try:
                         fn = "ab_all_{}{}_{}".format(tid, style, el)
-                        attacks += self.processManifest(fn)
+                        attacks += self.processManifest(fn, True)
                     except:
                         pass
                 tmp[3] = attacks
@@ -1044,7 +1044,7 @@ class Parser():
                 for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
                     try:
                         fn = "ab_{}{}_{}".format(tid, style, el)
-                        attacks += self.processManifest(fn)
+                        attacks += self.processManifest(fn, True)
                     except:
                         pass
                 tmp[4] = attacks
@@ -1066,7 +1066,7 @@ class Parser():
             return False
         with self.lock:
             self.modified = True
-            if id not in self.data['partners']:
+            if id not in self.data['partners'] or self.data['partners'][id] == 0:
                 self.data['partners'][id] = data
             else:
                 for i, e in enumerate(data):
@@ -1508,7 +1508,7 @@ class Parser():
         return A+B
 
     # extract json data from a manifest file
-    def processManifest(self, file):
+    def processManifest(self, file, verify_file=False):
         manifest = self.req(self.manifestUri + file + ".js", get=True).decode('utf-8')
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
@@ -1517,6 +1517,14 @@ class Parser():
         for l in data:
             src = l['src'].split('?')[0].split('/')[-1]
             res.append(src)
+        if verify_file:
+            for k in res:
+                try:
+                    self.req(self.imgUri + "_low/assets_en/sp/cjs/" + file + ".png")
+                    return res
+                except:
+                    pass
+            raise Exception("Invalid Spritesheets")
         return res
 
     # remove extra from wiki name
