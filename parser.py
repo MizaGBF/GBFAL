@@ -63,6 +63,7 @@ class Parser():
         self.re = re.compile("[123][07][1234]0\\d{4}00")
         self.vregex = re.compile("Game\.version = \"(\d+)\";")
         self.scene_strings, self.scene_special_strings = self.build_scene_strings()
+        self.preemptive_add = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"])
         
         limits = httpx.Limits(max_keepalive_connections=300, max_connections=300, keepalive_expiry=10)
         self.client = httpx.Client(limits=limits)
@@ -155,14 +156,15 @@ class Parser():
             job_thread == 0
     
         tasks = {}
+        print("Starting process...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread) as executor: # Note: Threads of each categories will run together, in the limit set by max_thead, to ensure no problem with their errs variable
             s = time.time()
             # start job threads first
-            tasks['job'] = {'futures':[], 'todo':[]}
+            """tasks['job'] = {'futures':[], 'todo':[]}
             for i in range(job_thread):
                 tasks['job']['todo'].append(None) # array size is used later
                 tasks['job']['futures'].append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
-                running_count += 1
+                running_count += 1"""
 
             # prepare the rest
             #rarity
@@ -171,19 +173,19 @@ class Parser():
                 for j in range(10):
                     self.newShared(errs)
                     tasks['weapons{}{}'.format(r, j)] = {'todo':[]}
-                    for i in range(10):
-                        tasks['weapons{}{}'.format(r, j)]['todo'].append(('weapons', i, 10, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg",  20))
+                    for i in range(5):
+                        tasks['weapons{}{}'.format(r, j)]['todo'].append(('weapons', i, 5, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg",  20))
                 # summons
                 self.newShared(errs)
                 tasks['summons{}'.format(r)] = {'todo':[]}
                 for i in range(5):
-                    tasks['summons{}'.format(r)]['todo'].append(('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js",  20))
+                    tasks['summons{}'.format(r)]['todo'].append(('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js",  20)) # NOTE: edit subroutine if url is changed
                 if r > 1:
                     # characters
                     self.newShared(errs)
                     tasks['characters{}'.format(r)] = {'todo':[]}
                     for i in range(5):
-                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01{}.jpg", 20))
+                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01jpg", 20))
                     # partners
                     self.newShared(errs)
                     tasks['partners{}'.format(r)] = {'todo':[]}
@@ -215,7 +217,7 @@ class Parser():
             self.newShared(errs)
             tasks['skins'] = {'todo':[]}
             for i in range(5):
-                tasks['skins']['todo'].append(('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01{}.js",  20))
+                tasks['skins']['todo'].append(('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01js",  20))
             # enemies
             for a in range(1, 10):
                 for b in range(1, 4):
@@ -274,11 +276,13 @@ class Parser():
                     break
                 # add missing threads
                 for k, v in tasks.items():
-                    if 'futures' not in v and len(v['todo'])+running_count < max_thread:
+                    if 'futures' not in v and len(v['todo'])+running_count <= max_thread:
                         tasks[k]['futures'] = []
                         for p in v['todo']:
                             tasks[k]['futures'].append(executor.submit(self.run_subroutine, self.endpoint, *p))
                             running_count += 1
+                        sys.stdout.write("\rThread Load: {:.1f}% | Progress: {:.1f}%        ".format(100*running_count/max_thread, 100*count/countmax))
+                        sys.stdout.flush()
                 # collect futures
                 for k, v in tasks.items():
                     if 'futures' in v:
@@ -286,13 +290,12 @@ class Parser():
                             future.result()
                             running_count -= 1
                             count += 1
-                            if count >= countmax:
-                                print("Progress: 100%")
-                                print("Finished in {:.2f} seconds".format(time.time() - s))
-                            elif count % 80 == 0:
-                                print("Progress: {:.1f}%".format(100*count/countmax))
                         tasks.pop(k)
                         break
+                sys.stdout.write("\rThread Load: {:.1f}% | Progress: {:.1f}%        ".format(100*running_count/max_thread, min(100, 100*count/countmax)))
+                sys.stdout.flush()
+            print("")
+            print("Finished in {:.2f} seconds".format(time.time() - s))
         print("Index update done")
         self.save()
         self.manualUpdate(self.new_elements)
@@ -303,28 +306,26 @@ class Parser():
         is_js = ext.endswith('.js')
         while err[0] < maxerr and err[1]:
             f = file.format(str(id).zfill(zfill))
-            try:
-                if f in self.data[index]:
-                    if self.data[index][f] == 0 and (is_js or index in ["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"]):
-                        self.new_elements.append(f)
-                    with err[2]:
-                        err[0] = 0
-                    continue
-                if f in self.multi_summon: self.req(endpoint + path + f + ext.replace("_damage", "_a_damage"))
-                else: self.req(endpoint + path + f + ext)
+            if f in self.data[index]:
+                if self.data[index][f] == 0 and (is_js or index in self.preemptive_add):
+                    self.new_elements.append(f)
                 with err[2]:
                     err[0] = 0
-                    self.data[index][f] = 0
-                    self.modified = True
-                    self.new_elements.append(f)
-                    print("New Element:",f)
-            except:
-                with err[2]:
-                    err[0] += 1
-                    if err[0] >= maxerr:
-                        err[1] = False
-                        return
-                break
+            else:
+                try:
+                    if f in self.multi_summon: self.req(endpoint + path + f + ext.replace("_damage", "_a_damage"))
+                    else: self.req(endpoint + path + f + ext)
+                    with err[2]:
+                        err[0] = 0
+                        self.data[index][f] = 0
+                        self.modified = True
+                        self.new_elements.append(f)
+                except:
+                    with err[2]:
+                        err[0] += 1
+                        if err[0] >= maxerr:
+                            err[1] = False
+                            return
             id += step
 
     def init_job_list(self): # to be called once when needed
@@ -689,7 +690,7 @@ class Parser():
             response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
         else:
             response = self.client.head(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
-        if response.status_code != 200: raise Exception()
+        if response.status_code != 200: raise Exception("HTTP error {}".format(response.status_code))
         if get:
             return response.content
         else:
