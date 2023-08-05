@@ -185,7 +185,7 @@ class Parser():
                     self.newShared(errs)
                     tasks['characters{}'.format(r)] = {'todo':[]}
                     for i in range(5):
-                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01jpg", 20))
+                        tasks['characters{}'.format(r)]['todo'].append(('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg", 20))
                     # partners
                     self.newShared(errs)
                     tasks['partners{}'.format(r)] = {'todo':[]}
