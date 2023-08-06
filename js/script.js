@@ -262,6 +262,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
         case 3: // characters / skins
             assets = [
                 ["Main Arts", "sp/assets/npc/zoom/", "png", "img_low/", 5, true, false], // index, skycompass, side form
+                ["Home Arts", "sp/assets/npc/my/", "png", "img_low/", 5, false, false],
                 ["Journal Arts", "sp/assets/npc/b/", "png", "img_low/", 5, false, false],
                 ["Gacha Arts", "sp/assets/npc/gacha/", "png", "img_low/", 6, false, false],
                 ["News Art", "sp/banner/notice/update_char_", "png", "img_low/", 6, false, false],

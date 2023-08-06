@@ -249,11 +249,12 @@ h3 {
 
 .asset {
     border: 2px solid #333333;
-    max-width: 95%;
+    max-width: 60%;
+    max-height: 350px;
 }
 
 .skycompass {
-    max-width: min(480px, 95%);
+    max-width: min(350px, 95%);
     max-height: 400px;;
     border: 2px solid #e0ffff;
     border-radius: 10px;
