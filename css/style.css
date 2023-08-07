@@ -261,6 +261,26 @@ h3 {
     background: url(../assets/ui/skycompass.png) no-repeat bottom left 0% / 15%;
 }
 
+.homepage-ui {
+    width: 238.297px;
+    height: 350px;
+    white-space: nowrap;
+}
+
+.homepage-ui:before {
+    position: absolute;
+    content: '';
+    background: url(../assets/ui/home_ui.png) no-repeat;
+    background-size: 100% 100%;
+    width: 238.297px;
+    height: 350px;
+}
+
+.homepage-bg {
+    background: url(../assets/ui/home_bg.jpg) no-repeat;
+    background-size: 238.297px 350px;
+}
+
 a:link {
     color: red;
     font-size: 1em;

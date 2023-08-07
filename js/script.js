@@ -408,13 +408,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 let img = document.createElement("img");
                 let ref = document.createElement('a');
                 let url_target = null;
-                if(is_home)
-                {
-                    img.src = "assets/ui/home_ui.png";
-                    url_target = getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
-                    img.style = "background: url(" + url_target + ") no-repeat, url(assets/ui/home_bg.jpg) no-repeat; background-size: 100% 100%;"
-                }
-                else if(file.endsWith(".png") || file.endsWith(".jpg"))
+                if(file.endsWith(".png") || file.endsWith(".jpg"))
                 {
                     img.src = getMainEndpoint() + language + asset[3] + asset[1] + file;
                     url_target = img.src;
@@ -426,6 +420,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 }
                 ref.setAttribute('href', url_target.replace("img_low", "img"));
                 img.classList.add("loading");
+                if(is_home) img.classList.add("homepage"); // use this class name as a flag
                 img.setAttribute('loading', 'lazy');
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
@@ -436,6 +431,12 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 img.onload = function() {
                     this.classList.remove("loading");
                     this.classList.add("asset");
+                    if(this.classList.contains("homepage")) // set homepage classes if this class if present
+                    {
+                        this.classList.remove("homepage");
+                        this.classList.add("homepage-bg");
+                        this.parentNode.classList.add("homepage-ui");
+                    }
                 };
                 div.appendChild(ref);
                 ref.appendChild(img);
