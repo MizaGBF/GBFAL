@@ -172,7 +172,6 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
     switch(id.length)
     {
         case 10:
-        case 14:
             switch(id[0])
             {
                 case '1':
@@ -184,14 +183,20 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                     search_type = 2;
                     break;
                 case '3':
-                    switch(id[1])
+                    console.log(id[1]);
+                    switch(id.slice(0, 3))
                     {
-                        case '9':
-                        case '5':
+                        case '399':
+                        case '305':
                             newArea("NPC", id, true, indexed);
                             search_type = 5;
                             break;
-                        case '8':
+                        case '384':
+                        case '383':
+                        case '382':
+                        case '381':
+                        case '388':
+                        case '389':
                             newArea("Partner", id, false, indexed);
                             search_type = 6;
                             break;
