@@ -1517,10 +1517,10 @@ class Parser():
         for l in data:
             src = l['src'].split('?')[0].split('/')[-1]
             res.append(src)
-        if verify_file:
+        if verify_file: # check if at least one file is visible
             for k in res:
                 try:
-                    self.req(self.imgUri + "_low/assets_en/sp/cjs/" + file + ".png")
+                    self.req(self.imgUri + "_low/sp/cjs/" + k)
                     return res
                 except:
                     pass
