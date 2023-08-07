@@ -746,13 +746,19 @@ function lookup(id)
             id = id.slice(1);
             check = "enemies";
         }
-        else if(id.slice(0, 3) == "305") check = "npcs"; // for lyria and stuff
-        else if(start == "30") check = "characters";
-        else if(start == "38") check = "partners";
-        else if(start == "39") check = "npcs";
-        else if(start == "37") check = "skins";
-        else if(start == "20") check = "summons";
-        else if(start == "10") check = "weapons";
+        else if(id.length == 10)
+        {
+            switch(id.slice(0, 3))
+            {
+                case "305": case "399": check = "npcs"; break;
+                case "304": case "303": case "302": check = "characters"; break;
+                case "371": check = "skins"; break;
+                case "384": case "383": case "382": case "388": case "389": check = "partners"; break;
+                case "204": case "203": case "202": case "201": check = "summons"; break;
+                case "104": case "103": case "102": case "101": check = "weapons"; break;
+                default: return;
+            }
+        }
         else if(id.length == 9 && id[6] == "_") // retrocompatibility
         {
             id = id.split('_')[0];
