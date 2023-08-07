@@ -756,7 +756,6 @@ function lookup(id)
                 case "384": case "383": case "382": case "388": case "389": check = "partners"; break;
                 case "204": case "203": case "202": case "201": check = "summons"; break;
                 case "104": case "103": case "102": case "101": check = "weapons"; break;
-                default: return;
             }
         }
         else if(id.length == 9 && id[6] == "_") // retrocompatibility
