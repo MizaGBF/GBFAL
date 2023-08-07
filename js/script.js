@@ -340,8 +340,8 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 ["Inventory Portraits", "sp/assets/leader/m/", "jpg", "img/", 1, false, false],
                 ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", "img/", 1, false, false],
                 ["Outfit Description Arts", "sp/assets/leader/skin/", "png", "img_low/", 1, false, false],
-                ["Home Arts", "sp/assets/leader/my/", "png", "img_low/", 3, true, false],
-                ["Full Arts", "sp/assets/leader/job_change/", "png", "img_low/", 3, false, false],
+                ["Full Arts", "sp/assets/leader/job_change/", "png", "img_low/", 3, true, false],
+                ["Home Arts", "sp/assets/leader/my/", "png", "img_low/", 3, false, false],
                 ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", "img_low/", 3, false, false],
                 ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", "img/", 0, false, false],
                 ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", "img/", 0, false, false],
@@ -373,6 +373,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
         {
             files = (asset[4] == -1) ? files : obj[asset[4]]; // for npc
             if(files.length == 0) continue; // empty list
+            let is_home = false;
             // exceptions
             switch(asset[0])
             {
@@ -390,6 +391,9 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                     if(melee) // melee weapon sprites
                         files = [files[0]+"_1", files[0]+"_2"];
                     break;
+                case "Home Arts":
+                    is_home = true;
+                    break;
             };
             
             let div = addResult(asset[0], asset[0], (indexed ? files.length : 0));
@@ -398,11 +402,24 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 if(!asset[6] && (file.endsWith('_f') || file.endsWith('_f1'))) continue;
                 let img = document.createElement("img");
                 let ref = document.createElement('a');
-                if(file.endsWith(".png") || file.endsWith(".jpg"))
+                let url_target = null;
+                if(is_home)
+                {
+                    img.src = "assets/ui/home_ui.png";
+                    url_target = getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
+                    img.style = "background: url(" + url_target + ") no-repeat, url(assets/ui/home_bg.jpg) no-repeat; background-size: 100% 100%;"
+                }
+                else if(file.endsWith(".png") || file.endsWith(".jpg"))
+                {
                     img.src = getMainEndpoint() + language + asset[3] + asset[1] + file;
+                    url_target = img.src;
+                }
                 else
+                {
                     img.src = getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
-                ref.setAttribute('href', img.src.replace("img_low", "img"));
+                    url_target = img.src;
+                }
+                ref.setAttribute('href', url_target.replace("img_low", "img"));
                 img.classList.add("loading");
                 img.setAttribute('loading', 'lazy');
                 img.onerror = function() {
