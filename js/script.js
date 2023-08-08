@@ -875,6 +875,7 @@ function lookup(id)
         {
             results.insertBefore(document.createElement("br"), results.firstChild);
             results.insertBefore(document.createTextNode("Results for \"" + id + "\""), results.firstChild);
+            if(f.value != id) f.value = id;
         }
         searchResults = positives;
     }
