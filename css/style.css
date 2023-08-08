@@ -288,6 +288,7 @@ h3 {
 .homepage-bg {
     background: url(../assets/ui/home_bg.jpg) no-repeat;
     background-size: 400px 588.430px;
+    max-width: 400px;
     max-height: 588.430px;
     width: 400px;
     height: 588.430px;
