@@ -70,6 +70,14 @@ summary {
     visibility: visible;
 }
 
+.switch-btn
+{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 50px;
+}
+
 button {
     background: url(../assets/ui/button_bg.png) no-repeat;
     background-size: 100% 100%;
@@ -199,6 +207,7 @@ small {
     border-radius: 10px;
     margin: 1em;
     border-style: solid;
+    position: relative;
 }
 
 .result-header {
@@ -262,8 +271,8 @@ h3 {
 }
 
 .homepage-ui {
-    width: 238.297px;
-    height: 350px;
+    width: 400px;
+    height: 588.430px;
     white-space: nowrap;
 }
 
@@ -272,13 +281,16 @@ h3 {
     content: '';
     background: url(../assets/ui/home_ui.png) no-repeat;
     background-size: 100% 100%;
-    width: 238.297px;
-    height: 350px;
+    width: 400px;
+    height: 588.430px;
 }
 
 .homepage-bg {
     background: url(../assets/ui/home_bg.jpg) no-repeat;
-    background-size: 238.297px 350px;
+    background-size: 400px 588.430px;
+    max-height: 588.430px;
+    width: 400px;
+    height: 588.430px;
 }
 
 a:link {
@@ -352,6 +364,11 @@ a:active {
         font-size: 33px;
     }
 
+    .switch-btn
+    {
+        width: 100px;
+    }
+
     button {
         width: 330px;
         height: 60px;
@@ -409,6 +426,25 @@ a:active {
         max-width: min(350px, 50%);
         max-height: 350px;
         background: url(../assets/ui/skycompass.png) no-repeat bottom left 0% / 25%;
+    }
+
+    .homepage-ui {
+        width: 605px;
+        height: 890px;
+    }
+
+    .homepage-ui:before {
+        background-size: 100% 100%;
+        width: 605px;
+        height: 890px;
+    }
+
+    .homepage-bg {
+        background-size: 605px 890px;
+        max-width: 605px;
+        max-height: 890px;
+        width: 605px;
+        height: 890px;
     }
 
     #favorite {

@@ -45,6 +45,7 @@ var updated = []; // list of recently updated elements (loaded from changelog.js
 var intervals = []; // on screen notifications
 var typingTimer; // typing timer timeout
 var audio = null; // last played audio
+var previewhome = false; // preview for home art flag
 
 function getMainEndpoint() // return one of the endpoint, one after the other (to benefit from the sharding)
 {
@@ -183,7 +184,6 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                     search_type = 2;
                     break;
                 case '3':
-                    console.log(id[1]);
                     switch(id.slice(0, 3))
                     {
                         case '399':
@@ -402,6 +402,15 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
             };
             
             let div = addResult(asset[0], asset[0], (indexed ? files.length : 0));
+            if(is_home)
+            {
+                let img = document.createElement("img");
+                img.src = "assets/ui/switch.png";
+                img.classList.add("clickable");
+                img.classList.add("switch-btn");
+                img.onclick = togglePreview;
+                div.appendChild(img);
+            }
             for(let file of files)
             {
                 if(!asset[6] && (file.endsWith('_f') || file.endsWith('_f1'))) continue;
@@ -425,13 +434,14 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 img.onerror = function() {
                     let result = this.parentNode.parentNode;
                     this.parentNode.remove();
+                    let n = (this.classList.contains("homepage") ? 3 : 2);
                     this.remove();
-                    if(result.childNodes.length <= 2) result.remove();
+                    if(result.childNodes.length <= n) result.remove();
                 };
                 img.onload = function() {
                     this.classList.remove("loading");
                     this.classList.add("asset");
-                    if(this.classList.contains("homepage")) // set homepage classes if this class if present
+                    if(this.classList.contains("homepage") && previewhome) // set homepage classes if this class if present
                     {
                         this.classList.remove("homepage");
                         this.classList.add("homepage-bg");
@@ -964,6 +974,25 @@ function addResult(identifier, name, file_count = 0)
         result_area.appendChild(div);
         return div;
     }
+}
+
+function togglePreview()
+{
+    const homepageElements = document.querySelectorAll(".homepage, .homepage-bg");
+
+    homepageElements.forEach(e => {
+        if (!previewhome) {
+            e.classList.remove("homepage");
+            e.classList.add("homepage-bg");
+            e.parentNode.classList.add("homepage-ui");
+        } else {
+            e.classList.remove("homepage-bg");
+            e.parentNode.classList.remove("homepage-ui");
+            e.classList.add("homepage");
+        }
+    });
+
+    previewhome = !previewhome;
 }
 
 // =================================================================================================
