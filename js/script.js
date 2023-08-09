@@ -405,9 +405,9 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
             if(is_home)
             {
                 let img = document.createElement("img");
-                img.src = "assets/ui/switch.png";
+                img.src = "assets/ui/mypage.png";
                 img.classList.add("clickable");
-                img.classList.add("switch-btn");
+                img.classList.add("mypage-btn");
                 img.onclick = togglePreview;
                 div.appendChild(img);
             }

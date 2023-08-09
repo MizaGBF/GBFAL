@@ -70,12 +70,13 @@ summary {
     visibility: visible;
 }
 
-.switch-btn
+.mypage-btn
 {
     position: absolute;
     top: 0px;
     left: 0px;
     width: 50px;
+    z-index: 1;
 }
 
 button {
@@ -365,7 +366,7 @@ a:active {
         font-size: 33px;
     }
 
-    .switch-btn
+    .mypage-btn
     {
         width: 100px;
     }
