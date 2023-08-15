@@ -498,7 +498,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
         for(let asset of assets)
         {
             if(npcdata.length == 0) continue;
-            let div = addResult(asset[0], asset[0], (indexed ? npcdata.length : 0));
+            let div = addResult(asset[0], asset[0], ((indexed && asset[0] == "Scene Arts") ? npcdata.length : 0));
             for(let file of npcdata)
             {
                 if(asset[0] == "Raid Bubble Arts" && file.endsWith('_up')) continue; // ignore those
