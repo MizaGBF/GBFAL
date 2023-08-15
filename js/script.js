@@ -32,7 +32,7 @@ var null_characters = [
 ];
 // add id here to disable some elements
 var blacklist = [
-
+    "3040478000", "3040479000", "3040480000", "1040422000", "1040024800", "1040915400"
 ];
 
 var index = {}; // data index (loaded from data.json)
