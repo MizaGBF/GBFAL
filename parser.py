@@ -871,7 +871,7 @@ class Parser():
             # # # Other sheets
             # attack
             targets = [""]
-            for i in range(2, len(uncaps)):
+            for i in range(1, len(uncaps)):
                 targets.append("_" + uncaps[i])
             attacks = []
             for t in targets:
