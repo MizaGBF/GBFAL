@@ -875,7 +875,7 @@ class Parser():
                 targets.append("_" + uncaps[i])
             attacks = []
             for t in targets:
-                for u in ["", "_2", "_3"]:
+                for u in ["", "_2", "_3", "_4"]:
                     try:
                         fn = "phit_{}{}{}{}".format(tid, t, style, u)
                         attacks += self.processManifest(fn)
@@ -1012,7 +1012,7 @@ class Parser():
                     targets.append("_" + uncaps[i])
                 attacks = []
                 for t in targets:
-                    for u in ["", "_2", "_3"]:
+                    for u in ["", "_2", "_3", "_4"]:
                         try:
                             fn = "phit_{}{}{}{}".format(tid, t, style, u)
                             attacks += self.processManifest(fn, True)
@@ -1154,7 +1154,7 @@ class Parser():
         except:
             return False
         # attack
-        for u in ["", "_2", "_3"]:
+        for u in ["", "_2", "_3", "_4"]:
             try:
                 fn = "phit_{}{}".format(id, u)
                 data[1] += self.processManifest(fn)
