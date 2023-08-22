@@ -6901,7 +6901,8 @@
 "3101152":[["3101152"],["enemy_3101152.png"],[],[],[],[]],
 "8200122":[["8200122"],["enemy_8200122.png"],[],["ehit_8200122.png"],[],["esp_8200122_01_all.png","esp_8200122_02_all.png","esp_8200122_03_all.png"]],
 "3101163":[["3101163"],["enemy_3101163.png"],["raid_appear_3101163.png"],["ehit_3101163.png"],["esp_3101163_03.png"],[]],
-"8104133":[["8104133"],["enemy_8104133_a.png","enemy_8104133_b.png"],["raid_appear_8104133.png"],["ehit_8104133.png"],[],[]]
+"8104133":[["8104133"],["enemy_8104133_a.png","enemy_8104133_b.png"],["raid_appear_8104133.png"],["ehit_8104133.png"],[],[]],
+"4100983":[["4100983"],["enemy_4100983_a.png","enemy_4100983_b.png"],[],[],[],[]]
 },
 "skins":{
 "3710001000":[["npc_3710001000_01.png"],[],["nsp_3710001000_01.png"],[],[],["3710001000_01"],["3710001000_01"],[""],["_ability_them4","_ability_us3","_v_002","_v_005","_mypage3","_v_007","_v_008","_v_006","_mypage4","_ability_them2","_v_001","_v_004","_ability_us4","_cutin1","_lose2","_ability_them1","_ability_us1","_mypage1","_win2","_win1","_v_003","_v_009","_mypage2","_ability_them3","_lose1","_ability_us2","_cutin2"]],
@@ -14194,7 +14195,7 @@
 "2040203000":"summon ssr uriel archangel earth ウリエル 2040203000",
 "2040172000":"summon ssr treant wind トレント 2040172000",
 "2040249000":"summon ssr snow white water スノウホワイト 2040249000",
-"2040205000":"summon ssr godswornalexiel genesis earth ゴッドガード・ブローディア 2040205000",
+"2040205000":"summon ssr godsworn alexiel genesis earth ゴッドガード・ブローディア 2040205000",
 "2040180000":"summon ssr typhon dark テュポーン 2040180000",
 "2040232000":"summon ssr sharom dark シャローム 2040232000",
 "2040253000":"summon ssr adramelech light アドラメレク 2040253000",
@@ -14537,6 +14538,10 @@
 "3040477000":"character ssr nobara kugisaki and maki zen'in tie-in earth human female 釘崎野薔薇＆禪院真希 3040477000",
 "3040479000":"character ssr anila yukata 12 water draph female アニラ 3040479000",
 "3040478000":"character ssr vania yukata wind unknown female ヴァンピィ 3040478000",
-"3040480000":"character ssr seruel summer light erune male セルエル 3040480000"
+"3040480000":"character ssr seruel summer light erune male セルエル 3040480000",
+"2040423000":"summon ssr tyrannosaurus water ティラノサウルス 2040423000",
+"1040915400":"weapon katana ssr eighth shear of the flock water 第八綿羊行太刀 1040915400",
+"1040422000":"weapon staff ssr flowering twilight wind 夏の宵・紫陽 1040422000",
+"1040024800":"weapon sword ssr midsummer's repose light 盛夏と休息の剣 1040024800"
 }
 }
