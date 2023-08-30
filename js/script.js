@@ -73,6 +73,19 @@ function filter() // called by the search filter (onkeyup event)
 
 function init() // entry point, called by body onload
 {
+    // localstorage retrocompatibility (remove in the future, maybe 2024+?)
+    let tmp = localStorage.getItem("bookmark");
+    if(tmp != null)
+    {
+        localStorage.setItem("gbfal-bookmark", tmp);
+        localStorage.removeItem("bookmark");
+    }
+    tmp = localStorage.getItem("history");
+    if(tmp != null)
+    {
+        localStorage.setItem("gbfal-history", tmp);
+        localStorage.removeItem("history");
+    }
     getJSON("json/changelog.json?" + timestamp, initChangelog, initChangelog, null); // load changelog
 }
 
@@ -1172,7 +1185,7 @@ function updateBookmark()
 
 function clearBookmark()
 {
-    localStorage.removeItem('bookmark');
+    localStorage.removeItem('gbfal-bookmark');
     document.getElementById('bookmark').parentNode.style.display = "none";
     document.getElementById('favorite').src = "assets/ui/fav_0.png";
 }
@@ -1181,7 +1194,7 @@ function exportBookmark()
 {
     try
     {
-        bookmarks = localStorage.getItem("bookmark");
+        bookmarks = localStorage.getItem("gbfal-bookmark");
         if(bookmarks == null)
         {
             bookmarks = [];
@@ -1220,7 +1233,7 @@ function importBookmark()
                 ++i;
             }
             bookmarks = tmp;
-            localStorage.setItem("bookmark", JSON.stringify(bookmarks));
+            localStorage.setItem("gbfal-bookmark", JSON.stringify(bookmarks));
             if(fav) document.getElementById('favorite').src = "assets/ui/fav_1.png";
             else document.getElementById('favorite').src = "assets/ui/fav_0.png";
             let div = document.createElement('div');
@@ -1244,7 +1257,7 @@ function toggleBookmark(id, search_type)
 {
     try
     {
-        bookmarks = localStorage.getItem("bookmark");
+        bookmarks = localStorage.getItem("gbfal-bookmark");
         if(bookmarks == null)
         {
             bookmarks = [];
@@ -1278,14 +1291,14 @@ function toggleBookmark(id, search_type)
             }
             fav.src = "assets/ui/fav_0.png";
         }
-        localStorage.setItem("bookmark", JSON.stringify(bookmarks));
+        localStorage.setItem("gbfal-bookmark", JSON.stringify(bookmarks));
     }
     updateBookmark();
 }
 
 function clearHistory()
 {
-    localStorage.removeItem('history');
+    localStorage.removeItem('gbfal-history');
     document.getElementById('history').parentNode.style.display = "none";
 }
 
@@ -1294,7 +1307,7 @@ function updateHistory(id, search_type)
     // update local storage
     try
     {
-        searchHistory = localStorage.getItem("history");
+        searchHistory = localStorage.getItem("gbfal-history");
         if(searchHistory == null)
         {
             searchHistory = [];
@@ -1317,7 +1330,7 @@ function updateHistory(id, search_type)
         }
         searchHistory.push([id, search_type]);
         if(searchHistory.length > 20) searchHistory = searchHistory.slice(searchHistory.length - 20);
-        localStorage.setItem("history", JSON.stringify(searchHistory));
+        localStorage.setItem("gbfal-history", JSON.stringify(searchHistory));
     }
     if(searchHistory.length == 0)
     {
