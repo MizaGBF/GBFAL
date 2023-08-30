@@ -217,6 +217,13 @@ small {
     margin:auto;
 }
 
+.faq {
+    background: #000000d0;
+    padding: 10px;
+    font-size: 20px;
+    text-align: start;
+}
+
 #filter {
     background: #91a0b8b0;
     border-color: #000000;
@@ -390,6 +397,10 @@ a:active {
     #to-top > img, #to-bottom > img {
         width: 90px;
         height: 90px;
+    }
+
+    .faq {
+        font-size: 25px;
     }
 
     .result-header {
