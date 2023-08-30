@@ -8,7 +8,7 @@ import time
 import string
 import re
 from bs4 import BeautifulSoup
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 class Parser():
     def __init__(self):
@@ -30,7 +30,8 @@ class Parser():
             "background":{},
             "title":{},
             "suptix":{},
-            "lookup":{}
+            "lookup":{},
+            "events":{}
         }
         self.lock = Lock() # lock for self.data
         self.modified = False # if set to true, data.json will be updated
@@ -2092,6 +2093,86 @@ class Parser():
                 json.dump(keys, f)
             print("Data exported to 'json/debug_scene_strings.json'")
 
+    def get_event_list(self):
+        r = self.req('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22', get=True)
+        soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
+        res = soup.find_all("div", class_="searchresult")
+        l = []
+        for r in res:
+            try:
+                x = r.text.split(": ")[1].split(" Rerun")[0].split(" Added")[0].replace(",", "").split(" ")
+                if len(x) != 3: raise Exception()
+                x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
+                x[1] = str(x[1]).zfill(2)
+                x[2] = x[2][2:]
+                l.append(x[2]+x[0]+x[1])
+            except:
+                pass
+        r = self.req('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Event+duration%22', get=True)
+        soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
+        res = soup.find_all("div", class_="searchresult")
+        for r in res:
+            try:
+                x = r.text.split("JST, ")[1].split(" - ")[0].split(" //")[0].replace(",", "").split(" ")
+                if len(x) != 3: raise Exception()
+                x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
+                x[1] = str(x[1]).zfill(2)
+                x[2] = x[2][2:]
+                l.append(x[2]+x[0]+x[1])
+            except:
+                pass
+        l = list(set(l))
+        l.sort()
+        return l
+
+    def update_event_sub(self, url):
+        try:
+            self.req(url)
+            return url
+        except:
+            return None
+
+    def update_event(self):
+        now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
+        now = int(str(now.year)[2:] + str(now.month).zfill(2) + str(now.day).zfill(2))
+        known_events = self.get_event_list()
+        self.modified = True
+        for ev in known_events:
+            # check
+            if ev not in self.data["events"] and now >= int(ev):
+                with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
+                    futures = []
+                    for i in range(0, 2):
+                        for j in range(0, 2):
+                            for k in range(1, 3):
+                                for m in range(1, 20):
+                                    futures.append(executor.submit(self.update_event_sub, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/scene_evt{}_cp{}_q{}_s{}0_{}.mp3".format(ev, i, j, k, m)))
+                    check = False
+                    for future in concurrent.futures.as_completed(futures):
+                        check = check or (future.result() is not None)
+                    self.data["events"][ev] = [check, []]
+                    self.modified = True
+            # dig
+            if ev in self.data["events"]:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
+                    futures = []
+                    for i in range(0, 14):
+                        for j in range(0, 8):
+                            for k in range(1, 150):
+                                futures.append(executor.submit(self.update_event_sub, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/scene_evt{}_cp{}_{}_{}.png".format(ev, str(i).zfill(2), str(j).zfill(2), k)))
+                    max_res = len(futures)
+                    yes = False
+                    for future in concurrent.futures.as_completed(futures):
+                        r = future.result()
+                        if r is not None:
+                            self.data["events"][ev][-1].append(r.split("/")[-1])
+                            self.modified = True
+                            yes = True
+                    if yes:
+                        self.data["events"][ev][-1].sort()
+                    print(ev, self.data["events"][ev][-1])
+        self.save()
+
 def print_help():
     print("Usage: python parser.py [option]")
     print("options:")
@@ -2110,6 +2191,7 @@ def print_help():
     print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
     print("-sound     : Update sound index for characters (Very time consuming).")
     print("-partner   : Update data for partner characters (Very time consuming).")
+    print("-event     : Update unique event arts (Very time consuming) (BETA).")
     print("-wait      : Wait an in-game update (Must be the first parameter, usable with others).")
     print("-nochange  : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     time.sleep(2)
@@ -2171,5 +2253,7 @@ if __name__ == '__main__':
                 p.update_all_sound()
             elif argv[1] == '-partner':
                 p.update_all_partner()
+            elif argv[1] == '-event':
+                p.update_event()
             else:
                 print_help()
