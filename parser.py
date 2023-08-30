@@ -2125,52 +2125,104 @@ class Parser():
         l.sort()
         return l
 
-    def update_event_sub(self, url):
+    def update_event_sub(self, ev, url):
         try:
             self.req(url)
-            return url
+            return ev, url
         except:
-            return None
+            return ev, None
+
+    def update_event_sub_big(self, ev, url):
+        l = []
+        flag = False
+        try:
+            self.req(url + ".png")
+            l.append(url.split("/")[-1])
+            flag = True
+        except:
+            pass
+        if flag:
+            for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                try:
+                    self.req(url + k + ".png")
+                    l.append(url.split("/")[-1]+k)
+                except:
+                    break
+        else:
+            try:
+                self.req(url + "_00.png")
+                l.append(url.split("/")[-1]+"_00")
+                flag = True
+            except:
+                flag = False
+            for i in range(1, 100):
+                k = str(i).zfill(2)
+                try:
+                    self.req(url + "_" + k + ".png")
+                    l.append(url.split("/")[-1]+"_"+k)
+                except:
+                    break
+        return ev, l
 
     def update_event(self):
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
         now = int(str(now.year)[2:] + str(now.month).zfill(2) + str(now.day).zfill(2))
         known_events = self.get_event_list()
         self.modified = True
-        for ev in known_events:
-            # check
-            if ev not in self.data["events"] and now >= int(ev):
-                with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
-                    futures = []
+        # check
+        print("Checking for new events...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
+            check = {}
+            futures = []
+            for ev in known_events:
+                if ev not in self.data["events"] and now >= int(ev):
+                    check[ev] = False
                     for i in range(0, 2):
                         for j in range(0, 2):
                             for k in range(1, 3):
                                 for m in range(1, 20):
-                                    futures.append(executor.submit(self.update_event_sub, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/scene_evt{}_cp{}_q{}_s{}0_{}.mp3".format(ev, i, j, k, m)))
-                    check = False
-                    for future in concurrent.futures.as_completed(futures):
-                        check = check or (future.result() is not None)
-                    self.data["events"][ev] = [check, []]
+                                    futures.append(executor.submit(self.update_event_sub, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/scene_evt{}_cp{}_q{}_s{}0_{}.mp3".format(ev, i, j, k, m)))
+            if len(futures) > 0:
+                count = 0
+                for future in concurrent.futures.as_completed(futures):
+                    r = future.result()
+                    ev = r[0]
+                    check[ev] = check[ev] or (r[1] is not None)
+                    count += 1
+                    if count % 200 == 0:
+                        print("Progress: {:.1f}%".format(100 * count / len(futures)))
+                for ev in check:
+                    self.data["events"][ev] = [check[ev], None, []]
                     self.modified = True
-            # dig
-            if ev in self.data["events"]:
-                with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
-                    futures = []
-                    for i in range(0, 14):
-                        for j in range(0, 8):
-                            for k in range(1, 150):
-                                futures.append(executor.submit(self.update_event_sub, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/scene_evt{}_cp{}_{}_{}.png".format(ev, str(i).zfill(2), str(j).zfill(2), k)))
-                    max_res = len(futures)
-                    yes = False
-                    for future in concurrent.futures.as_completed(futures):
-                        r = future.result()
-                        if r is not None:
-                            self.data["events"][ev][-1].append(r.split("/")[-1])
-                            self.modified = True
-                            yes = True
-                    if yes:
-                        self.data["events"][ev][-1].sort()
-                    print(ev, self.data["events"][ev][-1])
+        # dig
+        with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
+            modified = set()
+            futures = []
+            for ev in known_events:
+                if ev in self.data["events"] and ev in check:
+                    for i in range(0, 15):
+                        ch = "cp"+str(i).zfill(2)
+                        if ch == "cp00": ch = "op"
+                        elif ch == "cp14": ch = "ed"
+                        for j in range(1, 100):
+                            futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/scene_evt{}_{}_{}".format(ev, ch, str(j).zfill(2))))
+            if len(futures) > 0:
+                print("Checking for new assets...")
+                count = 0
+                for future in concurrent.futures.as_completed(futures):
+                    r = future.result()
+                    ev = r[0]
+                    if len(r[1])  > 0:
+                        self.data["events"][ev][-1] += r[1]
+                        self.modified = True
+                        modified.add(ev)
+                    count += 1
+                    if count % 1000 == 0:
+                        print("Progress: {:.1f}%".format(100 * count / len(futures)))
+                for ev in modified:
+                    self.data["events"][ev][-1].sort()
+                    print(ev, len(self.data["events"][ev][-1]))
+        print("Done")
         self.save()
 
 def print_help():
@@ -2191,7 +2243,7 @@ def print_help():
     print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
     print("-sound     : Update sound index for characters (Very time consuming).")
     print("-partner   : Update data for partner characters (Very time consuming).")
-    print("-event     : Update unique event arts (Very time consuming) (BETA).")
+    print("-event     : Update unique event arts (Very time consuming).")
     print("-wait      : Wait an in-game update (Must be the first parameter, usable with others).")
     print("-nochange  : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     time.sleep(2)

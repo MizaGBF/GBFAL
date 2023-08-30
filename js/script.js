@@ -231,9 +231,18 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
             updateQuery("e"+id);
             break;
         case 6:
-            newArea("Main Character", id, true, (obj[7].length != 0) && indexed);
-            search_type = 0;
-            updateQuery(id);
+            if(obj.length == 3)
+            {
+                newArea("Event", id, false, indexed);
+                search_type = 7;
+                updateQuery("a"+id);
+            }
+            else
+            {
+                newArea("Main Character", id, true, (obj[7].length != 0) && indexed);
+                search_type = 0;
+                updateQuery(id);
+            }
             break;
         default:
             return;
@@ -275,6 +284,11 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false],
                 ["AOE Skill Sheets", "sp/cjs/", "png", "img_low/", 3, false, false],
                 ["Single Target Skill Sheets", "sp/cjs/", "png", "img_low/", 4, false, false]
+            ];
+            break;
+        case 7: // events
+            assets = [
+                ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/", 2, false, false]
             ];
             break;
         case 3: // characters / skins
@@ -757,6 +771,7 @@ function lookup(id)
     f = document.getElementById('filter');
     if(
         (id.length == 10 && !isNaN(id)) || 
+        (id.length == 7 && id.toLowerCase()[0] === 'a' && !isNaN(id.slice(1))) ||
         (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1))) ||
         (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6))) || // retrocompatibility
         (id.length == 6 && !isNaN(id))
@@ -774,6 +789,11 @@ function lookup(id)
         {
             id = id.slice(1);
             check = "enemies";
+        }
+        else if(id.toLowerCase()[0] === 'a')
+        {
+            id = id.slice(1);
+            check = "events";
         }
         else if(id.length == 10)
         {
@@ -911,7 +931,7 @@ function newArea(name, id, include_link, indexed=true)
         div.appendChild(l);
         div.appendChild(document.createElement('br'));
     }
-    if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371" || id.slice(0, 2) == "10" || id.length == 6)
+    if(id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371" || id.slice(0, 2) == "10" || (id.length == 6 && name == "Main Character"))
     {
         l = document.createElement('a');
         l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
@@ -1653,6 +1673,29 @@ function displayMainNPC(elem)
         const keys = Object.keys(slist).sort();
         for(const k of keys)
             addIndexImage(node, slist[k][0], slist[k][1], onerr);
+    }
+    this.onclick = null;
+}
+
+function displayEventNPC(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areaevnpc');
+    if("events" in index)
+    {
+        let slist = {};
+        for(const id in index["events"])
+        {
+            if(id.startsWith("39")) continue;
+            slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
+            if(index["events"][id][0])
+            {
+                if(index["events"][id][1] == null)
+                    addIndexImage(node, "sp/assets/npc/raid_normal/3999999999.jpg", "a"+id, null);
+                else
+                    addIndexImage(node, "sp/archive/assets/island_m2/" + index["events"][id][1] + ".png", "a"+id, null);
+            }
+        }
     }
     this.onclick = null;
 }
