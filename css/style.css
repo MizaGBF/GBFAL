@@ -213,8 +213,6 @@ small {
 
 .result-header {
     font-size: 24px;
-    width:650px;
-    margin:auto;
 }
 
 .faq {
@@ -405,7 +403,6 @@ a:active {
 
     .result-header {
         font-size: 30px;
-        width:800px;
     }
 
     .sound-file {

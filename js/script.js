@@ -918,6 +918,7 @@ function newArea(name, id, include_link, indexed=true)
         l.appendChild(document.createTextNode("Animation"));
         div.appendChild(l);
     }
+    let did_lookup = false;
     if(id in index["lookup"] && index["lookup"][id].split(' ').length > 1)
     {
         div.appendChild(document.createElement('br'));
@@ -942,11 +943,28 @@ function newArea(name, id, include_link, indexed=true)
             };
             div.appendChild(i);
         }
+        did_lookup = true;
     }
     if(!indexed)
     {
         div.appendChild(document.createElement('br'));
         div.appendChild(document.createTextNode("This element isn't indexed, assets will be missing"));
+    }
+    else if(name == "Character" && id.slice(0, 2) == "30") // partner chara matching
+    {
+        if(did_lookup) div.appendChild(document.createElement('br'));
+        let cid = "38" + id.slice(2);
+        if("partners" in index && cid in index["partners"])
+        {
+            div.appendChild(document.createTextNode("Partner: "));
+            let i = document.createElement('i');
+            i.classList.add("tag");
+            i.onclick = function() {
+                lookup(cid);
+            };
+            i.appendChild(document.createTextNode(cid)); 
+            div.appendChild(i);
+        }
     }
     else if(name == "Partner") // partner chara matching
     {
@@ -1354,6 +1372,7 @@ function updateRelated(id)
     let idlist = [];
     if(id in relations)
     {
+        relarea.innerHTML = "";
         for(let e of relations[id])
         {
             let indice = -1;
