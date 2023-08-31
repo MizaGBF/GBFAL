@@ -1724,10 +1724,16 @@ function displayEventNPC(elem)
         for(const id in index["events"])
         {
             if(id.startsWith("39")) continue;
-            let count = 0;
+            let has_file = false;
             for(let i = 2; i < index["events"][id].length; ++i)
-                count += index["events"][id][i].length;
-            if(count > 0 && index["events"][id][0] >= 0)
+            {
+                if(index["events"][id][i].length > 0)
+                {
+                    has_file = true;
+                    break;
+                }
+            }
+            if(has_file && index["events"][id][0] >= 0)
             {
                 if(index["events"][id][1] == null)
                     slist[id] = ["assets/ui/event.png", "q"+id, "sound-only"];

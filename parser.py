@@ -2250,7 +2250,6 @@ class Parser():
                                     self.data["events"][ev][4] += r[1]
                                 case _:
                                     self.data["events"][ev][4+int(x[2:])] += r[1]
-                        self.modified = True
                         modified.add(ev)
                     count += 1
                     if count % m == 0:
@@ -2259,6 +2258,7 @@ class Parser():
                     for i in range(2, len(self.data["events"][ev])):
                         self.data["events"][ev][i] = list(set(self.data["events"][ev][i]))
                         self.data["events"][ev][i].sort()
+                        self.modified = True
                     self.addition[ev] = 7
                 print("Done")
         self.save()
