@@ -2328,10 +2328,13 @@ class Parser():
                                 for i in range(2, len(self.data["events"][ev])):
                                     c += len(self.data["events"][ev][i])
                                 if c > 0:
-                                    s = input("Input thumbnail for Event "+ev+" (Leave blank to skip):")
+                                    s = input("Input a thumbnail ID or URL for Event "+ev+" (Leave blank to skip):")
                                     if s != "":
                                         try:
-                                            self.data["events"][ev][1] = int(s)
+                                            if s.startswith("http"):
+                                                self.data["events"][ev][1] = int(s.split('/')[-1].split('.')[0])
+                                            else:
+                                                self.data["events"][ev][1] = int(s)
                                             self.modified = True
                                         except:
                                             pass
