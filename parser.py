@@ -2183,7 +2183,7 @@ class Parser():
             check = {}
             futures = []
             for ev in known_events:
-                if ev not in self.data["events"] and now >= int(ev):
+                if (ev not in self.data["events"] or self.data["events"][ev][0] == -1) and now >= int(ev):
                     check[ev] = -1
                     for i in range(0, 16):
                         for j in range(1, 2):
@@ -2212,22 +2212,24 @@ class Parser():
         if init_list is None:
             self.update_event(list(check.keys()))
         else:
-            self.update_event(init_list)
+            self.update_event(init_list, full=True)
 
-    def update_event(self, events):
+    def update_event(self, events, full=False):
         # dig
         with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
             modified = set()
             futures = []
             ec = 0
             for ev in events:
-                if ev in self.data["events"] and self.data["events"][ev][0] >= 0:
+                if ev in self.data["events"] and (full or (not full and self.data["events"][ev][0] >= 0)):
                     known_assets = set()
                     for i in range(2, len(self.data["events"][ev])):
                         for e in self.data["events"][ev][i]:
                             known_assets.add("_".join(e.split("_")[:4]))
                     ec += 1
-                    for i in range(1, self.data["events"][ev][0]+1):
+                    ch_count = self.data["events"][ev][0]
+                    if full and ch_count == -1: ch_count = 16
+                    for i in range(1, ch_count+1):
                         ch = "cp"+str(i).zfill(2)
                         for j in range(0, 100):
                             fn = "scene_evt{}_{}_{}".format(ev, ch, str(j).zfill(2))
