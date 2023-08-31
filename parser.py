@@ -2141,55 +2141,63 @@ class Parser():
         l = []
         for j in range(step, step+25):
             url = base_url + "_" + str(j).zfill(2)
-            if url.split('/')[-1] not in known_assets:
-                flag = False
-                try: # base check
+            flag = False
+            try: # base check
+                if url.split("/")[-1] not in known_assets:
                     self.req(url + ".png")
                     l.append(url.split("/")[-1])
-                    flag = True
-                except:
-                    pass
-                if flag: # check for extras
+                flag = True
+            except:
+                pass
+            if flag: # check for extras
+                for k in ["_up", "_shadow"]:
                     try:
-                        self.req(url + "_up.png")
-                        l.append(url.split("/")[-1]+"_up")
-                    except:
-                        pass
-                    for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                        try:
+                        if url.split("/")[-1]+k not in known_assets:
                             self.req(url + k + ".png")
                             l.append(url.split("/")[-1]+k)
-                        except:
-                            break
-                else:
-                    try: # alternative filename format
-                        self.req(url + "_00.png")
-                        l.append(url.split("/")[-1]+"_00")
-                        flag = True
-                    except:
-                        flag = False
-                    try:
-                        self.req(url + "_00_up.png")
-                        l.append(url.split("/")[-1]+"_00_up")
                     except:
                         pass
-                    err = 0
-                    i = 1
-                    while i < 100 and err < 10:
-                        k = str(i).zfill(2)
-                        try:
+                for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                    try:
+                        if url.split("/")[-1]+k not in known_assets:
+                            self.req(url + k + ".png")
+                            l.append(url.split("/")[-1]+k)
+                    except:
+                        break
+            else:
+                try: # alternative filename format
+                    if url.split("/")[-1]+"_00" not in known_assets:
+                        self.req(url + "_00.png")
+                        l.append(url.split("/")[-1]+"_00")
+                    flag = True
+                except:
+                    flag = False
+                for k in ["_up", "_shadow"]:
+                    try:
+                        if url.split("/")[-1]+"_00"+k not in known_assets:
+                            self.req(url + "_00" + k + ".png")
+                            l.append(url.split("/")[-1]+"_00"+k)
+                    except:
+                        pass
+                err = 0
+                i = 1
+                while i < 100 and err < 10:
+                    k = str(i).zfill(2)
+                    try:
+                        if url.split("/")[-1]+"_"+k not in known_assets:
                             self.req(url + "_" + k + ".png")
                             l.append(url.split("/")[-1]+"_"+k)
-                            err = 0
-                            for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                                try:
+                        err = 0
+                        for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                            try:
+                                if url.split("/")[-1]+"_"+k+kk not in known_assets:
                                     self.req(url + "_" + k + kk + ".png")
                                     l.append(url.split("/")[-1]+"_"+k+kk)
-                                except:
-                                    break
-                        except:
-                            err += 1
-                        i += 1
+                            except:
+                                break
+                    except:
+                        err += 1
+                    i += 1
         return ev, l
 
     def check_new_event(self, init_list = None):
@@ -2250,12 +2258,10 @@ class Parser():
                     known_assets = set()
                     for i in range(2, len(self.data["events"][ev])):
                         for e in self.data["events"][ev][i]:
-                            known_assets.add("_".join(e.split("_")[:4]))
+                            known_assets.add(e)
                     ec += 1
                     if full: ch_count = 16
                     else: ch_count = self.data["events"][ev][0]
-                    fn = "scene_evt{}_title".format(ev, str(i).zfill(2))
-                    futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, 0))
                     for j in range(4):
                         for i in range(1, ch_count+1):
                             fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
@@ -2312,6 +2318,7 @@ class Parser():
             print("[0] Stats")
             print("[1] Set Thumbnails")
             print("[2] Update Events")
+            print("[3] Update All Valid Events")
             print("[Any] Quit")
             s = input().lower()
             match s:
@@ -2355,6 +2362,12 @@ class Parser():
                     s = input("Input a list of Event date (Leave blank to cancel):")
                     if s != "":
                         self.update_event(s.split(" "), full=True)
+                case "3":
+                    l = []
+                    for ev in self.data["events"]:
+                        if self.data["events"][ev][0] >= 0:
+                            l.append(ev)
+                    self.update_event(l)
                 case _:
                     break
 
