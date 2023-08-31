@@ -323,6 +323,7 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
                 ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", "img/", 6, false, false],
                 ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", 5, false, false],
                 ["Tower of Babyl Portraits", "sp/assets/npc/t/", "png", "img_low/", 5, false, false],
+                ["EMP Up Portraits", "sp/assets/npc/result_lvup/", "png", "img_low/", 5, false, false],
                 ["Detail Banners", "sp/assets/npc/detail/", "png", "img_low/", 5, false, false],
                 ["Sprites", "sp/assets/npc/sd/", "png", "img/", 6, false, false],
                 ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", "img/", 5, false, true],
