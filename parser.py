@@ -2150,6 +2150,11 @@ class Parser():
                 except:
                     pass
                 if flag: # check for extras
+                    try:
+                        self.req(url + "_up.png")
+                        l.append(url.split("/")[-1]+"_up")
+                    except:
+                        pass
                     for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
                         try:
                             self.req(url + k + ".png")
@@ -2163,6 +2168,11 @@ class Parser():
                         flag = True
                     except:
                         flag = False
+                    try:
+                        self.req(url + "_00_up.png")
+                        l.append(url.split("/")[-1]+"_00_up")
+                    except:
+                        pass
                     err = 0
                     i = 1
                     while i < 100 and err < 10:
@@ -2244,6 +2254,8 @@ class Parser():
                     ec += 1
                     if full: ch_count = 16
                     else: ch_count = self.data["events"][ev][0]
+                    fn = "scene_evt{}_title".format(ev, str(i).zfill(2))
+                    futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, 0))
                     for j in range(4):
                         for i in range(1, ch_count+1):
                             fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
