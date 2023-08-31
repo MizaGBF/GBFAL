@@ -9,6 +9,7 @@ import string
 import re
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone, timedelta
+import traceback
 
 class Parser():
     def __init__(self):
@@ -98,13 +99,15 @@ class Parser():
                     keys = list(self.data.keys())
                     for k, v in self.data.items():
                         outfile.write('"{}":{}\n'.format(k, '{'))
-                        last = list(v.keys())[-1]
-                        for i, d in v.items():
-                            outfile.write('"{}":'.format(i))
-                            json.dump(d, outfile, separators=(',', ':'), ensure_ascii=False)
-                            if i != last:
-                                outfile.write(",")
-                            outfile.write("\n")
+                        last = list(v.keys())
+                        if len(last) > 0:
+                            last = last[-1]
+                            for i, d in v.items():
+                                outfile.write('"{}":'.format(i))
+                                json.dump(d, outfile, separators=(',', ':'), ensure_ascii=False)
+                                if i != last:
+                                    outfile.write(",")
+                                outfile.write("\n")
                         outfile.write("}")
                         if k != keys[-1]:
                             outfile.write(",")
@@ -130,6 +133,7 @@ class Parser():
                     print("changelog.json updated")
         except Exception as e:
             print(e)
+            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
     def newShared(self, errs): # create a list to be shared by threads
         errs.append([])
@@ -301,6 +305,7 @@ class Parser():
         self.save()
         self.manualUpdate(self.new_elements)
         self.build_relation()
+        self.check_new_event()
 
     def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, maxerr): # run() subroutine (see above)
         id = start
@@ -2125,23 +2130,23 @@ class Parser():
         l.sort()
         return l
 
-    def update_event_sub(self, ev, url):
+    def update_event_sub(self, ev, url): # voice line check for chapter existence
         try:
             self.req(url)
-            return ev, url
+            return ev, url.split('/')[-1]
         except:
             return ev, None
 
-    def update_event_sub_big(self, ev, url):
+    def update_event_sub_big(self, ev, url): # art check
         l = []
         flag = False
-        try:
+        try: # base check
             self.req(url + ".png")
             l.append(url.split("/")[-1])
             flag = True
         except:
             pass
-        if flag:
+        if flag: # check for extras
             for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
                 try:
                     self.req(url + k + ".png")
@@ -2149,7 +2154,7 @@ class Parser():
                 except:
                     break
         else:
-            try:
+            try: # alternative filename format
                 self.req(url + "_00.png")
                 l.append(url.split("/")[-1]+"_00")
                 flag = True
@@ -2164,11 +2169,10 @@ class Parser():
                     break
         return ev, l
 
-    def update_event(self):
+    def check_new_event(self):
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
         now = int(str(now.year)[2:] + str(now.month).zfill(2) + str(now.day).zfill(2))
         known_events = self.get_event_list()
-        self.modified = True
         # check
         print("Checking for new events...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
@@ -2176,76 +2180,111 @@ class Parser():
             futures = []
             for ev in known_events:
                 if ev not in self.data["events"] and now >= int(ev):
-                    check[ev] = False
-                    for i in range(0, 2):
-                        for j in range(0, 2):
-                            for k in range(1, 3):
+                    check[ev] = -1
+                    for i in range(0, 16):
+                        for j in range(1, 2):
+                            for k in range(1, 2):
                                 for m in range(1, 20):
                                     futures.append(executor.submit(self.update_event_sub, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/scene_evt{}_cp{}_q{}_s{}0_{}.mp3".format(ev, i, j, k, m)))
             if len(futures) > 0:
+                print(len(check.keys()), "potential new event(s)")
                 count = 0
+                m = min(max(10, len(futures) // 20), 2000)
                 for future in concurrent.futures.as_completed(futures):
                     r = future.result()
                     ev = r[0]
-                    check[ev] = check[ev] or (r[1] is not None)
+                    if r[1] is not None:
+                        check[ev] = max(check[ev], int(r[1].split('_')[2][2:]))
                     count += 1
-                    if count % 200 == 0:
+                    if count % m == 0:
                         print("Progress: {:.1f}%".format(100 * count / len(futures)))
                 for ev in check:
-                    self.data["events"][ev] = [check[ev], None, []]
+                    if check[ev] >= 0:
+                        print(ev, "has", check[ev], "chapters")
+                    self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3
                     self.modified = True
+                print("Done")
+        self.save()
+        self.update_event(list(check.keys()))
+
+    def update_event(self, events):
         # dig
         with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
             modified = set()
             futures = []
-            for ev in known_events:
-                if ev in self.data["events"] and ev in check:
-                    for i in range(0, 15):
+            ec = 0
+            for ev in events:
+                if ev in self.data["events"] and self.data["events"][ev][0] >= 0:
+                    known_assets = set()
+                    for i in range(2, len(self.data["events"][ev])):
+                        for e in self.data["events"][ev][i]:
+                            known_assets.add("_".join(e.split("_")[:4]))
+                    ec += 1
+                    for i in range(1, self.data["events"][ev][0]+1):
                         ch = "cp"+str(i).zfill(2)
-                        if ch == "cp00": ch = "op"
-                        elif ch == "cp14": ch = "ed"
-                        for j in range(1, 100):
-                            futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/scene_evt{}_{}_{}".format(ev, ch, str(j).zfill(2))))
+                        for j in range(0, 100):
+                            fn = "scene_evt{}_{}_{}".format(ev, ch, str(j).zfill(2))
+                            if fn not in known_assets:
+                                futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn))
+                    for ch in ["op", "ed"]:
+                        for j in range(0, 100):
+                            fn = "scene_evt{}_{}_{}".format(ev, ch, str(j).zfill(2))
+                            if fn not in known_assets:
+                                futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn))
             if len(futures) > 0:
-                print("Checking for new assets...")
+                print("Checking assets for", ec, "event(s)")
                 count = 0
+                m = min(max(10, len(futures) // 20), 4000)
                 for future in concurrent.futures.as_completed(futures):
                     r = future.result()
                     ev = r[0]
                     if len(r[1])  > 0:
-                        self.data["events"][ev][-1] += r[1]
+                        for e in r[1]:
+                            x = e.split("_")[2]
+                            match x:
+                                case "op":
+                                    self.data["events"][ev][2] += r[1]
+                                case "ed":
+                                    self.data["events"][ev][3] += r[1]
+                                case "osarai":
+                                    self.data["events"][ev][4] += r[1]
+                                case _:
+                                    self.data["events"][ev][4+int(x[2:])] += r[1]
                         self.modified = True
                         modified.add(ev)
                     count += 1
-                    if count % 1000 == 0:
+                    if count % m == 0:
                         print("Progress: {:.1f}%".format(100 * count / len(futures)))
                 for ev in modified:
-                    self.data["events"][ev][-1].sort()
-                    print(ev, len(self.data["events"][ev][-1]))
-        print("Done")
+                    for i in range(2, len(self.data["events"][ev])):
+                        self.data["events"][ev][i] = list(set(self.data["events"][ev][i]))
+                        self.data["events"][ev][i].sort()
+                    self.addition[ev] = 7
+                print("Done")
         self.save()
 
 def print_help():
     print("Usage: python parser.py [option]")
     print("options:")
-    print("-run       : Update the index with new content.")
-    print("-update    : Manual JSON updates (Followed by IDs to check).")
-    print("-updaterun : Like '-update' but also do '-run' after.")
-    print("-index     : Check the index for missing content.")
-    print("-job       : Search additional class related data (Very time consuming).")
-    print("-jobedit   : Manually edit job data (Command Line Menu).")
-    print("-lookup    : Update the lookup table (Time Consuming).")
-    print("-lookupfix : Manually edit the lookup table.")
-    print("-relation  : Update the relationship index.")
-    print("-relinput  : Update to relationships.")
-    print("-listjob   : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
-    print("-scene     : Update scene index for characters/npcs with missing data (Time consuming).")
-    print("-scenefull : Update scene index for every characters/npcs (Very time consuming).")
-    print("-sound     : Update sound index for characters (Very time consuming).")
-    print("-partner   : Update data for partner characters (Very time consuming).")
-    print("-event     : Update unique event arts (Very time consuming).")
-    print("-wait      : Wait an in-game update (Must be the first parameter, usable with others).")
-    print("-nochange  : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
+    print("-run         : Update the index with new content.")
+    print("-update      : Manual JSON updates (Followed by IDs to check).")
+    print("-updaterun   : Like '-update' but also do '-run' after.")
+    print("-index       : Check the index for missing content.")
+    print("-job         : Search additional class related data (Very time consuming).")
+    print("-jobedit     : Manually edit job data (Command Line Menu).")
+    print("-lookup      : Update the lookup table (Time Consuming).")
+    print("-lookupfix   : Manually edit the lookup table.")
+    print("-relation    : Update the relationship index.")
+    print("-relinput    : Update to relationships.")
+    print("-listjob     : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
+    print("-scene       : Update scene index for characters/npcs with missing data (Time consuming).")
+    print("-scenefull   : Update scene index for every characters/npcs (Very time consuming).")
+    print("-sound       : Update sound index for characters (Very time consuming).")
+    print("-partner     : Update data for partner characters (Very time consuming).")
+    print("-event       : Update unique event arts (Very time consuming).")
+    print("-updateevent : Works like -update but for events. Event must be in the index already. (Time consuming).")
+    print("-wait        : Wait an in-game update (Must be the first parameter, usable with others).")
+    print("-nochange    : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     time.sleep(2)
 
 if __name__ == '__main__':
@@ -2306,6 +2345,11 @@ if __name__ == '__main__':
             elif argv[1] == '-partner':
                 p.update_all_partner()
             elif argv[1] == '-event':
-                p.update_event()
+                p.check_new_event()
+            elif argv[1] == '-updateevent':
+                if len(argv) == 2:
+                    print_help()
+                else:
+                    p.update_event(argv[2:])
             else:
                 print_help()

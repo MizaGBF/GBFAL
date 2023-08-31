@@ -231,11 +231,11 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
             updateQuery("e"+id);
             break;
         case 6:
-            if(obj.length == 3)
+            if(obj.length >= 18)
             {
                 newArea("Event", id, false, indexed);
                 search_type = 7;
-                updateQuery("a"+id);
+                updateQuery("q"+id);
             }
             else
             {
@@ -288,7 +288,24 @@ function loadIndexed(id, obj, indexed=true) // load an element from data.json
             break;
         case 7: // events
             assets = [
-                ["Scene Arts", "sp/quest/scene/character/body/", "png", "img_low/", 2, false, false]
+                ["Opening Arts", "sp/quest/scene/character/body/", "png", "img_low/", 2, false, false],
+                ["Chapter 1 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 5, false, false],
+                ["Chapter 2 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 6, false, false],
+                ["Chapter 3 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 7, false, false],
+                ["Chapter 4 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 8, false, false],
+                ["Chapter 5 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 9, false, false],
+                ["Chapter 6 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 10, false, false],
+                ["Chapter 7 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 11, false, false],
+                ["Chapter 8 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 12, false, false],
+                ["Chapter 9 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 13, false, false],
+                ["Chapter 10 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 14, false, false],
+                ["Chapter 11 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 15, false, false],
+                ["Chapter 12 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 16, false, false],
+                ["Chapter 13 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 17, false, false],
+                ["Chapter 14 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 18, false, false],
+                ["Chapter 15 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 19, false, false],
+                ["Ending Arts", "sp/quest/scene/character/body/", "png", "img_low/", 3, false, false],
+                ["Other Arts", "sp/quest/scene/character/body/", "png", "img_low/", 4, false, false]
             ];
             break;
         case 3: // characters / skins
@@ -771,7 +788,7 @@ function lookup(id)
     f = document.getElementById('filter');
     if(
         (id.length == 10 && !isNaN(id)) || 
-        (id.length == 7 && id.toLowerCase()[0] === 'a' && !isNaN(id.slice(1))) ||
+        (id.length == 7 && id.toLowerCase()[0] === 'q' && !isNaN(id.slice(1))) ||
         (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1))) ||
         (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6))) || // retrocompatibility
         (id.length == 6 && !isNaN(id))
@@ -790,7 +807,7 @@ function lookup(id)
             id = id.slice(1);
             check = "enemies";
         }
-        else if(id.toLowerCase()[0] === 'a')
+        else if(id.toLowerCase()[0] === 'q')
         {
             id = id.slice(1);
             check = "events";
@@ -1001,6 +1018,15 @@ function newArea(name, id, include_link, indexed=true)
             div.appendChild(i);
         }
     }
+    else if(name == "Event") // event
+    {
+        if("events" in index && id in index["events"] && index["events"][id][1] != null)
+        {
+            let img = document.createElement("img")
+            img.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/archive/assets/island_m2/"+index["events"][id][1]+".png"
+            div.appendChild(img);
+        }
+    }
 }
 
 function addResult(identifier, name, file_count = 0)
@@ -1162,6 +1188,17 @@ function updateDynamicList(dynarea, idlist)
                         this.src = "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
                     };
                     addIndexImage(dynarea, "sp/assets/npc/raid_normal/" + e[0] + "_01.jpg", e[0], onerr, "img_low/").classList.add("preview");
+                }
+                break;
+            }
+            case 7: // events
+            {
+                if("events" in index && e[0] in index["events"] && index["events"][e[0]][0] >= 0)
+                {
+                    if(index["events"][e[0]][1] == null)
+                        addIndexImage(dynarea, "assets/ui/event.png", "q"+e[0], null, "local").className = "sound-only";
+                    else
+                        addIndexImage(dynarea, "sp/archive/assets/island_m2/" + index["events"][e[0]][1] + ".png", "q"+e[0], null).className = "preview";
                 }
                 break;
             }
@@ -1687,15 +1724,23 @@ function displayEventNPC(elem)
         for(const id in index["events"])
         {
             if(id.startsWith("39")) continue;
-            slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id];
-            if(index["events"][id][0])
+            let count = 0;
+            for(let i = 2; i < index["events"][id].length; ++i)
+                count += index["events"][id][i].length;
+            if(count > 0 && index["events"][id][0] >= 0)
             {
                 if(index["events"][id][1] == null)
-                    addIndexImage(node, "sp/assets/npc/raid_normal/3999999999.jpg", "a"+id, null);
+                    slist[id] = ["assets/ui/event.png", "q"+id, "sound-only"];
                 else
-                    addIndexImage(node, "sp/archive/assets/island_m2/" + index["events"][id][1] + ".png", "a"+id, null);
+                    slist[id] = [ "sp/archive/assets/island_m2/" + index["events"][id][1] + ".png", "q"+id, ""];
             }
         }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+            if(slist[k][2] != "")
+                addIndexImage(node, slist[k][0], slist[k][1], null, "local").className = slist[k][2];
+            else
+                addIndexImage(node, slist[k][0], slist[k][1]).className = "preview";
     }
     this.onclick = null;
 }
