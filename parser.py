@@ -2242,8 +2242,8 @@ class Parser():
                         for e in self.data["events"][ev][i]:
                             known_assets.add("_".join(e.split("_")[:4]))
                     ec += 1
-                    ch_count = self.data["events"][ev][0]
-                    if full and ch_count == -1: ch_count = 16
+                    if full: ch_count = 16
+                    else: ch_count = self.data["events"][ev][0]
                     for j in range(4):
                         for i in range(1, ch_count+1):
                             fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
@@ -2304,27 +2304,37 @@ class Parser():
             s = input().lower()
             match s:
                 case "0":
-                    s = [0, 0, 0]
+                    s = [0, 0, 0, 0]
                     for ev in self.data["events"]:
                         s[0] += 1
                         if self.data["events"][ev][0] >= 0:
                             s[1] += 1
-                            if self.data["events"][ev][1] is not None:
+                            c = 0
+                            for i in range(2, len(self.data["events"][ev]))
+                                c += len(self.data["events"][ev][i])
+                            if c > 0:
                                 s[2] += 1
+                                if self.data["events"][ev][1] is not None:
+                                    s[3] += 1
                     print(s[0], "events in the data")
-                    print(s[1], "are valid")
-                    print(s[2], "got thumbnail")
+                    print(s[1], "are valid events")
+                    print(s[2], "got exclusive arts")
+                    print(s[3], "got thumbnail")
                 case "1":
                     for ev in self.data["events"]:
                         if self.data["events"][ev][0] >= 0:
                             if self.data["events"][ev][1] is None:
-                                s = input("Input thumbnail for Event "+ev+" (Leave blank to skip):")
-                                if s != "":
-                                    try:
-                                        self.data["events"][ev][1] = int(s)
-                                        self.modified = True
-                                    except:
-                                        pass
+                                c = 0
+                                for i in range(2, len(self.data["events"][ev]))
+                                    c += len(self.data["events"][ev][i])
+                                if c > 0:
+                                    s = input("Input thumbnail for Event "+ev+" (Leave blank to skip):")
+                                    if s != "":
+                                        try:
+                                            self.data["events"][ev][1] = int(s)
+                                            self.modified = True
+                                        except:
+                                            pass
                     self.save()
                 case "2":
                     s = input("Input a list of Event date (Leave blank to cancel):")
