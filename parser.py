@@ -2310,7 +2310,7 @@ class Parser():
                         if self.data["events"][ev][0] >= 0:
                             s[1] += 1
                             c = 0
-                            for i in range(2, len(self.data["events"][ev]))
+                            for i in range(2, len(self.data["events"][ev])):
                                 c += len(self.data["events"][ev][i])
                             if c > 0:
                                 s[2] += 1
@@ -2325,7 +2325,7 @@ class Parser():
                         if self.data["events"][ev][0] >= 0:
                             if self.data["events"][ev][1] is None:
                                 c = 0
-                                for i in range(2, len(self.data["events"][ev]))
+                                for i in range(2, len(self.data["events"][ev])):
                                     c += len(self.data["events"][ev][i])
                                 if c > 0:
                                     s = input("Input thumbnail for Event "+ev+" (Leave blank to skip):")
