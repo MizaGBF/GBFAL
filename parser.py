@@ -1227,10 +1227,10 @@ class Parser():
 
     # called once. generate a list of string to check for npc data
     def build_scene_strings(self):
-        expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak"]
+        expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_eyeline"]
         variationsA = ["", "_a", "_b", "_battle"]
         variationsB = ["", "_speed", "_up"]
-        specials = ["_eyeline", "_up_speed", "_a_up_speed", "_b_up_speed", "_c_up_speed", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+        specials = ["_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_up_speed", "_a_up_speed", "_b_up_speed", "_c_up_speed", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
         scene_alts = []
         for A in variationsA:
             for ex in expressions:
@@ -2102,7 +2102,7 @@ class Parser():
         r = self.req('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22', get=True)
         soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
         res = soup.find_all("div", class_="searchresult")
-        l = []
+        l = ["201017", "211017", "221017", "231017", "200214", "210214", "220214", "230214", "200314", "210314", "220314", "230314", "201216", "211216", "221216", "231216", "210316", "230303", "220304", "220313"]
         for r in res:
             try:
                 x = r.text.split(": ")[1].split(" Rerun")[0].split(" Added")[0].replace(",", "").split(" ")
@@ -2137,36 +2137,49 @@ class Parser():
         except:
             return ev, None
 
-    def update_event_sub_big(self, ev, url): # art check
+    def update_event_sub_big(self, ev, base_url, known_assets, step): # art check
         l = []
-        flag = False
-        try: # base check
-            self.req(url + ".png")
-            l.append(url.split("/")[-1])
-            flag = True
-        except:
-            pass
-        if flag: # check for extras
-            for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                try:
-                    self.req(url + k + ".png")
-                    l.append(url.split("/")[-1]+k)
-                except:
-                    break
-        else:
-            try: # alternative filename format
-                self.req(url + "_00.png")
-                l.append(url.split("/")[-1]+"_00")
-                flag = True
-            except:
+        for j in range(step, step+25):
+            url = base_url + "_" + str(j).zfill(2)
+            if url.split('/')[-1] not in known_assets:
                 flag = False
-            for i in range(1, 100):
-                k = str(i).zfill(2)
-                try:
-                    self.req(url + "_" + k + ".png")
-                    l.append(url.split("/")[-1]+"_"+k)
+                try: # base check
+                    self.req(url + ".png")
+                    l.append(url.split("/")[-1])
+                    flag = True
                 except:
-                    break
+                    pass
+                if flag: # check for extras
+                    for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                        try:
+                            self.req(url + k + ".png")
+                            l.append(url.split("/")[-1]+k)
+                        except:
+                            break
+                else:
+                    try: # alternative filename format
+                        self.req(url + "_00.png")
+                        l.append(url.split("/")[-1]+"_00")
+                        flag = True
+                    except:
+                        flag = False
+                    err = 0
+                    i = 1
+                    while i < 100 and err < 10:
+                        k = str(i).zfill(2)
+                        try:
+                            self.req(url + "_" + k + ".png")
+                            l.append(url.split("/")[-1]+"_"+k)
+                            err = 0
+                            for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                                try:
+                                    self.req(url + "_" + k + kk + ".png")
+                                    l.append(url.split("/")[-1]+"_"+k+kk)
+                                except:
+                                    break
+                        except:
+                            err += 1
+                        i += 1
         return ev, l
 
     def check_new_event(self, init_list = None):
@@ -2183,7 +2196,7 @@ class Parser():
             check = {}
             futures = []
             for ev in known_events:
-                if (ev not in self.data["events"] or self.data["events"][ev][0] == -1) and now >= int(ev):
+                if ev not in self.data["events"] and now >= int(ev):
                     check[ev] = -1
                     for i in range(0, 16):
                         for j in range(1, 2):
@@ -2221,6 +2234,8 @@ class Parser():
             futures = []
             ec = 0
             for ev in events:
+                if full and ev not in self.data["events"]:
+                    self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3
                 if ev in self.data["events"] and (full or (not full and self.data["events"][ev][0] >= 0)):
                     known_assets = set()
                     for i in range(2, len(self.data["events"][ev])):
@@ -2229,41 +2244,48 @@ class Parser():
                     ec += 1
                     ch_count = self.data["events"][ev][0]
                     if full and ch_count == -1: ch_count = 16
-                    for i in range(1, ch_count+1):
-                        ch = "cp"+str(i).zfill(2)
-                        for j in range(0, 100):
-                            fn = "scene_evt{}_{}_{}".format(ev, ch, str(j).zfill(2))
-                            if fn not in known_assets:
-                                futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn))
-                    for ch in ["op", "ed"]:
-                        for j in range(0, 100):
-                            fn = "scene_evt{}_{}_{}".format(ev, ch, str(j).zfill(2))
-                            if fn not in known_assets:
-                                futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn))
+                    for j in range(4):
+                        for i in range(1, ch_count+1):
+                            fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
+                            futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, j*25))
+                        for ch in ["op", "ed"]:
+                            fn = "scene_evt{}_{}".format(ev, ch)
+                            futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, j*25))
+                        fn = "evt{}".format(ev)
+                        futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, j*25))
+                        fn = "scene_evt{}".format(ev)
+                        futures.append(executor.submit(self.update_event_sub_big, ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, j*25))
             if len(futures) > 0:
                 print("Checking assets for", ec, "event(s)")
                 count = 0
-                m = min(max(10, len(futures) // 20), 4000)
+                m = min(max(10, len(futures) // 20), 500)
                 for future in concurrent.futures.as_completed(futures):
                     r = future.result()
                     ev = r[0]
                     if len(r[1])  > 0:
                         for e in r[1]:
-                            x = e.split("_")[2]
-                            match x:
-                                case "op":
-                                    self.data["events"][ev][2] += r[1]
-                                case "ed":
-                                    self.data["events"][ev][3] += r[1]
-                                case "osarai":
-                                    self.data["events"][ev][4] += r[1]
-                                case _:
-                                    self.data["events"][ev][4+int(x[2:])] += r[1]
+                            try:
+                                x = e.split("_")[2]
+                                match x:
+                                    case "op":
+                                        self.data["events"][ev][2].append(e)
+                                    case "ed":
+                                        self.data["events"][ev][3].append(e)
+                                    case "osarai":
+                                        self.data["events"][ev][4].append(e)
+                                    case _:
+                                        if "_cp" in e:
+                                            self.data["events"][ev][4+int(x[2:])].append(e)
+                                        else:
+                                            self.data["events"][ev][4].append(e)
+                            except:
+                                self.data["events"][ev][4].append(e)
                         modified.add(ev)
                     count += 1
                     if count % m == 0:
                         print("Progress: {:.1f}%".format(100 * count / len(futures)))
                 for ev in modified:
+                    if full and self.data["events"][ev][0] == -1: self.data["events"][ev][0] = 0
                     for i in range(2, len(self.data["events"][ev])):
                         self.data["events"][ev][i] = list(set(self.data["events"][ev][i]))
                         self.data["events"][ev][i].sort()
@@ -2271,6 +2293,45 @@ class Parser():
                     self.addition[ev] = 7
                 print("Done")
         self.save()
+
+    def event_edit(self):
+        while True:
+            print("\n[EDIT EVENT MENU]")
+            print("[0] Stats")
+            print("[1] Set Thumbnails")
+            print("[2] Update Events")
+            print("[Any] Quit")
+            s = input().lower()
+            match s:
+                case "0":
+                    s = [0, 0, 0]
+                    for ev in self.data["events"]:
+                        s[0] += 1
+                        if self.data["events"][ev][0] >= 0:
+                            s[1] += 1
+                            if self.data["events"][ev][1] is not None:
+                                s[2] += 1
+                    print(s[0], "events in the data")
+                    print(s[1], "are valid")
+                    print(s[2], "got thumbnail")
+                case "1":
+                    for ev in self.data["events"]:
+                        if self.data["events"][ev][0] >= 0:
+                            if self.data["events"][ev][1] is None:
+                                s = input("Input thumbnail for Event "+ev+" (Leave blank to skip):")
+                                if s != "":
+                                    try:
+                                        self.data["events"][ev][1] = int(s)
+                                        self.modified = True
+                                    except:
+                                        pass
+                    self.save()
+                case "2":
+                    s = input("Input a list of Event date (Leave blank to cancel):")
+                    if s != "":
+                        self.update_event(s.split(" "), full=True)
+                case _:
+                    break
 
 def print_help():
     print("Usage: python parser.py [option]")
@@ -2291,7 +2352,7 @@ def print_help():
     print("-sound       : Update sound index for characters (Very time consuming).")
     print("-partner     : Update data for partner characters (Very time consuming).")
     print("-event       : Update unique event arts (Very time consuming).")
-    print("-updateevent : Works like -update but for events. Event must be in the index already. (Time consuming).")
+    print("-eventedit   : Edit event data")
     print("-wait        : Wait an in-game update (Must be the first parameter, usable with others).")
     print("-nochange    : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     time.sleep(2)
@@ -2355,10 +2416,7 @@ if __name__ == '__main__':
                 p.update_all_partner()
             elif argv[1] == '-event':
                 p.check_new_event()
-            elif argv[1] == '-updateevent':
-                if len(argv) == 2:
-                    print_help()
-                else:
-                    p.check_new_event(argv[2:])
+            elif argv[1] == '-eventedit':
+                p.event_edit()
             else:
                 print_help()
