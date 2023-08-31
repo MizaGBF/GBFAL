@@ -898,7 +898,15 @@ function lookup(id)
             let matching = true;
             for(const w of words)
             {
-                if(!key.includes(w))
+                if(["ssr", "sr", "r", "female", "male"].includes(w))
+                {
+                    if(!key.split(" ").includes(w))
+                    {
+                        matching = false;
+                        break;
+                    }
+                }
+                else if(!key.includes(w))
                 {
                     matching = false;
                     break;
