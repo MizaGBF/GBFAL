@@ -2169,10 +2169,14 @@ class Parser():
                     break
         return ev, l
 
-    def check_new_event(self):
+    def check_new_event(self, init_list = None):
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
         now = int(str(now.year)[2:] + str(now.month).zfill(2) + str(now.day).zfill(2))
-        known_events = self.get_event_list()
+        if init_list is None:
+            known_events = self.get_event_list()
+        else:
+            init_list = list(set(init_list))
+            known_events = init_list
         # check
         print("Checking for new events...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
@@ -2200,12 +2204,15 @@ class Parser():
                         print("Progress: {:.1f}%".format(100 * count / len(futures)))
                 for ev in check:
                     if check[ev] >= 0:
-                        print(ev, "has", check[ev], "chapters")
+                        print("Event", ev, "has", check[ev], "chapters")
                     self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3
                     self.modified = True
                 print("Done")
         self.save()
-        self.update_event(list(check.keys()))
+        if init_list is None:
+            self.update_event(list(check.keys()))
+        else:
+            self.update_event(init_list)
 
     def update_event(self, events):
         # dig
@@ -2350,6 +2357,6 @@ if __name__ == '__main__':
                 if len(argv) == 2:
                     print_help()
                 else:
-                    p.update_event(argv[2:])
+                    p.check_new_event(argv[2:])
             else:
                 print_help()
