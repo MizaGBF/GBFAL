@@ -276,6 +276,10 @@ h3 {
     background: url(../assets/ui/skycompass.png) no-repeat bottom left 0% / 15%;
 }
 
+.more {
+    background: url(../assets/ui/more.png) no-repeat bottom left 0% / 25%;
+}
+
 .homepage-ui {
     width: 400px;
     height: 588.430px;

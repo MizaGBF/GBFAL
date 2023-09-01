@@ -1300,7 +1300,10 @@ function updateDynamicList(dynarea, idlist)
             {
                 if("buffs" in index && e[0] in index["buffs"])
                 {
-                    addIndexImage(dynarea, "sp/ui/icon/status/x64/status_" + index["buffs"][e[0]][0][0] + ".png", "b"+e[0], null).className = "preview";
+                    let tmp = addIndexImage(dynarea, "sp/ui/icon/status/x64/status_" + index["buffs"][e[0]][0][0] + ".png", "b"+e[0], null)
+                    tmp.classList.add("preview");
+                    if(index["buffs"][e[0]][1].length > 0)
+                        tmp.classList.add("more");
                 }
                 break;
             }
@@ -1947,7 +1950,10 @@ function displayBuff(elem, i)
             let id = parseInt(k);
             if(id >= start && id < end)
             {
-                addIndexImage(node, "sp/ui/icon/status/x64/status_" + index["buffs"][k][0][0] + ".png", "b"+k, null).className = "preview";
+                let tmp = addIndexImage(node, "sp/ui/icon/status/x64/status_" + index["buffs"][k][0][0] + ".png", "b"+k, null);
+                tmp.classList.add("preview");
+                if(index["buffs"][k][1].length > 0)
+                    tmp.classList.add("more");
             }
         }
     }

@@ -354,7 +354,7 @@ class Parser():
     def search_skill(self, start, step): # skill search
         err = 0
         i = start
-        while err < 10:
+        while err < 20:
             if i in self.data["skills"]:
                 i += step
                 err = 0
@@ -380,7 +380,7 @@ class Parser():
         err = 0
         i = start
         end = (start // 1000) * 1000 + 1000
-        while err < 30 and i < end:
+        while err < 40 and i < end:
             if i in self.data["buffs"]:
                 i += step
                 err = 0
