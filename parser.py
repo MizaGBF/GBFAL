@@ -32,7 +32,9 @@ class Parser():
             "title":{},
             "suptix":{},
             "lookup":{},
-            "events":{}
+            "events":{},
+            "skills":{},
+            "buffs":{}
         }
         self.lock = Lock() # lock for self.data
         self.modified = False # if set to true, data.json will be updated
@@ -146,11 +148,12 @@ class Parser():
         errs = []
         self.new_elements = []
         job_thread = 20
+        skill_thread = 20
+        buff_series_thread = 5 # x 10
         max_thread = 100
         running_count = 0
         
         # job keys to check
-        self.newShared(errs)
         jkeys = []
         if self.job_list is None:
             self.job_list = self.init_job_list()
@@ -164,12 +167,26 @@ class Parser():
         print("Starting process...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread) as executor: # Note: Threads of each categories will run together, in the limit set by max_thead, to ensure no problem with their errs variable
             s = time.time()
-            # start job threads first
+            # start first threads first
             tasks['job'] = {'futures':[], 'todo':[]}
+            self.newShared(errs)
             for i in range(job_thread):
                 tasks['job']['todo'].append(None) # array size is used later
                 tasks['job']['futures'].append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
                 running_count += 1
+            # skills
+            tasks['skill'] = {'futures':[], 'todo':[]}
+            for i in range(skill_thread):
+                tasks['skill']['todo'].append(None) # array size is used later
+                tasks['skill']['futures'].append(executor.submit(self.search_skill, i, skill_thread))
+                running_count += 1
+            # skills
+            tasks['buffs'] = {'futures':[], 'todo':[]}
+            for i in range(10):
+                for j in range(buff_series_thread):
+                    tasks['buffs']['todo'].append(None) # array size is used later
+                    tasks['buffs']['futures'].append(executor.submit(self.search_buff, 1000*i+j, buff_series_thread))
+                    running_count += 1
 
             # prepare the rest
             #rarity
@@ -308,10 +325,10 @@ class Parser():
         self.check_new_event()
 
     def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, maxerr): # run() subroutine (see above)
-        id = start
+        i = start
         is_js = ext.endswith('.js')
         while err[0] < maxerr and err[1]:
-            f = file.format(str(id).zfill(zfill))
+            f = file.format(str(i).zfill(zfill))
             if f in self.data[index]:
                 if self.data[index][f] == 0 and (is_js or index in self.preemptive_add):
                     self.new_elements.append(f)
@@ -332,7 +349,64 @@ class Parser():
                         if err[0] >= maxerr:
                             err[1] = False
                             return
-            id += step
+            i += step
+
+    def search_skill(self, start, step): # skill search
+        err = 0
+        i = start
+        while err < 10:
+            if i in self.data["skills"]:
+                i += step
+                err = 0
+                continue
+            found = False
+            for s in [".png", "_1.png", "_2.png", "_3.png", "_4.png", "_5.png"]:
+                try:
+                    headers = self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/ability/m/" + str(i) + s)
+                    if 'content-length' in headers and int(headers['content-length']) < 200: raise Exception()
+                    found = True
+                    err = 0
+                    with self.lock:
+                        self.data["skills"][str(i).zfill(4)] = [[str(i) + s.split('.')[0]]]
+                        self.addition[str(i).zfill(4)] = 8
+                        self.modified = True
+                    break
+                except:
+                    pass
+            i += step
+            if not found: err += 1
+
+    def search_buff(self, start, step): # buff search
+        err = 0
+        i = start
+        end = (start // 1000) * 1000 + 1000
+        while err < 30 and i < end:
+            if i in self.data["buffs"]:
+                i += step
+                err = 0
+                continue
+            found = False
+            data = [[], []]
+            for s in [".png", "_0.png", "_1.png", "_10.png", "_30.png", "_0_10.png", "_1_10.png"]:
+                try:
+                    headers = self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_" + str(i) + s)
+                    if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
+                    found = True
+                    if len(data[0]) == 0:
+                        data[0].append(str(i) + s.split('.')[0])
+                    if s[0] == "_":
+                        data[1].append(s.split('.')[0])
+                except:
+                    pass
+            if not found:
+                err += 1
+            else:
+                err = 0
+                with self.lock:
+                    self.data["buffs"][str(i).zfill(4)] = data
+                    self.addition[str(i).zfill(4)] = 9
+                    self.modified = True
+            i += step
 
     def init_job_list(self): # to be called once when needed
         print("Initializing job list...")

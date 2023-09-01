@@ -24,7 +24,7 @@
 <body onload="init()">
     <a id="to-title" href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div>v7.23</div>
+        <div>v7.24</div>
         <div id="timestamp">Last update</a>:</div>
     </div>
     <div id="to-bottom" class="clickable" onclick="window.scroll(0, document.body.scrollHeight);"><img src="assets/ui/button.png"></div>
@@ -35,9 +35,8 @@
                 <li>A valid ID looks like 3040000000.</li>
                 <li>You can find most of them on the wiki,<br>under the extra tab.</li>
                 <li>You can also search characters, summons or weapons<br>by Tags.</li>
-                <li>For Enemies, add 'e' before the ID. Example:<br><a href="?id=e6205703">e6205703</a> for School Belial.</li>
+                <li>Some elements require to prefix a letter to the ID.<br>'e' for <a href="?id=e6205703">enemies</a>, 'q' for <a href="?id=q230829">events</a>, 'sk' for <a href="?id=sk0001">skills</a>, 'b' for <a href="?id=b1019">buffs</a>.</li>
                 <li>For Classes, simply input the main class ID:<br><a href="?id=450301">450301</a> for Relic Buster.</li>
-                <li>For Events, add 'q' before the event start date:<br><a href="?id=q230829">q230829</a> for Unbound Asterism.</li>
                 <li>Character styles are part of their base characters.<br>Example: <a href="?id=3040088000">Yngwie</a>.</li>
                 <li>Click on images to access their highest quality.</li>
             </ul>
@@ -748,12 +747,340 @@
             </div>
         </div>
     </details>
-        <details onclick="displayEventNPC(this)">
-            <summary>Event Arts</summary>
-            <h3 class="result mobile-big" id="areaevnpc">
-                <small>Non-exhaustive list</small><br>
-            </h3>
-        </details>
+    <details onclick="displayEventNPC(this)">
+        <summary>Event Arts</summary>
+        <h3 class="result mobile-big" id="areaevnpc">
+            <small>Non-exhaustive list</small><br>
+        </h3>
+    </details>
+    <details>
+        <summary>Skills</summary>
+        <div class="subdetails">
+            <details>
+                <summary>0000</summary>
+                <div class="subdetails">
+                    <details onclick="displaySkill(this, 0)">
+                        <summary>0000 - 0249</summary>
+                        <h3 class="result mobile-big" id="areaskill0">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 250)">
+                        <summary>0250 - 0499</summary>
+                        <h3 class="result mobile-big" id="areaskill250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 500)">
+                        <summary>0500 - 0749</summary>
+                        <h3 class="result mobile-big" id="areaskill500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 750)">
+                        <summary>0750 - 0999</summary>
+                        <h3 class="result mobile-big" id="areaskill750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>1000</summary>
+                <div class="subdetails">
+                    <details onclick="displaySkill(this, 1000)">
+                        <summary>1000 - 1249</summary>
+                        <h3 class="result mobile-big" id="areaskill1000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 1250)">
+                        <summary>1250 - 1499</summary>
+                        <h3 class="result mobile-big" id="areaskill1250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 1500)">
+                        <summary>1500 - 1749</summary>
+                        <h3 class="result mobile-big" id="areaskill1500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 1750)">
+                        <summary>1750 - 1999</summary>
+                        <h3 class="result mobile-big" id="areaskill1750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>2000</summary>
+                <div class="subdetails">
+                    <details onclick="displaySkill(this, 2000)">
+                        <summary>2000 - 2249</summary>
+                        <h3 class="result mobile-big" id="areaskill2000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 2250)">
+                        <summary>2250 - 2499</summary>
+                        <h3 class="result mobile-big" id="areaskill2250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 2500)">
+                        <summary>2500 - 2749</summary>
+                        <h3 class="result mobile-big" id="areaskill2500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displaySkill(this, 2750)">
+                        <summary>2750 - 2999</summary>
+                        <h3 class="result mobile-big" id="areaskill2750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+        </div>
+    </details>
+    <details>
+        <summary>Buffs</summary>
+        <div class="subdetails">
+            <details>
+                <summary>Old</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 0)">
+                        <summary>0000 - 0249</summary>
+                        <h3 class="result mobile-big" id="areabuff0">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>Basic</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 1000)">
+                        <summary>1000 - 1249</summary>
+                        <h3 class="result mobile-big" id="areabuff1000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 1250)">
+                        <summary>1250 - 1499</summary>
+                        <h3 class="result mobile-big" id="areabuff1250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 1500)">
+                        <summary>1500 - 1749</summary>
+                        <h3 class="result mobile-big" id="areabuff1500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 1750)">
+                        <summary>1750 - 1999</summary>
+                        <h3 class="result mobile-big" id="areabuff1750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>Set 1</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 3000)">
+                        <summary>3000 - 3249</summary>
+                        <h3 class="result mobile-big" id="areabuff3000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 3250)">
+                        <summary>3250 - 3499</summary>
+                        <h3 class="result mobile-big" id="areabuff3250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 3500)">
+                        <summary>3500 - 3749</summary>
+                        <h3 class="result mobile-big" id="areabuff3500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 3750)">
+                        <summary>3750 - 3999</summary>
+                        <h3 class="result mobile-big" id="areabuff3750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>Set 2</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 4000)">
+                        <summary>4000 - 4249</summary>
+                        <h3 class="result mobile-big" id="areabuff4000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 4250)">
+                        <summary>4250 - 4499</summary>
+                        <h3 class="result mobile-big" id="areabuff4250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 4500)">
+                        <summary>4500 - 4749</summary>
+                        <h3 class="result mobile-big" id="areabuff4500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 4750)">
+                        <summary>4750 - 4999</summary>
+                        <h3 class="result mobile-big" id="areabuff4750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>Set 3</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 5000)">
+                        <summary>5000 - 5249</summary>
+                        <h3 class="result mobile-big" id="areabuff5000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 5250)">
+                        <summary>5250 - 5499</summary>
+                        <h3 class="result mobile-big" id="areabuff5250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 5500)">
+                        <summary>5500 - 5749</summary>
+                        <h3 class="result mobile-big" id="areabuff5500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 5750)">
+                        <summary>5750 - 5999</summary>
+                        <h3 class="result mobile-big" id="areabuff5750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>Set 4</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 6000)">
+                        <summary>6000 - 6249</summary>
+                        <h3 class="result mobile-big" id="areabuff6000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 6250)">
+                        <summary>6250 - 6499</summary>
+                        <h3 class="result mobile-big" id="areabuff6250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 6500)">
+                        <summary>6500 - 6749</summary>
+                        <h3 class="result mobile-big" id="areabuff6500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 6750)">
+                        <summary>6750 - 6999</summary>
+                        <h3 class="result mobile-big" id="areabuff6750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>Set 5</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 7000)">
+                        <summary>7000 - 7249</summary>
+                        <h3 class="result mobile-big" id="areabuff7000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 2250)">
+                        <summary>7250 - 7499</summary>
+                        <h3 class="result mobile-big" id="areabuff7250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 7500)">
+                        <summary>7500 - 7749</summary>
+                        <h3 class="result mobile-big" id="areabuff7500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 7750)">
+                        <summary>7750 - 7999</summary>
+                        <h3 class="result mobile-big" id="areabuff7750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>Set 6</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 8000)">
+                        <summary>8000 - 8249</summary>
+                        <h3 class="result mobile-big" id="areabuff8000">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 8250)">
+                        <summary>8250 - 8499</summary>
+                        <h3 class="result mobile-big" id="areabuff8250">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 8500)">
+                        <summary>8500 - 8749</summary>
+                        <h3 class="result mobile-big" id="areabuff8500">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 8750)">
+                        <summary>8750 - 8999</summary>
+                        <h3 class="result mobile-big" id="areabuff8750">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
+                <summary>Unused</summary>
+                <div class="subdetails">
+                    <details onclick="displayBuff(this, 2000)">
+                        <summary>2000 - 2249</summary>
+                        <h3 class="result mobile-big" id="areabuff2000">
+                            <small>This list is here in case they add something, someday.</small><br>
+                        </h3>
+                    </details>
+                    <details onclick="displayBuff(this, 9000)">
+                        <summary>9000 - 9249</summary>
+                        <h3 class="result mobile-big" id="areabuff9000">
+                            <small>This list is here in case they add something here, someday.</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+        </div>
+    </details>
     <details>
         <summary>Backgrounds</summary>
         <div class="subdetails">
@@ -810,7 +1137,7 @@
             <h3>&#x2022; I found a bug!</h3>
             <p>If you noticed a problem or bug on this page, you can open an issue in the <a href="https://github.com/MizaGBF/GBFAL/issues">GitHub repository</a> or contact me directly.<br>Try to explain clearly what the problem is and provide screenshots, if possible.</p>
             <h3>&#x2022; Can you add [...] ?</h3>
-            <p>The following won't be added, either for technical reasons, because it wouldn't be very useful or because it would be beyond the scope of this project:<br>Fate Episode/Event/Boss voice lines, Musics, Skill/Buff/Items Icons.<br>It might change in the future.</p>
+            <p>The following won't be added, either for technical reasons, because it wouldn't be very useful or because it would be beyond the scope of this project:<br>Fate Episode/Event/Boss voice lines, Musics, Items Icons.<br>It might change in the future.</p>
             <h3>&#x2022; Unreleased asset policy</h3>
             <p>Concerning unreleased assets, there are instances where Cygames inadvertently makes assets from upcoming content accessible to the general public.<br>In such occurrences, to prevent any potential complications, you can expect me to promptly delist these assets, if it's apparent that they were intended to remain concealed and if Cygames hasn't already addressed the situation.</p>
             <h3>&#x2022; Can I use this project?</h3>
