@@ -21,7 +21,7 @@ var language = "assets_en/"; // change to "assets/" for japanese
 
 // tracking last id loaded
 var last_id = null;
-var last_style = null;
+var last_type = null;
 
 // result div
 var result_area = null;
@@ -183,6 +183,7 @@ function getJSON(url, callback, err_callback, id) { // generic function to reque
 function loadIndexed(id, obj, check, indexed=true) // load an element from data.json
 {
     let search_type;
+    let tmp_last_id = last_id;
     switch(id.length)
     {
         case 10:
@@ -228,6 +229,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
         case 7:
             newArea("Enemy", id, false, indexed);
             search_type = 4;
+            last_id = "e"+id;
             updateQuery("e"+id);
             break;
         case 6:
@@ -235,12 +237,14 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             {
                 newArea("Event", id, false, indexed);
                 search_type = 7;
+                last_id = "q"+id;
                 updateQuery("q"+id);
             }
             else
             {
                 newArea("Main Character", id, true, (obj[7].length != 0) && indexed);
                 search_type = 0;
+                last_id = id;
                 updateQuery(id);
             }
             break;
@@ -249,18 +253,22 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             {
                 newArea("Skill", id, false, indexed);
                 search_type = 8;
+                last_id = "sk"+id;
                 updateQuery("sk"+id);
             }
             else if(check == "buffs")
             {
                 newArea("Buff", id, false, indexed);
                 search_type = 9;
+                last_id = "b"+id;
                 updateQuery("b"+id);
             }
             break;
         default:
             return;
     }
+    if(id == tmp_last_id && last_type == search_type) return; // quit if already loaded
+    last_type = search_type;
     if(indexed)
     {
         updateHistory(id, search_type);
@@ -347,7 +355,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 for(let i = 0; i < m; ++i)
                     obj[1].push(""+parseInt(id)+"_"+i);
             }
-            if(parseInt(id) >= 1000) // weird exception for satyr
+            if(variations.includes("1")) // weird exception for satyr and siete (among maybe others)
             {
                 for(let i = 0; i < 10; ++i)
                     obj[2].push(""+parseInt(id)+""+i);
@@ -842,8 +850,8 @@ function loadUnindexed(id, check)// minimal load of an element not indexed or no
     }
     if(data != null)
     {
-        last_id = id;
-        updateQuery((id.length == 7) ? "e"+id : id);
+        last_id = (id.length == 7) ? "e"+id : id;
+        updateQuery(last_id);
         loadIndexed(id, data, check, false);
     }
 }
@@ -908,7 +916,6 @@ function lookup(id)
             check = "job";
         }
         else if(id.length == 6) check = "job";
-        if(id == last_id) return; // quit if already loaded
         // disable search results if not relevant to current id
         let found = false;
         for(const el of searchResults)
@@ -1405,11 +1412,12 @@ function importBookmark()
             if(typeof tmp != 'object') return;
             let fav = false;
             let i = 0;
+            let last_id_f = isNaN(last_id) ? last_id : last_id.replace(/\D/g,''); // strip letters
             while(i < tmp.length)
             {
                 let e = tmp[i];
                 if(typeof e != 'object' || e.length != 2 || typeof e[0] != 'string' || typeof e[1] != 'number') return;
-                if(last_id == e[0]) fav = true;
+                if(last_id_f == e[0] && last_type == e[1]) fav = true;
                 ++i;
             }
             bookmarks = tmp;

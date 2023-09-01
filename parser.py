@@ -380,21 +380,22 @@ class Parser():
         err = 0
         i = start
         end = (start // 1000) * 1000 + 1000
-        while err < 40 and i < end:
+        slist = [".png", "_0.png", "_1.png", "_10.png", "_30.png", "_0_10.png", "_1_10.png"] + (["1.png"] if start >= 1000 else [])
+        while err < 20 and i < end:
             if i in self.data["buffs"]:
                 i += step
                 err = 0
                 continue
             found = False
             data = [[], []]
-            for s in [".png", "_0.png", "_1.png", "_10.png", "_30.png", "_0_10.png", "_1_10.png"]:
+            for s in slist:
                 try:
                     headers = self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_" + str(i) + s)
                     if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
                     found = True
                     if len(data[0]) == 0:
                         data[0].append(str(i) + s.split('.')[0])
-                    if s[0] == "_":
+                    if s != ".png":
                         data[1].append(s.split('.')[0])
                 except:
                     pass
