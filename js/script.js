@@ -95,15 +95,27 @@ function initChangelog(unused)
         let json = JSON.parse(this.response);
         if(json.hasOwnProperty("new")) // set updated
             updated = json["new"].reverse();
-        let date = (new Date(json.timestamp)).toISOString();
-        document.getElementById('timestamp').innerHTML += " " + date.split('T')[0] + " " + date.split('T')[1].split(':').slice(0, 2).join(':') + " UTC";
         timestamp = json.timestamp; // set timestamp
-    } catch(err) {
-        document.getElementById('timestamp').innerHTML = "";
-    }
+        clock();
+    } catch(err) {}
     // load other json
     getJSON("json/relation.json?" + timestamp, initRelation, function(unused){}, null);
     getJSON("json/data.json?" + timestamp, initIndex, initIndex, null);
+}
+
+function clock()
+{
+    let now = new Date();
+    let elapsed = (now - (new Date(timestamp))) / 1000;
+    let msg = ""
+    if(elapsed < 60) msg = Math.trunc(elapsed) + " seconds ago.";
+    else if(elapsed < 3600) msg = Math.trunc(elapsed / 60) + " minutes ago.";
+    else if(elapsed < 172800) msg = Math.trunc(elapsed / 3600) + " hours ago.";
+    else if(elapsed < 5270400) msg = Math.trunc(elapsed / 86400) + " days ago.";
+    else if(elapsed < 63115200) msg = Math.trunc(elapsed / 2635200) + " months ago.";
+    else msg = Math.trunc(elapsed / 31557600) + " years ago.";
+    document.getElementById('timestamp').innerHTML = "Last update: " + msg;
+    setTimeout(clock, now.getTime() % 1000 + 1);
 }
 
 function swap(json)  // swap keys and values from an object
