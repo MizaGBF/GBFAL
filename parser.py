@@ -2484,7 +2484,7 @@ class Parser():
 def print_help():
     print("Usage: python parser.py [-wait] [-nochange] [OPTION]")
     print("")
-    print("Start parameters:")
+    print("Start parameters (Optional):")
     print("-wait        : Wait an in-game update (Must be the first parameter).")
     print("-nochange    : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
     print("")
