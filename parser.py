@@ -385,7 +385,7 @@ class Parser():
         while err < 20 and i < end:
             fi = str(i).zfill(4)
             if not full:
-                if i in self.data["buffs"]:
+                if fi in self.data["buffs"]:
                     i += step
                     err = 0
                     continue
@@ -393,8 +393,8 @@ class Parser():
             else:
                 try:
                     data = self.data["buffs"][fi]
-                    known = set(self.data["buffs"][fi][1])
-                    if '_' not in self.data["buffs"][fi][0] and len(self.data["buffs"][fi][0]) < 5:
+                    known = set(data[1])
+                    if '_' not in data[0] and len(data[0]) < 5:
                         known.add("")
                 except:
                     data = [[], []]
