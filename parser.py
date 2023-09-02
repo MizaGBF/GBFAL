@@ -376,37 +376,57 @@ class Parser():
             i += step
             if not found: err += 1
 
-    def search_buff(self, start, step): # buff search
+    def search_buff(self, start, step, full=False): # buff search
         err = 0
         i = start
         end = (start // 1000) * 1000 + 1000
-        slist = [".png", "_0.png", "_1.png", "_10.png", "_30.png", "_0_10.png", "_1_10.png"] + (["1.png"] if start >= 1000 else [])
+        slist = ["", "_0", "_1", "_10", "_30", "_0_10", "_1_10"] + (["1"] if start >= 1000 else [])
+        known = set()
         while err < 20 and i < end:
-            if i in self.data["buffs"]:
-                i += step
-                err = 0
-                continue
+            fi = str(i).zfill(4)
+            if not full:
+                if i in self.data["buffs"]:
+                    i += step
+                    err = 0
+                    continue
+                data = [[], []]
+            else:
+                try:
+                    data = self.data["buffs"][fi]
+                    known = set(self.data["buffs"][fi][1])
+                    if '_' in self.data["buffs"][fi][0]:
+                        known.add(self.data["buffs"][fi][0].split('_')[-1])
+                    elif len(self.data["buffs"][fi][0]) == 5:
+                        known.add(self.data["buffs"][fi][0][-1:])
+                    else:
+                        known.add("")
+                except:
+                    data = [[], []]
+                    known = set()
             found = False
-            data = [[], []]
+            modified = False
             for s in slist:
                 try:
-                    headers = self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_" + str(i) + s)
-                    if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
+                    if s not in known:
+                        headers = self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
+                        if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
+                        if len(data[0]) == 0:
+                            data[0].append(str(i) + s)
+                        if s != "":
+                            data[1].append(s)
+                        modified = True
                     found = True
-                    if len(data[0]) == 0:
-                        data[0].append(str(i) + s.split('.')[0])
-                    if s != ".png":
-                        data[1].append(s.split('.')[0])
                 except:
                     pass
             if not found:
                 err += 1
             else:
                 err = 0
-                with self.lock:
-                    self.data["buffs"][str(i).zfill(4)] = data
-                    self.addition[str(i).zfill(4)] = 9
-                    self.modified = True
+                if modified:
+                    with self.lock:
+                        self.data["buffs"][fi] = data
+                        self.addition[fi] = 9
+                        self.modified = True
             i += step
 
     def init_job_list(self): # to be called once when needed
@@ -2446,9 +2466,29 @@ class Parser():
                 case _:
                     break
 
+    def update_buff(self):
+        tmp = self.update_changelog
+        self.update_changelog = False
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+            futures = []
+            for i in range(10):
+                for j in range(10):
+                    futures.append(executor.submit(self.search_buff, 1000*i+j, 10, True))
+            print("Started...")
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+            print("Done")
+        self.save()
+        self.update_changelog = tmp
+
 def print_help():
-    print("Usage: python parser.py [option]")
-    print("options:")
+    print("Usage: python parser.py [-wait] [-nochange] [OPTION]")
+    print("")
+    print("Start parameters:")
+    print("-wait        : Wait an in-game update (Must be the first parameter).")
+    print("-nochange    : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
+    print("")
+    print("Other options:")
     print("-run         : Update the index with new content.")
     print("-update      : Manual JSON updates (Followed by IDs to check).")
     print("-updaterun   : Like '-update' but also do '-run' after.")
@@ -2466,8 +2506,7 @@ def print_help():
     print("-partner     : Update data for partner characters (Very time consuming).")
     print("-event       : Update unique event arts (Very time consuming).")
     print("-eventedit   : Edit event data")
-    print("-wait        : Wait an in-game update (Must be the first parameter, usable with others).")
-    print("-nochange    : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
+    print("-buff        : Update buff data")
     time.sleep(2)
 
 if __name__ == '__main__':
@@ -2531,5 +2570,7 @@ if __name__ == '__main__':
                 p.check_new_event()
             elif argv[1] == '-eventedit':
                 p.event_edit()
+            elif argv[1] == '-buff':
+                p.update_buff()
             else:
                 print_help()

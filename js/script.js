@@ -108,7 +108,7 @@ function clock()
     let now = new Date();
     let elapsed = (now - (new Date(timestamp))) / 1000;
     let msg = ""
-    if(elapsed < 60) msg = Math.trunc(elapsed) + " seconds ago.";
+    if(elapsed < 120) msg = Math.trunc(elapsed) + " seconds ago.";
     else if(elapsed < 3600) msg = Math.trunc(elapsed / 60) + " minutes ago.";
     else if(elapsed < 172800) msg = Math.trunc(elapsed / 3600) + " hours ago.";
     else if(elapsed < 5270400) msg = Math.trunc(elapsed / 86400) + " days ago.";
