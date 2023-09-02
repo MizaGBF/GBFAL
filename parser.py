@@ -394,11 +394,7 @@ class Parser():
                 try:
                     data = self.data["buffs"][fi]
                     known = set(self.data["buffs"][fi][1])
-                    if '_' in self.data["buffs"][fi][0]:
-                        known.add(self.data["buffs"][fi][0].split('_')[-1])
-                    elif len(self.data["buffs"][fi][0]) == 5:
-                        known.add(self.data["buffs"][fi][0][-1:])
-                    else:
+                    if '_' not in self.data["buffs"][fi][0] and len(self.data["buffs"][fi][0]) < 5:
                         known.add("")
                 except:
                     data = [[], []]
