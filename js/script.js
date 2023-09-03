@@ -475,6 +475,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", "img_low/", 3, false, false],
                 ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", "img/", 0, false, false],
                 ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", "img/", 0, false, false],
+                ["Class Name Ultimate Texts", "sp/assets/leader/job_name_pp/", "png", "img/", 0, false, false],
                 ["Class Change Buttons", "sp/assets/leader/jlon/", "png", "img/", 2, false, false],
                 ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", "img_low/", 3, false, false],
                 ["Party Class Portraits", "sp/assets/leader/p/", "png", "img_low/", 3, false, false],
