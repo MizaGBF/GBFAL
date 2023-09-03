@@ -40,7 +40,6 @@ var searchHistory = []; // search history
 var searchResults = []; // search results
 var bookmarks = []; // bookmarks
 var timestamp = Date.now(); // timestamp (loaded from changelog.json)
-var relations = {}; // relations of loaded elements
 var updated = []; // list of recently updated elements (loaded from changelog.json)
 var intervals = []; // on screen notifications
 var typingTimer; // typing timer timeout
@@ -98,8 +97,7 @@ function initChangelog(unused)
         timestamp = json.timestamp; // set timestamp
         clock();
     } catch(err) {}
-    // load other json
-    getJSON("json/relation.json?" + timestamp, initRelation, function(unused){}, null);
+    // load data json
     getJSON("json/data.json?" + timestamp, initIndex, initIndex, null);
 }
 
@@ -147,15 +145,6 @@ function initIndex(unused) // load data.json
         if(id != null) lookup(id); // lookup if id param is set
     } catch(err) {
         getJSON("json/data.json?" + timestamp, initIndex, initIndex, null); // try again
-    }
-}
-
-function initRelation(unused) // load relation.json
-{
-    try{
-        relations = JSON.parse(this.response);
-    } catch(err) {
-        
     }
 }
 
@@ -1553,10 +1542,10 @@ function updateRelated(id)
 {
     let relarea = document.getElementById('related');
     let idlist = [];
-    if(id in relations)
+    if("relations" in index && id in index["relations"])
     {
         relarea.innerHTML = "";
-        for(let e of relations[id])
+        for(let e of index["relations"][id])
         {
             let indice = -1;
             if(e[0] == 'e') indice = 4;

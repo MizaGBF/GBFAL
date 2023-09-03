@@ -34,7 +34,8 @@ class Parser():
             "lookup":{},
             "events":{},
             "skills":{},
-            "buffs":{}
+            "buffs":{},
+            "relations":{}
         }
         self.lock = Lock() # lock for self.data
         self.modified = False # if set to true, data.json will be updated
@@ -319,10 +320,10 @@ class Parser():
             print("")
             print("Finished in {:.2f} seconds".format(time.time() - s))
         print("Index update done")
-        self.save()
         self.manualUpdate(self.new_elements)
         self.build_relation()
         self.check_new_event()
+        self.save()
 
     def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, maxerr): # run() subroutine (see above)
         i = start
@@ -782,11 +783,11 @@ class Parser():
                     break
         self.save()
 
-    def req(self, url, headers={}, get=False): # HEAD or GET request function. Set get to True when the content must be downloaded and read
+    def req(self, url, headers={}, get=False, follow_redirects=False): # HEAD or GET request function. Set get to True when the content must be downloaded and read
         if get:
-            response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
+            response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
         else:
-            response = self.client.head(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50)
+            response = self.client.head(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
         if response.status_code != 200: raise Exception("HTTP error {}".format(response.status_code))
         if get:
             return response.content
@@ -1686,14 +1687,14 @@ class Parser():
         elif cid.startswith("30"):
             data["What"] = "Character"
         else:
-            return
+            return False
         match cid[2]:
             case '1': data['Rarity'] = 'N'
             case '2': data['Rarity'] = 'R'
             case '3': data['Rarity'] = 'SR'
             case '4': data['Rarity'] = 'SSR'
         try:
-            r = self.req("https://gbf.wiki/{}".format(wiki_lookup.replace(' ', '_')), get=True)
+            r = self.req("https://gbf.wiki/{}".format(wiki_lookup.replace(' ', '_')), get=True, follow_redirects=True)
             try: content = r.decode('utf-8')
             except: content = r.decode('iso-8859-1')
             soup = BeautifulSoup(content, 'html.parser')
@@ -1753,17 +1754,45 @@ class Parser():
                             data['Series'].append(img.attrs['alt'].split(' ')[1])
                 except:
                     pass
-            if (data["What"] == "Weapon" and len(data.keys()) > 3) or (data["What"] != "Weapon" and len(data.keys()) > 2):
-                with self.lock:
-                    if cid in self.cut_ids: data["Cut-Content"] = "cut-content"
-                    data["ID"] = cid
-                    tmp = []
-                    for v in data.values():
-                        if isinstance(v, list): tmp += v
-                        else: tmp.append(v)
-                    self.data["lookup"][cid] = " ".join(tmp).lower().replace('  ', ' ')
-                    self.modified = True
-                return True
+            # validity check
+            is_valid = True
+            match data["What"]:
+                case "Weapon":
+                    expected = ["Rarity", "Name", "Proficiency", "JP"]
+                    s = " ".join(data.get("Series", "")).lower()
+                    if s == "":
+                        expected.append("Element")
+                    else:
+                        series_check = False
+                        for k in ["ultima", "superlative", "class", "champion"]:
+                            if k in s:
+                                series_check = True
+                                break
+                        if not series_check:
+                            expected.append("Element")
+                case "Character":
+                    expected = ["Rarity", "Name", "Gender", "JP", "Type"]
+                    if data['Name'].lower() not in ["lyria", "blue poppet", "brown poppet", "young cat", "sierokarte"]:
+                        expected.append("Element")
+                case "Summon":
+                    expected = ["Rarity", "Name", "Element"]
+                case _:
+                    return False
+            for k in expected:
+                if k not in data:
+                    is_valid = False
+                    break
+            with self.lock:
+                if cid in self.cut_ids: data["Cut-Content"] = "cut-content"
+                elif not is_valid: return False
+                data["ID"] = cid
+                tmp = []
+                for v in data.values():
+                    if isinstance(v, list): tmp += v
+                    else: tmp.append(v)
+                self.data["lookup"][cid] = " ".join(tmp).lower().replace('  ', ' ')
+                self.modified = True
+            return True
         except:
             pass
         return False
@@ -1818,6 +1847,56 @@ class Parser():
         print("Done")
 
     def manualLookup(self): # for manual lookup. used as a last resort
+        to_delete = []
+        for k, v in self.data["lookup"].items():
+            if 'cut-content' in v: continue
+            x = v.split(" ")
+            match k[0]:
+                case '3':
+                    check = False
+                    for e in ["lyria", "blue poppet", "brown poppet", "young cat", "sierokarte"]:
+                        if e in v:
+                            check = True
+                            break
+                    if not check:
+                        check = False
+                        for e in ["fire", "water", "earth", "wind", "light", "dark"]:
+                            if e in x:
+                                check = True
+                                break
+                        if not check:
+                            to_delete.append(k)
+                            print(k[0], k, x[-5], "/", v)
+                case '2':
+                    check = False
+                    for e in ["fire", "water", "earth", "wind", "light", "dark"]:
+                        if e in x:
+                            check = True
+                            break
+                    if not check:
+                        to_delete.append(k)
+                        print(k[0], k, x[-3], "/", v)
+                case '1':
+                    check = False
+                    for e in ["ultima", "superlative", "class", "champion"]:
+                        if e in v:
+                            check = True
+                            break
+                    if not check:
+                        check = False
+                        for e in ["fire", "water", "earth", "wind", "light", "dark"]:
+                            if e in x:
+                                check = True
+                                break
+                        if not check:
+                            to_delete.append(k)
+                            print(k[0], k, x[-3], "/", v)
+        if len(to_delete) > 0:
+            print(len(to_delete), "entries with possibly incomplete lookup.")
+            if input("Reset them? ('y' to confirm):").lower() == 'y':
+                for k in to_delete:
+                    self.data["lookup"].pop(k)
+                self.modified = True
         for t in ['characters', 'summons', 'weapons']:
             for k in self.data[t]:
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
@@ -1826,6 +1905,7 @@ class Parser():
                     while True:
                         s = input()
                         if s == "": break
+                        s = s.replace("https://gbf.wiki/", "")
                         if not self.generateNameLookup_sub(k, s):
                             print("Page not found, try again")
                         else:
@@ -1945,15 +2025,9 @@ class Parser():
         except:
             self.name_table = {}
         self.name_table_modified = False
-        try:
-            with open("json/relation.json", "r") as f:
-                relation = json.load(f)
-            print("Existing relationships loaded")
-        except:
-            relation = {}
+        relation = self.data.get("relations", {})
         futures = []
         new = []
-        modified = False
         with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
             if len(to_update) == 0:
                 for eid in self.data['characters']:
@@ -1982,11 +2056,11 @@ class Parser():
                 for eid in relation[n]:
                     if eid not in relation:
                         relation[eid] = []
-                        modified = True
+                        self.modified = True
                     if n not in relation[eid]:
                         relation[eid].append(n)
                         relation[eid].sort()
-                        modified = True
+                        self.modified = True
                 relation[n].sort()
             if len(new) > 0:
                 print("Comparing with the name table...")
@@ -2003,19 +2077,14 @@ class Parser():
                     for eid in self.name_table[k]:
                         if eid not in relation:
                             relation[eid] = []
-                            modified = True
+                            self.modified = True
                         for oid in self.name_table[k]:
                             if oid == eid or oid in relation[eid]: continue
                             relation[eid].append(oid)
                             relation[eid].sort()
-                            modified = True
-                if modified:
-                    try:
-                        with open("json/relation.json", "w") as f:
-                            json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
-                        print("Relationships updated")
-                    except:
-                        pass
+                            self.modified = True
+                self.data['relations'] = relation
+                self.save()
             if self.name_table_modified:
                 try:
                     with open("json/relation_name.json", "w") as f:
@@ -2032,14 +2101,8 @@ class Parser():
         except:
             self.name_table = {}
         self.name_table_modified = False
-        try:
-            with open("json/relation.json", "r") as f:
-                relation = json.load(f)
-            print("Existing relationships loaded")
-        except:
-            relation = {}
+        relation = self.data.get("relations", {})
         print("Trying to add relation...")
-        modified = False
         for A in As:
             if A not in self.data['characters'] and A not in self.data['summons'] and A not in self.data['weapons']:
                 print("Unknown element:", A)
@@ -2053,7 +2116,7 @@ class Parser():
                 print("Relation already exists")
                 continue
             relation[A].append(B)
-            modified = True
+            self.modified = True
             for eid in relation[A]:
                 if eid not in relation:
                     relation[eid] = []
@@ -2061,7 +2124,7 @@ class Parser():
                     relation[eid].append(A)
                     relation[eid].sort()
             relation[A].sort()
-        if modified:
+        if self.modified:
             for k in self.name_table:
                 ks = k.replace(',', '').split(' ')
                 for l in self.name_table:
@@ -2079,12 +2142,7 @@ class Parser():
                         if oid == eid or oid in relation[eid]: continue
                         relation[eid].append(oid)
                         relation[eid].sort()
-            try:
-                with open("json/relation.json", "w") as f:
-                    json.dump(relation, f, sort_keys=True, indent='\t', separators=(',', ':'))
-                print("Relationships updated")
-            except:
-                pass
+            self.save()
 
     def relation_edit(self): # manual edit mode for relation
         while True:
