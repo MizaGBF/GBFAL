@@ -1230,7 +1230,7 @@ function updateDynamicList(dynarea, idlist)
             }
             case 4: // enemy
             {
-                addIndexImage(dynarea, "sp/assets/enemy/s/" + e[0] + ".png", "e" + e[0], null, "img/");
+                addIndexImage(dynarea, "sp/assets/enemy/s/" + e[0] + ".png", "e" + e[0], null, "img/").className = "preview";
                 break;
             }
             case 5: // npc
@@ -1804,7 +1804,7 @@ function displayEnemies(elem, i)
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
-            addIndexImage(node, slist[k][0], slist[k][1], null, "img/");
+            addIndexImage(node, slist[k][0], slist[k][1], null, "img/").className = "preview";;
     }
     this.onclick = null;
 }
