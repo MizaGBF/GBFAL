@@ -320,9 +320,11 @@ class Parser():
             print("")
             print("Finished in {:.2f} seconds".format(time.time() - s))
         print("Index update done")
-        self.manualUpdate(self.new_elements)
+        if len(self.new_elements) > 0:
+            self.manualUpdate(self.new_elements)
+            self.check_new_event()
+            self.update_npc_thumb()
         self.build_relation()
-        self.check_new_event()
         self.save()
 
     def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, maxerr): # run() subroutine (see above)
@@ -1177,7 +1179,7 @@ class Parser():
     def npcUpdate(self, id):
         data = [False, [], []] # journal flag, npc, voice
         try:
-            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/{}.jpg".format(id))
+            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/{}_01.jpg".format(id))
             data[0] = True
         except:
             if id.startswith("305"): return False # don't continue for special npcs
@@ -1964,6 +1966,42 @@ class Parser():
                 else: # characters / skins
                     self.data[index][id][7] = r
 
+    def update_npc_thumb(self):
+        self.running = True
+        print("Updating NPC thumbnail data...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
+            futures = []
+            countmax = 0
+            for id in self.data["npcs"]:
+                if not isinstance(self.data["npcs"][id], int) and not self.data["npcs"][id][0]:
+                    futures.append(executor.submit(self.update_npc_thumb_sub, id))
+            s = time.time()
+            count = 0
+            countmax = len(futures) - countmax
+            print(countmax, "element(s) to update...")
+            if countmax == 0:
+                self.running = False
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+                count += 1
+                if count < countmax and count % 50 == 0:
+                    print("Progress: {:.1f}%".format(100*count/countmax))
+                elif count == countmax:
+                    print("Progress: 100%")
+                    print("Finished in {:.2f} seconds".format(time.time() - s))
+                    self.running = False
+        self.save()
+        print("Done")
+
+    def update_npc_thumb_sub(self, id): # subroutine
+        try:
+            self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/{}_01.jpg".format(id))
+            with self.lock:
+                self.data["npcs"][id][0] = True
+                self.modified = True
+        except:
+            pass
+
     def get_relation(self, eid): # retrieve element relation
         try:
             page = self.req("https://gbf.wiki/index.php?search={}".format(eid), get=True)
@@ -2556,6 +2594,7 @@ def print_help():
     print("-listjob     : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
     print("-scene       : Update scene index for characters/npcs with missing data (Time consuming).")
     print("-scenefull   : Update scene index for every characters/npcs (Very time consuming).")
+    print("-thumb       : Update npc thumbnail data.")
     print("-sound       : Update sound index for characters (Very time consuming).")
     print("-partner     : Update data for partner characters (Very time consuming).")
     print("-event       : Update unique event arts (Very time consuming).")
@@ -2616,6 +2655,8 @@ if __name__ == '__main__':
                 p.update_all_scene()
             elif argv[1] == '-scenefull':
                 p.update_all_scene(True)
+            elif argv[1] == '-thumb':
+                p.update_npc_thumb()
             elif argv[1] == '-sound':
                 p.update_all_sound()
             elif argv[1] == '-partner':

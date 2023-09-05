@@ -185,17 +185,21 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
 {
     let search_type;
     let tmp_last_id = last_id;
+    let area_name = ""
+    let area_extra = false;
     switch(id.length)
     {
         case 10:
             switch(id[0])
             {
                 case '1':
-                    newArea("Weapon", id, true, indexed);
+                    area_name = "Weapon";
+                    area_extra = true;
                     search_type = 1;
                     break;
                 case '2':
-                    newArea("Summon", id, true, indexed);
+                    area_name = "Summon";
+                    area_extra = true;
                     search_type = 2;
                     break;
                 case '3':
@@ -203,7 +207,8 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                     {
                         case '399':
                         case '305':
-                            newArea("NPC", id, true, indexed);
+                            area_name = "NPC";
+                            area_extra = true;
                             search_type = 5;
                             break;
                         case '384':
@@ -212,11 +217,12 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                         case '381':
                         case '388':
                         case '389':
-                            newArea("Partner", id, false, indexed);
+                            area_name = "Partner";
                             search_type = 6;
                             break;
                         default:
-                            newArea("Character", id, true, indexed);
+                            area_name = "Character";
+                            area_extra = true;
                             search_type = 3;
                             break;
                     }
@@ -228,7 +234,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             updateQuery(id);
             break;
         case 7:
-            newArea("Enemy", id, false, indexed);
+            area_name = "Enemy";
             search_type = 4;
             last_id = "e"+id;
             updateQuery("e"+id);
@@ -236,14 +242,16 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
         case 6:
             if(check == "events")
             {
-                newArea("Event", id, false, indexed);
+                area_name = "Event";
                 search_type = 7;
                 last_id = "q"+id;
                 updateQuery("q"+id);
             }
             else
             {
-                newArea("Main Character", id, true, (obj[7].length != 0) && indexed);
+                area_name = "Main Character";
+                area_extra = true;
+                indexed = (obj[7].length != 0) && indexed;
                 search_type = 0;
                 last_id = id;
                 updateQuery(id);
@@ -252,14 +260,14 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
         case 4:
             if(check == "skills")
             {
-                newArea("Skill", id, false, indexed);
+                area_name = "Skill";
                 search_type = 8;
                 last_id = "sk"+id;
                 updateQuery("sk"+id);
             }
             else if(check == "buffs")
             {
-                newArea("Buff", id, false, indexed);
+                area_name = "Buff";
                 search_type = 9;
                 last_id = "b"+id;
                 updateQuery("b"+id);
@@ -269,6 +277,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             return;
     }
     if(id == tmp_last_id && last_type == search_type) return; // quit if already loaded
+    newArea(area_name, id, area_extra, indexed);
     last_type = search_type;
     if(indexed)
     {
@@ -868,57 +877,54 @@ function lookup(id)
         (id.length == 6 && id.toLowerCase().startsWith('sk') && !isNaN(id.slice(2))) ||
         (id.length == 7 && id.toLowerCase()[0] === 'q' && !isNaN(id.slice(1))) ||
         (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1))) ||
-        (id.length == 9 && id.toLowerCase()[6] === '_' && !isNaN(id.slice(0, 6))) || // retrocompatibility
         (id.length == 6 && !isNaN(id))
     )
     {
         if(blacklist.includes(id)) return;
-        // process id // NOTE TO SELF: replace this trash by a switch later
-        let start = id.slice(0, 2);
-        let check = null;
+        // process id
         if(f.value == "" || f.value != id)
         {
             f.value = id;
         }
-        if(id.toLowerCase().startsWith('sk'))
+        let check = null;
+        switch(id.length)
         {
-            id = id.slice(2);
-            check = "skills";
+            case 10:
+                switch(id.slice(0, 3))
+                {
+                    case "305": case "399": check = "npcs"; break;
+                    case "304": case "303": case "302": check = "characters"; break;
+                    case "371": check = "skins"; break;
+                    case "384": case "383": case "382": case "388": case "389": check = "partners"; break;
+                    case "204": case "203": case "202": case "201": check = "summons"; break;
+                    case "104": case "103": case "102": case "101": check = "weapons"; break;
+                }
+                break;
+            case 8: // don't redo the lowercase letter check unless needed
+                id = id.slice(1);
+                check = "enemies";
+                break;
+            case 7:
+                id = id.slice(1);
+                check = "events";
+                break;
+            case 6:
+                if(id.toLowerCase().startsWith('sk'))
+                {
+                    id = id.slice(2);
+                    check = "skills";
+                }
+                else
+                {
+                    check = "job";
+                }
+                break;
+            case 5:
+                id = id.slice(1);
+                check = "buffs";
+                break;
         }
-        else if(id.toLowerCase()[0] === 'b')
-        {
-            id = id.slice(1);
-            check = "buffs";
-        }
-        else if(id.toLowerCase()[0] === 'e')
-        {
-            id = id.slice(1);
-            check = "enemies";
-        }
-        else if(id.toLowerCase()[0] === 'q')
-        {
-            id = id.slice(1);
-            check = "events";
-        }
-        else if(id.length == 10)
-        {
-            switch(id.slice(0, 3))
-            {
-                case "305": case "399": check = "npcs"; break;
-                case "304": case "303": case "302": check = "characters"; break;
-                case "371": check = "skins"; break;
-                case "384": case "383": case "382": case "388": case "389": check = "partners"; break;
-                case "204": case "203": case "202": case "201": check = "summons"; break;
-                case "104": case "103": case "102": case "101": check = "weapons"; break;
-            }
-        }
-        else if(id.length == 9 && id[6] == "_") // retrocompatibility
-        {
-            id = id.split('_')[0];
-            check = "job";
-        }
-        else if(id.length == 6) check = "job";
-        // disable search results if not relevant to current id
+        // cleanup search results if not relevant to current id
         let found = false;
         for(const el of searchResults)
         {
