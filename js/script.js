@@ -1877,14 +1877,14 @@ function displayNPC(elem, i, n)
     elem.removeAttribute("onclick");
     let node = document.getElementById('areanpc'+i);
     let start = 3990000000 + i * 1000;
-    let end = start + n * 1000;
+    let end = 3990000000 + n * 1000;
     if("npcs" in index)
     {
         let slist = {};
         for(const [id, data]  of Object.entries(index["npcs"]))
         {
             let t = parseInt(id);
-            if(t < start || t >= end) continue;
+            if(t < start || t > end) continue;
             if(data != 0)
             {
                 if(data[0]) slist[id] = ["sp/assets/npc/m/" + id + "_01.jpg", id, null];
