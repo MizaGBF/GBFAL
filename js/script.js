@@ -208,7 +208,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                         case '399':
                         case '305':
                             area_name = "NPC";
-                            area_extra = true;
+                            area_extra = obj[0] && indexed;
                             search_type = 5;
                             break;
                         case '384':
