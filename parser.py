@@ -358,7 +358,8 @@ class Parser():
         err = 0
         i = start
         while err < 20:
-            if i in self.data["skills"]:
+            fi = str(i).zfill(4)
+            if fi in self.data["skills"]:
                 i += step
                 err = 0
                 continue
@@ -370,8 +371,8 @@ class Parser():
                     found = True
                     err = 0
                     with self.lock:
-                        self.data["skills"][str(i).zfill(4)] = [[str(i) + s.split('.')[0]]]
-                        self.addition[str(i).zfill(4)] = 8
+                        self.data["skills"][fi] = [[str(i) + s.split('.')[0]]]
+                        self.addition[fi] = 8
                         self.modified = True
                     break
                 except:
