@@ -2583,7 +2583,7 @@ class Parser():
         print("-wait        : Wait an in-game update.")
         print("-nochange    : Disable the update of changelog.json.")
         print("")
-        print("MODE parameters:")
+        print("MODE parameters (One at a time):")
         print("-run         : Update the index with new content.")
         print("-update      : Manual JSON updates (Followed by IDs to check).")
         print("-updaterun   : Like '-update' but also do '-run' after.")
