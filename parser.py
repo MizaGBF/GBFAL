@@ -15,6 +15,7 @@ class Parser():
     def __init__(self):
         self.running = False # control if the app is running
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
+        self.debug_wpn = False
         self.request_queue = queue.Queue() # queue used to retrieve npc data
         self.quality = ("/img/", "/js/") # image and js quality
         self.data = { # data structure
@@ -1253,7 +1254,8 @@ class Parser():
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/weapon/m/{}.jpg".format(id))
             data[0].append("{}".format(id))
         except:
-            return False
+            if debug_wpn: data[0].append("{}".format(id))
+            else: return False
         # attack
         for u in ["", "_2", "_3", "_4"]:
             try:
@@ -2574,99 +2576,78 @@ class Parser():
         self.save()
         self.update_changelog = tmp
 
-def print_help():
-    print("Usage: python parser.py [-wait] [-nochange] [OPTION]")
-    print("")
-    print("Start parameters (Optional):")
-    print("-wait        : Wait an in-game update (Must be the first parameter).")
-    print("-nochange    : Disable the update of changelog.json (Must be the first parameter or after -wait, usable with others).")
-    print("")
-    print("Other options:")
-    print("-run         : Update the index with new content.")
-    print("-update      : Manual JSON updates (Followed by IDs to check).")
-    print("-updaterun   : Like '-update' but also do '-run' after.")
-    print("-index       : Check the index for missing content.")
-    print("-job         : Search additional class related data (Very time consuming).")
-    print("-jobedit     : Manually edit job data (Command Line Menu).")
-    print("-lookup      : Update the lookup table (Time Consuming).")
-    print("-lookupfix   : Manually edit the lookup table.")
-    print("-relation    : Update the relationship index.")
-    print("-relinput    : Update to relationships.")
-    print("-listjob     : List indexed spritesheet Job IDs. You can add specific Mainhand ID to filter the list.")
-    print("-scene       : Update scene index for characters/npcs with missing data (Time consuming).")
-    print("-scenefull   : Update scene index for every characters/npcs (Very time consuming).")
-    print("-thumb       : Update npc thumbnail data.")
-    print("-sound       : Update sound index for characters (Very time consuming).")
-    print("-partner     : Update data for partner characters (Very time consuming).")
-    print("-event       : Update unique event arts (Very time consuming).")
-    print("-eventedit   : Edit event data")
-    print("-buff        : Update buff data")
-    time.sleep(2)
+    def print_help(self, timer = 5):
+        print("Usage: python parser.py [START] [MODE]")
+        print("")
+        print("START parameters (Optional):")
+        print("-wait        : Wait an in-game update.")
+        print("-nochange    : Disable the update of changelog.json.")
+        print("")
+        print("MODE parameters:")
+        print("-run         : Update the index with new content.")
+        print("-update      : Manual JSON updates (Followed by IDs to check).")
+        print("-updaterun   : Like '-update' but also do '-run' after.")
+        print("-index       : Check the index for missing content.")
+        print("-job         : Search additional class related data (Very time consuming).")
+        print("-jobedit     : Manually edit job data (Command Line Menu).")
+        print("-lookup      : Update the lookup table (Time Consuming).")
+        print("-lookupfix   : Manually edit the lookup table.")
+        print("-relation    : Update the relationship index.")
+        print("-relinput    : Update to relationships.")
+        print("-scene       : Update scene index for characters/npcs with missing data (Time consuming).")
+        print("-scenefull   : Update scene index for every characters/npcs (Very time consuming).")
+        print("-thumb       : Update npc thumbnail data.")
+        print("-sound       : Update sound index for characters (Very time consuming).")
+        print("-partner     : Update data for partner characters (Very time consuming).")
+        print("-event       : Update unique event arts (Very time consuming).")
+        print("-eventedit   : Edit event data")
+        print("-buff        : Update buff data")
+        if timer > 0: time.sleep(timer)
+
+    def use_params(self, argv):
+        start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
+        flags = set()
+        extras = []
+        for i, k in enumerate(argv):
+            if k in start_flags:
+                flags.add(k) # continue...
+            elif k.startswith("-"):
+                flags.add(k)
+                extras = argv[i+1:]
+                break
+            else:
+                print("Unknown parameter:", k)
+                return
+        if "-debug_scene" in flags: self.debug_output_scene_strings()
+        if "-debug_wpn" in flags: self.debug_wpn = True
+        if "-wait" in flags: self.wait()
+        if "-nochange" in flags: self.update_changelog = False
+        if len(flags) == 0:
+            self.print_help()
+        elif "-run" in flags: self.run()
+        elif "-updaterun" in flags:
+            self.manualUpdate(extras)
+            self.run()
+        elif "-update" in flags: self.manualUpdate(extras)
+        elif "-index" in flags: self.run_index_content()
+        elif "-job" in flags: self.search_job_detail()
+        elif "-jobedit" in flags: self.edit_job()
+        elif "-lookup" in flags: self.buildLookup()
+        elif "-lookupfix" in flags: self.manualLookup()
+        elif "-relation" in flags: self.build_relation()
+        elif "-relinput" in flags: self.relation_edit()
+        elif "-scene" in flags: self.update_all_scene()
+        elif "-scenefull" in flags: self.update_all_scene(True)
+        elif "-thumb" in flags: self.update_npc_thumb()
+        elif "-sound" in flags: self.update_all_sound()
+        elif "-partner" in flags: self.update_all_partner()
+        elif "-event" in flags: self.check_new_event()
+        elif "-eventedit" in flags: self.event_edit()
+        elif "-buff" in flags: self.update_buff()
+        else:
+            self.print_help(timer=0)
+            print("")
+            print("Unknown parameter:", k)
 
 if __name__ == '__main__':
-    p = Parser()
-    argv = sys.argv.copy()
-    # debug stuff
-    if "-debug_scene" in argv:
-        p.debug_output_scene_strings()
-    else:
-        # normal stuff
-        if len(argv) > 1 and argv[1] == "-wait":
-            argv.pop(1)
-            p.wait()
-        if len(argv) > 1 and argv[1] == "-nochange":
-            argv.pop(1)
-            p.update_changelog = False
-        if len(argv) < 2:
-            print_help()
-        else:
-            if argv[1] == '-run':
-                p.run()
-            elif argv[1] == '-updaterun':
-                if len(argv) == 2:
-                    print_help()
-                else:
-                    p.manualUpdate(argv[2:])
-                    p.run()
-            elif argv[1] == '-update':
-                if len(argv) == 2:
-                    print_help()
-                else:
-                    p.manualUpdate(argv[2:])
-            elif argv[1] == '-index':
-                p.run_index_content()
-            elif argv[1] == '-job':
-                p.search_job_detail()
-            elif argv[1] == '-jobedit':
-                p.edit_job()
-            elif argv[1] == '-lookup':
-                p.buildLookup()
-            elif argv[1] == '-lookupfix':
-                p.manualLookup()
-            elif argv[1] == '-relation':
-                p.build_relation()
-            elif argv[1] == '-relinput':
-                p.relation_edit()
-            elif argv[1] == '-listjob':
-                if len(argv) == 2:
-                    p.listjob()
-                else:
-                    p.listjob(argv[2:])
-            elif argv[1] == '-scene':
-                p.update_all_scene()
-            elif argv[1] == '-scenefull':
-                p.update_all_scene(True)
-            elif argv[1] == '-thumb':
-                p.update_npc_thumb()
-            elif argv[1] == '-sound':
-                p.update_all_sound()
-            elif argv[1] == '-partner':
-                p.update_all_partner()
-            elif argv[1] == '-event':
-                p.check_new_event()
-            elif argv[1] == '-eventedit':
-                p.event_edit()
-            elif argv[1] == '-buff':
-                p.update_buff()
-            else:
-                print_help()
+    Parser().use_params(sys.argv[1:])
