@@ -1254,7 +1254,7 @@ class Parser():
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/weapon/m/{}.jpg".format(id))
             data[0].append("{}".format(id))
         except:
-            if debug_wpn: data[0].append("{}".format(id))
+            if self.debug_wpn: data[0].append("{}".format(id))
             else: return False
         # attack
         for u in ["", "_2", "_3", "_4"]:
@@ -1270,6 +1270,8 @@ class Parser():
                 data[2] += self.processManifest(fn)
             except:
                 pass
+        if self.debug_wpn and len(data[1]) == 0 and len(data[2]) == 0:
+            return False
         with self.lock:
             self.modified = True
             self.data['weapons'][id] = data
