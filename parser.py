@@ -17,7 +17,6 @@ class Parser():
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
         self.debug_wpn = False
         self.request_queue = queue.Queue() # queue used to retrieve npc data
-        self.quality = ("/img/", "/js/") # image and js quality
         self.data = { # data structure
             "characters":{},
             "partners":{},
@@ -827,9 +826,9 @@ class Parser():
 
     def req(self, url, headers={}, get=False, follow_redirects=False): # HEAD or GET request function. Set get to True when the content must be downloaded and read
         if get:
-            response = self.client.get(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
+            response = self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
         else:
-            response = self.client.head(url.replace('/img/', self.quality[0]).replace('/js/', self.quality[1]), headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
+            response = self.client.head(url, headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
         if response.status_code != 200: raise Exception("HTTP error {}".format(response.status_code))
         if get:
             return response.content
@@ -1016,11 +1015,12 @@ class Parser():
             attacks = []
             for t in targets:
                 for u in ["", "_2", "_3", "_4"]:
-                    try:
-                        fn = "phit_{}{}{}{}".format(tid, t, style, u)
-                        attacks += self.processManifest(fn)
-                    except:
-                        break
+                    for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
+                        try:
+                            fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                            attacks += self.processManifest(fn)
+                        except:
+                            pass
             data[1] += attacks
             # ougi
             attacks = []
@@ -1153,11 +1153,12 @@ class Parser():
                 attacks = []
                 for t in targets:
                     for u in ["", "_2", "_3", "_4"]:
-                        try:
-                            fn = "phit_{}{}{}{}".format(tid, t, style, u)
-                            attacks += self.processManifest(fn, True)
-                        except:
-                            break
+                        for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
+                            try:
+                                fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                                attacks += self.processManifest(fn, True)
+                            except:
+                                pass
                 tmp[1] = attacks
                 # ougi
                 attacks = []
