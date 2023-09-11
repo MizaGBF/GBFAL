@@ -367,7 +367,7 @@ class Parser():
                             return
             i += step
 
-    def search_skill(self, start, step, full=False): # skill search
+    def search_skill(self, start, step): # skill search
         err = 0
         i = start
         tmp = []
@@ -378,9 +378,6 @@ class Parser():
         tmp.sort()
         try:
             highest = int(tmp[-1])
-            if not full: # speedup
-                while highest - i > 200:
-                    i += step
         except:
             highest = i - 1
         tmp = None
@@ -420,9 +417,6 @@ class Parser():
         tmp.sort()
         try:
             highest = int(tmp[-1])
-            if not full: # speedup
-                while highest - i > 600:
-                    i += step
         except:
             highest = i - 1
         tmp = None
@@ -2610,13 +2604,11 @@ class Parser():
     def update_buff(self):
         tmp = self.update_changelog
         self.update_changelog = False
-        with concurrent.futures.ThreadPoolExecutor(max_workers=120) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
             futures = []
             for i in range(10):
                 for j in range(10):
                     futures.append(executor.submit(self.search_buff, 1000*i+j, 10, True))
-            for i in range(20):
-                futures.append(executor.submit(self.search_skill, i, 10, True))
             print("Started...")
             for future in concurrent.futures.as_completed(futures):
                 future.result()
@@ -2649,7 +2641,7 @@ class Parser():
         print("-partner     : Update data for partner characters (Very time consuming).")
         print("-event       : Update unique event arts (Very time consuming).")
         print("-eventedit   : Edit event data")
-        print("-buff        : Update buff and skill data")
+        print("-buff        : Update buff data")
         if timer > 0: time.sleep(timer)
 
     def use_params(self, argv):
