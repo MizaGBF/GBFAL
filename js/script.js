@@ -2037,7 +2037,7 @@ function displaySubSkill(elem)
         {
             slist[id.padStart(9, "0")] = id;
         }
-        const keys = Object.keys(slist).sort().reverse();
+        const keys = Object.keys(slist).sort();
         for(const k of keys)
         {
             const id = slist[k];
