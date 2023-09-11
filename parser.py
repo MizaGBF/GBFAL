@@ -152,7 +152,7 @@ class Parser():
         self.new_elements = []
         job_thread = 20
         skill_thread = 20
-        buff_series_thread = 2 # x 10
+        buff_series_thread = 5 # x 10
         max_thread = 100
         running_count = 0
         
@@ -169,29 +169,8 @@ class Parser():
         tasks = {}
         print("Starting process...")
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread) as executor: # Note: Threads of each categories will run together, in the limit set by max_thead, to ensure no problem with their errs variable
-            s = time.time()
-            # start first threads first
-            tasks['job'] = {'futures':[], 'todo':[]}
-            self.newShared(errs)
-            for i in range(job_thread):
-                tasks['job']['todo'].append(None) # array size is used later
-                tasks['job']['futures'].append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
-                running_count += 1
-            # skills
-            tasks['skill'] = {'futures':[], 'todo':[]}
-            for i in range(skill_thread):
-                tasks['skill']['todo'].append(None) # array size is used later
-                tasks['skill']['futures'].append(executor.submit(self.search_skill, i, skill_thread))
-                running_count += 1
-            # buffs
-            tasks['buffs'] = {'futures':[], 'todo':[]}
-            for i in range(10):
-                for j in range(buff_series_thread):
-                    tasks['buffs']['todo'].append(None) # array size is used later
-                    tasks['buffs']['futures'].append(executor.submit(self.search_buff, 1000*i+j, buff_series_thread))
-                    running_count += 1
-
-            # prepare the rest
+            # prepare
+            # note: the function will try to start the thread groups in order
             #rarity
             for r in range(1, 5):
                 # weapons
@@ -295,10 +274,35 @@ class Parser():
             tasks['suptix'] = {'todo':[]}
             for i in range(5):
                 tasks['suptix']['todo'].append(('suptix', i, 5, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg",  15))
+            
+            # start timer
+            s = time.time()
+            # prepare the rest and start those threads first
+            # note: those groups are added last to avoid blocking the addition of new threads
+            tasks['job'] = {'futures':[], 'todo':[]}
+            self.newShared(errs)
+            for i in range(job_thread):
+                tasks['job']['todo'].append(None) # array size is used later
+                tasks['job']['futures'].append(executor.submit(self.search_job, i, job_thread, jkeys, errs[-1]))
+                running_count += 1
+            # skills
+            tasks['skill'] = {'futures':[], 'todo':[]}
+            for i in range(skill_thread):
+                tasks['skill']['todo'].append(None) # array size is used later
+                tasks['skill']['futures'].append(executor.submit(self.search_skill, i, skill_thread))
+                running_count += 1
+            # buffs
+            tasks['buffs'] = {'futures':[], 'todo':[]}
+            for i in range(10):
+                for j in range(buff_series_thread):
+                    tasks['buffs']['todo'].append(None) # array size is used later
+                    tasks['buffs']['futures'].append(executor.submit(self.search_buff, 1000*i+j, buff_series_thread))
+                    running_count += 1
 
+            # count max threads for the progress bar
             countmax = 0
             count = 0
-            for k, v in tasks.items(): # count max threads
+            for k, v in tasks.items():
                 countmax += len(v['todo'])
 
             while True:
@@ -417,13 +421,13 @@ class Parser():
         try:
             highest = int(tmp[-1])
             if not full: # speedup
-                while highest - i > 200:
+                while highest - i > 600:
                     i += step
         except:
             highest = i - 1
         tmp = None
         highest = start
-        slist = ["", "_0", "_1", "_10", "_30", "_0_10", "_1_10"] + (["1"] if start >= 1000 else [])
+        slist = ["", "_1", "_10"] + (["1"] if start >= 1000 else []) + ["_30", "_0_10", "_1_10"]
         known = set()
         while err < 20 and i < end:
             fi = str(i).zfill(4)
@@ -456,7 +460,8 @@ class Parser():
                         modified = True
                     found = True
                 except:
-                    pass
+                    if s == "1" and not found:
+                        break
             if not found:
                 if i > highest:
                     err += 1
