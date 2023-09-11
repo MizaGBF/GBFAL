@@ -1322,6 +1322,31 @@ function updateDynamicList(dynarea, idlist)
                 }
                 break;
             }
+            case -1: // assets
+            {
+                let x = e[0].split(":");
+                let id = x[1];
+                x = x[0];
+                switch(x)
+                {
+                    case "background":
+                        addIndexImageGeneric(dynarea, "sp/raid/bg/" + id + "_3.jpg", id+"_3", null);
+                        addIndexImageGeneric(dynarea, "sp/raid/bg/" + id + "_2.jpg", id+"_2", null);
+                        addIndexImageGeneric(dynarea, "sp/raid/bg/" + id + "_1.jpg", id+"_1", null);
+                        break;
+                    case "title":
+                        addIndexImageGeneric(dynarea, "sp/top/bg/bg_" + slist[k] + ".jpg", slist[k], null);
+                        break;
+                    case "suptix":
+                        addIndexImageGeneric(dynarea, "sp/gacha/campaign/surprise/top_" + slist[k] + ".jpg", slist[k], null, "preview-wide");
+                        break;
+                    case "subskills":
+                        addIndexImageGeneric(dynarea, "sp/assets/item/ability/s/" + id + "_1.jpg", id+"_1", null);
+                        addIndexImageGeneric(dynarea, "sp/assets/item/ability/s/" + id + "_2.jpg", id+"_2", null);
+                        addIndexImageGeneric(dynarea, "sp/assets/item/ability/s/" + id + "_3.jpg", id+"_3", null);
+                        break;
+                }
+            }
         }
     }
 }
@@ -1999,6 +2024,29 @@ function addIndexImageGeneric(node, path, id, onerr, className = "preview")
     else img.onerror = onerr;
     img.src = getIndexEndpoint(parseInt(id.replace(/\D/g,''))) + language + "img_low/" + path;
     a.href = img.src.replace("img_low/", "img/");
+}
+
+function displaySubSkill(elem)
+{
+    elem.removeAttribute("onclick");
+    let node = document.getElementById('areasubskill');
+    if("subskills" in index)
+    {
+        let slist = {};
+        for(const id in index["subskills"])
+        {
+            slist[id.padStart(9, "0")] = id;
+        }
+        const keys = Object.keys(slist).sort().reverse();
+        for(const k of keys)
+        {
+            const id = slist[k];
+            addIndexImageGeneric(node, "sp/assets/item/ability/s/" + id + "_1.jpg", id+"_1", null);
+            addIndexImageGeneric(node, "sp/assets/item/ability/s/" + id + "_2.jpg", id+"_2", null);
+            addIndexImageGeneric(node, "sp/assets/item/ability/s/" + id + "_3.jpg", id+"_3", null);
+        }
+    }
+    this.onclick = null;
 }
 
 function displayBG(elem, i=null)
