@@ -149,11 +149,13 @@ class Parser():
     def run(self): # called by -run, update the indexed content
         errs = []
         self.new_elements = []
-        job_thread = 20
-        skill_thread = 20
-        buff_series_thread = 5 # x 10
-        max_thread = 100
         running_count = 0
+        # thread settings start
+        max_thread = 100 # max thread used
+        job_thread = 20 # thread for job tasks
+        skill_thread = 20 # thread for skill tasks
+        buff_series_thread = 5  # thread for a buff task (multiply by ten for total)
+        # thread settings end
         
         # job keys to check
         jkeys = []
@@ -234,6 +236,10 @@ class Parser():
             tasks['npcs_asset'] = {'todo':[]}
             for i in range(10): # assets
                 tasks['npcs_asset']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  60))
+            self.newShared(errs)
+            tasks['npcs_asset2'] = {'todo':[]}
+            for i in range(10): # assets
+                tasks['npcs_asset2']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/assets/npc/b/", "_01.png",  60))
             self.newShared(errs)
             tasks['npcs_sound'] = {'todo':[]}
             for i in range(10): # sounds
@@ -901,14 +907,17 @@ class Parser():
             tcounter = len(futures) - tcounter
             tfinished = 0
             tstep = max(20, tcounter // 25)
+            tsuccess = 0
             if tcounter > 0: print("Attempting to update", telem, "element(s)")
             else: self.running = False
             for future in concurrent.futures.as_completed(futures):
-                future.result()
+                if future.result():
+                    tsuccess += 1
                 tfinished += 1
                 if tfinished == tcounter:
                     print("Progress: 100%")
                     print("Finished in {:.2f} seconds".format(time.time() - s))
+                    print(tsuccess, "element(s) updated with success.")
                     self.running = False
                 elif tfinished < tcounter and tfinished % tstep == 0:
                     print("Progress: {:.1f}%".format(92 * tfinished / tcounter))
@@ -1368,7 +1377,7 @@ class Parser():
         expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_eyeline"]
         variationsA = ["", "_a", "_b", "_battle"]
         variationsB = ["", "_speed", "_up"]
-        specials = ["_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_up_speed", "_a_up_speed", "_b_up_speed", "_c_up_speed", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+        specials = ["_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_up_speed", "_a_up_speed", "_b_up_speed", "_c_up_speed", "_town_thug", "_narrator", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
         scene_alts = []
         for A in variationsA:
             for ex in expressions:
@@ -1379,14 +1388,20 @@ class Parser():
     def bulkRequest(self): # used to make threaded requests for npc data retrieval
         while self.running:
             try:
-                base_url, id, suffix, data = self.request_queue.get(block=True, timeout=0.1)
+                urls, id, suffix, data = self.request_queue.get(block=True, timeout=0.1) # urls to check, id of element to format the url, suffix to format the url, dictionary to update
             except:
                 time.sleep(0.1)
                 continue
-            try:
-                self.req(base_url.format(id, suffix))
-                data[suffix] = True
-            except:
+            found = False
+            for base_url in urls:
+                try:
+                    self.req(base_url.format(id, suffix))
+                    data[suffix] = True
+                    found = True
+                    break
+                except:
+                    pass
+            if not found:
                 data[suffix] = False
 
     def update_scene_file(self, id, uncaps = None, existing = set()):  # return npc data for chara/skin/npc (the function is divided in two, see below)
@@ -1416,11 +1431,10 @@ class Parser():
                     result[s] = True
                 else:
                     result[s] = None
-            for s in result:
-                if result[s] is None:
-                    self.request_queue.put(("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", id, s, result))
-            for s in scene_alts:
-                self.request_queue.put(("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", id, s, result))
+                    if s.endswith("_speed") or s.endswith("_up"): # don't check raid bubbles for those
+                        self.request_queue.put((["https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png"], id, s, result))
+                    else:
+                        self.request_queue.put((["https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/raid/navi_face/{}{}.png"], id, s, result))
             return result
         except:
             return None

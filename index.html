@@ -24,7 +24,7 @@
 <body onload="init()">
     <a id="to-title" href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div>v7.31</div>
+        <div>v7.32</div>
         <div id="timestamp"></div>
     </div>
     <div id="to-bottom" class="clickable" onclick="window.scroll(0, document.body.scrollHeight);"><img src="assets/ui/button.png"></div>
@@ -32,12 +32,14 @@
         <img src="assets/ui/question.png">
         <span class="tooltiptext">
             <ul>
-                <li>A valid ID looks like 3040000000.</li>
-                <li>You can find most of them on the wiki,<br>under the extra tab.</li>
-                <li>You can also search characters, summons or weapons<br>by Tags.</li>
+                <li>You can find most IDs on the wiki,<br>under the extra tab.</li>
+                <li>You can search characters, summons or weapons<br>by Tags.</li>
                 <li>Some elements require to prefix a letter to the ID.<br>'e' for <a href="?id=e6205703">enemies</a>, 'q' for <a href="?id=q230829">events</a>, 'sk' for <a href="?id=sk0001">skills</a>, 'b' for <a href="?id=b1019">buffs</a>.</li>
                 <li>For Classes, simply input the main class ID:<br><a href="?id=450301">450301</a> for Relic Buster.</li>
                 <li>Character styles are part of their base characters.<br>Example: <a href="?id=3040088000">Yngwie</a>.</li>
+                <li><img src="assets/ui/more.png" class="corner-icon"> means that this Buff has variations available.</li>
+                <li><img src="assets/ui/link.png" class="corner-icon"> means that clicking will open the asset directly.</li>
+                <li><img src="assets/ui/skycompass.png" class="corner-icon"> means that this asset comes from the <a href="https://gbf.wiki/Granblue_Fantasy_Sky_Compass">Sky Compass</a>.</li>
                 <li>Click on images to access their highest quality.</li>
             </ul>
         </span>
@@ -689,8 +691,8 @@
             <details>
                 <summary>Year 2019</summary>
                 <div class="subdetails">
-                    <details onclick="displayNPC(this, 1252, 1431)">
-                        <summary>1252 - 1431</summary>
+                    <details onclick="displayNPC(this, 1254, 1431)">
+                        <summary>1254 - 1431</summary>
                         <h3 class="result mobile-big" id="areanpc1252">
                             <small>Non-exhaustive list</small><br>
                         </h3>
@@ -712,7 +714,7 @@
                             <small>Non-exhaustive list</small><br>
                         </h3>
                     </details>
-                    <details onclick="displayNPC(this, 1092, 1251)">
+                    <details onclick="displayNPC(this, 1092, 1253)">
                         <summary>1092 - 1251</summary>
                         <h3 class="result mobile-big" id="areanpc1092">
                             <small>Non-exhaustive list</small><br>

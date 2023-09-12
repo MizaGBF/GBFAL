@@ -276,8 +276,16 @@ h3 {
     background: url(../assets/ui/skycompass.png) no-repeat bottom left 0% / 15%;
 }
 
+.link {
+    background: url(../assets/ui/link.png) no-repeat bottom left 0% / 15%;
+}
+
+.corner-icon {
+    height: 25px;
+}
+
 .more {
-    background: url(../assets/ui/more.png) no-repeat bottom left 0% / 25%;
+    background: url(../assets/ui/more.png) no-repeat bottom left 0% / 20%;
 }
 
 .homepage-ui {
