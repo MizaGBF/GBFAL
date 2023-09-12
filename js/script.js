@@ -1242,7 +1242,10 @@ function updateDynamicList(dynarea, idlist)
                     if(index["npcs"][e[0]][0])
                         addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + "_01.jpg", e[0], null);
                     else if(index["npcs"][e[0]][1].length > 0)
-                        addIndexImage(dynarea, "sp/quest/scene/character/body/" + e[0] + index["npcs"][e[0]][1][0] + ".png", e[0], null).className = "preview";
+                        addIndexImage(dynarea, "sp/quest/scene/character/body/" + e[0] + index["npcs"][e[0]][1][0] + ".png", e[0], function() {
+                            this.src = "assets/ui/sound_only.png";
+                            this.className = "sound-only";
+                        }).className = "preview";
                     else
                         addIndexImage(dynarea, "assets/ui/sound_only.png", e[0], null, "local").className = "sound-only";
                 }
@@ -1910,7 +1913,10 @@ function displayNPC(elem, i, n)
             switch(slist[k][2])
             {
                 case "preview":
-                    addIndexImage(node, slist[k][0], slist[k][1], null).className = slist[k][2];
+                    addIndexImage(node, slist[k][0], slist[k][1], function() {
+                            this.src = "assets/ui/sound_only.png";
+                            this.className = "sound-only";
+                        }).className = slist[k][2];
                     break;
                 case "sound-only":
                     addIndexImage(node, slist[k][0], slist[k][1], null, "local").className = slist[k][2];
