@@ -1374,7 +1374,7 @@ class Parser():
 
     # called once. generate a list of string to check for npc data
     def build_scene_strings(self):
-        expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_eyeline"]
+        expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_nalhe", "_eyeline"]
         variationsA = ["", "_a", "_b", "_battle"]
         variationsB = ["", "_speed", "_up"]
         specials = ["_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_up_speed", "_a_up_speed", "_b_up_speed", "_c_up_speed", "_town_thug", "_narrator", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
@@ -1424,6 +1424,12 @@ class Parser():
                     scene_alts.append(uncap+s)
             scene_alts += self.scene_special_strings
             if id.startswith("305"):
+                i = 0
+                while i < len(scene_alts):
+                    if scene_alts[i].endswith("_up"):
+                        scene_alts = scene_alts[:i+1] + scene_alts[i]+"2" + scene_alts[i]+"3" + scene_alts[i]+"4" + scene_alts[i+1:]
+                        i += 3
+                    i += 1
                 scene_alts += ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
             result = {}
             for s in scene_alts:
@@ -2673,7 +2679,10 @@ class Parser():
             else:
                 print("Unknown parameter:", k)
                 return
-        if "-debug_scene" in flags: self.debug_output_scene_strings()
+        ran = False
+        if "-debug_scene" in flags:
+            ran = True
+            self.debug_output_scene_strings()
         if "-debug_wpn" in flags: self.debug_wpn = True
         if "-wait" in flags: self.wait()
         if "-nochange" in flags: self.update_changelog = False
@@ -2699,7 +2708,7 @@ class Parser():
         elif "-event" in flags: self.check_new_event()
         elif "-eventedit" in flags: self.event_edit()
         elif "-buff" in flags: self.update_buff()
-        else:
+        elif not ran:
             self.print_help(timer=0)
             print("")
             print("Unknown parameter:", k)
