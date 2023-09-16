@@ -68,7 +68,6 @@ class Parser():
         # others
         self.re = re.compile("[123][07][1234]0\\d{4}00")
         self.vregex = re.compile("Game\.version = \"(\d+)\";")
-        self.scene_strings, self.scene_special_strings = self.build_scene_strings()
         self.preemptive_add = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"])
         
         limits = httpx.Limits(max_keepalive_connections=300, max_connections=300, keepalive_expiry=10)
@@ -80,6 +79,7 @@ class Parser():
         
         # startup
         self.load()
+        self.scene_strings, self.scene_special_strings, self.scene_known_strings = self.build_scene_strings()
         self.exclusion = set([]) # a banned id list
         self.job_list = None
 
@@ -1015,7 +1015,7 @@ class Parser():
                         scenes = set(self.data['characters'][id][7])
                 except:
                     scenes = set()
-                pending = self.request_scene_bulk(id, uncaps, scenes)
+                pending = self.request_scene_bulk(id, uncaps, scenes, True)
             # # # Other sheets
             # attack
             targets = [""]
@@ -1235,7 +1235,7 @@ class Parser():
             if id.startswith("305"): return False # don't continue for special npcs
         try: scenes = set(self.data["npcs"][id][1])
         except: scenes = set()
-        pending = self.request_scene_bulk(id, [""], scenes)
+        pending = self.request_scene_bulk(id, [""], scenes, True)
         try: voices = set(self.data['npcs'][id][2])
         except: voices = set()
         data[2] = self.update_chara_sound_file(id, [""], voices)
@@ -1383,7 +1383,29 @@ class Parser():
             for ex in expressions:
                 for B in variationsB:
                     scene_alts.append(A+ex+B)
-        return scene_alts, specials
+        known_strings = set()
+        for x in ["characters", "skins"]:
+            d = self.data[x]
+            for k, v in d.items():
+                try:
+                    if isinstance(v, list) and isinstance(v[7], list):
+                        for e in v[7]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: known_strings.add(e[3:])
+                            else: known_strings.add(e)
+                except:
+                    pass
+        for x in ["npcs"]:
+            for k, v in self.data[x].items():
+                try:
+                    if isinstance(v, list) and isinstance(v[0], list):
+                        for e in v[0]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: known_strings.add(e[3:])
+                            else: known_strings.add(e)
+                except:
+                    pass
+        known_strings = list(known_strings)
+        known_strings.sort()
+        return scene_alts, specials, known_strings
 
     def bulkRequest(self): # used to make threaded requests for npc data retrieval
         while self.running:
@@ -1404,15 +1426,15 @@ class Parser():
             if not found:
                 data[suffix] = False
 
-    def update_scene_file(self, id, uncaps = None, existing = set()):  # return npc data for chara/skin/npc (the function is divided in two, see below)
-        r = self.request_scene_bulk(id, uncaps, existing)
+    def update_scene_file(self, id, uncaps = None, existing = set(), full = False):  # return npc data for chara/skin/npc (the function is divided in two, see below)
+        r = self.request_scene_bulk(id, uncaps, existing, full)
         if r is not None:
             l = 1 if uncaps is None else len(uncaps)
             time.sleep(10*l) # take a break, waiting for the requests to go through
             return self.process_scene_bulk(r)
         return None
 
-    def request_scene_bulk(self, id, uncaps = None, existing = set()):
+    def request_scene_bulk(self, id, uncaps = None, existing = set(), full = False):
         try:
             scene_alts = []
             if uncaps is None:
@@ -1421,7 +1443,8 @@ class Parser():
                 if uncap == "01": uncap = ""
                 elif uncap != "": uncap = "_" + uncap
                 for s in self.scene_strings:
-                    scene_alts.append(uncap+s)
+                    if full or s in self.scene_known_strings:
+                        scene_alts.append(uncap+s)
             scene_alts += self.scene_special_strings
             if id.startswith("305"):
                 i = 0
@@ -1988,7 +2011,7 @@ class Parser():
             countmax = len(futures)
             for k in ["characters", "skins"]:
                 for id in self.data[k]:
-                    if not isinstance(self.data[k][id], int) and (full or (len(self.data[k][id]) >= 8 and (self.data[k][id][7] is None or len(self.data[k][id][7]) == 0))):
+                    if not isinstance(self.data[k][id], int):
                         uncaps = []
                         for u in self.data[k][id][5]:
                             uu = u.replace(id+"_", "")
@@ -1996,12 +2019,12 @@ class Parser():
                                 uncaps.append(uu)
                         try: scenes = set(self.data["npcs"][id][7])
                         except: scenes = set()
-                        futures.append(executor.submit(self.update_all_scene_sub, k, id, uncaps, scenes))
+                        futures.append(executor.submit(self.update_all_scene_sub, k, id, uncaps, scenes, full))
             for id in self.data["npcs"]:
-                if isinstance(self.data["npcs"][id], int) or full or self.data["npcs"][id][0] is None or len(self.data["npcs"][id][0]) == 0:
+                if not isinstance(self.data["npcs"][id], int):
                     try: scenes = set(self.data["npcs"][id][1])
                     except: scenes = set()
-                    futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
+                    futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes, full))
             s = time.time()
             count = 0
             countmax = len(futures) - countmax
@@ -2020,8 +2043,8 @@ class Parser():
         self.save()
         print("Done")
 
-    def update_all_scene_sub(self, index, id, uncaps, scenes): # subroutine
-        r = self.update_scene_file(id, uncaps, scenes)
+    def update_all_scene_sub(self, index, id, uncaps, scenes, full): # subroutine
+        r = self.update_scene_file(id, uncaps, scenes, full)
         if r is not None:
             with self.lock:
                 self.modified = True
@@ -2309,45 +2332,10 @@ class Parser():
                     print("Update detected.")
                     return
 
-    def debug_output_scene_strings(self, recur=False):
-        print("Exporting all scene file suffixes...")
-        keys = set()
-        errs = []
-        for x in ["characters", "skins"]:
-            d = self.data[x]
-            for k, v in d.items():
-                try:
-                    if isinstance(v, list) and isinstance(v[7], list):
-                        for e in v[7]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
-                            else: keys.add(e)
-                except:
-                    errs.append(k)
-        for x in ["npcs"]:
-            for k, v in self.data[x].items():
-                try:
-                    if isinstance(v, list) and isinstance(v[0], list):
-                        for e in v[0]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
-                            else: keys.add(e)
-                except:
-                    errs.append(k)
-        if len(errs) > 0: # refresh elements with errors
-            if recur:
-                print("Still", len(errs), "elements incorrectly formed, manual debugging is necessary")
-            else:
-                tmp = self.update_changelog
-                self.update_changelog = False
-                print(len(errs), "elements incorrectly formed, attempting to update")
-                self.manualUpdate(errs)
-                self.debug_output_scene_strings()
-                self.update_changelog = tmp
-        else:
-            keys = list(keys)
-            keys.sort()
-            with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
-                json.dump(keys, f)
-            print("Data exported to 'json/debug_scene_strings.json'")
+    def debug_output_scene_strings(self):
+        with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
+            json.dump(self.scene_known_strings, f)
+        print("Data exported to 'json/debug_scene_strings.json'")
 
     def get_event_list(self):
         r = self.req('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22', get=True)
@@ -2655,8 +2643,8 @@ class Parser():
         print("-lookupfix   : Manually edit the lookup table.")
         print("-relation    : Update the relationship index.")
         print("-relinput    : Update to relationships.")
-        print("-scene       : Update scene index for characters/npcs with missing data (Time consuming).")
-        print("-scenefull   : Update scene index for every characters/npcs (Very time consuming).")
+        print("-scene       : Update scene index for every characters/npcs (Time consuming).")
+        print("-scenefull   : Update scene index for every characters/npcs (Does more requests) (Very time consuming).")
         print("-thumb       : Update npc thumbnail data.")
         print("-sound       : Update sound index for characters (Very time consuming).")
         print("-partner     : Update data for partner characters (Very time consuming).")
