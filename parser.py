@@ -1430,7 +1430,7 @@ class Parser():
         r = self.request_scene_bulk(id, uncaps, existing, full)
         if r is not None:
             l = 1 if uncaps is None else len(uncaps)
-            time.sleep(10*l) # take a break, waiting for the requests to go through
+            time.sleep(5*l) # take a break, waiting for the requests to go through
             return self.process_scene_bulk(r)
         return None
 
@@ -1473,7 +1473,7 @@ class Parser():
             if result is None: return None
             while True:
                 if None in set(result.values()):
-                    time.sleep(4)
+                    time.sleep(2)
                 else:
                     break
             result = [k for k, v in result.items() if v == True]
@@ -2005,7 +2005,7 @@ class Parser():
     def update_all_scene(self, full=False): # update npc data for every element (if full is true) or every non indexed elements
         self.running = True
         print("Updating scene data...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=180) as executor:
             futures = []
             for k in range(100): futures.append(executor.submit(self.bulkRequest))
             countmax = len(futures)
