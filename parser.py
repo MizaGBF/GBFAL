@@ -426,7 +426,7 @@ class Parser():
             highest = i - 1
         tmp = None
         highest = start
-        slist = ["", "_1", "_10"] + (["1"] if start >= 1000 else []) + ["_30", "_0_10", "_1_10"]
+        slist = ["", "_1", "_10"] + (["1"] if start >= 1000 else []) + ["_30", "_1_1", "_1_10"]
         known = set()
         while err < 20 and i < end:
             fi = str(i).zfill(4)
