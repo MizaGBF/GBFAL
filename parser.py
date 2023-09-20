@@ -79,7 +79,7 @@ class Parser():
         
         # startup
         self.load()
-        self.scene_strings, self.scene_special_strings, self.scene_known_strings = self.build_scene_strings()
+        self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings()
         self.exclusion = set([]) # a banned id list
         self.job_list = None
 
@@ -858,8 +858,8 @@ class Parser():
         if len(ids) == 0:
             return
         ids = list(set(ids)) # remove dupes
-        self.running = True
         with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
+            self.running = True
             futures = []
             # check what kind of ids we deal with
             has_npc = False
@@ -906,23 +906,28 @@ class Parser():
                     telem += 1
             tcounter = len(futures) - tcounter
             tfinished = 0
-            tstep = max(20, tcounter // 25)
             tsuccess = 0
-            if tcounter > 0: print("Attempting to update", telem, "element(s)")
-            else: self.running = False
+            if tcounter > 0:
+                print("Attempting to update", telem, "element(s)")
+                sys.stdout.write("\rProgress: 0%       ")
+                sys.stdout.flush()
+            else:
+                self.running = False
             for future in concurrent.futures.as_completed(futures):
                 if future.result():
                     tsuccess += 1
                 tfinished += 1
                 if tfinished == tcounter:
-                    print("Progress: 100%")
+                    print("\rProgress: 100%")
                     print("Finished in {:.2f} seconds".format(time.time() - s))
                     print(tsuccess, "element(s) updated with success.")
                     self.running = False
-                elif tfinished < tcounter and tfinished % tstep == 0:
-                    print("Progress: {:.1f}%".format(92 * tfinished / tcounter))
-        self.save()
-        self.running = False
+                elif tfinished < tcounter:
+                    sys.stdout.write("\rProgress: {:.1f}%   ".format(98 * tfinished / tcounter))
+                    sys.stdout.flush()
+            self.save()
+            if tsuccess > 0:
+                self.sort_all_scene()
         print("Done")
 
     def update_all_partner(self): # make a list of partners and potential partners to update
@@ -1015,7 +1020,7 @@ class Parser():
                         scenes = set(self.data['characters'][id][7])
                 except:
                     scenes = set()
-                pending = self.request_scene_bulk(id, uncaps, scenes, True)
+                pending = self.request_scene_bulk(id, uncaps, scenes)
             # # # Other sheets
             # attack
             targets = [""]
@@ -1235,7 +1240,7 @@ class Parser():
             if id.startswith("305"): return False # don't continue for special npcs
         try: scenes = set(self.data["npcs"][id][1])
         except: scenes = set()
-        pending = self.request_scene_bulk(id, [""], scenes, True)
+        pending = self.request_scene_bulk(id, [""], scenes)
         try: voices = set(self.data['npcs'][id][2])
         except: voices = set()
         data[2] = self.update_chara_sound_file(id, [""], voices)
@@ -1373,39 +1378,23 @@ class Parser():
         return True
 
     # called once. generate a list of string to check for npc data
-    def build_scene_strings(self):
-        expressions = ["", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_nalhe", "_eyeline"]
-        variationsA = ["", "_a", "_b", "_battle"]
-        variationsB = ["", "_speed", "_up"]
-        specials = ["_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_up_speed", "_a_up_speed", "_b_up_speed", "_c_up_speed", "_town_thug", "_narrator", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+    def build_scene_strings(self, expressions = None):
+        if expressions is None or len(expressions) == 0:
+            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_eyeline"]
+        variationsA = ["", "_a", "_b", "_c", "_battle"]
+        variationsB = ["", "_speed", "_up", "_shadow", "_shadow2", "_shadow3", "_light"]
         scene_alts = []
         for A in variationsA:
             for ex in expressions:
                 for B in variationsB:
+                    if (A == "_battle" and B not in ["", "_speed", "_up", "_shadow"]) or (B != "" and (B == ex or (ex == "_speed2" and B == "_speed") or (ex.startswith("_shadow") and B.startswith("_shadow")))): continue
                     scene_alts.append(A+ex+B)
-        known_strings = set()
-        for x in ["characters", "skins"]:
-            d = self.data[x]
-            for k, v in d.items():
-                try:
-                    if isinstance(v, list) and isinstance(v[7], list):
-                        for e in v[7]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: known_strings.add(e[3:])
-                            else: known_strings.add(e)
-                except:
-                    pass
-        for x in ["npcs"]:
-            for k, v in self.data[x].items():
-                try:
-                    if isinstance(v, list) and isinstance(v[0], list):
-                        for e in v[0]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: known_strings.add(e[3:])
-                            else: known_strings.add(e)
-                except:
-                    pass
-        known_strings = list(known_strings)
-        known_strings.sort()
-        return scene_alts, specials, known_strings
+        specials = ["_light_heart", "_nalhe","_nalhe_up","_nalhe_speed", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_girl_angry", "_girl_surprise", "_girl_think", "_town_thug", "_narrator", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+        special_suffix = []
+        for B in variationsB:
+            if B != "":
+                special_suffix.append(B.split("_")[-1])
+        return scene_alts, specials, special_suffix
 
     def bulkRequest(self): # used to make threaded requests for npc data retrieval
         while self.running:
@@ -1426,15 +1415,13 @@ class Parser():
             if not found:
                 data[suffix] = False
 
-    def update_scene_file(self, id, uncaps = None, existing = set(), full = False):  # return npc data for chara/skin/npc (the function is divided in two, see below)
-        r = self.request_scene_bulk(id, uncaps, existing, full)
+    def update_scene_file(self, id, uncaps = None, existing = set()):  # return npc data for chara/skin/npc (the function is divided in two, see below)
+        r = self.request_scene_bulk(id, uncaps, existing)
         if r is not None:
-            l = 1 if uncaps is None else len(uncaps)
-            time.sleep(5*l) # take a break, waiting for the requests to go through
             return self.process_scene_bulk(r)
         return None
 
-    def request_scene_bulk(self, id, uncaps = None, existing = set(), full = False):
+    def request_scene_bulk(self, id, uncaps = None, existing = set()):
         try:
             scene_alts = []
             if uncaps is None:
@@ -1443,8 +1430,7 @@ class Parser():
                 if uncap == "01": uncap = ""
                 elif uncap != "": uncap = "_" + uncap
                 for s in self.scene_strings:
-                    if full or s in self.scene_known_strings:
-                        scene_alts.append(uncap+s)
+                    scene_alts.append(uncap+s)
             scene_alts += self.scene_special_strings
             if id.startswith("305"):
                 i = 0
@@ -1454,13 +1440,21 @@ class Parser():
                         i += 3
                     i += 1
                 scene_alts += ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
+                scene_alts = list(set(scene_alts))
             result = {}
+            for s in existing:
+                result[s] = True
             for s in scene_alts:
-                if s in existing:
-                    result[s] = True
-                else:
+                if s not in result:
                     result[s] = None
-                    if s.endswith("_speed") or s.endswith("_up"): # don't check raid bubbles for those
+                    tmp = s.split("_")
+                    no_bubble = (s != "" and tmp[1].isdigit() and len(tmp[1]) == 2) # don't check raid bubbles for uncaps
+                    if not no_bubble:
+                        for k in self.scene_special_suffix: # nor for those suffixes
+                            if k in tmp[-1]:
+                                no_bubble = True
+                                break
+                    if no_bubble:
                         self.request_queue.put((["https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png"], id, s, result))
                     else:
                         self.request_queue.put((["https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/raid/navi_face/{}{}.png"], id, s, result))
@@ -1473,7 +1467,7 @@ class Parser():
             if result is None: return None
             while True:
                 if None in set(result.values()):
-                    time.sleep(2)
+                    time.sleep(1)
                 else:
                     break
             result = [k for k, v in result.items() if v == True]
@@ -1506,18 +1500,20 @@ class Parser():
             for k in to_update:
                 for e in to_update[k]:
                     futures.append(executor.submit(self.update_all_sound_sub, k, e[0], e[1], e[2]))
-            count = 0
             countmax = len(futures)
-            print(countmax, "element(s) to update...")
             if countmax == 0:
                 self.running = False
+            else:
+                sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
+                sys.stdout.flush()
             for future in concurrent.futures.as_completed(futures):
                 future.result()
-                count += 1
-                if count < countmax and count % 80 == 0:
-                    print("Progress: {:.1f}%".format(95*count/countmax))
-                elif count == countmax:
-                    print("Progress: 100%")
+                countmax -= 1
+                if countmax > 0:
+                    sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
+                    sys.stdout.flush()
+                elif countmax == 0:
+                    print("\rAll elements updated.              ")
                     print("Finished in {:.2f} seconds".format(time.time() - s))
                     self.running = False
         self.save()
@@ -1900,13 +1896,16 @@ class Parser():
                             futures.append(executor.submit(self.generateNameLookup, k))
             count = 0
             countmax = len(futures)
-            print(countmax, "element(s) to update...")
             if countmax > 0:
+                print(countmax, "element(s) to update...")
+                sys.stdout.write("\rProgress: 0%       ")
+                sys.stdout.flush()
                 for future in concurrent.futures.as_completed(futures):
                     future.result()
                     count += 1
-                    if count % 100 == 0:
-                        print("Progress: {:.1f}%".format(100*count/countmax))
+                    sys.stdout.write("\rProgress: {:.1f}%   ".format(100*count/countmax))
+                    sys.stdout.flush()
+                print("")
         # second pass
         for t in ['characters', 'summons', 'weapons']:
             for k in self.data[t]:
@@ -2002,12 +2001,14 @@ class Parser():
         self.save()
         print("Done")
 
-    def update_all_scene(self, full=False): # update npc data for every element (if full is true) or every non indexed elements
+    def update_all_scene(self, targeted_strings = []): # update npc data for every element
+        if len(targeted_strings) > 0:
+            self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
         self.running = True
         print("Updating scene data...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=180) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
             futures = []
-            for k in range(100): futures.append(executor.submit(self.bulkRequest))
+            for k in range(90): futures.append(executor.submit(self.bulkRequest))
             countmax = len(futures)
             for k in ["characters", "skins"]:
                 for id in self.data[k]:
@@ -2017,34 +2018,38 @@ class Parser():
                             uu = u.replace(id+"_", "")
                             if "_" not in uu and uu.startswith("0"):
                                 uncaps.append(uu)
-                        try: scenes = set(self.data["npcs"][id][7])
+                        try: scenes = set(self.data[k][id][7])
                         except: scenes = set()
-                        futures.append(executor.submit(self.update_all_scene_sub, k, id, uncaps, scenes, full))
+                        futures.append(executor.submit(self.update_all_scene_sub, k, id, uncaps, scenes))
             for id in self.data["npcs"]:
                 if not isinstance(self.data["npcs"][id], int):
                     try: scenes = set(self.data["npcs"][id][1])
                     except: scenes = set()
-                    futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes, full))
+                    futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
             s = time.time()
-            count = 0
             countmax = len(futures) - countmax
-            print(countmax, "element(s) to update...")
+            sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
+            sys.stdout.flush()
             if countmax == 0:
                 self.running = False
             for future in concurrent.futures.as_completed(futures):
                 future.result()
-                count += 1
-                if count < countmax and count % 50 == 0:
-                    print("Progress: {:.1f}%".format(100*count/countmax))
-                elif count == countmax:
-                    print("Progress: 100%")
+                countmax -= 1
+                if countmax > 0:
+                    sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
+                    sys.stdout.flush()
+                elif countmax == 0:
+                    print("\rAll elements updated.              ")
                     print("Finished in {:.2f} seconds".format(time.time() - s))
                     self.running = False
+        if len(targeted_strings) > 0:
+            self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
+        self.sort_all_scene()
         self.save()
         print("Done")
 
-    def update_all_scene_sub(self, index, id, uncaps, scenes, full): # subroutine
-        r = self.update_scene_file(id, uncaps, scenes, full)
+    def update_all_scene_sub(self, index, id, uncaps, scenes): # subroutine
+        r = self.update_scene_file(id, uncaps, scenes)
         if r is not None:
             with self.lock:
                 self.modified = True
@@ -2052,6 +2057,35 @@ class Parser():
                     self.data[index][id][1] = r
                 else: # characters / skins
                     self.data[index][id][7] = r
+
+    def sort_all_scene(self):
+        dummy_data = {s : False for s in self.scene_strings}
+        for t in ["characters", "skins", "npcs"]:
+            for k, v in self.data[t].items():
+                before = str(v[-2])
+                data = {"01":dummy_data.copy()}
+                for s in v[-2]:
+                    tmp = s.split("_")
+                    if s != "" and tmp[1].isdigit() and len(tmp[1]) == 2:
+                        if tmp[1] not in data:
+                            data[tmp[1]] = dummy_data.copy()
+                        data[tmp[1]][s[3:]] = True
+                    else:
+                        data["01"][s] = True
+                new = []
+                keys = list(data.keys())
+                keys.sort()
+                for dk in keys:
+                    for ds, db in data[dk].items():
+                        if db:
+                            if dk == "01":
+                                new.append(ds)
+                            else:
+                                new.append("_"+dk+ds)
+                if str(new) != before:
+                    self.modified = True
+                    self.data[t][k][-2] = new
+        self.save()
 
     def update_npc_thumb(self):
         self.running = True
@@ -2063,18 +2097,19 @@ class Parser():
                 if not isinstance(self.data["npcs"][id], int) and not self.data["npcs"][id][0]:
                     futures.append(executor.submit(self.update_npc_thumb_sub, id))
             s = time.time()
-            count = 0
             countmax = len(futures) - countmax
-            print(countmax, "element(s) to update...")
+            sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
+            sys.stdout.flush()
             if countmax == 0:
                 self.running = False
             for future in concurrent.futures.as_completed(futures):
                 future.result()
-                count += 1
-                if count < countmax and count % 50 == 0:
-                    print("Progress: {:.1f}%".format(100*count/countmax))
-                elif count == countmax:
-                    print("Progress: 100%")
+                countmax -= 1
+                if countmax > 0:
+                    sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
+                    sys.stdout.flush()
+                elif countmax == 0:
+                    print("\rAll elements updated.              ")
                     print("Finished in {:.2f} seconds".format(time.time() - s))
                     self.running = False
         self.save()
@@ -2644,7 +2679,7 @@ class Parser():
         print("-relation    : Update the relationship index.")
         print("-relinput    : Update to relationships.")
         print("-scene       : Update scene index for every characters/npcs (Time consuming).")
-        print("-scenefull   : Update scene index for every characters/npcs (Does more requests) (Very time consuming).")
+        print("-scenesort   : Sort indexed scene data  for every characters/npcs.")
         print("-thumb       : Update npc thumbnail data.")
         print("-sound       : Update sound index for characters (Very time consuming).")
         print("-partner     : Update data for partner characters (Very time consuming).")
@@ -2688,8 +2723,8 @@ class Parser():
         elif "-lookupfix" in flags: self.manualLookup()
         elif "-relation" in flags: self.build_relation()
         elif "-relinput" in flags: self.relation_edit()
-        elif "-scene" in flags: self.update_all_scene()
-        elif "-scenefull" in flags: self.update_all_scene(True)
+        elif "-scene" in flags: self.update_all_scene(extras)
+        elif "-scenesort" in flags: self.sort_all_scene()
         elif "-thumb" in flags: self.update_npc_thumb()
         elif "-sound" in flags: self.update_all_sound()
         elif "-partner" in flags: self.update_all_partner()
