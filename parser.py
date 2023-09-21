@@ -1428,6 +1428,7 @@ class Parser():
                 uncaps = [""]
             for uncap in uncaps:
                 if uncap == "01": uncap = ""
+                elif uncap[:1] in ['8', '9']: continue
                 elif uncap != "": uncap = "_" + uncap
                 for s in self.scene_strings:
                     scene_alts.append(uncap+s)
