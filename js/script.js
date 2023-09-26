@@ -320,6 +320,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             break;
         case 7: // events
             assets = [
+                ["Sky Compass", "", "", "", 20, true, false],
                 ["Opening Arts", "sp/quest/scene/character/body/", "png", "img_low/", 2, false, false],
                 ["Chapter 1 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 5, false, false],
                 ["Chapter 2 Arts", "sp/quest/scene/character/body/", "png", "img_low/", 6, false, false],
@@ -339,6 +340,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 ["Ending Arts", "sp/quest/scene/character/body/", "png", "img_low/", 3, false, false],
                 ["Other Arts", "sp/quest/scene/character/body/", "png", "img_low/", 4, false, false]
             ];
+            skycompass = ["https://media.skycompass.io/assets/archives/events/"+obj[1]+"/image/", "_free.png", true];
             break;
         case 8: // skills
             assets = [
@@ -549,48 +551,51 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             }
             for(let file of files)
             {
-                if(!asset[6] && (file.endsWith('_f') || file.endsWith('_f1'))) continue;
-                let img = document.createElement("img");
-                let ref = document.createElement('a');
-                let url_target = null;
-                if(file.endsWith(".png") || file.endsWith(".jpg"))
+                if(asset[3].length > 0)
                 {
-                    img.src = getMainEndpoint() + language + asset[3] + asset[1] + file;
-                    url_target = img.src;
-                }
-                else
-                {
-                    img.src = getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
-                    url_target = img.src;
-                }
-                ref.setAttribute('href', url_target.replace("img_low", "img"));
-                img.classList.add("loading");
-                if(is_home) img.classList.add("homepage"); // use this class name as a flag
-                img.setAttribute('loading', 'lazy');
-                img.onerror = function() {
-                    let result = this.parentNode.parentNode;
-                    this.parentNode.remove();
-                    let n = (this.classList.contains("homepage") ? 3 : 2);
-                    if(result.tagName.toLowerCase() == "details")
+                    if(!asset[6] && (file.endsWith('_f') || file.endsWith('_f1'))) continue;
+                    let img = document.createElement("img");
+                    let ref = document.createElement('a');
+                    let url_target = null;
+                    if(file.endsWith(".png") || file.endsWith(".jpg"))
                     {
-                        n -= 1;
-                        result = result.parentNode;
+                        img.src = getMainEndpoint() + language + asset[3] + asset[1] + file;
+                        url_target = img.src;
                     }
-                    this.remove();
-                    if(result.childNodes.length <= n) result.remove();
-                };
-                img.onload = function() {
-                    this.classList.remove("loading");
-                    this.classList.add("asset");
-                    if(this.classList.contains("homepage") && previewhome) // set homepage classes if this class if present
+                    else
                     {
-                        this.classList.remove("homepage");
-                        this.classList.add("homepage-bg");
-                        this.parentNode.classList.add("homepage-ui");
+                        img.src = getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
+                        url_target = img.src;
                     }
-                };
-                div.appendChild(ref);
-                ref.appendChild(img);
+                    ref.setAttribute('href', url_target.replace("img_low", "img"));
+                    img.classList.add("loading");
+                    if(is_home) img.classList.add("homepage"); // use this class name as a flag
+                    img.setAttribute('loading', 'lazy');
+                    img.onerror = function() {
+                        let result = this.parentNode.parentNode;
+                        this.parentNode.remove();
+                        let n = (this.classList.contains("homepage") ? 3 : 2);
+                        if(result.tagName.toLowerCase() == "details")
+                        {
+                            n -= 1;
+                            result = result.parentNode;
+                        }
+                        this.remove();
+                        if(result.childNodes.length <= n) result.remove();
+                    };
+                    img.onload = function() {
+                        this.classList.remove("loading");
+                        this.classList.add("asset");
+                        if(this.classList.contains("homepage") && previewhome) // set homepage classes if this class if present
+                        {
+                            this.classList.remove("homepage");
+                            this.classList.add("homepage-bg");
+                            this.parentNode.classList.add("homepage-ui");
+                        }
+                    };
+                    div.appendChild(ref);
+                    ref.appendChild(img);
+                }
                 if(skycompass != null && asset[5]) // skycompass
                 {
                     img = document.createElement("img");
@@ -1871,7 +1876,6 @@ function displayEventNPC(elem)
         let slist = {};
         for(const id in index["events"])
         {
-            if(id.startsWith("39")) continue;
             let has_file = false;
             for(let i = 2; i < index["events"][id].length; ++i)
             {
@@ -1881,7 +1885,7 @@ function displayEventNPC(elem)
                     break;
                 }
             }
-            if(has_file && index["events"][id][0] >= 0)
+            if(has_file)
             {
                 if(index["events"][id][1] == null)
                     slist[id] = ["assets/ui/event.png", "q"+id, "sound-only"];

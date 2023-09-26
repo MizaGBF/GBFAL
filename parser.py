@@ -2475,6 +2475,26 @@ class Parser():
                     i += 1
         return ev, l
 
+    def update_event_sky(self, ev):
+        known = set(self.data['events'][ev][-1])
+        evid = self.data['events'][ev][1]
+        i = 1
+        modified = False
+        while True:
+            if i in known: continue
+            try:
+                self.req("https://media.skycompass.io/assets/archives/events/{}/image/{}_free.png".format(evid, i))
+                known.add(i)
+                modified = True
+            except:
+                break
+            i+=1
+        if modified:
+            with self.lock:
+                self.modified = True
+                known = list(known)
+                self.data['events'][ev][-1] = known
+
     def check_new_event(self, init_list = None):
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
         now = int(str(now.year)[2:] + str(now.month).zfill(2) + str(now.day).zfill(2))
@@ -2511,7 +2531,7 @@ class Parser():
                 for ev in check:
                     if check[ev] >= 0:
                         print("Event", ev, "has", check[ev], "chapters")
-                    self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3
+                    self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
                     self.modified = True
                 print("Done")
         self.save()
@@ -2528,7 +2548,7 @@ class Parser():
             ec = 0
             for ev in events:
                 if full and ev not in self.data["events"]:
-                    self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3
+                    self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
                 if ev in self.data["events"] and (full or (not full and self.data["events"][ev][0] >= 0)):
                     known_assets = set()
                     for i in range(2, len(self.data["events"][ev])):
@@ -2554,26 +2574,27 @@ class Parser():
                 m = min(max(10, len(futures) // 20), 500)
                 for future in concurrent.futures.as_completed(futures):
                     r = future.result()
-                    ev = r[0]
-                    if len(r[1])  > 0:
-                        for e in r[1]:
-                            try:
-                                x = e.split("_")[2]
-                                match x:
-                                    case "op":
-                                        self.data["events"][ev][2].append(e)
-                                    case "ed":
-                                        self.data["events"][ev][3].append(e)
-                                    case "osarai":
-                                        self.data["events"][ev][4].append(e)
-                                    case _:
-                                        if "_cp" in e:
-                                            self.data["events"][ev][4+int(x[2:])].append(e)
-                                        else:
+                    if r is not None:
+                        ev = r[0]
+                        if len(r[1])  > 0:
+                            for e in r[1]:
+                                try:
+                                    x = e.split("_")[2]
+                                    match x:
+                                        case "op":
+                                            self.data["events"][ev][2].append(e)
+                                        case "ed":
+                                            self.data["events"][ev][3].append(e)
+                                        case "osarai":
                                             self.data["events"][ev][4].append(e)
-                            except:
-                                self.data["events"][ev][4].append(e)
-                        modified.add(ev)
+                                        case _:
+                                            if "_cp" in e:
+                                                self.data["events"][ev][4+int(x[2:])].append(e)
+                                            else:
+                                                self.data["events"][ev][4].append(e)
+                                except:
+                                    self.data["events"][ev][4].append(e)
+                            modified.add(ev)
                     count += 1
                     if count % m == 0:
                         print("Progress: {:.1f}%".format(100 * count / len(futures)))
@@ -2594,6 +2615,8 @@ class Parser():
             print("[1] Set Thumbnails")
             print("[2] Update Events")
             print("[3] Update All Valid Events")
+            print("[4] Update SkyCompass")
+            print("[5] Add Events")
             print("[Any] Quit")
             s = input().lower()
             match s:
@@ -2630,6 +2653,7 @@ class Parser():
                                             else:
                                                 self.data["events"][ev][1] = int(s)
                                             self.modified = True
+                                            self.update_event_sky(ev)
                                         except:
                                             pass
                     self.save()
@@ -2643,6 +2667,39 @@ class Parser():
                         if self.data["events"][ev][0] >= 0:
                             l.append(ev)
                     self.update_event(l)
+                case "4":
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=40) as executor:
+                        futures = []
+                        c = 0
+                        for ev in self.data["events"]:
+                            if self.data["events"][ev][1] is not None:
+                                futures.append(executor.submit(self.update_event_sky, ev))
+                        print("Checking", len(futures), "event(s)...")
+                        for future in concurrent.futures.as_completed(futures):
+                            future.result()
+                            c += 1
+                            sys.stdout.write("\rProgress: {:.1f}%        ".format(100*c/len(futures)))
+                            sys.stdout.flush()
+                    print("\nDone.")
+                    self.save()
+                case "5":
+                    while True:
+                        s = input("Input a list of Event date or a combo date:thumbnail (Leave blank to cancel):")
+                        if s != "":
+                            th = None
+                            if ":" in s:
+                                s = s.split(':')
+                                th = s[1]
+                                s = s[0]
+                            if s not in self.data["events"]:
+                                self.data["events"][s] = [-1, th, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
+                                self.modified = True
+                            elif th is not None:
+                                self.data["events"][s][1] = th
+                                self.modified = True
+                        else:
+                            break
+                    self.save()
                 case _:
                     break
 
