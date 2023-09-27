@@ -2,16 +2,47 @@
 Web page to search for GBF assets.  
 Click [Here](https://mizagbf.github.io/GBFAL) to access it.  
   
-# How-to.  
+## Front-End  
 The project consists of a single HTML, javascript and css files.  
-All the work is done via the JSON files loaded by the javascript file.  
-Those JSON files are generated and maintained with `parser.py`.  
-Do note that using `parser.py` can be time and bandwidth consuming.  
-Running it without parameters will give you a list of parameters.  
-The most useful ones are:  
-- `python parser -run`: It will fetch all new elements and update the JSON accordingly.  
-- `python parser -update ELEMENT_ID_1 ELEMENT_ID_2 ... ELEMENT_ID_N`: To update specific elements (for example, characters if they got updated with an uncap). ELEMENT_ID are IDs of the elements to update, for example 3040000000.  
-Others parameters are mostly for maintenance or debug purpose.  
-Do note than main character classes can be tricky: A class ID must be associated with what I call a keyword, and even sometime weapon files (in case of skins with custom ougis/effects).  
-You can run `python parser -job` to search keywords and possible outfit related weapon files.  
-`python parser -jobedit` will then give you a menu with various ways to set them to the related class.  
+[Github Pages](https://pages.github.com/) are used for hosting but it can technically be hosted anywhere.  
+  
+## Back-End  
+Two of the JSON files in the `json` folder are the core of the system:  
+- [changelog.json](https://github.com/MizaGBF/GBFAL/blob/main/json/changelog.json) is the first file loaded upon opening the page. It contains the timestamp of the last update and a list of recently updated elements.  
+- [data.json](https://github.com/MizaGBF/GBFAL/blob/main/json/data.json) is loaded next and contains the data used to catalog all the assets, and more.  
+Others JSON files are used for debug or update purpose:  
+- [job_data_export.json](https://github.com/MizaGBF/GBFAL/blob/main/json/job_data_export.json) is used to quickly link some MC jobs to their weapon animations using the built-in CLI.  
+- [relation_name.json](https://github.com/MizaGBF/GBFAL/blob/main/json/relation_name.json) is used to maintain and create the related section.  
+More JSON files not specified here might appear in this folder.  
+  
+## [parser.py](https://github.com/MizaGBF/GBFAL/blob/main/parser.py)  
+This script is in charge of updating the JSON files.  
+Do note than using it can be time and bandwidth consuming and the code isn't always optimized (especially for recent additions).  
+Running `python parser.py` without any parameters will give you an up-to-date list of parameters, but here's a description of them at the time of writing this README:
+- Start parameters:
+ - `-wait`: Wait for GBF to update before running.  
+ - `-nochange`: Disable changes to [changelog.json](https://github.com/MizaGBF/GBFAL/blob/main/json/changelog.json) "new" list.  
+- Action parameters (Only one of those can be used at a time):
+ - `-run`: Look for new content. If new content is found, it will automatically run `-update`, `-event`, `-thumb` and `-relation`.  
+ - `-update`: Update the content for specified IDs. Example usage: `python parser.py -update 3040000000 3040001000` to update those two characters. Usable with all ten digit IDs and boss IDs.  
+ - `-updaterun`: Same as `-update` but does `-run` after.  
+ - `-index`: DEPRECATED. Check for incomplete elements in need of an update.  
+ - `-job`: Check for new MC jobs. Time consuming and not always accurate.  
+ - `-jobedit`: Open the `JOB EDIT` CLI, allowing you to manually edit the job data.  
+ - `-lookup`: Force update the lookup table. Time consuming.  
+ - `-lookupfix`: Open a CLI to manually add lookup data to elements without any. Last resort option.  
+ - `-relation`: Check for new relationships between elements.  
+ - `-relinput`: Open a CLI to create relationships between elements. Last resort option.  
+ - `-scene`: Update scene datas for characters, outfits and NPCs. VERY VERY time consuming.  
+ - `-scenesort`: Sort scene datas for every elements. It's called automatically in most cases but this is a way to trigger it manually.  
+ - `-thumb`: Check thumbnail data for NPCs.  
+ - `-sound`: Update sound datas for characters, outfits and NPCs. VERY time consuming.  
+ - `-partner`: Update all partner datas. VERY time consuming.  
+ - `-event`: Update event datas. Time consuming.  
+ - `-eventedit`: Open the `EVENT EDIT` CLI, allowing you to add event thumbnail, update skycompass arts and more.  
+ - `-buff`: Update all buff datas. Time consuming.
+  
+## Other Informations  
+- On Windows, [local_server.bat](https://github.com/MizaGBF/GBFAL/blob/main/local_server.bat) can be used to test the project locally, in a web browser.  
+- On other OS, just run `python -m http.server` in a terminal, in the project folder.
+- [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations.
