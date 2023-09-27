@@ -152,9 +152,9 @@ class Parser():
         running_count = 0
         # thread settings start
         max_thread = 100 # max thread used
-        job_thread = 20 # thread for job tasks
-        skill_thread = 20 # thread for skill tasks
-        buff_series_thread = 5  # thread for a buff task (multiply by ten for total)
+        job_thread = 10 # thread for job tasks
+        skill_thread = 10 # thread for skill tasks
+        buff_series_thread = 4  # thread for a buff task (multiply by ten for total)
         # thread settings end
         
         # job keys to check
