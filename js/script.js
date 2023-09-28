@@ -880,7 +880,6 @@ function loadUnindexed(id, check)// minimal load of an element not indexed or no
     }
     if(data != null)
     {
-        last_id = (id.length == 7) ? "e"+id : id;
         updateQuery(last_id);
         loadIndexed(id, data, check, false);
     }

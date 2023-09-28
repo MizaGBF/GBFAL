@@ -151,10 +151,10 @@ class Parser():
         self.new_elements = []
         running_count = 0
         # thread settings start
-        max_thread = 100 # max thread used
+        max_thread = 200 # max thread used
         job_thread = 10 # thread for job tasks
         skill_thread = 10 # thread for skill tasks
-        buff_series_thread = 4  # thread for a buff task (multiply by ten for total)
+        buff_series_thread = 10  # thread for a buff task (multiply by ten for total)
         # thread settings end
         
         # job keys to check
@@ -172,7 +172,25 @@ class Parser():
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_thread) as executor: # Note: Threads of each categories will run together, in the limit set by max_thead, to ensure no problem with their errs variable
             # prepare
             # note: the function will try to start the thread groups in order
-            #rarity
+            # speedtrick 1
+            tasks['buffs2'] = None
+            tasks['buffs9'] = None
+            # npc
+            self.newShared(errs)
+            tasks['npcs_asset1'] = {'todo':[]}
+            for i in range(10): # assets
+                tasks['npcs_asset1']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  60))
+            self.newShared(errs)
+            tasks['npcs_asset2'] = {'todo':[]}
+            for i in range(10): # assets
+                tasks['npcs_asset2']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/assets/npc/b/", "_01.png",  60))
+            self.newShared(errs)
+            tasks['npcs_sound'] = {'todo':[]}
+            for i in range(10): # sounds
+                tasks['npcs_sound']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  60))
+            tasks['npcs_sp'] = {'todo':[]}
+            tasks['npcs_sp']['todo'].append(('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  2))
+            #rarity of various stuff
             for r in range(1, 5):
                 # weapons
                 for j in range(10):
@@ -204,6 +222,9 @@ class Parser():
                     tasks['partners{}-2'.format(r)] = {'todo':[]}
                     for i in range(5):
                         tasks['partners{}-2'.format(r)]['todo'].append(('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20))
+            # speedtrick 2
+            tasks['job'] = None
+            tasks['skill'] = None
             # other partners
             for r in range(8, 10):
                 self.newShared(errs)
@@ -231,22 +252,6 @@ class Parser():
                         tasks['enemies{}{}{}'.format(a,b,d)] = {'todo':[]}
                         for i in range(5):
                             tasks['enemies{}{}{}'.format(a,b,d)]['todo'].append(('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png",  50))
-            # npc
-            self.newShared(errs)
-            tasks['npcs_asset'] = {'todo':[]}
-            for i in range(10): # assets
-                tasks['npcs_asset']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  60))
-            self.newShared(errs)
-            tasks['npcs_asset2'] = {'todo':[]}
-            for i in range(10): # assets
-                tasks['npcs_asset2']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/assets/npc/b/", "_01.png",  60))
-            self.newShared(errs)
-            tasks['npcs_sound'] = {'todo':[]}
-            for i in range(10): # sounds
-                tasks['npcs_sound']['todo'].append(('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  60))
-            tasks['npcs_sp'] = {'todo':[]}
-            tasks['npcs_sp']['todo'].append(('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  2))
-            
             # backgrounds
             for i in ["event_{}", "common_{}", "main_{}"]:
                 self.newShared(errs)
@@ -263,7 +268,6 @@ class Parser():
                 tasks['bg'+i[0]+'-'+i[1]] = {'todo':[]}
                 for j in range(5):
                     tasks['bg'+i[0]+'-'+i[1]]['todo'].append(('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg",  50))
-            
             # titles
             self.newShared(errs)
             tasks['title'] = {'todo':[]}
@@ -283,7 +287,7 @@ class Parser():
             # start timer
             s = time.time()
             # prepare the rest and start those threads first
-            # note: those groups are added last to avoid blocking the addition of new threads
+            # note: those groups are last to control in which order their futures will be processed
             tasks['job'] = {'futures':[], 'todo':[]}
             self.newShared(errs)
             for i in range(job_thread):
@@ -297,11 +301,11 @@ class Parser():
                 tasks['skill']['futures'].append(executor.submit(self.search_skill, i, skill_thread))
                 running_count += 1
             # buffs
-            tasks['buffs'] = {'futures':[], 'todo':[]}
             for i in range(10):
+                tasks['buffs'+str(i)] = {'futures':[], 'todo':[]}
                 for j in range(buff_series_thread):
-                    tasks['buffs']['todo'].append(None) # array size is used later
-                    tasks['buffs']['futures'].append(executor.submit(self.search_buff, 1000*i+j, buff_series_thread))
+                    tasks['buffs'+str(i)]['todo'].append(None) # array size is used later
+                    tasks['buffs'+str(i)]['futures'].append(executor.submit(self.search_buff, 1000*i+j, buff_series_thread))
                     running_count += 1
 
             # count max threads for the progress bar
@@ -353,12 +357,13 @@ class Parser():
                     self.new_elements.append(f)
                 with err[2]:
                     err[0] = 0
+                time.sleep(0.001)
             else:
                 try:
                     if f in self.multi_summon: self.req(endpoint + path + f + ext.replace("_damage", "_a_damage"))
                     else: self.req(endpoint + path + f + ext)
                     with err[2]:
-                        err[0] = 0
+                        err[0] = min(err[0], 0)
                         self.data[index][f] = 0
                         if index in ["background", "title", "subskills", "suptix"]:
                             self.addition[index+":"+f] = -1
@@ -428,7 +433,7 @@ class Parser():
         highest = start
         slist = ["", "_1", "_10"] + (["1"] if start >= 1000 else []) + ["_30", "_1_1", "_1_10"]
         known = set()
-        while err < 20 and i < end:
+        while err < 10 and i < end:
             fi = str(i).zfill(4)
             if not full:
                 if fi in self.data["buffs"]:
