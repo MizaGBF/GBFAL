@@ -36,7 +36,8 @@ class Parser():
             "skills":{},
             "subskills":{},
             "buffs":{},
-            "relations":{}
+            "relations":{},
+            "eventthumb":{}
         }
         self.lock = Lock() # lock for self.data
         self.modified = False # if set to true, data.json will be updated
@@ -2525,6 +2526,7 @@ class Parser():
                 print(len(check.keys()), "potential new event(s)")
                 count = 0
                 m = min(max(10, len(futures) // 20), 2000)
+                new_story_event = []
                 for future in concurrent.futures.as_completed(futures):
                     r = future.result()
                     ev = r[0]
@@ -2536,9 +2538,13 @@ class Parser():
                 for ev in check:
                     if check[ev] >= 0:
                         print("Event", ev, "has", check[ev], "chapters")
+                        new_story_event.append(ev)
                     self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
                     self.modified = True
                 print("Done")
+                if len(new_story_event) > 0:
+                    new_story_event.sort()
+                    self.event_thumbnail_association(new_story_event)
         self.save()
         if init_list is None:
             self.update_event(list(check.keys()))
@@ -2722,6 +2728,60 @@ class Parser():
             print("Done")
         self.save()
         self.update_changelog = tmp
+
+    def event_thumbnail_association(self, events):
+        print("Checking event thumbnails...")
+        in_use = set()
+        for eid, ev in self.data["events"].items():
+            if ev[1] is not None: in_use.add(str(ev[1]))
+        in_use = list(in_use)
+        in_use.sort()
+        for eid in in_use:
+            if eid not in self.data["eventthumb"]:
+                self.modified = True
+                self.data["eventthumb"][eid] = 1
+        thread_count = 20
+        with concurrent.futures.ThreadPoolExecutor(max_workers=thread_count*2) as executor:
+            futures = []
+            for i in range(thread_count):
+                futures.append(executor.submit(self.event_thumbnail_association_sub, 7001, 9000, thread_count))
+                futures.append(executor.submit(self.event_thumbnail_association_sub, 9001, 10000, thread_count))
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+        new = []
+        for eid, ev in self.data["eventthumb"].items():
+            if ev == 0: new.append(int(eid))
+        new.sort()
+        if len(new) > 0:
+            print(len(new), "event thumbnails")
+            if len(new) == len(events):
+                print("Matching to new events...")
+                for i in range(len(new)):
+                    self.data["events"][str(events[i])][1] = new[i]
+                    self.data["eventthumb"][str(new[i])] = 1
+                    self.update_event_sky(str(events[i]))
+                    self.modified = True
+                print("Please make sure they have been set to their correct events")
+            else:
+                print("Can't match new events to new thumbnails with certainty, -eventedit is required")
+        print("Done")
+        self.save()
+
+    def event_thumbnail_association_sub(self, start, end, step):
+        err = 0
+        i = start
+        while err < 10 and i < end:
+            try:
+                f = "{}0".format(i)
+                if f not in self.data["eventthumb"]:
+                    self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/archive/assets/island_m2/{}.png".format(f))
+                    with self.lock:
+                        self.data["eventthumb"][f] = 0
+                        self.modified = True
+                err = 0
+            except:
+                err += 1
+            i += step
 
     def print_help(self, timer = 5):
         print("Usage: python parser.py [START] [MODE]")
