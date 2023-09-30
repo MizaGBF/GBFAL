@@ -272,18 +272,18 @@ class Parser():
             # titles
             self.newShared(errs)
             tasks['title'] = {'todo':[]}
-            for i in range(5):
-                tasks['title']['todo'].append(('title', i, 5, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg",  15))
+            for i in range(3):
+                tasks['title']['todo'].append(('title', i, 3, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg",  5))
             # subskills
             self.newShared(errs)
             tasks['subskills'] = {'todo':[]}
-            for i in range(5):
-                tasks['subskills']['todo'].append(('subskills', i, 5, errs[-1], "{}", 1, "img_low/sp/assets/item/ability/s/", "_1.jpg",  3))
+            for i in range(3):
+                tasks['subskills']['todo'].append(('subskills', i, 3, errs[-1], "{}", 1, "img_low/sp/assets/item/ability/s/", "_1.jpg",  5))
             # suptix
             self.newShared(errs)
             tasks['suptix'] = {'todo':[]}
-            for i in range(5):
-                tasks['suptix']['todo'].append(('suptix', i, 5, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg",  15))
+            for i in range(3):
+                tasks['suptix']['todo'].append(('suptix', i, 3, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg",  15))
             
             # start timer
             s = time.time()
