@@ -1213,7 +1213,9 @@ function updateDynamicList(dynarea, idlist)
                             if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
                     }
                 }
-                addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + uncap + ".jpg", e[0]);
+                let onerr = null;
+                if(uncap != "_01") onerr = function() {this.src = "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/"+e[0]+"_01.jpg";};
+                addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + uncap + ".jpg", e[0], onerr);
                 break;
             }
             case 2: // summon
@@ -1663,11 +1665,15 @@ function displayCharacters(elem, i, r_start, r_end, sr_start, sr_end, ssr_start,
                 for(const f of data[6])
                     if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
             }
-            slist[id.padEnd(15, "0")] = ["sp/assets/npc/m/" + id + uncap + ".jpg", id];
+            let onerr = null;
+            if(uncap != "_01") onerr = function() {this.src="https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"};
+            slist[id.padEnd(15, "0")] = ["sp/assets/npc/m/" + id + uncap + ".jpg", id, onerr];
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
-            addIndexImage(node, slist[k][0], slist[k][1]);
+        {
+            addIndexImage(node, slist[k][0], slist[k][1], slist[k][2]);
+        }
     }
     this.onclick = null;
 }
