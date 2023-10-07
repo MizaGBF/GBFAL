@@ -122,11 +122,14 @@ class Parser():
                 if self.update_changelog:
                     try:
                         with open('json/changelog.json', mode='r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            issues = data.get('issues', [])
                             existing = {}
-                            for e in json.load(f).get('new', []):
+                            for e in data.get('new', []):
                                 existing[e[0]] = e[1]
                     except:
                         existing = {}
+                        issues = []
                     new = []
                     existing = existing | self.addition
                     self.addition = {}
@@ -134,7 +137,7 @@ class Parser():
                         new.append([k, v])
                     if len(new) > 100: new = new[len(new)-100:]
                     with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
-                        json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new}, outfile)
+                        json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':'issues}, outfile)
                     print("changelog.json updated")
         except Exception as e:
             print(e)

@@ -96,6 +96,18 @@ function initChangelog(unused)
             updated = json["new"].reverse();
         timestamp = json.timestamp; // set timestamp
         clock();
+        if(json.hasOwnProperty("issues"))
+        {
+            let issues = json["issues"];
+            if(issues.length > 0)
+            {
+                let el = document.getElementById("issues");
+                el.innerHTML = "<ul>"
+                for(let i = 0; i < issues.length; ++i) el.innerHTML += "<li>"+issues[i]+"</li>\n";
+                el.innerHTML += "</ul>"
+                el.parentNode.parentNode.style.display = null;
+            }
+        }
     } catch(err) {}
     // load data json
     getJSON("json/data.json?" + timestamp, initIndex, initIndex, null);
