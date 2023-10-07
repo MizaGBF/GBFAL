@@ -1307,7 +1307,7 @@ function updateDynamicList(dynarea, idlist)
                     if(index["events"][e[0]][1] == null)
                         addIndexImage(dynarea, "assets/ui/event.png", "q"+e[0], null, "local").className = "sound-only";
                     else
-                        addIndexImage(dynarea, "sp/archive/assets/island_m2/" + index["events"][e[0]][1] + ".png", "q"+e[0], null).className = "preview";
+                        addIndexImage(dynarea, "sp/archive/assets/island_m2/" + index["events"][e[0]][1] + ".png", "q"+e[0], null).className = "preview" + (index["events"][e[0]][index["events"][e[0]].length-1].length > 0 ? " sky-event" : "");
                 }
                 break;
             }
@@ -1893,17 +1893,17 @@ function displayEventNPC(elem)
             if(has_file)
             {
                 if(index["events"][id][1] == null)
-                    slist[id] = ["assets/ui/event.png", "q"+id, "sound-only"];
+                    slist[id] = ["assets/ui/event.png", "q"+id, "sound-only", 0];
                 else
-                    slist[id] = [ "sp/archive/assets/island_m2/" + index["events"][id][1] + ".png", "q"+id, ""];
+                    slist[id] = [ "sp/archive/assets/island_m2/" + index["events"][id][1] + ".png", "q"+id, (index["events"][id][index["events"][id].length-1].length > 0 ? " sky-event":"")];
             }
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
-            if(slist[k][2] != "")
+            if(slist[k][2] == "sound-only")
                 addIndexImage(node, slist[k][0], slist[k][1], null, "local").className = slist[k][2];
             else
-                addIndexImage(node, slist[k][0], slist[k][1]).className = "preview";
+                addIndexImage(node, slist[k][0], slist[k][1]).className = "preview" + slist[k][2];
     }
     this.onclick = null;
 }

@@ -164,6 +164,10 @@ footer, #header {
     border-radius: 10px;
 }
 
+.sky-event {
+    background-color: #73ffff;
+}
+
 .preview-wide {
     min-width : 138px;
     max-width: 138px;

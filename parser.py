@@ -2484,21 +2484,25 @@ class Parser():
     def update_event_sky(self, ev):
         known = set(self.data['events'][ev][-1])
         evid = self.data['events'][ev][1]
-        i = 1
+        try:
+            i = max(self.data['events'][ev][-1]) + 1
+        except:
+            i = 1
         modified = False
         while True:
-            if i in known: continue
-            try:
-                self.req("https://media.skycompass.io/assets/archives/events/{}/image/{}_free.png".format(evid, i))
-                known.add(i)
-                modified = True
-            except:
-                break
+            if i not in known:
+                try:
+                    self.req("https://media.skycompass.io/assets/archives/events/{}/image/{}_free.png".format(evid, i))
+                    known.add(i)
+                    modified = True
+                except:
+                    break
             i+=1
         if modified:
             with self.lock:
                 self.modified = True
                 known = list(known)
+                known.sort()
                 self.data['events'][ev][-1] = known
 
     def check_new_event(self, init_list = None):
