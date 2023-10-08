@@ -42,9 +42,10 @@ Action parameters (Only one of those can be used at a time):
 - `-partner`: Update all partner datas. VERY time consuming.  
 - `-event`: Update event datas. Time consuming.  
 - `-eventedit`: Open the `EVENT EDIT` CLI, allowing you to add event thumbnail, update skycompass arts and more.  
-- `-buff`: Update all buff datas. Time consuming.
+- `-buff`: Update all buff datas. Time consuming.  
   
 ## Other Informations  
 - On Windows, [local_server.bat](https://github.com/MizaGBF/GBFAL/blob/main/local_server.bat) can be used to test the project locally, in a web browser.  
-- On other OS, just run `python-m http.server` in a terminal, in the project folder.
-- [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations.
+- On other OS, just run `python-m http.server` in a terminal, in the project folder.  
+- [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations.  
+- Alternatively, you can just request for `https://raw.githubusercontent.com/MizaGBF/GBFAL/main/json/changelog.json` to check if the timestamp changed and then download `https://github.com/MizaGBF/GBFAL/blob/main/json/data.json` for your project.  
