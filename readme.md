@@ -17,19 +17,18 @@ Others JSON files are used for debug or update purpose:
   
 More JSON files not specified here might appear in this folder.  
   
-## [parser.py](https://github.com/MizaGBF/GBFAL/blob/main/parser.py)  
+## [updater.py](https://github.com/MizaGBF/GBFAL/blob/main/updater.py)  
 This script is in charge of updating the JSON files.  
 Do note than using it can be time and bandwidth consuming and the code isn't always optimized (especially for recent additions).  
-Running `python parser.py` without any parameters will give you an up-to-date list of parameters, but here's a description of them at the time of writing this README:
+Running `python updater.py` without any parameters will give you an up-to-date list of parameters, but here's a description of them at the time of writing this README:
 Start parameters:
 - `-wait`: Wait for GBF to update before running.  
 - `-nochange`: Disable changes to [changelog.json](https://github.com/MizaGBF/GBFAL/blob/main/json/changelog.json) "new" list.  
   
 Action parameters (Only one of those can be used at a time):
 - `-run`: Look for new content. If new content is found, it will automatically run `-update`, `-event`, `-thumb` and `-relation`.  
-- `-update`: Update the content for specified IDs. Example usage: `python parser.py-update 3040000000 3040001000` to update those two characters. Usable with all ten digit IDs and boss IDs.  
+- `-update`: Update the content for specified IDs. Example usage: `python updater.py-update 3040000000 3040001000` to update those two characters. Usable with all ten digit IDs and boss IDs.  
 - `-updaterun`: Same as `-update` but does `-run` after.  
-- `-index`: DEPRECATED. Check for incomplete elements in need of an update.  
 - `-job`: Check for new MC jobs. Time consuming and not always accurate.  
 - `-jobedit`: Open the `JOB EDIT` CLI, allowing you to manually edit the job data.  
 - `-lookup`: Force update the lookup table. Time consuming.  

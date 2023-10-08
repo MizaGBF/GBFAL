@@ -11,7 +11,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timezone, timedelta
 import traceback
 
-class Parser():
+class Updater():
+    # Constructor, contains the 'global' variables
     def __init__(self):
         self.running = False # control if the app is running
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
@@ -84,7 +85,10 @@ class Parser():
         self.exclusion = set([]) # a banned id list
         self.job_list = None
 
-    def load(self): # load data.json
+    ### Utility #################################################################################################################
+
+    # Load data.json
+    def load(self):
         try:
             with open('json/data.json', mode='r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -94,7 +98,8 @@ class Parser():
         except Exception as e:
             print(e)
 
-    def save(self): # save data.json
+    # Save data.json and changelog.json (only if self.modified is True)
+    def save(self):
         try:
             if self.modified:
                 self.modified = False
@@ -137,20 +142,62 @@ class Parser():
                         new.append([k, v])
                     if len(new) > 100: new = new[len(new)-100:]
                     with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
-                        json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':'issues}, outfile)
+                        json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues}, outfile)
                     print("changelog.json updated")
         except Exception as e:
             print(e)
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
-    def newShared(self, errs): # create a list to be shared by threads
+    # Generic HEAD or GET request function. Set get to True when the content must be downloaded and read
+    def req(self, url, headers={}, get=False, follow_redirects=False):
+        if get:
+            response = self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
+        else:
+            response = self.client.head(url, headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
+        if response.status_code != 200: raise Exception("HTTP error {}".format(response.status_code))
+        if get:
+            return response.content
+        else:
+            return response.headers
+
+    # Create a shared container for threads. used by run()
+    def newShared(self, errs):
         errs.append([])
         errs[-1].append(0)
         errs[-1].append(True)
         errs[-1].append(Lock())
         return errs[-1]
 
-    def run(self): # called by -run, update the indexed content
+    # Extract json data from a manifest file
+    def processManifest(self, file, verify_file=False):
+        manifest = self.req(self.manifestUri + file + ".js", get=True).decode('utf-8')
+        st = manifest.find('manifest:') + len('manifest:')
+        ed = manifest.find(']', st) + 1
+        data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
+        res = []
+        for l in data:
+            src = l['src'].split('?')[0].split('/')[-1]
+            res.append(src)
+        if verify_file: # check if at least one file is visible
+            for k in res:
+                try:
+                    self.req(self.imgUri + "_low/sp/cjs/" + k)
+                    return res
+                except:
+                    pass
+            raise Exception("Invalid Spritesheets")
+        return res
+
+    # Remove extra from wiki name
+    def cleanName(self, name):
+        for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)']:
+            name = name.replace(k, '')
+        return name.strip().strip('_')
+
+    ### Run #####################################################################################################################
+    
+    # Called by -run, update the indexed content
+    def run(self):
         errs = []
         self.new_elements = []
         running_count = 0
@@ -351,6 +398,7 @@ class Parser():
         self.build_relation()
         self.save()
 
+    # Generic -run subroutine used for almost all asset types
     def run_subroutine(self, endpoint, index, start, step, err, file, zfill, path, ext, maxerr): # run() subroutine (see above)
         i = start
         is_js = ext.endswith('.js')
@@ -381,6 +429,7 @@ class Parser():
                             return
             i += step
 
+    # -run subroutine to search for new skills
     def search_skill(self, start, step): # skill search
         err = 0
         i = start
@@ -419,6 +468,7 @@ class Parser():
             i += step
             if not found and i > highest: err += 1
 
+    # -run subroutine to search for new buffs
     def search_buff(self, start, step, full=False): # buff search
         err = 0
         i = start
@@ -482,7 +532,24 @@ class Parser():
                         self.modified = True
             i += step
 
-    def init_job_list(self): # to be called once when needed
+    # Check for indexed content without data
+    def run_index_content(self):
+        print("Checking index content...")
+        to_update = []
+        for k in self.preemptive_add:
+            for id in self.data[k]:
+                if self.data[k][id] == 0:
+                    to_update.append(id)
+        if len(to_update) > 0:
+            print(len(to_update), "element(s) to be updated. Starting...")
+            self.manualUpdate(to_update)
+        else:
+            print("No elements need to be updated")
+
+    ### Job #####################################################################################################################
+    
+    # To be called once when needed
+    def init_job_list(self):
         print("Initializing job list...")
         # existing classes
         try: job_list = self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js_low/constant/job.js", get=True).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
@@ -518,14 +585,16 @@ class Parser():
         print("Done")
         return job_list
 
-    def init_job_list_sub(self, id): # subroutine for threading
+    # Subroutine for init_job_list
+    def init_job_list_sub(self, id):
         try:
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id))
             return id
         except:
             return None
 
-    def search_job(self, start, step, keys, shared): # search jobs to be indexed
+    # -run subroutine to search for new jobs
+    def search_job(self, start, step, keys, shared):
         i = start
         while i < len(keys):
             if keys[i] in self.data['job']: continue
@@ -574,7 +643,8 @@ class Parser():
                 if len(keys) > 1: print("Job search is done")
                 shared[1] = False
 
-    def search_job_detail(self): # used by -job, more specific but also slower job detection system
+    # Used by -job, more specific but also slower job detection system
+    def search_job_detail(self):
         if self.job_list is None:
             self.job_list = self.init_job_list()
         print("Searching additional job data...")
@@ -626,7 +696,8 @@ class Parser():
         print("Done")
         self.save()
 
-    def detail_job_search(self, key, job): # subroutine for threading
+    # search_job_detail() subroutine
+    def detail_job_search(self, key, job):
         cmh = self.data['job'][job][6]
         a = key[0]
         for b in key:
@@ -646,7 +717,8 @@ class Parser():
                         self.modified = True
                     print("Set", job, "to", d)
 
-    def detail_job_weapon_search(self, wid): # subroutine for threading
+    # search_job_detail() subroutine
+    def detail_job_weapon_search(self, wid):
         try:
             self.req(self.imgUri + '_low/sp/assets/weapon/m/' + wid + ".jpg")
             return
@@ -663,7 +735,8 @@ class Parser():
             except:
                 pass
 
-    def detail_job_search_single(self, key): # subroutine for threading
+    # search_job_detail() subroutine
+    def detail_job_search_single(self, key):
         for mh in self.mh:
             try:
                 self.processManifest("{}_{}_0_01".format(key, mh))
@@ -675,7 +748,8 @@ class Parser():
             except:
                 pass
 
-    def edit_job(self): # CLI menu to manually fix data. to be used as a last resort
+    # -jobedit CLI
+    def edit_job(self):
         while True:
             print("")
             print("[EDIT JOB MENU]")
@@ -839,31 +913,10 @@ class Parser():
                     break
         self.save()
 
-    def req(self, url, headers={}, get=False, follow_redirects=False): # HEAD or GET request function. Set get to True when the content must be downloaded and read
-        if get:
-            response = self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
-        else:
-            response = self.client.head(url, headers={'connection':'keep-alive'} | headers, timeout=50, follow_redirects=follow_redirects)
-        if response.status_code != 200: raise Exception("HTTP error {}".format(response.status_code))
-        if get:
-            return response.content
-        else:
-            return response.headers
+    ### Update ##################################################################################################################
 
-    def run_index_content(self): # called by -index. check and attempt to update incomplete content
-        print("Checking index content...")
-        to_update = []
-        for k in self.preemptive_add:
-            for id in self.data[k]:
-                if self.data[k][id] == 0:
-                    to_update.append(id)
-        if len(to_update) > 0:
-            print(len(to_update), "element(s) to be updated. Starting...")
-            self.manualUpdate(to_update)
-        else:
-            print("No elements need to be updated")
-
-    def manualUpdate(self, ids): # called by -update or other function. manually update elements
+    # Called by -update or other function when new content is detected
+    def manualUpdate(self, ids): 
         if len(ids) == 0:
             return
         ids = list(set(ids)) # remove dupes
@@ -939,17 +992,8 @@ class Parser():
                 self.sort_all_scene()
         print("Done")
 
-    def update_all_partner(self): # make a list of partners and potential partners to update
-        t = self.update_changelog
-        self.update_changelog = False
-        ids = list(self.data.get('partners', {}).keys())
-        for id in self.data.get('characters', {}):
-            if 'st' in id: continue
-            ids.append("38" + id[2:])
-        self.manualUpdate(ids)
-        self.update_changelog = t
-
-    def artCheck(self, id, style, uncaps): # build a list of flags for each uncap levels to determine what kind of arts to expect
+    # Art check system for characters. Detect gendered arts, etc...
+    def artCheck(self, id, style, uncaps):
         flags = {}
         if id.startswith("38"):
             uncaps = ["01", "02", "03", "04"]
@@ -973,7 +1017,7 @@ class Parser():
                             pass
         return flags
 
-    # index chara/skin data
+    # Update character and skin data
     def charaUpdate(self, id):
         data = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
         for style in ["", "_st2"]:
@@ -1098,7 +1142,8 @@ class Parser():
         self.generateNameLookup(id)
         return True
 
-    def partnerUpdate(self, id, thread_step): # for partners # WARNING it's hell and not optimized
+    # Update partner data. Note: It's based on charaUpdate and is terribly inefficient
+    def partnerUpdate(self, id, thread_step):
         is_mc = id.startswith("389")
         try:
             data = self.data['partners'][str((int(id) // 1000) * 1000)]
@@ -1239,7 +1284,7 @@ class Parser():
             self.addition[id] = 6
         return True
 
-    # index npc data
+    # Update NPC data
     def npcUpdate(self, id):
         data = [False, [], []] # journal flag, npc, voice
         try:
@@ -1269,7 +1314,7 @@ class Parser():
             self.addition[id] = 5
         return True
 
-    # index summon data
+    # Update Summon data
     def sumUpdate(self, id):
         data = [[], [], []] # general, call, damage
         uncaps = []
@@ -1308,7 +1353,7 @@ class Parser():
         self.generateNameLookup(id)
         return True
 
-    # index weapon data
+    # Update Weapon data
     def weapUpdate(self, id):
         data = [[], [], []] # general, phit, sp
         # art
@@ -1341,7 +1386,7 @@ class Parser():
         self.generateNameLookup(id)
         return True
 
-    # index enemy data
+    # Update Enemy data
     def mobUpdate(self, id):
         data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
         # icon
@@ -1386,7 +1431,10 @@ class Parser():
             self.addition[id] = 4
         return True
 
-    # called once. generate a list of string to check for npc data
+    ### Scene ###################################################################################################################
+
+    # Called once at boot. Generate a list of string to check for npc data
+    # Note: The whole scene check system is terribly slow and inefficient due to the amount of requests required. I experimented other systems but this is still the one with the best coverage. So I'm sticking with it, for now.
     def build_scene_strings(self, expressions = None):
         if expressions is None or len(expressions) == 0:
             expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_eyeline"]
@@ -1405,7 +1453,8 @@ class Parser():
                 special_suffix.append(B.split("_")[-1])
         return scene_alts, specials, special_suffix
 
-    def bulkRequest(self): # used to make threaded requests for npc data retrieval
+    # Used to make threaded requests for scene data retrieval
+    def bulkRequest(self):
         while self.running:
             try:
                 urls, id, suffix, data = self.request_queue.get(block=True, timeout=0.1) # urls to check, id of element to format the url, suffix to format the url, dictionary to update
@@ -1424,12 +1473,14 @@ class Parser():
             if not found:
                 data[suffix] = False
 
-    def update_scene_file(self, id, uncaps = None, existing = set()):  # return npc data for chara/skin/npc (the function is divided in two, see below)
+    # Combo of request_scene_bulk() and process_scene_bulk()
+    def update_scene_file(self, id, uncaps = None, existing = set()): 
         r = self.request_scene_bulk(id, uncaps, existing)
         if r is not None:
             return self.process_scene_bulk(r)
         return None
 
+    # Queue the scene data to check. Expect threads of bulkRequest() to be running.
     def request_scene_bulk(self, id, uncaps = None, existing = set()):
         try:
             scene_alts = []
@@ -1472,6 +1523,7 @@ class Parser():
         except:
             return None
 
+    # Check if the queued scene data to check is done. If it is, returns the result.
     def process_scene_bulk(self, result):
         try:
             if result is None: return None
@@ -1485,7 +1537,99 @@ class Parser():
         except:
             return None
 
-    def update_all_sound(self): # update sound data for every character
+    # Called by -scene, update all npc and character scene datas
+    def update_all_scene(self, targeted_strings = []):
+        if len(targeted_strings) > 0:
+            self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
+        self.running = True
+        print("Updating scene data...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
+            futures = []
+            for k in range(90): futures.append(executor.submit(self.bulkRequest))
+            countmax = len(futures)
+            for k in ["characters", "skins"]:
+                for id in self.data[k]:
+                    if not isinstance(self.data[k][id], int):
+                        uncaps = []
+                        for u in self.data[k][id][5]:
+                            uu = u.replace(id+"_", "")
+                            if "_" not in uu and uu.startswith("0"):
+                                uncaps.append(uu)
+                        try: scenes = set(self.data[k][id][7])
+                        except: scenes = set()
+                        futures.append(executor.submit(self.update_all_scene_sub, k, id, uncaps, scenes))
+            for id in self.data["npcs"]:
+                if not isinstance(self.data["npcs"][id], int):
+                    try: scenes = set(self.data["npcs"][id][1])
+                    except: scenes = set()
+                    futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
+            s = time.time()
+            countmax = len(futures) - countmax
+            sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
+            sys.stdout.flush()
+            if countmax == 0:
+                self.running = False
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+                countmax -= 1
+                if countmax > 0:
+                    sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
+                    sys.stdout.flush()
+                elif countmax == 0:
+                    print("\rAll elements updated.              ")
+                    print("Finished in {:.2f} seconds".format(time.time() - s))
+                    self.running = False
+        if len(targeted_strings) > 0:
+            self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
+        self.sort_all_scene()
+        self.save()
+        print("Done")
+
+    # update_all_scene() subroutine
+    def update_all_scene_sub(self, index, id, uncaps, scenes):
+        r = self.update_scene_file(id, uncaps, scenes)
+        if r is not None:
+            with self.lock:
+                self.modified = True
+                if index == "npcs": # npcs
+                    self.data[index][id][1] = r
+                else: # characters / skins
+                    self.data[index][id][7] = r
+
+    # Sort scene data by string suffix order, to keep some sort of coherency on the web page
+    def sort_all_scene(self):
+        dummy_data = {s : False for s in self.scene_strings}
+        for t in ["characters", "skins", "npcs"]:
+            for k, v in self.data[t].items():
+                before = str(v[-2])
+                data = {"01":dummy_data.copy()}
+                for s in v[-2]:
+                    tmp = s.split("_")
+                    if s != "" and tmp[1].isdigit() and len(tmp[1]) == 2:
+                        if tmp[1] not in data:
+                            data[tmp[1]] = dummy_data.copy()
+                        data[tmp[1]][s[3:]] = True
+                    else:
+                        data["01"][s] = True
+                new = []
+                keys = list(data.keys())
+                keys.sort()
+                for dk in keys:
+                    for ds, db in data[dk].items():
+                        if db:
+                            if dk == "01":
+                                new.append(ds)
+                            else:
+                                new.append("_"+dk+ds)
+                if str(new) != before:
+                    self.modified = True
+                    self.data[t][k][-2] = new
+        self.save()
+
+    ### Sound ###################################################################################################################
+
+    # Called by -sound, update sound data for every character
+    def update_all_sound(self): 
         self.running = True
         print("Updating sound data...")
         to_update = {"npcs":[]}
@@ -1529,7 +1673,8 @@ class Parser():
         self.save()
         print("Done")
 
-    def update_all_sound_sub(self, index, id, uncaps, voices): # subroutine
+    # update_all_sound() subroutine
+    def update_all_sound_sub(self, index, id, uncaps, voices):
         if index not in ["characters", "skins", "npcs"]: return
         r = self.update_chara_sound_file(id, uncaps, voices)
         if len(self.data[index][id]) == 8: self.data[index][id].append(None)
@@ -1541,7 +1686,8 @@ class Parser():
                 else:
                     self.data[index][id][8] = r # character
 
-    def update_chara_sound_file(self, id, uncaps = None, existing = set()): # result all sounds (not multithreaded)
+    # update_all_sound_sub() subroutine to request the sound files
+    def update_chara_sound_file(self, id, uncaps = None, existing = set()):
         result = []
         if uncaps is None:
             uncaps = [""]
@@ -1700,33 +1846,9 @@ class Parser():
         B.sort()
         return A+B
 
-    # extract json data from a manifest file
-    def processManifest(self, file, verify_file=False):
-        manifest = self.req(self.manifestUri + file + ".js", get=True).decode('utf-8')
-        st = manifest.find('manifest:') + len('manifest:')
-        ed = manifest.find(']', st) + 1
-        data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
-        res = []
-        for l in data:
-            src = l['src'].split('?')[0].split('/')[-1]
-            res.append(src)
-        if verify_file: # check if at least one file is visible
-            for k in res:
-                try:
-                    self.req(self.imgUri + "_low/sp/cjs/" + k)
-                    return res
-                except:
-                    pass
-            raise Exception("Invalid Spritesheets")
-        return res
+    ### Lookup ##################################################################################################################
 
-    # remove extra from wiki name
-    def cleanName(self, name):
-        for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)']:
-            name = name.replace(k, '')
-        return name.strip().strip('_')
-
-    # check id on the wiki to retrieve element name
+    # Check the given id on the wiki to retrieve element details. Only for summons, weapons and characters.
     def generateNameLookup(self, cid):
         if not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30"): return
         r = self.req("https://gbf.wiki/index.php?search={}".format(cid), get=True)
@@ -1761,7 +1883,7 @@ class Parser():
                 except:
                     pass
 
-    # subroutine. read the wiki page to extract element ata
+    # generateNameLookup() subroutine. Read the wiki page to extract element details (element, etc...)
     def generateNameLookup_sub(self, cid, wiki_lookup):
         data = {}
         if cid.startswith("20"):
@@ -1892,7 +2014,8 @@ class Parser():
             pass
         return False
 
-    def buildLookup(self): # build a list of element to lookup on the wiki
+    # Check for new elements to lookup on the wiki, to update the lookup list
+    def buildLookup(self):
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             print("Checking elements in need of update...")
             futures = []
@@ -1944,7 +2067,8 @@ class Parser():
         self.running = False
         print("Done")
 
-    def manualLookup(self): # for manual lookup. used as a last resort
+    # called by -lookupfix, to manually edit missing data in case of system failure
+    def manualLookup(self):
         to_delete = []
         for k, v in self.data["lookup"].items():
             if 'cut-content' in v: continue
@@ -2011,92 +2135,9 @@ class Parser():
         self.save()
         print("Done")
 
-    def update_all_scene(self, targeted_strings = []): # update npc data for every element
-        if len(targeted_strings) > 0:
-            self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
-        self.running = True
-        print("Updating scene data...")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=150) as executor:
-            futures = []
-            for k in range(90): futures.append(executor.submit(self.bulkRequest))
-            countmax = len(futures)
-            for k in ["characters", "skins"]:
-                for id in self.data[k]:
-                    if not isinstance(self.data[k][id], int):
-                        uncaps = []
-                        for u in self.data[k][id][5]:
-                            uu = u.replace(id+"_", "")
-                            if "_" not in uu and uu.startswith("0"):
-                                uncaps.append(uu)
-                        try: scenes = set(self.data[k][id][7])
-                        except: scenes = set()
-                        futures.append(executor.submit(self.update_all_scene_sub, k, id, uncaps, scenes))
-            for id in self.data["npcs"]:
-                if not isinstance(self.data["npcs"][id], int):
-                    try: scenes = set(self.data["npcs"][id][1])
-                    except: scenes = set()
-                    futures.append(executor.submit(self.update_all_scene_sub, "npcs", id, None, scenes))
-            s = time.time()
-            countmax = len(futures) - countmax
-            sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
-            sys.stdout.flush()
-            if countmax == 0:
-                self.running = False
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
-                countmax -= 1
-                if countmax > 0:
-                    sys.stdout.write("\r{} element(s) remaining...        ".format(countmax))
-                    sys.stdout.flush()
-                elif countmax == 0:
-                    print("\rAll elements updated.              ")
-                    print("Finished in {:.2f} seconds".format(time.time() - s))
-                    self.running = False
-        if len(targeted_strings) > 0:
-            self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
-        self.sort_all_scene()
-        self.save()
-        print("Done")
+    ### Thumbnail ###############################################################################################################
 
-    def update_all_scene_sub(self, index, id, uncaps, scenes): # subroutine
-        r = self.update_scene_file(id, uncaps, scenes)
-        if r is not None:
-            with self.lock:
-                self.modified = True
-                if index == "npcs": # npcs
-                    self.data[index][id][1] = r
-                else: # characters / skins
-                    self.data[index][id][7] = r
-
-    def sort_all_scene(self):
-        dummy_data = {s : False for s in self.scene_strings}
-        for t in ["characters", "skins", "npcs"]:
-            for k, v in self.data[t].items():
-                before = str(v[-2])
-                data = {"01":dummy_data.copy()}
-                for s in v[-2]:
-                    tmp = s.split("_")
-                    if s != "" and tmp[1].isdigit() and len(tmp[1]) == 2:
-                        if tmp[1] not in data:
-                            data[tmp[1]] = dummy_data.copy()
-                        data[tmp[1]][s[3:]] = True
-                    else:
-                        data["01"][s] = True
-                new = []
-                keys = list(data.keys())
-                keys.sort()
-                for dk in keys:
-                    for ds, db in data[dk].items():
-                        if db:
-                            if dk == "01":
-                                new.append(ds)
-                            else:
-                                new.append("_"+dk+ds)
-                if str(new) != before:
-                    self.modified = True
-                    self.data[t][k][-2] = new
-        self.save()
-
+    # Check the NPC list for npc with new thumbnails.
     def update_npc_thumb(self):
         self.running = True
         print("Updating NPC thumbnail data...")
@@ -2125,6 +2166,7 @@ class Parser():
         self.save()
         print("Done")
 
+    # update_npc_thumb() subroutine
     def update_npc_thumb_sub(self, id): # subroutine
         try:
             self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/{}_01.jpg".format(id))
@@ -2134,60 +2176,10 @@ class Parser():
         except:
             pass
 
-    def get_relation(self, eid): # retrieve element relation
-        try:
-            page = self.req("https://gbf.wiki/index.php?search={}".format(eid), get=True)
-            try: page = page.decode('utf-8')
-            except: page = page.decode('iso-8859-1')
-            page = page[page.find('mw-content-text'):page.find('printfooter')]
-            links = []
-            b = 0
-            while True:
-                a = page.find('<a href="', b)
-                if a == -1: break
-                a += len('<a href="')
-                b = page.find('"', a)
-                link = page[a:b]
-                if 'index.php' not in link and '/' not in link[1:]:
-                    links.append(link)
-        except:
-            return None, []
-        for link in links:
-            try:
-                page = self.req("https://gbf.wiki" + link, get=True)
-                name = link[1:].split('(')[0].replace('_', ' ').strip().lower()
-                if not eid.startswith('10'):
-                    with self.name_lock:
-                        if name not in self.name_table:
-                            self.name_table[name] = []
-                        if eid not in self.name_table[name] and not eid.startswith('399') and not eid.startswith('305'):
-                            self.name_table[name].append(eid)
-                            self.name_table_modified = True
-                try: page = page.decode('utf-8')
-                except: page = page.decode('iso-8859-1')
-                ids = set()
-                for sequence in [('multiple versions', '_details'), ('Recruitment Weapon', '</td>'), ('Outfits', 'References')]:
-                    a = page.find(sequence[0])
-                    if a == -1: continue
-                    a += len(sequence[0])
-                    b = page.find(sequence[1], a)
-                    for sid in self.re.findall(page[a:b]):
-                        if sid != eid:
-                            ids.add(sid)
-                b = 0
-                while True:
-                    a = page.find("wikitable", b)
-                    if a == -1: break
-                    a += len("wikitable")
-                    b = page.find("</table>", a)
-                    for sid in self.re.findall(page[a:b]):
-                        if sid != eid:
-                            ids.add(sid)
-                return eid, list(ids)
-            except:
-                return eid, []
+    ### Relation ################################################################################################################
 
-    def build_relation(self, to_update=[]): # build a list of relation to update and call get_relation
+    # Make a list of elements to check on the wiki and update them
+    def build_relation(self, to_update=[]):
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
@@ -2263,7 +2255,62 @@ class Parser():
                 except:
                     pass
 
-    def connect_relation(self, As, B): # connect relation between element A and B
+    # build_relation() subroutine. Check an element wiki page for alternate version or corresponding weapons
+    def get_relation(self, eid):
+        try:
+            page = self.req("https://gbf.wiki/index.php?search={}".format(eid), get=True)
+            try: page = page.decode('utf-8')
+            except: page = page.decode('iso-8859-1')
+            page = page[page.find('mw-content-text'):page.find('printfooter')]
+            links = []
+            b = 0
+            while True:
+                a = page.find('<a href="', b)
+                if a == -1: break
+                a += len('<a href="')
+                b = page.find('"', a)
+                link = page[a:b]
+                if 'index.php' not in link and '/' not in link[1:]:
+                    links.append(link)
+        except:
+            return None, []
+        for link in links:
+            try:
+                page = self.req("https://gbf.wiki" + link, get=True)
+                name = link[1:].split('(')[0].replace('_', ' ').strip().lower()
+                if not eid.startswith('10'):
+                    with self.name_lock:
+                        if name not in self.name_table:
+                            self.name_table[name] = []
+                        if eid not in self.name_table[name] and not eid.startswith('399') and not eid.startswith('305'):
+                            self.name_table[name].append(eid)
+                            self.name_table_modified = True
+                try: page = page.decode('utf-8')
+                except: page = page.decode('iso-8859-1')
+                ids = set()
+                for sequence in [('multiple versions', '_details'), ('Recruitment Weapon', '</td>'), ('Outfits', 'References')]:
+                    a = page.find(sequence[0])
+                    if a == -1: continue
+                    a += len(sequence[0])
+                    b = page.find(sequence[1], a)
+                    for sid in self.re.findall(page[a:b]):
+                        if sid != eid:
+                            ids.add(sid)
+                b = 0
+                while True:
+                    a = page.find("wikitable", b)
+                    if a == -1: break
+                    a += len("wikitable")
+                    b = page.find("</table>", a)
+                    for sid in self.re.findall(page[a:b]):
+                        if sid != eid:
+                            ids.add(sid)
+                return eid, list(ids)
+            except:
+                return eid, []
+
+    # Used to manually connect elements in A to B
+    def connect_relation(self, As : list, B):
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
@@ -2314,7 +2361,8 @@ class Parser():
                         relation[eid].sort()
             self.save()
 
-    def relation_edit(self): # manual edit mode for relation
+    # CLI
+    def relation_edit(self):
         while True:
             print("[0] Redo Relationship")
             print("[1] Add Relationship")
@@ -2345,43 +2393,10 @@ class Parser():
                 case _:
                     break
 
-    def gbfversion(self):
-        try:
-            res = self.req('https://game.granbluefantasy.jp/', headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36', 'Accept-Language':'en', 'Host':'game.granbluefantasy.jp', 'Connection':'keep-alive'}, get=True)
-            res = res.decode('utf-8')
-            return int(self.vregex.findall(res)[0])
-        except:
-            try:
-                if 'maintenance' in res.lower(): return "maintenance"
-            except:
-                pass
-            return None
 
-    def wait(self):
-        v = self.gbfversion()
-        if v is None:
-            print("Impossible to currently access the game.\nWait and try again.")
-            exit(0)
-        elif v == "maintenance":
-            print("Game is in maintenance")
-            exit(0)
-        print("Waiting update, ctrl+C to cancel...")
-        while True:
-            t = int(datetime.now(timezone.utc).replace(tzinfo=None).timestamp()) % 300
-            if 300 - t > 10:
-                time.sleep(10)
-            else:
-                time.sleep(310 - t)
-                n = self.gbfversion()
-                if isinstance(n, int) and n != v:
-                    print("Update detected.")
-                    return
+    ### Events ##################################################################################################################
 
-    def debug_output_scene_strings(self):
-        with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
-            json.dump(self.scene_known_strings, f)
-        print("Data exported to 'json/debug_scene_strings.json'")
-
+    # Ask the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
     def get_event_list(self):
         r = self.req('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22', get=True)
         soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
@@ -2414,100 +2429,7 @@ class Parser():
         l.sort()
         return l
 
-    def update_event_sub(self, ev, url): # voice line check for chapter existence
-        try:
-            self.req(url)
-            return ev, url.split('/')[-1]
-        except:
-            return ev, None
-
-    def update_event_sub_big(self, ev, base_url, known_assets, step): # art check
-        l = []
-        for j in range(step, step+25):
-            url = base_url + "_" + str(j).zfill(2)
-            flag = False
-            try: # base check
-                if url.split("/")[-1] not in known_assets:
-                    self.req(url + ".png")
-                    l.append(url.split("/")[-1])
-                flag = True
-            except:
-                pass
-            if flag: # check for extras
-                for k in ["_up", "_shadow"]:
-                    try:
-                        if url.split("/")[-1]+k not in known_assets:
-                            self.req(url + k + ".png")
-                            l.append(url.split("/")[-1]+k)
-                    except:
-                        pass
-                for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                    try:
-                        if url.split("/")[-1]+k not in known_assets:
-                            self.req(url + k + ".png")
-                            l.append(url.split("/")[-1]+k)
-                    except:
-                        break
-            else:
-                try: # alternative filename format
-                    if url.split("/")[-1]+"_00" not in known_assets:
-                        self.req(url + "_00.png")
-                        l.append(url.split("/")[-1]+"_00")
-                    flag = True
-                except:
-                    flag = False
-                for k in ["_up", "_shadow"]:
-                    try:
-                        if url.split("/")[-1]+"_00"+k not in known_assets:
-                            self.req(url + "_00" + k + ".png")
-                            l.append(url.split("/")[-1]+"_00"+k)
-                    except:
-                        pass
-                err = 0
-                i = 1
-                while i < 100 and err < 10:
-                    k = str(i).zfill(2)
-                    try:
-                        if url.split("/")[-1]+"_"+k not in known_assets:
-                            self.req(url + "_" + k + ".png")
-                            l.append(url.split("/")[-1]+"_"+k)
-                        err = 0
-                        for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                            try:
-                                if url.split("/")[-1]+"_"+k+kk not in known_assets:
-                                    self.req(url + "_" + k + kk + ".png")
-                                    l.append(url.split("/")[-1]+"_"+k+kk)
-                            except:
-                                break
-                    except:
-                        err += 1
-                    i += 1
-        return ev, l
-
-    def update_event_sky(self, ev):
-        known = set(self.data['events'][ev][-1])
-        evid = self.data['events'][ev][1]
-        try:
-            i = max(self.data['events'][ev][-1]) + 1
-        except:
-            i = 1
-        modified = False
-        while True:
-            if i not in known:
-                try:
-                    self.req("https://media.skycompass.io/assets/archives/events/{}/image/{}_free.png".format(evid, i))
-                    known.add(i)
-                    modified = True
-                except:
-                    break
-            i+=1
-        if modified:
-            with self.lock:
-                self.modified = True
-                known = list(known)
-                known.sort()
-                self.data['events'][ev][-1] = known
-
+    # Call get_event_list() and check the current time to determine if new events have been added. If so, check if they got voice lines to determine if they got chapters, and then call update_event()
     def check_new_event(self, init_list = None):
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
         now = int(str(now.year)[2:] + str(now.month).zfill(2) + str(now.day).zfill(2))
@@ -2558,6 +2480,15 @@ class Parser():
         else:
             self.update_event(init_list, full=True)
 
+    # check_new_event() subroutine to request sound files
+    def update_event_sub(self, ev, url):
+        try:
+            self.req(url)
+            return ev, url.split('/')[-1]
+        except:
+            return ev, None
+
+    # Check the given event list for potential art pieces
     def update_event(self, events, full=False):
         # dig
         with concurrent.futures.ThreadPoolExecutor(max_workers=80) as executor:
@@ -2626,6 +2557,96 @@ class Parser():
                 print("Done")
         self.save()
 
+    # update_event() subroutine to check an event possible art pieces
+    def update_event_sub_big(self, ev, base_url, known_assets, step):
+        l = []
+        for j in range(step, step+25):
+            url = base_url + "_" + str(j).zfill(2)
+            flag = False
+            try: # base check
+                if url.split("/")[-1] not in known_assets:
+                    self.req(url + ".png")
+                    l.append(url.split("/")[-1])
+                flag = True
+            except:
+                pass
+            if flag: # check for extras
+                for k in ["_up", "_shadow"]:
+                    try:
+                        if url.split("/")[-1]+k not in known_assets:
+                            self.req(url + k + ".png")
+                            l.append(url.split("/")[-1]+k)
+                    except:
+                        pass
+                for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                    try:
+                        if url.split("/")[-1]+k not in known_assets:
+                            self.req(url + k + ".png")
+                            l.append(url.split("/")[-1]+k)
+                    except:
+                        break
+            else:
+                try: # alternative filename format
+                    if url.split("/")[-1]+"_00" not in known_assets:
+                        self.req(url + "_00.png")
+                        l.append(url.split("/")[-1]+"_00")
+                    flag = True
+                except:
+                    flag = False
+                for k in ["_up", "_shadow"]:
+                    try:
+                        if url.split("/")[-1]+"_00"+k not in known_assets:
+                            self.req(url + "_00" + k + ".png")
+                            l.append(url.split("/")[-1]+"_00"+k)
+                    except:
+                        pass
+                err = 0
+                i = 1
+                while i < 100 and err < 10:
+                    k = str(i).zfill(2)
+                    try:
+                        if url.split("/")[-1]+"_"+k not in known_assets:
+                            self.req(url + "_" + k + ".png")
+                            l.append(url.split("/")[-1]+"_"+k)
+                        err = 0
+                        for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                            try:
+                                if url.split("/")[-1]+"_"+k+kk not in known_assets:
+                                    self.req(url + "_" + k + kk + ".png")
+                                    l.append(url.split("/")[-1]+"_"+k+kk)
+                            except:
+                                break
+                    except:
+                        err += 1
+                    i += 1
+        return ev, l
+
+    # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
+    def update_event_sky(self, ev):
+        known = set(self.data['events'][ev][-1])
+        evid = self.data['events'][ev][1]
+        try:
+            i = max(self.data['events'][ev][-1]) + 1
+        except:
+            i = 1
+        modified = False
+        while True:
+            if i not in known:
+                try:
+                    self.req("https://media.skycompass.io/assets/archives/events/{}/image/{}_free.png".format(evid, i))
+                    known.add(i)
+                    modified = True
+                except:
+                    break
+            i+=1
+        if modified:
+            with self.lock:
+                self.modified = True
+                known = list(known)
+                known.sort()
+                self.data['events'][ev][-1] = known
+
+    # -eventedit CLI
     def event_edit(self):
         while True:
             print("\n[EDIT EVENT MENU]")
@@ -2721,21 +2742,7 @@ class Parser():
                 case _:
                     break
 
-    def update_buff(self):
-        tmp = self.update_changelog
-        self.update_changelog = False
-        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
-            futures = []
-            for i in range(10):
-                for j in range(10):
-                    futures.append(executor.submit(self.search_buff, 1000*i+j, 10, True))
-            print("Started...")
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
-            print("Done")
-        self.save()
-        self.update_changelog = tmp
-
+    # Attempt to automatically associate new event thumbnails to events (EXPERIMENTAL)
     def event_thumbnail_association(self, events):
         print("Checking event thumbnails...")
         in_use = set()
@@ -2774,6 +2781,7 @@ class Parser():
         print("Done")
         self.save()
 
+    # event_thumbnail_association subroutine()
     def event_thumbnail_association_sub(self, start, end, step):
         err = 0
         i = start
@@ -2790,24 +2798,131 @@ class Parser():
                 err += 1
             i += step
 
+    ### Partners ################################################################################################################
+
+    # Called by -partner. Make a list of partners and potential partners to update. VERY slow.
+    def update_all_partner(self):
+        t = self.update_changelog
+        self.update_changelog = False
+        ids = list(self.data.get('partners', {}).keys())
+        for id in self.data.get('characters', {}):
+            if 'st' in id: continue
+            ids.append("38" + id[2:])
+        self.manualUpdate(ids)
+        self.update_changelog = t
+
+    ### Buffs ###################################################################################################################
+
+    # Check buff data for new icons
+    def update_buff(self):
+        tmp = self.update_changelog
+        self.update_changelog = False
+        with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+            futures = []
+            for i in range(10):
+                for j in range(10):
+                    futures.append(executor.submit(self.search_buff, 1000*i+j, 10, True))
+            print("Started...")
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+            print("Done")
+        self.save()
+        self.update_changelog = tmp
+
+    ### Others ##################################################################################################################
+
+    # Request the current GBF version or possible maintenance state
+    def gbfversion(self):
+        try:
+            res = self.req('https://game.granbluefantasy.jp/', headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36', 'Accept-Language':'en', 'Host':'game.granbluefantasy.jp', 'Connection':'keep-alive'}, get=True)
+            res = res.decode('utf-8')
+            return int(self.vregex.findall(res)[0])
+        except:
+            try:
+                if 'maintenance' in res.lower(): return "maintenance"
+            except:
+                pass
+            return None
+
+    # Wait for an update to occur
+    def wait(self):
+        v = self.gbfversion()
+        if v is None:
+            print("Impossible to currently access the game.\nWait and try again.")
+            exit(0)
+        elif v == "maintenance":
+            print("Game is in maintenance")
+            exit(0)
+        print("Waiting update, ctrl+C to cancel...")
+        while True:
+            t = int(datetime.now(timezone.utc).replace(tzinfo=None).timestamp()) % 300
+            if 300 - t > 10:
+                time.sleep(10)
+            else:
+                time.sleep(310 - t)
+                n = self.gbfversion()
+                if isinstance(n, int) and n != v:
+                    print("Update detected.")
+                    return
+
+    def debug_output_scene_strings(self, recur=False):
+        print("Exporting all scene file suffixes...")
+        keys = set()
+        errs = []
+        for x in ["characters", "skins"]:
+            d = self.data[x]
+            for k, v in d.items():
+                try:
+                    if isinstance(v, list) and isinstance(v[7], list):
+                        for e in v[7]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
+                            else: keys.add(e)
+                except:
+                    errs.append(k)
+        for x in ["npcs"]:
+            for k, v in self.data[x].items():
+                try:
+                    if isinstance(v, list) and isinstance(v[0], list):
+                        for e in v[0]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
+                            else: keys.add(e)
+                except:
+                    errs.append(k)
+        if len(errs) > 0: # refresh elements with errors
+            if recur:
+                print("Still", len(errs), "elements incorrectly formed, manual debugging is necessary")
+            else:
+                tmp = self.update_changelog
+                self.update_changelog = False
+                print(len(errs), "elements incorrectly formed, attempting to update")
+                self.manualUpdate(errs)
+                self.debug_output_scene_strings()
+                self.update_changelog = tmp
+        else:
+            keys = list(keys)
+            keys.sort()
+            with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
+                json.dump(keys, f)
+            print("Data exported to 'json/debug_scene_strings.json'")
+
+    # Print the help
     def print_help(self, timer = 5):
-        print("Usage: python parser.py [START] [MODE]")
+        print("Usage: python updater.py [START] [MODE]")
         print("")
         print("START parameters (Optional):")
-        print("-wait        : Wait an in-game update.")
+        print("-wait        : Wait an in-game update before running.")
         print("-nochange    : Disable the update of changelog.json.")
         print("")
         print("MODE parameters (One at a time):")
-        print("-run         : Update the index with new content.")
-        print("-update      : Manual JSON updates (Followed by IDs to check).")
+        print("-run         : Update the data with new content.")
+        print("-update      : Manual data update (Followed by IDs to check).")
         print("-updaterun   : Like '-update' but also do '-run' after.")
-        print("-index       : Check the index for missing content.")
-        print("-job         : Search additional class related data (Very time consuming).")
-        print("-jobedit     : Manually edit job data (Command Line Menu).")
-        print("-lookup      : Update the lookup table (Time Consuming).")
-        print("-lookupfix   : Manually edit the lookup table.")
+        print("-job         : Search for MC jobs (Time consuming).")
+        print("-jobedit     : Job CLI.")
+        print("-lookup      : Force update the lookup table (Time Consuming).")
+        print("-lookupfix   : Lookup CLI.")
         print("-relation    : Update the relationship index.")
-        print("-relinput    : Update to relationships.")
+        print("-relinput    : Relation CLI.")
         print("-scene       : Update scene index for every characters/npcs (Time consuming).")
         print("-scenesort   : Sort indexed scene data  for every characters/npcs.")
         print("-thumb       : Update npc thumbnail data.")
@@ -2818,6 +2933,7 @@ class Parser():
         print("-buff        : Update buff data")
         if timer > 0: time.sleep(timer)
 
+    # Parse command line parameters
     def use_params(self, argv):
         start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
         flags = set()
@@ -2846,7 +2962,6 @@ class Parser():
             self.manualUpdate(extras)
             self.run()
         elif "-update" in flags: self.manualUpdate(extras)
-        elif "-index" in flags: self.run_index_content()
         elif "-job" in flags: self.search_job_detail()
         elif "-jobedit" in flags: self.edit_job()
         elif "-lookup" in flags: self.buildLookup()
@@ -2867,4 +2982,4 @@ class Parser():
             print("Unknown parameter:", k)
 
 if __name__ == '__main__':
-    Parser().use_params(sys.argv[1:])
+    Updater().use_params(sys.argv[1:])
