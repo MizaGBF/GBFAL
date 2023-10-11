@@ -130,15 +130,17 @@ class Updater():
                             data = json.load(f)
                             issues = data.get('issues', [])
                             existing = {}
-                            for e in data.get('new', []):
+                            for e in data.get('new', []): # convert content to dict
                                 existing[e[0]] = e[1]
                     except:
                         existing = {}
                         issues = []
                     new = []
-                    existing = existing | self.addition
-                    self.addition = {}
-                    for k, v in existing.items():
+                    for k, v in self.addition.items(): # merge but put updated elements last
+                        if k in existing: existing.pop(k)
+                        existing[k] = v
+                    self.addition = {} # clear self.addition
+                    for k, v in existing.items(): # convert back to list. NOTE: maybe make a cleaner way later
                         new.append([k, v])
                     if len(new) > 100: new = new[len(new)-100:]
                     with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
