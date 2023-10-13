@@ -35,11 +35,11 @@ Action parameters (Only one of those can be used at a time):
 - `-lookupfix`: Open a CLI to manually add lookup data to elements without any. Last resort option.  
 - `-relation`: Check for new relationships between elements.  
 - `-relinput`: Open a CLI to create relationships between elements. Last resort option.  
-- `-scene`: Update scene datas for characters, outfits and NPCs. VERY VERY time consuming.  
+- `-scene`: Update scene datas for characters, outfits and NPCs. Very time consuming.  
 - `-scenesort`: Sort scene datas for every elements. It's called automatically in most cases but this is a way to trigger it manually.  
 - `-thumb`: Check thumbnail data for NPCs.  
-- `-sound`: Update sound datas for characters, outfits and NPCs. VERY time consuming.  
-- `-partner`: Update all partner datas. VERY time consuming.  
+- `-sound`: Update sound datas for characters, outfits and NPCs. Very time consuming.  
+- `-partner`: Update all partner datas. Very time consuming.  
 - `-event`: Update event datas. Time consuming.  
 - `-eventedit`: Open the `EVENT EDIT` CLI, allowing you to add event thumbnail, update skycompass arts and more.  
 - `-buff`: Update all buff datas. Time consuming.  
