@@ -81,6 +81,7 @@ class Updater():
         
         # startup
         self.load()
+        self.known_scene_strings = []
         self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings()
         self.exclusion = set([]) # a banned id list
         self.job_list = None
@@ -161,6 +162,26 @@ class Updater():
             return response.content
         else:
             return response.headers
+
+    # Used to make threaded requests
+    def bulkRequest(self):
+        while self.running:
+            try:
+                urls, id, suffix, data = self.request_queue.get(block=True, timeout=0.1) # urls to check, id of element to format the url, suffix to format the url, dictionary to update
+            except:
+                time.sleep(0.1)
+                continue
+            found = False
+            for base_url in urls:
+                try:
+                    self.req(base_url.format(id, suffix))
+                    data[suffix] = True
+                    found = True
+                    break
+                except:
+                    pass
+            if not found:
+                data[suffix] = False
 
     # Create a shared container for threads. used by run()
     def newShared(self, errs):
@@ -928,7 +949,7 @@ class Updater():
             # check what kind of ids we deal with
             has_npc = False
             for id in ids:
-                if len(id) == 10 and id[:2] in ["30", "37", "39"]:
+                if len(id) == 10 and id[:2] in ["30", "37", "38", "39"]:
                     has_npc = True
                     break
             if has_npc: # add bulkrequest for scene processing
@@ -996,6 +1017,8 @@ class Updater():
 
     # Art check system for characters. Detect gendered arts, etc...
     def artCheck(self, id, style, uncaps):
+        result = {}
+        suffix_detail = {}
         flags = {}
         if id.startswith("38"):
             uncaps = ["01", "02", "03", "04"]
@@ -1003,20 +1026,27 @@ class Updater():
             uncaps = uncaps + ["81", "82", "83", "91", "92", "93"]
         for uncap in uncaps:
             for g in ["_1", ""]:
-                if flags.get(uncap, [False, False, False])[0]: continue
                 for m in ["_101", ""]:
-                    if flags.get(uncap, [False, False, False])[1]: continue
                     for n in ["_01", ""]:
-                        if flags.get(uncap, [False, False, False])[2]: continue
-                        try:
-                            self.req(self.imgUri + "_low/sp/assets/npc/raid_normal/" + id + "_" + uncap + style + g + m + n + ".jpg")
-                            if uncap not in flags:
-                                flags[uncap] = [False, False, False]
-                            flags[uncap][0] = flags[uncap][0] or (g == "_1")
-                            flags[uncap][1] = flags[uncap][1] or (m == "_101")
-                            flags[uncap][2] = flags[uncap][2] or (n == "_01")
-                        except:
-                            pass
+                        s = "_" + uncap + style + g + m + n
+                        result[s] = None
+                        suffix_detail[s] = [uncap, g, m, n]
+        for s in result:
+            self.request_queue.put(([self.imgUri + "_low/sp/assets/npc/raid_normal/{}{}.jpg"], id, s, result))
+        time.sleep(1)
+        while True:
+            if None in set(result.values()):
+                time.sleep(1)
+            else:
+                break
+        result = [k for k, v in result.items() if v == True]
+        for k in result:
+            uncap, g, m, n = suffix_detail[k]
+            if uncap not in flags:
+                flags[uncap] = [False, False, False]
+            flags[uncap][0] = flags[uncap][0] or (g == "_1")
+            flags[uncap][1] = flags[uncap][1] or (m == "_101")
+            flags[uncap][2] = flags[uncap][2] or (n == "_01")
         return flags
 
     # Update character and skin data
@@ -1075,7 +1105,7 @@ class Updater():
                         scenes = set(self.data['characters'][id][7])
                 except:
                     scenes = set()
-                pending = self.request_scene_bulk(id, uncaps, scenes)
+                pending = self.request_scene_bulk(id, uncaps, scenes, False)
             # # # Other sheets
             # attack
             targets = [""]
@@ -1296,7 +1326,7 @@ class Updater():
             if id.startswith("305"): return False # don't continue for special npcs
         try: scenes = set(self.data["npcs"][id][1])
         except: scenes = set()
-        pending = self.request_scene_bulk(id, [""], scenes)
+        pending = self.request_scene_bulk(id, [""], scenes, False)
         try: voices = set(self.data['npcs'][id][2])
         except: voices = set()
         data[2] = self.update_chara_sound_file(id, [""], voices)
@@ -1453,48 +1483,66 @@ class Updater():
         for B in variationsB:
             if B != "":
                 special_suffix.append(B.split("_")[-1])
+        self.update_known_scene_strings()
         return scene_alts, specials, special_suffix
 
-    # Used to make threaded requests for scene data retrieval
-    def bulkRequest(self):
-        while self.running:
-            try:
-                urls, id, suffix, data = self.request_queue.get(block=True, timeout=0.1) # urls to check, id of element to format the url, suffix to format the url, dictionary to update
-            except:
-                time.sleep(0.1)
-                continue
-            found = False
-            for base_url in urls:
+    # make a list of known scene strings, for faster updates
+    def update_known_scene_strings(self):
+        keys = set()
+        errs = []
+        for x in ["characters", "skins"]:
+            d = self.data[x]
+            for k, v in d.items():
                 try:
-                    self.req(base_url.format(id, suffix))
-                    data[suffix] = True
-                    found = True
-                    break
+                    if isinstance(v, list) and isinstance(v[7], list):
+                        for e in v[7]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
+                            else: keys.add(e)
                 except:
-                    pass
-            if not found:
-                data[suffix] = False
+                    errs.append(k)
+        for x in ["npcs"]:
+            for k, v in self.data[x].items():
+                try:
+                    if isinstance(v, list) and isinstance(v[0], list):
+                        for e in v[0]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
+                            else: keys.add(e)
+                except:
+                    errs.append(k)
+        keys = list(keys)
+        keys.sort()
+        self.known_scene_strings = keys
+        return errs
 
     # Combo of request_scene_bulk() and process_scene_bulk()
     def update_scene_file(self, id, uncaps = None, existing = set()): 
-        r = self.request_scene_bulk(id, uncaps, existing)
+        r = self.request_scene_bulk(id, uncaps, existing, True)
         if r is not None:
             return self.process_scene_bulk(r)
         return None
 
     # Queue the scene data to check. Expect threads of bulkRequest() to be running.
-    def request_scene_bulk(self, id, uncaps = None, existing = set()):
+    def request_scene_bulk(self, id, uncaps = None, existing = set(), full=True):
         try:
             scene_alts = []
             if uncaps is None:
                 uncaps = [""]
-            for uncap in uncaps:
-                if uncap == "01": uncap = ""
-                elif uncap[:1] in ['8', '9']: continue
-                elif uncap != "": uncap = "_" + uncap
-                for s in self.scene_strings:
-                    scene_alts.append(uncap+s)
-            scene_alts += self.scene_special_strings
+            if not full and len(self.known_scene_strings) < 20: full = True
+            if full:
+                for uncap in uncaps:
+                    if uncap == "01": uncap = ""
+                    elif uncap[:1] in ['8', '9']: continue
+                    elif uncap != "": uncap = "_" + uncap
+                    for s in self.scene_strings:
+                        scene_alts.append(uncap+s)
+                scene_alts += self.scene_special_strings
+            else:
+                for uncap in uncaps:
+                    if uncap == "01": uncap = ""
+                    elif uncap[:1] in ['8', '9']: continue
+                    elif uncap != "": uncap = "_" + uncap
+                    for s in self.known_scene_strings:
+                        scene_alts.append(uncap+s)
             if id.startswith("305"):
                 i = 0
                 while i < len(scene_alts):
@@ -2869,27 +2917,7 @@ class Updater():
 
     def debug_output_scene_strings(self, recur=False):
         print("Exporting all scene file suffixes...")
-        keys = set()
-        errs = []
-        for x in ["characters", "skins"]:
-            d = self.data[x]
-            for k, v in d.items():
-                try:
-                    if isinstance(v, list) and isinstance(v[7], list):
-                        for e in v[7]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
-                            else: keys.add(e)
-                except:
-                    errs.append(k)
-        for x in ["npcs"]:
-            for k, v in self.data[x].items():
-                try:
-                    if isinstance(v, list) and isinstance(v[0], list):
-                        for e in v[0]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
-                            else: keys.add(e)
-                except:
-                    errs.append(k)
+        errs = self.update_known_scene_strings()
         if len(errs) > 0: # refresh elements with errors
             if recur:
                 print("Still", len(errs), "elements incorrectly formed, manual debugging is necessary")
@@ -2901,10 +2929,8 @@ class Updater():
                 self.debug_output_scene_strings()
                 self.update_changelog = tmp
         else:
-            keys = list(keys)
-            keys.sort()
             with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
-                json.dump(keys, f)
+                json.dump(self.known_scene_strings, f)
             print("Data exported to 'json/debug_scene_strings.json'")
 
     # Print the help
