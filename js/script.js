@@ -26,12 +26,15 @@ var last_type = null;
 // result div
 var result_area = null;
 
-// constant, list of null characters/skins
-var null_characters = [
+// constant
+// list of null characters/skins
+const null_characters = [
     "3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"
 ];
+// list of known scene strings for unindexed characters
+const dummy_scene_strings = ["", "_2022_laugh", "_a", "_a_amaze", "_a_amaze_up", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_light", "_a_angry_shadow", "_a_angry_speed", "_a_angry_up", "_a_bad", "_a_bad_up", "_a_close", "_a_close_light", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_eyeline", "_a_eyeline_light", "_a_eyeline_up", "_a_joy", "_a_joy_up", "_a_laugh", "_a_laugh2", "_a_laugh2_light", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_speed", "_a_laugh3_up", "_a_laugh_light", "_a_laugh_speed", "_a_laugh_up", "_a_light", "_a_light_shadow", "_a_light_speed", "_a_light_up", "_a_mood", "_a_mood2", "_a_mood2_up", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_light", "_a_sad2_up", "_a_sad_light", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_light", "_a_serious2_shadow", "_a_serious2_speed", "_a_serious2_up", "_a_serious_light", "_a_serious_shadow", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow2", "_a_shadow3", "_a_shadow_light", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_light", "_a_shout2_speed", "_a_shout2_up", "_a_shout_light", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly2", "_a_suddenly2_light", "_a_suddenly2_up", "_a_suddenly_light", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_light", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_light", "_a_surprise_shadow", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_speed", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_speed", "_a_think_up", "_a_up", "_a_up_light", "_a_up_shadow", "_a_up_shadow2", "_a_up_shadow3", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_amaze", "_amaze_light", "_amaze_up", "_angry", "_angry2", "_angry2_light", "_angry2_shadow", "_angry2_speed", "_angry2_up", "_angry_light", "_angry_shadow", "_angry_shadow2", "_angry_speed", "_angry_up", "_b", "_b_amaze", "_b_angry", "_b_angry2", "_b_angry2_light", "_b_angry2_speed", "_b_angry2_up", "_b_angry_light", "_b_angry_speed", "_b_angry_up", "_b_bad", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_eyeline", "_b_eyeline_light", "_b_eyeline_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_light", "_b_laugh_speed", "_b_laugh_up", "_b_light", "_b_light_speed", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_light", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad2_up", "_b_sad_light", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_light", "_b_serious_speed", "_b_serious_up", "_b_shadow", "_b_shadow2", "_b_shadow_light", "_b_shadow_speed", "_b_shadow_up", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_shy2", "_b_shy2_up", "_b_shy_up", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly2", "_b_suddenly2_shadow", "_b_suddenly2_up", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think3", "_b_think3_up", "_b_think_up", "_b_up", "_b_up_light", "_b_up_shadow", "_b_up_speed", "_b_weak", "_b_weak_up", "_bad", "_bad_speed", "_bad_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_light", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shadow2", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise2", "_battle_surprise2_up", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_battle_up_shadow", "_battle_up_speed", "_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b", "_body", "_body_speed", "_c", "_c_angry", "_c_angry2", "_c_angry2_up", "_c_angry_light", "_c_angry_shadow2", "_c_angry_up", "_c_close", "_c_close_up", "_c_ef", "_c_ef_shadow", "_c_laugh", "_c_laugh2", "_c_laugh2_speed", "_c_laugh2_up", "_c_laugh3", "_c_laugh3_up", "_c_laugh_up", "_c_light", "_c_mood", "_c_mood2", "_c_mood2_up", "_c_mood_up", "_c_sad", "_c_sad2", "_c_sad2_up", "_c_sad_up", "_c_serious", "_c_serious2", "_c_serious2_up", "_c_serious_light", "_c_serious_speed", "_c_serious_up", "_c_shadow", "_c_shadow2", "_c_shadow_up", "_c_shout", "_c_shout2", "_c_shout2_up", "_c_shout_shadow", "_c_shout_up", "_c_shy", "_c_shy2", "_c_shy2_up", "_c_shy_up", "_c_speed", "_c_speed2", "_c_suddenly", "_c_surprise", "_c_surprise2", "_c_surprise2_up", "_c_surprise_speed", "_c_surprise_up", "_c_think", "_c_think2", "_c_think2_up", "_c_think_up", "_c_up", "_c_up_speed", "_c_weak", "_c_weak_speed", "_c_weak_up", "_close", "_close_light", "_close_shadow2", "_close_shadow3", "_close_speed", "_close_up", "_doya", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_light", "_ecstasy_up", "_ef", "_ef_light", "_ef_shadow", "_ef_speed", "_ef_up", "_eyeline", "_eyeline_light", "_eyeline_up", "_gesu", "_gesu2", "_girl_angry", "_girl_laugh", "_girl_sad", "_girl_serious", "_girl_surprise", "_joy", "_joy_speed", "_joy_up", "_laugh", "_laugh2", "_laugh2_light", "_laugh2_shadow", "_laugh2_speed", "_laugh2_up", "_laugh3", "_laugh3_light", "_laugh3_shadow", "_laugh3_speed", "_laugh3_up", "_laugh_light", "_laugh_shadow", "_laugh_shadow2", "_laugh_speed", "_laugh_up", "_light", "_light_shadow", "_light_shadow2", "_light_speed", "_light_up", "_mood", "_mood2", "_mood2_light", "_mood2_shadow3", "_mood2_up", "_mood_light", "_mood_shadow", "_mood_shadow3", "_mood_speed", "_mood_up", "_nalhe", "_nalhe_speed", "_nalhe_up", "_narrator", "_pride", "_pride_up", "_sad", "_sad2", "_sad2_light", "_sad2_speed", "_sad2_up", "_sad_light", "_sad_shadow", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_light", "_serious2_speed", "_serious2_up", "_serious_light", "_serious_shadow", "_serious_shadow3", "_serious_speed", "_serious_up", "_shadow", "_shadow2", "_shadow2_light", "_shadow2_speed", "_shadow3", "_shadow3_light", "_shadow_light", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_light", "_shout2_shadow", "_shout2_speed", "_shout2_up", "_shout_light", "_shout_shadow", "_shout_shadow2", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_light", "_shy2_up", "_shy_light", "_shy_speed", "_shy_up", "_speed", "_speed2", "_stump", "_stump2", "_suddenly", "_suddenly2", "_suddenly2_up", "_suddenly_light", "_suddenly_speed", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_light", "_surprise2_shadow", "_surprise2_speed", "_surprise2_up", "_surprise_light", "_surprise_shadow", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_light", "_think2_speed", "_think2_up", "_think3", "_think3_light", "_think3_up", "_think4", "_think4_up", "_think_light", "_think_shadow", "_think_speed", "_think_up", "_town_thug", "_up", "_up_light", "_up_shadow", "_up_shadow2", "_up_shadow3", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_light", "_weak_shadow", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink", "_wink_up"]
 // add id here to disable some elements
-var blacklist = [
+const blacklist = [
 
 ];
 
@@ -189,6 +192,37 @@ function getJSON(url, callback, err_callback, id) { // generic function to reque
     xhr.open("GET", url, true);
     xhr.timeout = 1000;
     xhr.send(null);
+}
+
+function customSortPair(a, b) // used to sort banter sound files
+{
+    const [empty1, string1, a1, b1] = a.split('_');
+    const [empty2, string2, a2, b2] = b.split('_');
+
+    const numA1 = parseInt(a1, 10);
+    const numA2 = parseInt(a2, 10);
+    const numB1 = parseInt(b1, 10);
+    const numB2 = parseInt(b2, 10);
+
+    if (numA1 !== numA2) {
+        return numA1 - numA2;
+    } else {
+        return numB1 - numB2;
+    }
+}
+
+function customSortSeasonal(a, b) // used to sort seasonal sound files
+{
+    const baseA = a.replace(/\d+$/, '');
+    const baseB = b.replace(/\d+$/, '');
+
+    if (baseA < baseB) return -1;
+    if (baseA > baseB) return 1;
+
+    const numA = parseInt(a.slice(baseA.length), 10);
+    const numB = parseInt(b.slice(baseB.length), 10);
+
+    return numA - numB;
 }
 
 // =================================================================================================
@@ -424,6 +458,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 ["Square Portraits", "sp/assets/npc/s/", "jpg", "img_low/", 5, false, false],
                 ["Party Portraits", "sp/assets/npc/f/", "jpg", "img_low/", 5, false, false],
                 ["Popup Portraits", "sp/assets/npc/qm/", "png", "img_mid/", 5, false, false],
+                ["Result Popup Portraits", "sp/result/popup_char/", "png", "img_mid/", -2, false, false],
                 ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", "img/", 6, false, false],
                 ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", "img/", 5, false, false],
                 ["Tower of Babyl Portraits", "sp/assets/npc/t/", "png", "img_low/", 5, false, false],
@@ -526,7 +561,18 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
     {
         for(let asset of assets)
         {
-            files = (asset[4] == -1) ? files : obj[asset[4]]; // for npc
+            switch(asset[4])
+            {
+                case -1: // for npc
+                    files = files;
+                    break;
+                case -2: // for chara popup portraits
+                    files = [id, id+"_001"];
+                    break;
+                default:
+                    files = obj[asset[4]];
+                    break;
+            }
             if(files.length == 0) continue; // empty list
             let is_home = false;
             // exceptions
@@ -733,6 +779,16 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             if(!found) sorted_sound["Generic"].push(sound);
         }
         if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
+        // additional sorting
+        if("Banter" in sorted_sound) sorted_sound["Banter"].sort(customSortPair);
+        for(const k of ["Happy Birthday","Happy New Year","Valentine","White Day","Halloween","Christmas"])
+        {
+            try
+            {
+                if(k in sorted_sound) sorted_sound[k].sort(customSortSeasonal);
+            } catch(errrr) {};
+        }
+        // loop over categories
         for(const [k, v] of Object.entries(checks))
         {
             if(v in sorted_sound)
@@ -850,7 +906,7 @@ function loadUnindexed(id, check)// minimal load of an element not indexed or no
                                 data = [true, ["","_up","_laugh","_laugh_up","_laugh2","_laugh2_up","_laugh3","_laugh3_up","_sad","_sad_speed","_sad_up","_angry","_angry_speed","_angry_up","_shadow","_shadow_up","_surprise","_surprise_speed","_surprise_up","_suddenly","_suddenly_up","_suddenly2","_suddenly2_up","_ef","_weak","_weak_up","_a","_b_sad","_town_thug","_narrator","_valentine","_valentine2","_birthday","_birthday2","_birthday3","_birthday3_a","_birthday3_b"],[]];
                                 break;
                             default: // playable r, sr, ssr
-                                data = [["npc_" + id + "_01.png","npc_" + id + "_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],["", "_2022_laugh", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_bad", "_a_bad_up", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_eyeline", "_a_eyeline_up", "_a_joy", "_a_joy_up", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_up", "_a_laugh_up", "_a_mood", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_amaze", "_amaze_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_bad", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think_up", "_b_up", "_b_up_speed", "_bad", "_bad_speed", "_bad_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_close", "_close_up", "_doya", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_eyeline", "_eyeline_up", "_gesu", "_gesu2", "_girl_laugh", "_girl_sad", "_girl_serious", "_joy", "_joy_speed", "_joy_up", "_laugh", "_laugh2", "_laugh2_up", "_laugh3", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_nalhe", "_nalhe_up", "_pride", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_stump", "_stump2", "_suddenly", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think3", "_think3_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink"],[]];
+                                data = [["npc_" + id + "_01.png","npc_" + id + "_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],dummy_scene_strings,[]];
                                 break;
                         };
                         break;
@@ -858,7 +914,7 @@ function loadUnindexed(id, check)// minimal load of an element not indexed or no
                         switch(id[2])
                         {
                             case '1': // skins
-                                data = [["npc_" + id + "_01.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_01.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],["", "_2022_laugh", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_bad", "_a_bad_up", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_eyeline", "_a_eyeline_up", "_a_joy", "_a_joy_up", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_up", "_a_laugh_up", "_a_mood", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_amaze", "_amaze_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_bad", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think_up", "_b_up", "_b_up_speed", "_bad", "_bad_speed", "_bad_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_close", "_close_up", "_doya", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_eyeline", "_eyeline_up", "_gesu", "_gesu2", "_girl_laugh", "_girl_sad", "_girl_serious", "_joy", "_joy_speed", "_joy_up", "_laugh", "_laugh2", "_laugh2_up", "_laugh3", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_nalhe", "_nalhe_up", "_pride", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_stump", "_stump2", "_suddenly", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think3", "_think3_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink"],[]];
+                                data = [["npc_" + id + "_01.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_01.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],dummy_scene_strings,[]];
                                 break;
                             default:
                                 return;
@@ -868,7 +924,7 @@ function loadUnindexed(id, check)// minimal load of an element not indexed or no
                         data = [["npc_" + id + "_01.png","npc_" + id + "_0_01.png","npc_" + id + "_1_01.png","npc_" + id + "_02.png","npc_" + id + "_0_02.png","npc_" + id + "_1_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_01_0","" + id + "_01_1","" + id + "_02","" + id + "_02_0","" + id + "_02_1"]];
                         break;
                     case '9': // npcs
-                        data = [true, ["", "_2022_laugh", "_a", "_a_angry", "_a_angry2", "_a_angry2_speed", "_a_angry2_up", "_a_angry_speed", "_a_angry_up", "_a_bad", "_a_bad_up", "_a_close", "_a_close_up", "_a_ecstasy", "_a_ecstasy2", "_a_ecstasy2_up", "_a_ecstasy_up", "_a_ef", "_a_ef_speed", "_a_eyeline", "_a_eyeline_up", "_a_joy", "_a_joy_up", "_a_laugh", "_a_laugh2", "_a_laugh2_up", "_a_laugh3", "_a_laugh3_up", "_a_laugh_up", "_a_mood", "_a_mood_up", "_a_sad", "_a_sad2", "_a_sad2_up", "_a_sad_speed", "_a_sad_up", "_a_serious", "_a_serious2", "_a_serious2_speed", "_a_serious2_up", "_a_serious_speed", "_a_serious_up", "_a_shadow", "_a_shadow_speed", "_a_shadow_up", "_a_shout", "_a_shout2", "_a_shout2_up", "_a_shout_speed", "_a_shout_up", "_a_shy", "_a_shy2", "_a_shy2_up", "_a_shy_up", "_a_speed", "_a_speed2", "_a_suddenly", "_a_suddenly_up", "_a_surprise", "_a_surprise2", "_a_surprise2_speed", "_a_surprise2_up", "_a_surprise_speed", "_a_surprise_up", "_a_think", "_a_think2", "_a_think2_up", "_a_think3", "_a_think3_up", "_a_think4", "_a_think4_up", "_a_think5", "_a_think5_up", "_a_think_up", "_a_up", "_a_up_speed", "_a_valentine", "_a_weak", "_a_weak_up", "_a_wink", "_a_wink_up", "_amaze", "_amaze_up", "_angry", "_angry2", "_angry2_speed", "_angry2_up", "_angry_speed", "_angry_up", "_b", "_b_angry", "_b_angry2", "_b_angry2_speed", "_b_angry2_up", "_b_angry_speed", "_b_angry_up", "_b_bad", "_b_close", "_b_close_up", "_b_ef", "_b_ef_speed", "_b_ef_up", "_b_laugh", "_b_laugh2", "_b_laugh2_up", "_b_laugh3", "_b_laugh3_up", "_b_laugh_speed", "_b_laugh_up", "_b_mood", "_b_mood2", "_b_mood2_up", "_b_mood_up", "_b_sad", "_b_sad2", "_b_sad_up", "_b_serious", "_b_serious2", "_b_serious2_up", "_b_serious_up", "_b_shadow", "_b_shadow_speed", "_b_shout", "_b_shout2", "_b_shout2_up", "_b_shout_up", "_b_shy", "_b_speed", "_b_speed2", "_b_suddenly", "_b_suddenly_up", "_b_surprise", "_b_surprise2", "_b_surprise2_up", "_b_surprise_speed", "_b_surprise_up", "_b_think", "_b_think2", "_b_think2_up", "_b_think_up", "_b_up", "_b_up_speed", "_bad", "_bad_speed", "_bad_up", "_battle", "_battle_angry", "_battle_angry_speed", "_battle_angry_up", "_battle_close", "_battle_close_up", "_battle_ef", "_battle_laugh", "_battle_laugh2", "_battle_laugh2_up", "_battle_laugh3", "_battle_laugh3_up", "_battle_laugh_up", "_battle_serious", "_battle_serious_speed", "_battle_serious_up", "_battle_shadow", "_battle_shout", "_battle_shout_up", "_battle_speed", "_battle_speed2", "_battle_suddenly", "_battle_suddenly_up", "_battle_surprise", "_battle_surprise_speed", "_battle_surprise_up", "_battle_up", "_close", "_close_up", "_doya", "_ecstasy", "_ecstasy2", "_ecstasy2_up", "_ecstasy_up", "_ef", "_ef_speed", "_ef_up", "_eyeline", "_eyeline_up", "_gesu", "_gesu2", "_girl_laugh", "_girl_sad", "_girl_serious", "_joy", "_joy_speed", "_joy_up", "_laugh", "_laugh2", "_laugh2_up", "_laugh3", "_laugh3_up", "_laugh_speed", "_laugh_up", "_mood", "_mood2", "_mood2_up", "_mood_speed", "_mood_up", "_nalhe", "_nalhe_up", "_pride", "_sad", "_sad2", "_sad2_speed", "_sad2_up", "_sad_speed", "_sad_up", "_school", "_school_up", "_serious", "_serious2", "_serious2_speed", "_serious2_up", "_serious_speed", "_serious_up", "_shadow", "_shadow_speed", "_shadow_up", "_shout", "_shout2", "_shout2_up", "_shout_speed", "_shout_up", "_shy", "_shy2", "_shy2_up", "_shy_speed", "_shy_up", "_speed", "_speed2", "_stump", "_stump2", "_suddenly", "_suddenly_up", "_surprise", "_surprise2", "_surprise2_speed", "_surprise2_up", "_surprise_speed", "_surprise_up", "_think", "_think2", "_think2_speed", "_think2_up", "_think3", "_think3_up", "_think_speed", "_think_up", "_up", "_up_speed", "_valentine", "_valentine2", "_valentine_a", "_weak", "_weak_speed", "_weak_up", "_white", "_whiteday", "_whiteday2", "_whiteday3", "_wink"],[]];
+                        data = [true, dummy_scene_strings,[]];
                         break;
                 };
                 break;
@@ -899,166 +955,171 @@ function loadUnindexed(id, check)// minimal load of an element not indexed or no
 
 function lookup(id)
 {
-    main_endp_count = -1;
-    f = document.getElementById('filter');
-    if(
-        (id.length == 10 && !isNaN(id)) || 
-        (id.length == 5 && id.toLowerCase()[0] === 'b' && !isNaN(id.slice(1))) ||
-        (id.length == 6 && id.toLowerCase().startsWith('sk') && !isNaN(id.slice(2))) ||
-        (id.length == 7 && id.toLowerCase()[0] === 'q' && !isNaN(id.slice(1))) ||
-        (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1))) ||
-        (id.length == 6 && !isNaN(id))
-    )
+    try
     {
-        if(blacklist.includes(id)) return;
-        // process id
-        if(f.value == "" || f.value != id)
+        main_endp_count = -1;
+        f = document.getElementById('filter');
+        if(
+            (id.length == 10 && !isNaN(id)) || 
+            (id.length == 5 && id.toLowerCase()[0] === 'b' && !isNaN(id.slice(1))) ||
+            (id.length == 6 && id.toLowerCase().startsWith('sk') && !isNaN(id.slice(2))) ||
+            (id.length == 7 && id.toLowerCase()[0] === 'q' && !isNaN(id.slice(1))) ||
+            (id.length == 8 && id.toLowerCase()[0] === 'e' && !isNaN(id.slice(1))) ||
+            (id.length == 6 && !isNaN(id))
+        )
         {
-            f.value = id;
-        }
-        let check = null;
-        switch(id.length)
-        {
-            case 10:
-                switch(id.slice(0, 3))
-                {
-                    case "305": case "399": check = "npcs"; break;
-                    case "304": case "303": case "302": check = "characters"; break;
-                    case "371": check = "skins"; break;
-                    case "384": case "383": case "382": case "388": case "389": check = "partners"; break;
-                    case "204": case "203": case "202": case "201": check = "summons"; break;
-                    case "104": case "103": case "102": case "101": check = "weapons"; break;
-                }
-                break;
-            case 8: // don't redo the lowercase letter check unless needed
-                id = id.slice(1);
-                check = "enemies";
-                break;
-            case 7:
-                id = id.slice(1);
-                check = "events";
-                break;
-            case 6:
-                if(id.toLowerCase().startsWith('sk'))
-                {
-                    id = id.slice(2);
-                    check = "skills";
-                }
-                else
-                {
-                    check = "job";
-                }
-                break;
-            case 5:
-                id = id.slice(1);
-                check = "buffs";
-                break;
-        }
-        // cleanup search results if not relevant to current id
-        let found = false;
-        for(const el of searchResults)
-        {
-            if(el[0] == id)
+            if(blacklist.includes(id)) return;
+            // process id
+            if(f.value == "" || f.value != id)
             {
-                found = true;
-                break;
+                f.value = id;
             }
-        }
-        if(!found)
-        {
-            document.getElementById('results').style.display = "none";
-            searchResults = [];
-        }
-        // remove fav button before loading
-        favButton(false, null, null);
-        if(check != null && id in index[check] && index[check][id] !== 0)
-        {
-            loadIndexed(id, index[check][id], check);
+            let check = null;
+            switch(id.length)
+            {
+                case 10:
+                    switch(id.slice(0, 3))
+                    {
+                        case "305": case "399": check = "npcs"; break;
+                        case "304": case "303": case "302": check = "characters"; break;
+                        case "371": check = "skins"; break;
+                        case "384": case "383": case "382": case "388": case "389": check = "partners"; break;
+                        case "204": case "203": case "202": case "201": check = "summons"; break;
+                        case "104": case "103": case "102": case "101": check = "weapons"; break;
+                    }
+                    break;
+                case 8: // don't redo the lowercase letter check unless needed
+                    id = id.slice(1);
+                    check = "enemies";
+                    break;
+                case 7:
+                    id = id.slice(1);
+                    check = "events";
+                    break;
+                case 6:
+                    if(id.toLowerCase().startsWith('sk'))
+                    {
+                        id = id.slice(2);
+                        check = "skills";
+                    }
+                    else
+                    {
+                        check = "job";
+                    }
+                    break;
+                case 5:
+                    id = id.slice(1);
+                    check = "buffs";
+                    break;
+            }
+            // cleanup search results if not relevant to current id
+            let found = false;
+            for(const el of searchResults)
+            {
+                if(el[0] == id)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if(!found)
+            {
+                document.getElementById('results').style.display = "none";
+                searchResults = [];
+            }
+            // remove fav button before loading
+            favButton(false, null, null);
+            if(check != null && id in index[check] && index[check][id] !== 0)
+            {
+                loadIndexed(id, index[check][id], check);
+            }
+            else
+            {
+                if(check != null && id in index[check] && index[check][id] == 0)
+                {
+                    switch(check) // enable favorite if partially indexed
+                    {
+                        case "npcs":
+                            favButton(true, id, 5);
+                            break;
+                        case "enemies":
+                            favButton(true, id, 4);
+                            break;
+                        case "characters":
+                        case "skins":
+                            favButton(true, id, 3);
+                            break;
+                        case "summons":
+                            favButton(true, id, 2);
+                            break;
+                        case "weapons":
+                            favButton(true, id, 1);
+                            break;
+                        case "job":
+                            favButton(true, id, 0);
+                            break;
+                        case "partners":
+                            favButton(true, id, 6);
+                            break;
+                    }
+                }
+                loadUnindexed(id, check);
+            }
         }
         else
         {
-            if(check != null && id in index[check] && index[check][id] == 0)
+            let results = document.getElementById('results');
+            results.style.display = "none";
+            results.innerHTML = "";
+            if(id == "") return;
+            let words = id.toLowerCase().split(' ');
+            let positives = [];
+            for(const [key, value] of Object.entries(index['lookup_reverse']))
             {
-                switch(check) // enable favorite if partially indexed
+                let matching = true;
+                for(const w of words)
                 {
-                    case "npcs":
-                        favButton(true, id, 5);
-                        break;
-                    case "enemies":
-                        favButton(true, id, 4);
-                        break;
-                    case "characters":
-                    case "skins":
-                        favButton(true, id, 3);
-                        break;
-                    case "summons":
-                        favButton(true, id, 2);
-                        break;
-                    case "weapons":
-                        favButton(true, id, 1);
-                        break;
-                    case "job":
-                        favButton(true, id, 0);
-                        break;
-                    case "partners":
-                        favButton(true, id, 6);
-                        break;
-                }
-            }
-            loadUnindexed(id, check);
-        }
-    }
-    else
-    {
-        let results = document.getElementById('results');
-        results.style.display = "none";
-        results.innerHTML = "";
-        if(id == "") return;
-        let words = id.toLowerCase().split(' ');
-        let positives = [];
-        for(const [key, value] of Object.entries(index['lookup_reverse']))
-        {
-            let matching = true;
-            for(const w of words)
-            {
-                if(["ssr", "sr", "r", "female", "male"].includes(w))
-                {
-                    if(!key.split(" ").includes(w))
+                    if(["ssr", "sr", "r", "female", "male"].includes(w))
+                    {
+                        if(!key.split(" ").includes(w))
+                        {
+                            matching = false;
+                            break;
+                        }
+                    }
+                    else if(!key.includes(w))
                     {
                         matching = false;
                         break;
                     }
                 }
-                else if(!key.includes(w))
+                if(matching)
                 {
-                    matching = false;
-                    break;
+                    positives.push([value, parseInt(value[0])]);
+                    if(positives.length == 50) break;
                 }
             }
-            if(matching)
+            updateDynamicList(results, positives);
+            results.style.display = null;
+            if(positives.length == 50)
             {
-                positives.push([value, parseInt(value[0])]);
-                if(positives.length == 50) break;
+                results.appendChild(document.createElement("br"));
+                results.appendChild(document.createTextNode("(First 50 results)"));
             }
+            else if(positives.length == 0)
+            {
+                results.appendChild(document.createTextNode("No Results"));
+            }
+            if(positives.length > 0)
+            {
+                results.insertBefore(document.createElement("br"), results.firstChild);
+                results.insertBefore(document.createTextNode("Results for \"" + id + "\""), results.firstChild);
+                if(f.value != id) f.value = id;
+            }
+            searchResults = positives;
         }
-        updateDynamicList(results, positives);
-        results.style.display = null;
-        if(positives.length == 50)
-        {
-            results.appendChild(document.createElement("br"));
-            results.appendChild(document.createTextNode("(First 50 results)"));
-        }
-        else if(positives.length == 0)
-        {
-            results.appendChild(document.createTextNode("No Results"));
-        }
-        if(positives.length > 0)
-        {
-            results.insertBefore(document.createElement("br"), results.firstChild);
-            results.insertBefore(document.createTextNode("Results for \"" + id + "\""), results.firstChild);
-            if(f.value != id) f.value = id;
-        }
-        searchResults = positives;
+    } catch(error) {
+        console.error("Exception thrown", error.stack);
     }
 }
 
