@@ -1778,16 +1778,16 @@ class Updater():
                         A = 0 if mid == "_cutin" else 1
                         max_err = 1
                 elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
-            # chain burst
-            elements.append((id, existing, "_chain_start", [], None, None, None))
-            for A in range(2, 5):
-                elements.append((id, existing, "_chain{}_"+str(A), [], 1, 1, 1))
-            # seasonal A
-            for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
-                elements.append((id, existing, mid + "{}", [], 1, Z, 5))
-            for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
-                for s in range(1, 6):
-                    elements.append((id, existing, "_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
+        # chain burst
+        elements.append((id, existing, "_chain_start", [], None, None, None))
+        for A in range(2, 5):
+            elements.append((id, existing, "_chain{}_"+str(A), [], 1, 1, 1))
+        # seasonal A
+        for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
+            elements.append((id, existing, mid + "{}", [], 1, Z, 5))
+        for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
+            for s in range(1, 6):
+                elements.append((id, existing, "_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
         return elements
 
     # search sound files for a character/skin/npc
