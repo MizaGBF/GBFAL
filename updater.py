@@ -1833,7 +1833,7 @@ class Updater():
                         result.append(f)
                         err = 0
                 if not exists:
-                    found = True
+                    found = False
                     for p in post:
                         f = suffix.format(str(index).zfill(zfill)) + p
                         if f in existing or (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
