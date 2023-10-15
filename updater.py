@@ -2,54 +2,148 @@ import asyncio
 import aiohttp
 import sys
 import re
-import queue
 import json
 import time
 import string
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone, timedelta
 import traceback
+from typing import Optional
 
 # progress bar class
 class Progress():
-    def __init__(self, counter, silent=False):
-        if counter < 0: raise Exception("Invalid counter value for the Progress Instance")
-        self.silent = silent or counter == 0
-        self.total = counter
+    def __init__(self, *, total : int = 9999999999999, silent : bool = True): # set to silent with a high total by default
+        self.silent = silent
+        self.total = total
         self.current = -1
         self.start_time = time.time()
         self.update()
 
-    def set(self, total, silent):
-        if total < 0: raise Exception("Invalid total value for the Progress Instance")
-        self.silent = silent or total == 0
-        self.total = total
-        if not self.silent:
+    def set(self, *, total : int = 0, silent = False): # to initialize it after a task start, once we know the total
+        if total > 0:
+            self.total = total
+        self.silent = silent
+        if not self.silent or self.total <= 0:
             sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00', ''))
             sys.stdout.flush()
 
-    def update(self):
+    def update(self): # to call to update the progress text (if not silent and not done)
         if self.current < self.total:
             self.current += 1
             if not self.silent:
                 sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00', ''))
                 sys.stdout.flush()
                 if self.current >= self.total:
-                    print("\nFinished in {:.2f} seconds".format(time.time() - self.start_time))
+                    diff = time.time() - self.start_time # elapsed time
+                    # format to H:M:S
+                    x = int((diff - int(diff)) * 100)
+                    diff = int(diff)
+                    h = diff // 3600
+                    m = (diff % 3600) // 60
+                    s = diff % 60
+                    p = ""
+                    if h > 0: p += str(h).zfill(2) + "h"
+                    if m > 0 or p != "": p += str(m).zfill(2) + "m"
+                    p += str(s).zfill(2)
+                    if x > 0: p += "." + str(x).zfill(2)
+                    p += "s"
+                    print("\nRun time: {}".format(p))
 
-    def __enter__(self):
+    def __enter__(self): # to use 'WITH'
         pass
 
     def __exit__(self, type, value, traceback):
-        self.update()
+        self.update() # updated on exit
 
 # main class
 class Updater():
+    ### CONSTANT
+    # limit
+    MAX_NEW = 100
+    MAX_UPDATE = 50
+    MAX_HTTP = 100
+    MAX_HTTP_WIKI = 20
+    # addition type
+    ADD_UNDEF = -1
+    ADD_JOB = 0
+    ADD_WEAP = 1
+    ADD_SUMM = 2
+    ADD_CHAR = 3
+    ADD_BOSS = 4
+    ADD_NPC = 5
+    ADD_PARTNER = 6
+    ADD_EVENT = 7
+    ADD_SKILL = 8
+    ADD_BUFF = 9
+    PREEMPTIVE_ADD = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"])
+    # chara/skin/partner update
+    CHARA_SPRITE = 0
+    CHARA_PHIT = 1
+    CHARA_SP = 2
+    CHARA_AB_ALL = 3
+    CHARA_AB = 4
+    CHARA_GENERAL = 5
+    CHARA_SD = 6
+    CHARA_SCENE = 7
+    CHARA_SOUND = 8
+    CHARA_SPECIAL_REUSE = {"3710171000":"3710167000","3710170000":"3710167000","3710169000":"3710167000","3710168000":"3710167000"} # bobobo skins reuse bobobo data
+    # npc update
+    NPC_JOURNAL = 0
+    NPC_SCENE = 1
+    NPC_SOUND = 2
+    # summon update
+    SUM_GENERAL = 0
+    SUM_CALL = 1
+    SUM_DAMAGE = 2
+    SUM_MULTI = set(["2040414000"]) # summons with multiple calls
+    # weapon update
+    WEAP_GENERAL = 0
+    WEAP_PHIT = 1
+    WEAP_SP = 2
+    # enemy update
+    BOSS_GENERAL = 0
+    BOSS_SPRITE = 1
+    BOSS_APPEAR = 2
+    BOSS_HIT = 3
+    BOSS_SP = 4
+    BOSS_SP_ALL = 5
+    # event update
+    EVENT_CHAPTER_COUNT = 0
+    EVENT_THUMB = 1
+    EVENT_OP = 2
+    EVENT_ED = 3
+    EVENT_INT = 4
+    EVENT_CHAPTER_START = 5
+    EVENT_MAX_CHAPTER = 15
+    EVENT_SKY = EVENT_CHAPTER_START+EVENT_MAX_CHAPTER
+    # job update
+    MAINHAND = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'] # weapon type keywords
+    # CDN endpoints
+    ENDPOINT = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/"
+    JS = ENDPOINT + "js/"
+    MANIFEST = JS + "model/manifest/"
+    CJS = JS + "cjs/"
+    IMG = ENDPOINT + "img/"
+    SOUND = ENDPOINT + "sound/"
+    VOICE = SOUND + "voice/"
+    # regex
+    ID_REGEX = re.compile("[123][07][1234]0\\d{4}00")
+    VERSION_REGEX = re.compile("Game\.version = \"(\d+)\";")
+    # others
+    CUT_CONTENT = ["2040145000","2040147000","2040148000","2040150000","2040152000","2040153000","2040154000","2040200000"] # beta arcarum ids
+    SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
+    SPECIAL_LOOKUP = { # special elements
+        "3020065000": "r character brown poppet trial",
+        "3030158000": "sr character blue poppet trial",
+        "3040097000": "ssr character sierokarte trial",
+        "2030004000": "sr summon fire not-playable",
+        "2030014000": "sr summon dark not-playable",
+    }
+    
     def __init__(self):
-        self.running = False # control if the app is running
+        # main variables
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
-        self.debug_wpn = False
-        self.request_queue = queue.Queue() # queue used to retrieve npc data
+        self.debug_wpn = False # for testing
         self.data = { # data structure
             "characters":{},
             "partners":{},
@@ -72,48 +166,24 @@ class Updater():
             "relations":{},
             "eventthumb":{}
         }
-        self.modified = False # if set to true, data.json will be updated
+        self.load() # load self.data NOW
+        self.modified = False # if set to true, data.json will be written on the next call of save()
         self.new_elements = [] # new indexed element
         self.addition = {} # new elements for changelog.json
-        self.mh = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'] # main hand keyword list
         self.job_list = None
+        self.name_table = {} # relation table
+        self.name_table_modified = False # and its modified flag
         
-        # TO BE MANUALLY UPDATED
-        self.null_characters = ["3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"] # known NULL characters such as Lyria, skins included
-        self.multi_summon = ["2040414000"] # summons with multiple calls
-        self.chara_special = {"3710171000":"3710167000","3710170000":"3710167000","3710169000":"3710167000","3710168000":"3710167000"} # bobobo skins reuse bobobo data
-        self.cut_ids = ["2040145000","2040147000","2040148000","2040150000","2040152000","2040153000","2040154000","2040200000"] # cut content (beta arcarum here)
-        
-        # relation processing
-        self.name_table = {}
-        self.name_table_modified = False
-        
-        # search lookup processing
-        self.lookup_group = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]] # elements sharing names (to be updated manually)
-        self.other_lookup = { # special elements
-            "3020065000": "r character brown poppet trial",
-            "3030158000": "sr character blue poppet trial",
-            "3040097000": "ssr character sierokarte trial",
-            "2030004000": "sr summon fire not-playable",
-            "2030014000": "sr summon dark not-playable",
-        }
+        # asyncio semaphores
+        self.sem = asyncio.Semaphore(self.MAX_UPDATE) # update semaphore
+        self.http_sem = asyncio.Semaphore(self.MAX_HTTP) # http semaphore
+        self.wiki_sem = asyncio.Semaphore(self.MAX_HTTP_WIKI) # wiki request semaphor
         
         # others
-        self.re = re.compile("[123][07][1234]0\\d{4}00")
-        self.vregex = re.compile("Game\.version = \"(\d+)\";")
-        self.preemptive_add = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"])
         self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings()
-        self.sem = asyncio.Semaphore(50)
-        self.http_sem = asyncio.Semaphore(100)
-        self.wiki_sem = asyncio.Semaphore(20)
-        self.progress = Progress(1, silent=True)
+        self.progress = Progress() # initialized with a silent progress bar
         
-        #limits = httpx.Limits(max_keepalive_connections=300, max_connections=300, keepalive_expiry=10)
-        self.client = None
-        self.manifestUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/model/manifest/"
-        self.cjsUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js/cjs/"
-        self.imgUri = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img"
-        self.endpoint = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/"
+        self.client = None # will contain the aiohttp client. Is initialized at startup or must be initialized by a third party.
 
     ### Utility #################################################################################################################
 
@@ -172,7 +242,7 @@ class Updater():
                     self.addition = {} # clear self.addition
                     for k, v in existing.items(): # convert back to list. NOTE: maybe make a cleaner way later
                         new.append([k, v])
-                    if len(new) > 100: new = new[len(new)-100:]
+                    if len(new) > self.MAX_NEW: new = new[len(new)-self.MAX_NEW:]
                     with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
                         json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues}, outfile)
                     print("changelog.json updated")
@@ -180,45 +250,47 @@ class Updater():
             print(e)
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
-    # Generic HEAD or GET request function. Set get to True when the content must be downloaded and read
-    async def req(self, url, headers={}, get=False):
+    # Generic GET request function
+    async def get(self, url : str, headers : dict = {}):
         async with self.http_sem:
-            if get:
-                response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=50)
-            else:
-                response = await self.client.head(url, headers={'connection':'keep-alive'} | headers, timeout=50)
+            response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=50)
             async with response:
                 if response.status != 200: raise Exception("HTTP error {}".format(response.status_code))
-                if get:
-                    return await response.content.read()
-                else:
-                    return response.headers
+                return await response.content.read()
+    
+    # Generic HEAD request function
+    async def head(self, url : str, headers : dict = {}):
+        async with self.http_sem:
+            response = await self.client.head(url, headers={'connection':'keep-alive'} | headers, timeout=50)
+            async with response:
+                if response.status != 200: raise Exception("HTTP error {}".format(response.status_code))
+                return response.headers
 
-    # wrapper if the exception isn't needed
-    async def req_noex(self, url, headers={}, get=False):
+    # wrapper of head() if the exception isn't needed (return None in case of error instead)
+    async def head_nx(self, url : str, headers : dict = {}):
         try:
-            return await self.req(url, headers, get)
+            return await self.head(url, headers)
         except:
             return None
 
     # another wrapper to chain requests
-    async def multi_req_noex(self, urls, headers={}, get=False):
+    async def multi_head_nx(self, urls : list, headers : dict = {}):
         for url in urls:
-            r = await self.req_noex(url, headers, get)
+            r = await self.head_nx(url, headers)
             if r is not None:
                 return r
-        return r
+        return None
 
-    # Create a shared container for tasks. used by run()
-    def newShared(self, errs):
+    # Create a shared container for tasks. Used by run()
+    def newShared(self, errs : list):
         errs.append([])
         errs[-1].append(0)
         errs[-1].append(True)
         return errs[-1]
 
     # Extract json data from a manifest file
-    async def processManifest(self, file, verify_file=False):
-        manifest = (await self.req(self.manifestUri + file + ".js", get=True)).decode('utf-8')
+    async def processManifest(self, file : str, verify_file : bool = False):
+        manifest = (await self.get(self.MANIFEST + file + ".js")).decode('utf-8')
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
         data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
@@ -229,7 +301,7 @@ class Updater():
         if verify_file: # check if at least one file is visible
             for k in res:
                 try:
-                    await self.req(self.imgUri + "_low/sp/cjs/" + k)
+                    await self.head(self.IMG + "sp/cjs/" + k)
                     return res
                 except:
                     pass
@@ -237,12 +309,12 @@ class Updater():
         return res
 
     # Remove extra from wiki name
-    def cleanName(self, name):
+    def cleanName(self, name : str):
         for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)']:
             name = name.replace(k, '')
         return name.strip().strip('_')
 
-    # for low memory queued asyncio concurrency
+    # for limited queued asyncio concurrency
     def map_unordered(self, func, iterable, limit):
         aws = map(func, iterable)
         return self.limit_concurrency(aws, limit)
@@ -297,7 +369,7 @@ class Updater():
 
         print("Starting process...")
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(1000000000000, True)
+            self.progress = Progress()
             self.newShared(errs)
             for i in range(job_task):
                 tasks.append(tg.create_task(self.search_job(i, job_task, jkeys, errs[-1])))
@@ -393,7 +465,7 @@ class Updater():
             self.newShared(errs)
             for i in range(3):
                 tasks.append(tg.create_task(self.run_sub('suptix', i, 3, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg",  15)))
-            self.progress.set(len(tasks), False)
+            self.progress.set(total=len(tasks), silent=False)
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
             await self.check_new_event()
@@ -402,25 +474,25 @@ class Updater():
         self.save()
 
     # standard run subroutine
-    async def run_sub(self, index, start, step, err, file, zfill, path, ext, maxerr):
+    async def run_sub(self, index : str, start : int, step : int, err : list, file : str, zfill : int, path : str, ext : str, maxerr : int):
         with self.progress:
             i = start
             is_js = ext.endswith('.js')
             while err[0] < maxerr and err[1]:
                 f = file.format(str(i).zfill(zfill))
                 if f in self.data[index]:
-                    if self.data[index][f] == 0 and (is_js or index in self.preemptive_add):
+                    if self.data[index][f] == 0 and (is_js or index in self.PREEMPTIVE_ADD):
                         self.new_elements.append(f)
                     err[0] = 0
                     await asyncio.sleep(0.001)
                 else:
                     try:
-                        if f in self.multi_summon: await self.req(self.endpoint + path + f + ext.replace("_damage", "_a_damage"))
-                        else: await self.req(self.endpoint + path + f + ext)
+                        if f in self.SUM_MULTI: await self.head(self.endpoint + path + f + ext.replace("_damage", "_a_damage"))
+                        else: await self.head(self.endpoint + path + f + ext)
                         err[0] = 0
                         self.data[index][f] = 0
                         if index in ["background", "title", "subskills", "suptix"]:
-                            self.addition[index+":"+f] = -1
+                            self.addition[index+":"+f] = self.ADD_UNDEF
                         self.modified = True
                         self.new_elements.append(f)
                     except:
@@ -431,7 +503,7 @@ class Updater():
                 i += step
 
     # -run subroutine to search for new skills
-    async def search_skill(self, start, step): # skill search
+    async def search_skill(self, start : int, step : int): # skill search
         with self.progress:
             err = 0
             i = start
@@ -456,12 +528,12 @@ class Updater():
                 found = False
                 for s in [".png", "_1.png", "_2.png", "_3.png", "_4.png", "_5.png"]:
                     try:
-                        headers = await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/ability/m/" + str(i) + s)
+                        headers = await self.head(self.IMG + "sp/ui/icon/ability/m/" + str(i) + s)
                         if 'content-length' in headers and int(headers['content-length']) < 200: raise Exception()
                         found = True
                         err = 0
                         self.data["skills"][fi] = [[str(i) + s.split('.')[0]]]
-                        self.addition[fi] = 8
+                        self.addition[fi] = self.ADD_SKILL
                         self.modified = True
                         break
                     except:
@@ -470,7 +542,7 @@ class Updater():
                 if not found and i > highest: err += 1
 
     # -run subroutine to search for new buffs
-    async def search_buff(self, start, step, full=False): # buff search
+    async def search_buff(self, start : int, step : int, full : bool = False): # buff search
         with self.progress:
             err = 0
             i = start
@@ -511,7 +583,7 @@ class Updater():
                 for s in slist:
                     try:
                         if s not in known:
-                            headers = await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
+                            headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
                             if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
                             if len(data[0]) == 0:
                                 data[0].append(str(i) + s)
@@ -529,7 +601,7 @@ class Updater():
                     err = 0
                     if modified:
                         self.data["buffs"][fi] = data
-                        self.addition[fi] = 9
+                        self.addition[fi] = self.ADD_BUFF
                         self.modified = True
                 i += step
 
@@ -539,7 +611,7 @@ class Updater():
     async def init_job_list(self):
         print("Initializing job list...")
         # existing classes
-        try: job_list = (await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/js_low/constant/job.js", get=True)).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
+        try: job_list = (await self.get(self.JS + "constant/job.js")).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
         except Exception as ee:
             print(ee)
             return
@@ -575,15 +647,15 @@ class Updater():
         return job_list
 
     # Subroutine for init_job_list
-    async def init_job_list_sub(self, id):
+    async def init_job_list_sub(self, id : str):
         try:
-            await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/leader/m/{}_01.jpg".format(id))
+            await self.head(self.IMG + "sp/assets/leader/m/{}_01.jpg".format(id))
             return id
         except:
             return None
 
     # run subroutine to search for new jobs
-    async def search_job(self, start, step, keys, shared):
+    async def search_job(self, start : int, step : int, keys : list, shared : list):
         with self.progress:
             i = start
             while i < len(keys):
@@ -592,9 +664,9 @@ class Updater():
                 colors = [1]
                 alts = []
                 # mh check
-                for mh in self.mh:
+                for mh in self.MAINHAND:
                     try:
-                        await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(keys[i], mh))
+                        await self.head(self.IMG + "sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(keys[i], mh))
                         cmh.append(mh)
                     except:
                         continue
@@ -602,7 +674,7 @@ class Updater():
                     # alt check
                     for j in [2, 3, 4, 5, 80]:
                         try:
-                            await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
+                            await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
                             colors.append(j)
                             if j >= 80:
                                 alts.append(j)
@@ -625,7 +697,7 @@ class Updater():
 
                     self.data['job'][keys[i]] = data
                     self.modified = True
-                    self.addition[keys[i]] = 0
+                    self.addition[keys[i]] = self.ADD_JOB
                 i += step
             if shared[1]:
                 shared[1] = False
@@ -678,7 +750,7 @@ class Updater():
         self.save()
 
     # search_job_detail() subroutine
-    async def detail_job_search(self, key, job):
+    async def detail_job_search(self, key : str, job : str):
         cmh = self.data['job'][job][6]
         a = key[0]
         for b in key:
@@ -698,15 +770,15 @@ class Updater():
                     print("Set", job, "to", d)
 
     # search_job_detail() subroutine
-    async def detail_job_weapon_search(self, wid):
+    async def detail_job_weapon_search(self, wid : str):
         try:
-            await self.req(self.imgUri + '_low/sp/assets/weapon/m/' + wid + ".jpg")
+            await self.head(self.IMG + '_low/sp/assets/weapon/m/' + wid + ".jpg")
             return
         except:
             pass
         for k in [["phit_", ""], ["sp_", "_1_s2"]]:
             try:
-                await self.req(self.manifestUri + k[0] + wid + k[1] + ".js")
+                await self.head(self.MANIFEST + k[0] + wid + k[1] + ".js")
                 self.data["job_wpn"][wid] = None
                 self.modified = True
                 print("Possible job skin related weapon:", wid)
@@ -715,8 +787,8 @@ class Updater():
                 pass
 
     # search_job_detail() subroutine
-    async def detail_job_search_single(self, key):
-        for mh in self.mh:
+    async def detail_job_search_single(self, key : str):
+        for mh in self.MAINHAND:
             try:
                 await self.processManifest("{}_{}_0_01".format(key, mh))
                 self.data["job_key"][key] = None
@@ -894,14 +966,14 @@ class Updater():
     ### Update ##################################################################################################################
 
     # Called by -update or other function when new content is detected
-    async def manualUpdate(self, ids): 
+    async def manualUpdate(self, ids : list): 
         if len(ids) == 0:
             return
         ids = list(set(ids)) # remove dupes
         async with asyncio.TaskGroup() as tg:
             tasks = []
             remaining = 0
-            self.progress = Progress(1000000000000, True)
+            self.progress = Progress()
             for id in ids:
                 if len(id) >= 10:
                     if id.startswith('2'):
@@ -934,7 +1006,7 @@ class Updater():
                     tasks.append(tg.create_task(self.mobUpdate(id)))
                     remaining += 1
             print("Attempting to update", remaining, "element(s)")
-            self.progress.set(len(tasks), False)
+            self.progress.set(total=len(tasks), silent=False)
         tsuccess = 0
         for t in tasks:
             if t.result():
@@ -945,7 +1017,7 @@ class Updater():
         self.save()
 
     # Art check system for characters. Detect gendered arts, etc...
-    async def artCheck(self, id, style, uncaps):
+    async def artCheck(self, id : str, style : str, uncaps : list):
         tasks = {}
         if id.startswith("38"):
             uncaps = ["01", "02", "03", "04"]
@@ -957,7 +1029,7 @@ class Updater():
                     for m in ["_101", ""]:
                         for n in ["_01", ""]:
                             s = "_" + uncap + style + g + m + n
-                            tasks[(uncap, g, m, n)] = tg.create_task(self.req_noex(self.imgUri + "_low/sp/assets/npc/raid_normal/{}{}.jpg".format(id, s), get=False))
+                            tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(self.IMG + "sp/assets/npc/raid_normal/{}{}.jpg".format(id, s)))
         flags = {}
         for s, t in tasks.items():
             if t.result() is not None:
@@ -970,18 +1042,19 @@ class Updater():
         return flags
 
     # Update character and skin data
-    async def charaUpdate(self, id):
+    async def charaUpdate(self, id : str):
         with self.progress:
             async with self.sem:
+                index = "skins" if id.startswith("371") else "characters"
                 data = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
                 for style in ["", "_st2"]:
                     uncaps = []
                     sheets = []
                     altForm = False
-                    if id.startswith("371") and style != "": # skin & style check
+                    if index == "skins" and style != "": # skin & style check
                         break
                     # # # Main sheets
-                    tid = self.chara_special.get(id, id) # special substitution (mostly for bobobo)
+                    tid = self.CHARA_SPECIAL_REUSE.get(id, id) # special substitution (mostly for bobobo)
                     for uncap in ["01", "02", "03", "04"]:
                         for ftype in ["", "_s2"]:
                             for form in ["", "_f", "_f1", "_f_01"]:
@@ -993,7 +1066,7 @@ class Updater():
                                 except:
                                     if form == "":
                                         break
-                    data[0] += sheets
+                    data[self.CHARA_SPRITE] += sheets
                     if len(uncaps) == 0:
                         if style == "": return False
                         continue
@@ -1014,8 +1087,8 @@ class Updater():
                         # sprites
                         sd.append(base_fn)
                     flags = None
-                    data[5] += targets
-                    data[6] += sd
+                    data[self.CHARA_GENERAL] += targets
+                    data[self.CHARA_SD] += sd
                     if len(targets) == 0:
                         if style == "": return False
                         continue
@@ -1023,22 +1096,13 @@ class Updater():
                     async with asyncio.TaskGroup() as tg:
                         if style == "":
                             # scene
-                            try:
-                                if tid.startswith('37'):
-                                    scenes = set(self.data['skins'][id][7])
-                                else:
-                                    scenes = set(self.data['characters'][id][7])
-                            except:
-                                scenes = set()
+                            try: scenes = set(self.data[index][id][self.CHARA_SCENE])
+                            except: scenes = set()
+                            data[self.CHARA_SCENE] = scenes
                             self.group_scene_task(tg, tasks, id, uncaps, scenes)
                             # sound
-                            try:
-                                if tid.startswith('37'):
-                                    voices = set(self.data['skins'][id][8])
-                                else:
-                                    voices = set(self.data['characters'][id][8])
-                            except:
-                                voices = set()
+                            try: voices = set(self.data[index][id][self.CHARA_SOUND])
+                            except: voices = set()
                             tasks['sound'] = tg.create_task(self.update_chara_sound_file(id, uncaps, voices))
                         # # # Other sheets
                         # attack
@@ -1054,7 +1118,7 @@ class Updater():
                                         attacks += await self.processManifest(fn)
                                     except:
                                         pass
-                        data[1] += attacks
+                        data[self.CHARA_PHIT] += attacks
                         # ougi
                         attacks = []
                         for uncap in uncaps:
@@ -1066,7 +1130,7 @@ class Updater():
                                         break
                                     except:
                                         pass
-                        data[2] += attacks
+                        data[self.CHARA_SP] += attacks
                         # skills
                         attacks = []
                         for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
@@ -1075,7 +1139,7 @@ class Updater():
                                 attacks += await self.processManifest(fn)
                             except:
                                 pass
-                        data[3] += attacks
+                        data[self.CHARA_AB_ALL] += attacks
                         attacks = []
                         for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
                             try:
@@ -1083,24 +1147,22 @@ class Updater():
                                 attacks += await self.processManifest(fn)
                             except:
                                 pass
-                        data[4] += attacks
+                        data[self.CHARA_AB] += attacks
                     for s, t in tasks['scenes'].items():
                         if t is True or t.result() is not None:
-                            data[7].append(s)
+                            data[self.CHARA_SCENE].add(s)
+                    data[self.CHARA_SCENE] = list(data[self.CHARA_SCENE])
                     if tasks['sound'] is not None:
-                        data[8] = tasks['sound'].result()
+                        data[self.CHARA_SOUND] = tasks['sound'].result()
                     tasks = None
                 self.modified = True
-                if tid.startswith('37'):
-                    self.data['skins'][id] = data
-                else:
-                    self.data['characters'][id] = data
-                self.addition[id] = 3
+                self.data[index][id] = data
+                self.addition[id] = self.ADD_CHAR
                 await self.generateNameLookup(id)
             return True
 
     # Update partner data. Note: It's based on charaUpdate and is terribly inefficient
-    async def partnerUpdate(self, id, thread_step):
+    async def partnerUpdate(self, id : str, step : int):
         with self.progress:
             async with self.sem:
                 is_mc = id.startswith("389")
@@ -1112,25 +1174,25 @@ class Updater():
                 tid = id
                 id = str((int(id) // 1000) * 1000)
                 style = "" # placeholder
-                max_err = 15 if id == "3890005000" else max(5, thread_step // 3)  # placeholder
+                max_err = 15 if id == "3890005000" else max(5, step // 3)  # placeholder
                 # build set of existing element
                 lookup = []
-                for i in data[0]:
+                for i in data[self.CHARA_SPRITE]:
                     if i.startswith("npc_"):
                         lookup.append(i.split('_')[1])
-                for i in data[1]:
+                for i in data[self.CHARA_PHIT]:
                     if i.startswith("phit_"):
                         lookup.append(i.split('_')[1])
-                for i in data[2]:
+                for i in data[self.CHARA_SP]:
                     if i.startswith("nsp_"):
                         lookup.append(i.split('_')[1])
-                for i in data[3]:
+                for i in data[self.CHARA_AB_ALL]:
                     if i.startswith("ab_all_"):
                         lookup.append(i.split('_')[2])
-                for i in data[4]:
+                for i in data[self.CHARA_AB]:
                     if i.startswith("ab_"):
                         lookup.append(i.split('_')[1])
-                for i in data[5]:
+                for i in data[self.CHARA_GENERAL]:
                     lookup.append(i.split('_')[0])
                 lookup = set(lookup)
                 edited = False
@@ -1158,7 +1220,7 @@ class Updater():
                                         for af in (["", "_f", "_f1"] if altForm else [""]):
                                             targets.append(base_fn + af + g + m + n)
                         flags = None
-                        tmp[5] = targets
+                        tmp[self.CHARA_GENERAL] = targets
                         # # # Main sheets
                         for uncap in (["0_01", "1_01", "0_02", "1_02"] if is_mc else ["01", "02", "03", "04"]):
                             for ftype in ["", "_s2"]:
@@ -1171,7 +1233,7 @@ class Updater():
                                     except:
                                         if form == "":
                                             break
-                        tmp[0] = sheets
+                        tmp[self.CHARA_SPRITE] = sheets
                         if is_mc: uncaps = ["01", "02"]
                         # # # Other sheets
                         # attack
@@ -1187,7 +1249,7 @@ class Updater():
                                         attacks += await self.processManifest(fn, True)
                                     except:
                                         pass
-                        tmp[1] = attacks
+                        tmp[self.CHARA_PHIT] = attacks
                         # ougi
                         attacks = []
                         for uncap in uncaps:
@@ -1199,7 +1261,7 @@ class Updater():
                                         break
                                     except:
                                         pass
-                        tmp[2] = attacks
+                        tmp[self.CHARA_SP] = attacks
                         # skills
                         attacks = []
                         for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
@@ -1208,7 +1270,7 @@ class Updater():
                                 attacks += await self.processManifest(fn, True)
                             except:
                                 pass
-                        tmp[3] = attacks
+                        tmp[self.CHARA_AB_ALL] = attacks
                         attacks = []
                         for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
                             try:
@@ -1216,7 +1278,7 @@ class Updater():
                                 attacks += await self.processManifest(fn, True)
                             except:
                                 pass
-                        tmp[4] = attacks
+                        tmp[self.CHARA_AB] = attacks
                         # verification
                         l = 0
                         for i, e in enumerate(tmp):
@@ -1228,7 +1290,7 @@ class Updater():
                         else:
                             err = 0
                             edited = True
-                    tid = str(int(tid) + thread_step)
+                    tid = str(int(tid) + step)
                     if tid[-4] != id[-4]: # end if we reached 1000 or more
                         break
                 if not edited:
@@ -1240,38 +1302,40 @@ class Updater():
                     for i, e in enumerate(data):
                         self.data['partners'][id][i] = list(set(self.data['partners'][id][i] + e))
                         self.data['partners'][id][i].sort()
-                self.addition[id] = 6
+                self.addition[id] = self.ADD_PARTNER
             return True
 
     # Update NPC data
-    async def npcUpdate(self, id):
+    async def npcUpdate(self, id : str):
         with self.progress:
             async with self.sem:
                 data = [False, [], []] # journal flag, npc, voice
                 try:
-                    await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/{}_01.jpg".format(id))
-                    data[0] = True
+                    await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(id))
+                    data[self.NPC_JOURNAL] = True
                 except:
                     if id.startswith("305"): return False # don't continue for special npcs
                 
                 tasks = {'scenes':{}, 'sound':None}
                 async with asyncio.TaskGroup() as tg:
                     # scene
-                    try: scenes = set(self.data["npcs"][id][1])
+                    try: scenes = set(self.data["npcs"][id][self.NPC_SCENE])
                     except: scenes = set()
+                    data[self.NPC_SCENE] = scenes
                     self.group_scene_task(tg, tasks, id, [""], scenes)
                     # sound
-                    try: voices = set(self.data['npcs'][id][2])
+                    try: voices = set(self.data['npcs'][id][self.NPC_SOUND])
                     except: voices = set()
                     tasks['sound'] = tg.create_task(self.update_chara_sound_file(id, [""], voices))
                 for s, t in tasks['scenes'].items():
                     if t is True or t.result() is not None:
-                        data[1].append(s)
+                        data[self.NPC_SCENE].add(s)
+                data[self.NPC_SCENE] = list(data[self.NPC_SCENE])
                 if tasks['sound'] is not None:
-                    data[2] = tasks['sound'].result()
+                    data[self.NPC_SOUND] = tasks['sound'].result()
                 tasks = None
-                if not data[0] and len(data[1]) == 0:
-                    if len(data[2]) == 0: return False # nothing, quit
+                if not data[self.NPC_JOURNAL] and len(data[self.NPC_SCENE]) == 0:
+                    if len(data[self.NPC_SOUND]) == 0: return False # nothing, quit
                     # check if proceed regardless
                     keys = list(self.data['npcs'].keys()) # get keys
                     keys = keys[max(0, len(keys)-100):] # last 100 (or less)
@@ -1281,11 +1345,11 @@ class Updater():
                         return False
                 self.modified = True
                 self.data['npcs'][id] = data
-                self.addition[id] = 5
+                self.addition[id] = self.ADD_NPC
             return True
 
     # Update Summon data
-    async def sumUpdate(self, id):
+    async def sumUpdate(self, id : str):
         with self.progress:
             async with self.sem:
                 data = [[], [], []] # general, call, damage
@@ -1294,20 +1358,20 @@ class Updater():
                 for uncap in ["", "_02", "_03", "_04"]:
                     try:
                         fn = "{}_{}".format(id, uncap)
-                        await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/m/{}{}.jpg".format(id, uncap))
-                        data[0].append("{}{}".format(id, uncap))
+                        await self.head(self.IMG + "sp/assets/summon/m/{}{}.jpg".format(id, uncap))
+                        data[self.SUM_GENERAL].append("{}{}".format(id, uncap))
                         uncaps.append("01" if uncap == "" else uncap[1:])
                     except:
                         break
-                if len(uncaps) == 0 and id not in self.cut_ids:
+                if len(uncaps) == 0 and id not in self.CUT_CONTENT:
                     return False
-                multi = [""] if id not in self.multi_summon else ["", "_a", "_b", "_c", "_d", "_e"]
+                multi = [""] if id not in self.SUM_MULTI else ["", "_a", "_b", "_c", "_d", "_e"]
                 # attack
                 for u in uncaps:
                     for m in multi:
                         try:
                             fn = "summon_{}_{}{}_attack".format(id, u, m)
-                            data[1] += await self.processManifest(fn)
+                            data[self.SUM_CALL] += await self.processManifest(fn)
                         except:
                             pass
                 # damage
@@ -1315,99 +1379,99 @@ class Updater():
                     for m in multi:
                         try:
                             fn = "summon_{}_{}{}_damage".format(id, u, m)
-                            data[2] += await self.processManifest(fn)
+                            data[self.SUM_DAMAGE] += await self.processManifest(fn)
                         except:
                             pass
                 self.modified = True
                 self.data['summons'][id] = data
-                self.addition[id] = 2
+                self.addition[id] = self.ADD_SUMM
                 await self.generateNameLookup(id)
             return True
 
     # Update Weapon data
-    async def weapUpdate(self, id):
+    async def weapUpdate(self, id : str):
         with self.progress:
             async with self.sem:
                 data = [[], [], []] # general, phit, sp
                 # art
                 try:
-                    await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/weapon/m/{}.jpg".format(id))
-                    data[0].append("{}".format(id))
+                    await self.head(self.IMG + "sp/assets/weapon/m/{}.jpg".format(id))
+                    data[self.WEAP_GENERAL].append("{}".format(id))
                 except:
-                    if self.debug_wpn: data[0].append("{}".format(id))
+                    if self.debug_wpn: data[self.WEAP_GENERAL].append("{}".format(id))
                     else: return False
                 # attack
                 for u in ["", "_2", "_3", "_4"]:
                     try:
                         fn = "phit_{}{}".format(id, u)
-                        data[1] += await self.processManifest(fn)
+                        data[self.WEAP_PHIT] += await self.processManifest(fn)
                     except:
                         pass
                 # ougi
                 for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
                     try:
                         fn = "sp_{}{}".format(id, u)
-                        data[2] += await self.processManifest(fn)
+                        data[self.WEAP_SP] += await self.processManifest(fn)
                     except:
                         pass
-                if self.debug_wpn and len(data[1]) == 0 and len(data[2]) == 0:
+                if self.debug_wpn and len(data[self.WEAP_PHIT]) == 0 and len(data[self.WEAP_SP]) == 0:
                     return False
                 self.modified = True
                 self.data['weapons'][id] = data
-                self.addition[id] = 1
+                self.addition[id] = self.ADD_WEAP
                 await self.generateNameLookup(id)
             return True
 
     # Update Enemy data
-    async def mobUpdate(self, id):
+    async def mobUpdate(self, id : str):
         with self.progress:
             async with self.sem:
                 data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
                 # icon
                 try:
-                    await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/{}.png".format(id))
-                    data[0].append("{}".format(id))
+                    await self.head(self.IMG + "sp/assets/enemy/s/{}.png".format(id))
+                    data[self.BOSS_GENERAL].append("{}".format(id))
                 except:
                     return False
                 # sprite
                 try:
                     fn = "enemy_{}".format(id)
-                    data[1] += await self.processManifest(fn)
+                    data[self.BOSS_SPRITE] += await self.processManifest(fn)
                 except:
                     pass
                 # appear
                 try:
                     fn = "raid_appear_{}".format(id)
-                    data[2] += await self.processManifest(fn)
+                    data[self.BOSS_APPEAR] += await self.processManifest(fn)
                 except:
                     pass
                 # ehit
                 try:
                     fn = "ehit_{}".format(id)
-                    data[3] += await self.processManifest(fn)
+                    data[self.BOSS_HIT] += await self.processManifest(fn)
                 except:
                     pass
                 # esp
                 for i in range(0, 20):
                     try:
                         fn = "esp_{}_{}".format(id, str(i).zfill(2))
-                        data[4] += await self.processManifest(fn)
+                        data[self.BOSS_SP] += await self.processManifest(fn)
                     except:
                         pass
                     try:
                         fn = "esp_{}_{}_all".format(id, str(i).zfill(2))
-                        data[5] += await self.processManifest(fn)
+                        data[self.BOSS_SP_ALL] += await self.processManifest(fn)
                     except:
                         pass
                 self.modified = True
                 self.data['enemies'][id] = data
-                self.addition[id] = 4
+                self.addition[id] = self.ADD_BOSS
             return True
 
     ### Scene ###################################################################################################################
 
     # Called once at boot. Generate a list of string to check for npc data
-    def build_scene_strings(self, expressions = None):
+    def build_scene_strings(self, expressions : Optional[list] = None):
         if expressions is None or len(expressions) == 0:
             expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_eyeline"]
         variationsA = ["", "_a", "_b", "_c", "_battle"]
@@ -1425,8 +1489,54 @@ class Updater():
                 special_suffix.append(B.split("_")[-1])
         return scene_alts, specials, special_suffix
 
+    # list known scene strings along with errors encountered along the way
+    def list_known_scene_strings(self):
+        keys = set()
+        errs = []
+        for x in ["characters", "skins"]:
+            d = self.data[x]
+            for k, v in d.items():
+                try:
+                    if isinstance(v, list) and isinstance(v[self.CHARA_SCENE], list):
+                        for e in v[7]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
+                            else: keys.add(e)
+                except:
+                    errs.append(k)
+        for x in ["npcs"]:
+            for k, v in self.data[x].items():
+                try:
+                    if isinstance(v, list) and isinstance(v[self.NPC_SCENE], list):
+                        for e in v[1]:
+                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
+                            else: keys.add(e)
+                except:
+                    errs.append(k)
+        keys = list(keys)
+        keys.sort()
+        return keys, errs
+
+    # output known scene strings in a JSON file. For debugging purpose
+    async def debug_output_scene_strings(self, recur : bool = False):
+        print("Exporting all scene file suffixes...")
+        keys, errs = self.list_known_scene_strings()
+        if len(errs) > 0: # refresh elements with errors
+            if recur:
+                print("Still", len(errs), "elements incorrectly formed, manual debugging is necessary")
+            else:
+                tmp = self.update_changelog
+                self.update_changelog = False
+                print(len(errs), "elements incorrectly formed, attempting to update")
+                await self.manualUpdate(errs)
+                await self.debug_output_scene_strings()
+                self.update_changelog = tmp
+        else:
+            with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
+                json.dump(keys, f)
+            print("Data exported to 'json/debug_scene_strings.json'")
+
     # Get suffix list for given uncap values
-    def get_scene_string_list_for_uncaps(self, id, uncaps):
+    def get_scene_string_list_for_uncaps(self, id : str, uncaps : list):
         scene_alts = []
         for uncap in uncaps:
             if uncap == "01": uncap = ""
@@ -1439,7 +1549,7 @@ class Updater():
             i = 0
             while i < len(scene_alts):
                 if scene_alts[i].endswith("_up"):
-                    scene_alts = scene_alts[:i+1] + scene_alts[i]+"2" + scene_alts[i]+"3" + scene_alts[i]+"4" + scene_alts[i+1:]
+                    scene_alts = scene_alts[:i+1] + [scene_alts[i]+"2", scene_alts[i]+"3", scene_alts[i]+"4"] + scene_alts[i+1:]
                     i += 3
                 i += 1
             scene_alts += ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
@@ -1447,11 +1557,9 @@ class Updater():
         return scene_alts
 
     # Function to populate the task group
-    def group_scene_task(self, task_group, tasks, id, uncaps, scenes):
+    def group_scene_task(self, task_group : Optional[asyncio.TaskGroup], tasks : dict, id : str, uncaps : list, scenes : set):
         for s in self.get_scene_string_list_for_uncaps(id, uncaps):
-            if s in scenes:
-                tasks['scenes'][s] = True
-            else:
+            if s not in scenes:
                 tmp = s.split("_")
                 no_bubble = (s != "" and tmp[1].isdigit() and len(tmp[1]) == 2) # don't check raid bubbles for uncaps
                 if not no_bubble:
@@ -1459,23 +1567,54 @@ class Updater():
                         if k in tmp[-1]:
                             no_bubble = True
                             break
-                if no_bubble:
-                    tasks['scenes'][s] = task_group.create_task(self.req_noex("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png".format(id, s), get=False))
+                if task_group is None:
+                    tasks['scenes'][s] = (no_bubble, s) # this behavior is only for update_all_scene()
                 else:
-                    tasks['scenes'][s] = task_group.create_task(self.multi_req_noex(["https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/quest/scene/character/body/{}{}.png".format(id, s), "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/raid/navi_face/{}{}.png".format(id, s)], get=False))
+                    if no_bubble:
+                        tasks['scenes'][s] = task_group.create_task(self.head_nx(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)))
+                    else:
+                        tasks['scenes'][s] = task_group.create_task(self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)]))
 
     # Called by -scene, update all npc and character scene datas
-    async def update_all_scene(self, targeted_strings = []):
+    async def update_all_scene(self, target_index : Optional[str], targeted_strings : list = []):
+        if target_index is None:
+            target_index = ["characters", "skins", "npcs"]
+        elif not isinstance(target_index, list):
+            target_index = [target_index]
         if len(targeted_strings) > 0:
             self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
-        self.running = True
-        print("Updating scene data...")
+        print("Updating scene data for: {}...".format(" / ".join(target_index)))
         elements = []
-        for k in ["characters", "skins", "npcs"]:
+        for k in target_index:
             for id in self.data[k]:
-                elements.append((k, id))
-        self.progress = Progress(len(elements))
-        async for result in self.map_unordered(self.update_all_scene_sub, elements, 10):
+                if k == "npcs":
+                    uncaps = [""]
+                    idx = self.NPC_SCENE
+                else:
+                    uncaps = []
+                    idx = self.CHARA_SCENE
+                    for u in self.data[k][id][self.CHARA_GENERAL]:
+                        uu = u.replace(id+"_", "")
+                        if "_" not in uu and uu.startswith("0"):
+                            uncaps.append(uu)
+                tasks = {"scenes":{}}
+                try: scenes = set(self.data[k][id][idx])
+                except: scenes = set()
+                self.group_scene_task(None, tasks, id, uncaps, scenes)
+                keys = list(tasks["scenes"].keys())
+                for i in range(0, len(keys), self.MAX_HTTP):
+                    tup = {}
+                    for kk in keys[i:i + self.MAX_HTTP]:
+                        tup[kk] = tasks["scenes"][kk]
+                    elements.append((k, id, idx, tup))
+        try: # mem cleanup
+            tasks = None
+            keys = None
+            uncaps = None
+        except:
+            pass
+        self.progress = Progress(total=len(elements), silent=False)
+        async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_HTTP):
             pass
         if len(targeted_strings) > 0:
             self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
@@ -1484,38 +1623,30 @@ class Updater():
         print("Done")
 
     # update_all_scene() subroutine
-    async def update_all_scene_sub(self, tup):
+    async def update_all_scene_sub(self, tup : tuple):
         with self.progress:
-            index, id = tup
-            tasks = {'scenes':{}}
-            async with asyncio.TaskGroup() as tg:
-                if index == "npcs":
-                    uncaps = [""]
-                    idx = 1
-                else:
-                    uncaps = []
-                    idx = 7
-                    for u in self.data[index][id][5]:
-                        uu = u.replace(id+"_", "")
-                        if "_" not in uu and uu.startswith("0"):
-                            uncaps.append(uu)
-                try: scenes = set(self.data[index][id][idx])
-                except: scenes = set()
-                self.group_scene_task(tg, tasks, id, uncaps, scenes)
-            self.data[index][id][idx] = []
-            for s, t in tasks['scenes'].items():
-                if t is True or t.result() is not None:
-                    self.data[index][id][idx].append(s)
-            self.modified = True
+            k, id, idx, tasks = tup
+            for s, data in tasks.items():
+                no_bubble, s = data
+                if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)])) is not None:
+                    self.data[k][id][idx].append(s)
+                    self.modified = True
 
     # Sort scene data by string suffix order, to keep some sort of coherency on the web page
     def sort_all_scene(self):
         dummy_data = {s : False for s in self.scene_strings}
         for t in ["characters", "skins", "npcs"]:
+            if t == "npcs": idx = self.NPC_SCENE
+            else: idx = self.CHARA_SCENE
             for k, v in self.data[t].items():
-                before = str(v[-2])
+                tmp = []
+                for s in v[idx]:
+                    if s not in tmp:
+                        tmp.append(s)
+                v[idx] = tmp
+                before = str(v[idx])
                 data = {"01":dummy_data.copy()}
-                for s in v[-2]:
+                for s in v[idx]:
                     tmp = s.split("_")
                     if s != "" and tmp[1].isdigit() and len(tmp[1]) == 2:
                         if tmp[1] not in data:
@@ -1535,7 +1666,7 @@ class Updater():
                                 new.append("_"+dk+ds)
                 if str(new) != before:
                     self.modified = True
-                    self.data[t][k][-2] = new
+                    self.data[t][k][idx] = new
         print("Scene data sorted")
         self.save()
 
@@ -1545,29 +1676,28 @@ class Updater():
 
     # Called by -sound, update all npc and character sound datas
     async def update_all_sound(self):
-        self.running = True
         print("Updating sound data...")
         elements = []
         for k in ["characters", "skins", "npcs"]:
             for id in self.data[k]:
                 elements.append((k, id))
-        self.progress = Progress(len(elements))
+        self.progress = Progress(total=len(elements), silent=False)
         async for result in self.map_unordered(self.update_all_sound_sub, elements, 100):
             pass
         self.save()
         print("Done")
 
     # update_all_sound() subroutine
-    async def update_all_sound_sub(self, tup):
+    async def update_all_sound_sub(self, tup : tuple):
         with self.progress:
             index, id = tup
             if index == "npcs":
                 uncaps = [""]
-                idx = 2
+                idx = self.NPC_SOUND
             else:
                 uncaps = []
-                idx = 8
-                for u in self.data[index][id][5]:
+                idx = self.CHARA_SOUND
+                for u in self.data[index][id][self.CHARA_GENERAL]:
                     uu = u.replace(id+"_", "")
                     if "_" not in uu and uu.startswith("0") and uu != "02":
                         uncaps.append(uu)
@@ -1577,7 +1707,7 @@ class Updater():
             self.modified = True
 
     # search sound files for a character/skin/npc
-    async def update_chara_sound_file(self, id, base_uncaps = None, existing = set()):
+    async def update_chara_sound_file(self, id : str, base_uncaps : Optional[list] = None, existing : set = set()):
         if base_uncaps is None:
             base_uncaps = [""]
         uncaps = [u for u in base_uncaps if ("_" not in u and u.startswith("0"))]
@@ -1630,13 +1760,13 @@ class Updater():
         B.sort()
         return A+B
     
-    async def update_chara_sound_file_sub(self, id, existing, suffix, post, index, zfill, max_err):
+    async def update_chara_sound_file_sub(self, id : str, existing : set, suffix : str, post : list, index : Optional[int], zfill : Optional[int], max_err : Optional[int]):
         result = []
         if len(post) == 0: post = [""]
         if index is None: # single mode
             for p in post:
                 f = suffix + p
-                if f in existing or await self.req_noex("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f), get=False) is not None:
+                if f in existing or await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f)) is not None:
                     result.append(f)
         else:
             err = 0
@@ -1651,7 +1781,7 @@ class Updater():
                 if not exists:
                     for p in post:
                         f = suffix.format(str(index).zfill(zfill)) + p
-                        if f in existing or await self.req_noex("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f), get=False) is not None:
+                        if f in existing or await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f)) is not None:
                             result.append(f)
                             err = 0
                         elif p == post[-1]:
@@ -1661,7 +1791,7 @@ class Updater():
                 index += 1
         return result
 
-    async def update_chara_sound_file_sub_banter(self, id, existing):
+    async def update_chara_sound_file_sub_banter(self, id : str, existing : set):
         result = []
         A = 1
         B = 1
@@ -1672,7 +1802,7 @@ class Updater():
                 if Z is None or Z == i:
                     try:
                         f = "_pair_{}_{}".format(A, str(B).zfill(i))
-                        if f not in existing: await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/{}{}.mp3".format(id, f))
+                        if f not in existing: await self.head(self.VOICE + "{}{}.mp3".format(id, f))
                         result.append(f)
                         success = True
                         Z = i
@@ -1692,10 +1822,10 @@ class Updater():
     ### Lookup ##################################################################################################################
 
     # Check the given id on the wiki to retrieve element details. Only for summons, weapons and characters.
-    async def generateNameLookup(self, cid):
+    async def generateNameLookup(self, cid : str):
         with self.progress:
             if not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30"): return
-            r = await self.req("https://gbf.wiki/index.php?search={}".format(cid), get=True)
+            r = await self.get("https://gbf.wiki/index.php?search={}".format(cid))
             if r is not None:
                 try: content = r.decode('utf-8')
                 except: content = r.decode('iso-8859-1')
@@ -1712,7 +1842,7 @@ class Updater():
                     await self.generateNameLookup_sub(cid, m)
                 else: # CN wiki fallback
                     try:
-                        r = await self.req("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid), get=True)
+                        r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
                         if r is not None:
                             try: content = r.decode('utf-8')
                             except: content = r.decode('iso-8859-1')
@@ -1728,7 +1858,7 @@ class Updater():
                         pass
 
     # generateNameLookup() subroutine. Read the wiki page to extract element details (element, etc...)
-    async def generateNameLookup_sub(self, cid, wiki_lookup):
+    async def generateNameLookup_sub(self, cid : str, wiki_lookup : str):
         data = {}
         if cid.startswith("20"):
             data["What"] = "Summon"
@@ -1755,7 +1885,7 @@ class Updater():
             case '3': data['Rarity'] = 'SR'
             case '4': data['Rarity'] = 'SSR'
         try:
-            r = await self.req("https://gbf.wiki/{}".format(wiki_lookup.replace(' ', '_')), get=True)
+            r = await self.get("https://gbf.wiki/{}".format(wiki_lookup.replace(' ', '_')))
             try: content = r.decode('utf-8')
             except: content = r.decode('iso-8859-1')
             soup = BeautifulSoup(content, 'html.parser')
@@ -1843,7 +1973,7 @@ class Updater():
                 if k not in data:
                     is_valid = False
                     break
-            if cid in self.cut_ids: data["Cut-Content"] = "cut-content"
+            if cid in self.CUT_CONTENT: data["Cut-Content"] = "cut-content"
             elif not is_valid: return False
             data["ID"] = cid
             tmp = []
@@ -1862,23 +1992,23 @@ class Updater():
         tasks = []
         async with asyncio.TaskGroup() as tg:
             print("Checking elements in need of update...")
-            self.progress = Progress(1000000000000, True)
+            self.progress = Progress()
             for t in ['characters', 'summons', 'weapons']:
                 for k in self.data[t]:
                     if k not in self.data['lookup'] or self.data['lookup'][k] is None:
-                        if k in self.other_lookup:
-                            self.data['lookup'][k] = self.other_lookup[k]
+                        if k in self.SPECIAL_LOOKUP:
+                            self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
                             self.modified = True
                         else:
                             tasks.append(tg.create_task(self.generateNameLookup(k)))
-            self.progress.set(len(tasks), False)
+            self.progress.set(total=len(tasks), silent=False)
         for t in tasks:
             t.result()
         # second pass
         for t in ['characters', 'summons', 'weapons']:
             for k in self.data[t]:
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
-                    for l in self.lookup_group:
+                    for l in self.SHARED_NAMES:
                         if k not in l: continue
                         for m in l:
                             if m != k and m in self.data['lookup'] and m is not None:
@@ -1973,25 +2103,24 @@ class Updater():
 
     # Check the NPC list for npc with new thumbnails.
     async def update_npc_thumb(self):
-        self.running = True
         print("Updating NPC thumbnail data...")
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(1000000000000, True)
+            self.progress = Progress()
             for id in self.data["npcs"]:
                 if not isinstance(self.data["npcs"][id], int) and not self.data["npcs"][id][0]:
                     tasks.append(tg.create_task(self.update_npc_thumb_sub(id)))
-            self.progress.set(len(tasks), False)
+            self.progress.set(total=len(tasks), silent=False)
         for t in tasks:
             t.result()
         print("Done")
         self.save()
 
     # update_npc_thumb() subroutine
-    async def update_npc_thumb_sub(self, id): # subroutine
+    async def update_npc_thumb_sub(self, id : str): # subroutine
         with self.progress:
             try:
-                await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/{}_01.jpg".format(id))
+                await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(id))
                 self.data["npcs"][id][0] = True
                 self.modified = True
             except:
@@ -2000,7 +2129,7 @@ class Updater():
     ### Relation ################################################################################################################
 
     # Make a list of elements to check on the wiki and update them
-    async def build_relation(self, to_update=[]):
+    async def build_relation(self, to_update : list = []):
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
@@ -2012,7 +2141,7 @@ class Updater():
         new = []
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(1000000000000, True)
+            self.progress = Progress()
             if len(to_update) == 0:
                 for eid in self.data['characters']:
                     if eid not in relation or len(relation[eid]) == 0:
@@ -2026,7 +2155,7 @@ class Updater():
             else:
                 for eid in to_update:
                     tasks.append(tg.create_task(self.get_relation(eid)))
-            self.progress.set(len(tasks), False)
+            self.progress.set(total=len(tasks), silent=False)
         if len(tasks) > 0:
             print("Checking for new relationships...")
             for t in tasks:
@@ -2079,11 +2208,11 @@ class Updater():
                     pass
 
     # build_relation() subroutine. Check an element wiki page for alternate version or corresponding weapons
-    async def get_relation(self, eid):
+    async def get_relation(self, eid : str):
         with self.progress:
             async with self.wiki_sem:
                 try:
-                    page = await self.req("https://gbf.wiki/index.php?search={}".format(eid), get=True)
+                    page = await self.get("https://gbf.wiki/index.php?search={}".format(eid))
                     try: page = page.decode('utf-8')
                     except: page = page.decode('iso-8859-1')
                     page = page[page.find('mw-content-text'):page.find('printfooter')]
@@ -2101,7 +2230,7 @@ class Updater():
                     return None, []
                 for link in links:
                     try:
-                        page = await self.req("https://gbf.wiki" + link, get=True)
+                        page = await self.get("https://gbf.wiki" + link)
                         name = link[1:].split('(')[0].replace('_', ' ').strip().lower()
                         if not eid.startswith('10'):
                             with self.name_lock:
@@ -2118,7 +2247,7 @@ class Updater():
                             if a == -1: continue
                             a += len(sequence[0])
                             b = page.find(sequence[1], a)
-                            for sid in self.re.findall(page[a:b]):
+                            for sid in self.ID_REGEX.findall(page[a:b]):
                                 if sid != eid:
                                     ids.add(sid)
                         b = 0
@@ -2127,7 +2256,7 @@ class Updater():
                             if a == -1: break
                             a += len("wikitable")
                             b = page.find("</table>", a)
-                            for sid in self.re.findall(page[a:b]):
+                            for sid in self.ID_REGEX.findall(page[a:b]):
                                 if sid != eid:
                                     ids.add(sid)
                         return eid, list(ids)
@@ -2135,7 +2264,7 @@ class Updater():
                         return eid, []
 
     # Used to manually connect elements in A to B
-    def connect_relation(self, As : list, B):
+    def connect_relation(self, As : list, B : str):
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
@@ -2221,7 +2350,7 @@ class Updater():
 
     # Ask the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
     async def get_event_list(self):
-        r = await self.req('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22', get=True)
+        r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22')
         soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
         res = soup.find_all("div", class_="searchresult")
         l = ["201017", "211017", "221017", "231017", "200214", "210214", "220214", "230214", "200314", "210314", "220314", "230314", "201216", "211216", "221216", "231216", "210316", "230303", "220304", "220313"]
@@ -2235,7 +2364,7 @@ class Updater():
                 l.append(x[2]+x[0]+x[1])
             except:
                 pass
-        r = await self.req('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Event+duration%22', get=True)
+        r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Event+duration%22')
         soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
         res = soup.find_all("div", class_="searchresult")
         for r in res:
@@ -2253,7 +2382,7 @@ class Updater():
         return l
 
     # Call get_event_list() and check the current time to determine if new events have been added. If so, check if they got voice lines to determine if they got chapters, and then call update_event()
-    async def check_new_event(self, init_list = None):
+    async def check_new_event(self, init_list : Optional[list] = None):
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
         now = int(str(now.year)[2:] + str(now.month).zfill(2) + str(now.day).zfill(2))
         if init_list is None:
@@ -2266,15 +2395,15 @@ class Updater():
         tasks = []
         async with asyncio.TaskGroup() as tg:
             check = {}
-            self.progress = Progress(1000000000000, True)
+            self.progress = Progress()
             for ev in known_events:
                 if ev not in self.data["events"] and now >= int(ev):
                     check[ev] = -1
-                    for i in range(0, 16):
+                    for i in range(0, self.EVENT_MAX_CHAPTER):
                         for j in range(1, 2):
                             for k in range(1, 2):
-                               tasks.append(tg.create_task(self.update_event_sub(ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/sound/voice/scene_evt{}_cp{}_q{}_s{}0".format(ev, i, j, k))))
-            self.progress.set(len(tasks), False)
+                               tasks.append(tg.create_task(self.update_event_sub(ev, self.VOICE + "scene_evt{}_cp{}_q{}_s{}0".format(ev, i, j, k))))
+            self.progress.set(total=len(tasks), silent=False)
         if len(tasks) > 0:
             print(len(check.keys()), "potential new event(s)")
             new_story_event = []
@@ -2300,47 +2429,47 @@ class Updater():
             await self.update_event(init_list, full=True)
 
     # check_new_event() subroutine to request sound files
-    async def update_event_sub(self, ev, url):
+    async def update_event_sub(self, ev : str, url : str):
         with self.progress:
             for m in range(1, 20):
                 try:
-                    await self.req(url + "_{}.mp3".format(m))
+                    await self.head(url + "_{}.mp3".format(m))
                     return ev, url.split('/')[-1]
                 except:
                     pass
             return ev, None
 
     # Check the given event list for potential art pieces
-    async def update_event(self, events, full=False):
+    async def update_event(self, events : list, full : bool = False):
         # dig
         tasks = []
         async with asyncio.TaskGroup() as tg:
             modified = set()
             ec = 0
-            self.progress = Progress(1000000000000, True)
+            self.progress = Progress()
             for ev in events:
                 if full and ev not in self.data["events"]:
                     self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
-                if ev in self.data["events"] and (full or (not full and self.data["events"][ev][0] >= 0)):
+                if ev in self.data["events"] and (full or (not full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0)):
                     known_assets = set()
-                    for i in range(2, len(self.data["events"][ev])):
+                    for i in range(self.EVENT_OP, len(self.data["events"][ev])):
                         for e in self.data["events"][ev][i]:
                             known_assets.add(e)
                     ec += 1
-                    if full: ch_count = 16
-                    else: ch_count = self.data["events"][ev][0]
+                    if full: ch_count = self.EVENT_MAX_CHAPTER
+                    else: ch_count = self.data["events"][ev][self.EVENT_CHAPTER_COUNT]
                     for j in range(4):
                         for i in range(1, ch_count+1):
                             fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
-                            tasks.append(tg.create_task(self.update_event_sub_big(ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, j*25)))
+                            tasks.append(tg.create_task(self.update_event_sub_big(ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*25)))
                         for ch in ["op", "ed"]:
                             fn = "scene_evt{}_{}".format(ev, ch)
-                            tasks.append(tg.create_task(self.update_event_sub_big(ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, j*25)))
+                            tasks.append(tg.create_task(self.update_event_sub_big(ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*25)))
                         fn = "evt{}".format(ev)
-                        tasks.append(tg.create_task(self.update_event_sub_big(ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, j*25)))
+                        tasks.append(tg.create_task(self.update_event_sub_big(ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*25)))
                         fn = "scene_evt{}".format(ev)
-                        tasks.append(tg.create_task(self.update_event_sub_big(ev, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/quest/scene/character/body/"+fn, known_assets, j*25)))
-            self.progress.set(len(tasks), False)
+                        tasks.append(tg.create_task(self.update_event_sub_big(ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*25)))
+            self.progress.set(total=len(tasks), silent=False)
         if len(tasks) > 0:
             print("Checking assets for", ec, "event(s)")
             for t in tasks:
@@ -2353,31 +2482,31 @@ class Updater():
                                 x = e.split("_")[2]
                                 match x:
                                     case "op":
-                                        self.data["events"][ev][2].append(e)
+                                        self.data["events"][ev][self.EVENT_OP].append(e)
                                     case "ed":
-                                        self.data["events"][ev][3].append(e)
+                                        self.data["events"][ev][self.EVENT_ED].append(e)
                                     case "osarai":
-                                        self.data["events"][ev][4].append(e)
+                                        self.data["events"][ev][self.EVENT_INT].append(e)
                                     case _:
                                         if "_cp" in e:
-                                            self.data["events"][ev][4+int(x[2:])].append(e)
+                                            self.data["events"][ev][self.EVENT_CHAPTER_START-1+int(x[2:])].append(e)
                                         else:
-                                            self.data["events"][ev][4].append(e)
+                                            self.data["events"][ev][self.EVENT_INT].append(e)
                             except:
-                                self.data["events"][ev][4].append(e)
+                                self.data["events"][ev][self.EVENT_INT].append(e)
                         modified.add(ev)
             for ev in modified:
-                if full and self.data["events"][ev][0] == -1: self.data["events"][ev][0] = 0
-                for i in range(2, len(self.data["events"][ev])):
+                if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
+                for i in range(self.EVENT_OP , len(self.data["events"][ev])):
                     self.data["events"][ev][i] = list(set(self.data["events"][ev][i]))
                     self.data["events"][ev][i].sort()
                     self.modified = True
-                self.addition[ev] = 7
+                self.addition[ev] = self.ADD_EVENT
             print("Done")
         self.save()
 
     # update_event() subroutine to check an event possible art pieces
-    async def update_event_sub_big(self, ev, base_url, known_assets, step):
+    async def update_event_sub_big(self, ev : str, base_url : str, known_assets : set, step : int):
         with self.progress:
             l = []
             for j in range(step, step+25):
@@ -2385,7 +2514,7 @@ class Updater():
                 flag = False
                 try: # base check
                     if url.split("/")[-1] not in known_assets:
-                        self.req(url + ".png")
+                        self.head(url + ".png")
                         l.append(url.split("/")[-1])
                     flag = True
                 except:
@@ -2394,21 +2523,21 @@ class Updater():
                     for k in ["_up", "_shadow"]:
                         try:
                             if url.split("/")[-1]+k not in known_assets:
-                                self.req(url + k + ".png")
+                                self.head(url + k + ".png")
                                 l.append(url.split("/")[-1]+k)
                         except:
                             pass
                     for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
                         try:
                             if url.split("/")[-1]+k not in known_assets:
-                                self.req(url + k + ".png")
+                                self.head(url + k + ".png")
                                 l.append(url.split("/")[-1]+k)
                         except:
                             break
                 else:
                     try: # alternative filename format
                         if url.split("/")[-1]+"_00" not in known_assets:
-                            self.req(url + "_00.png")
+                            self.head(url + "_00.png")
                             l.append(url.split("/")[-1]+"_00")
                         flag = True
                     except:
@@ -2416,7 +2545,7 @@ class Updater():
                     for k in ["_up", "_shadow"]:
                         try:
                             if url.split("/")[-1]+"_00"+k not in known_assets:
-                                self.req(url + "_00" + k + ".png")
+                                self.head(url + "_00" + k + ".png")
                                 l.append(url.split("/")[-1]+"_00"+k)
                         except:
                             pass
@@ -2426,13 +2555,13 @@ class Updater():
                         k = str(i).zfill(2)
                         try:
                             if url.split("/")[-1]+"_"+k not in known_assets:
-                                self.req(url + "_" + k + ".png")
+                                self.head(url + "_" + k + ".png")
                                 l.append(url.split("/")[-1]+"_"+k)
                             err = 0
                             for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
                                 try:
                                     if url.split("/")[-1]+"_"+k+kk not in known_assets:
-                                        self.req(url + "_" + k + kk + ".png")
+                                        self.head(url + "_" + k + kk + ".png")
                                         l.append(url.split("/")[-1]+"_"+k+kk)
                                 except:
                                     break
@@ -2442,18 +2571,18 @@ class Updater():
         return ev, l
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
-    async def update_event_sky(self, ev):
-        known = set(self.data['events'][ev][-1])
-        evid = self.data['events'][ev][1]
+    async def update_event_sky(self, ev : str):
+        known = set(self.data['events'][ev][self.EVENT_SKY])
+        evid = self.data['events'][ev][self.EVENT_THUMB]
         try:
-            i = max(self.data['events'][ev][-1]) + 1
+            i = max(self.data['events'][ev][self.EVENT_SKY]) + 1
         except:
             i = 1
         modified = False
         while True:
             if i not in known:
                 try:
-                    await self.req("https://media.skycompass.io/assets/archives/events/{}/image/{}_free.png".format(evid, i))
+                    await self.head("https://media.skycompass.io/assets/archives/events/{}/image/{}_free.png".format(evid, i))
                     known.add(i)
                     modified = True
                 except:
@@ -2463,7 +2592,7 @@ class Updater():
             self.modified = True
             known = list(known)
             known.sort()
-            self.data['events'][ev][-1] = known
+            self.data['events'][ev][self.EVENT_SKY] = known
 
     # -eventedit CLI
     async def event_edit(self):
@@ -2482,14 +2611,14 @@ class Updater():
                     s = [0, 0, 0, 0]
                     for ev in self.data["events"]:
                         s[0] += 1
-                        if self.data["events"][ev][0] >= 0:
+                        if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
                             s[1] += 1
                             c = 0
-                            for i in range(2, len(self.data["events"][ev])):
+                            for i in range(self.EVENT_OP, len(self.data["events"][ev])):
                                 c += len(self.data["events"][ev][i])
                             if c > 0:
                                 s[2] += 1
-                                if self.data["events"][ev][1] is not None:
+                                if self.data["events"][ev][self.EVENT_THUMB] is not None:
                                     s[3] += 1
                     print(s[0], "events in the data")
                     print(s[1], "are valid events")
@@ -2497,19 +2626,19 @@ class Updater():
                     print(s[3], "got thumbnail")
                 case "1":
                     for ev in self.data["events"]:
-                        if self.data["events"][ev][0] >= 0:
-                            if self.data["events"][ev][1] is None:
+                        if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
+                            if self.data["events"][ev][self.EVENT_THUMB] is None:
                                 c = 0
-                                for i in range(2, len(self.data["events"][ev])):
+                                for i in range(self.EVENT_OP, len(self.data["events"][ev])):
                                     c += len(self.data["events"][ev][i])
                                 if c > 0:
                                     s = input("Input a thumbnail ID or URL for Event "+ev+" (Leave blank to skip):")
                                     if s != "":
                                         try:
                                             if s.startswith("http"):
-                                                self.data["events"][ev][1] = int(s.split('/')[-1].split('.')[0])
+                                                self.data["events"][ev][self.EVENT_THUMB] = int(s.split('/')[-1].split('.')[0])
                                             else:
-                                                self.data["events"][ev][1] = int(s)
+                                                self.data["events"][ev][self.EVENT_THUMB] = int(s)
                                             self.modified = True
                                             await self.update_event_sky(ev)
                                         except:
@@ -2522,7 +2651,7 @@ class Updater():
                 case "3":
                     l = []
                     for ev in self.data["events"]:
-                        if self.data["events"][ev][0] >= 0:
+                        if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
                             l.append(ev)
                     await self.update_event(l)
                 case "4":
@@ -2530,7 +2659,7 @@ class Updater():
                     async with asyncio.TaskGroup() as tg:
                         c = 0
                         for ev in self.data["events"]:
-                            if self.data["events"][ev][1] is not None:
+                            if self.data["events"][ev][self.EVENT_THUMB] is not None:
                                 tasks.append(tg.create_task(self.update_event_sky(ev)))
                         print("Checking", len(tasks), "event(s)...")
                     for t in tasks: t.result()
@@ -2549,7 +2678,7 @@ class Updater():
                                 self.data["events"][s] = [-1, th, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
                                 self.modified = True
                             elif th is not None:
-                                self.data["events"][s][1] = th
+                                self.data["events"][s][self.EVENT_THUMB ] = th
                                 self.modified = True
                         else:
                             break
@@ -2557,8 +2686,8 @@ class Updater():
                 case _:
                     break
 
-    # Attempt to automatically associate new event thumbnails to events (EXPERIMENTAL)
-    async def event_thumbnail_association(self, events):
+    # Attempt to automatically associate new event thumbnails to events
+    async def event_thumbnail_association(self, events : list):
         print("Checking event thumbnails...")
         in_use = set()
         for eid, ev in self.data["events"].items():
@@ -2571,7 +2700,7 @@ class Updater():
                 self.data["eventthumb"][eid] = 1
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(40)
+            self.progress = Progress(total=40, silent=False)
             for i in range(20):
                 tasks.append(tg.create_task(self.event_thumbnail_association_sub(7001, 9000, 20)))
                 tasks.append(tg.create_task(self.event_thumbnail_association_sub(9001, 10000, 20)))
@@ -2586,7 +2715,7 @@ class Updater():
             if len(new) == len(events):
                 print("Matching to new events...")
                 for i in range(len(new)):
-                    self.data["events"][str(events[i])][1] = new[i]
+                    self.data["events"][str(events[i])][self.EVENT_THUMB] = new[i]
                     self.data["eventthumb"][str(new[i])] = 1
                     self.update_event_sky(str(events[i]))
                     self.modified = True
@@ -2597,7 +2726,7 @@ class Updater():
         self.save()
 
     # event_thumbnail_association subroutine()
-    async def event_thumbnail_association_sub(self, start, end, step):
+    async def event_thumbnail_association_sub(self, start : int, end : int, step : int):
         with self.progress:
             err = 0
             i = start
@@ -2605,7 +2734,7 @@ class Updater():
                 try:
                     f = "{}0".format(i)
                     if f not in self.data["eventthumb"]:
-                        await self.req("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/archive/assets/island_m2/{}.png".format(f))
+                        await self.head(self.IMG + "sp/archive/assets/island_m2/{}.png".format(f))
                         self.data["eventthumb"][f] = 0
                         self.modified = True
                     err = 0
@@ -2634,7 +2763,7 @@ class Updater():
         self.update_changelog = False
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(10*10)
+            self.progress = Progress(total=10*10, silent=False)
             for i in range(10):
                 for j in range(10):
                     tasks.append(tg.create_task(self.search_buff(1000*i+j, 10, True)))
@@ -2649,9 +2778,9 @@ class Updater():
     # Request the current GBF version or possible maintenance state
     async def gbfversion(self):
         try:
-            res = await self.req('https://game.granbluefantasy.jp/', headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36', 'Accept-Language':'en', 'Host':'game.granbluefantasy.jp', 'Connection':'keep-alive'}, get=True)
+            res = await self.get('https://game.granbluefantasy.jp/', headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36', 'Accept-Language':'en', 'Host':'game.granbluefantasy.jp', 'Connection':'keep-alive'})
             res = res.decode('utf-8')
-            return int(self.vregex.findall(res)[0])
+            return int(self.VERSION_REGEX.findall(res)[0])
         except:
             try:
                 if 'maintenance' in res.lower(): return "maintenance"
@@ -2684,46 +2813,6 @@ class Updater():
             print("Cancelled...")
             return False
 
-    async def debug_output_scene_strings(self, recur=False):
-        print("Exporting all scene file suffixes...")
-        keys = set()
-        errs = []
-        for x in ["characters", "skins"]:
-            d = self.data[x]
-            for k, v in d.items():
-                try:
-                    if isinstance(v, list) and isinstance(v[7], list):
-                        for e in v[7]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
-                            else: keys.add(e)
-                except:
-                    errs.append(k)
-        for x in ["npcs"]:
-            for k, v in self.data[x].items():
-                try:
-                    if isinstance(v, list) and isinstance(v[0], list):
-                        for e in v[0]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
-                            else: keys.add(e)
-                except:
-                    errs.append(k)
-        keys = list(keys)
-        keys.sort()
-        if len(errs) > 0: # refresh elements with errors
-            if recur:
-                print("Still", len(errs), "elements incorrectly formed, manual debugging is necessary")
-            else:
-                tmp = self.update_changelog
-                self.update_changelog = False
-                print(len(errs), "elements incorrectly formed, attempting to update")
-                await self.manualUpdate(errs)
-                await self.debug_output_scene_strings()
-                self.update_changelog = tmp
-        else:
-            with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
-                json.dump(keys, f)
-            print("Data exported to 'json/debug_scene_strings.json'")
-
     # Print the help
     def print_help(self):
         print("Usage: python updater.py [START] [MODE]")
@@ -2742,7 +2831,10 @@ class Updater():
         print("-lookupfix   : Lookup CLI.")
         print("-relation    : Update the relationship index.")
         print("-relinput    : Relation CLI.")
-        print("-scene       : Update scene index for every characters/npcs (Time consuming).")
+        print("-scenenpc    : Update scene index for every npcs (Time consuming).")
+        print("-scenechara  : Update scene index for every characters (Time consuming).")
+        print("-sceneskin   : Update scene index for every skins (Time consuming).")
+        print("-scenefull   : Update scene index for every characters/skins/npcs (Very time consuming).")
         print("-scenesort   : Sort indexed scene data  for every characters/npcs.")
         print("-thumb       : Update npc thumbnail data.")
         print("-sound       : Update sound index for characters (Very time consuming).")
@@ -2751,60 +2843,68 @@ class Updater():
         print("-eventedit   : Edit event data")
         print("-buff        : Update buff data")
 
-    async def boot(self, argv):
-        print("GBFAL updater v2.0\n")
-        self.client = aiohttp.ClientSession()
-        self.load()
-        start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
-        flags = set()
-        extras = []
-        for i, k in enumerate(argv):
-            if k in start_flags:
-                flags.add(k) # continue...
-            elif k.startswith("-"):
-                flags.add(k)
-                extras = argv[i+1:]
-                break
-            else:
-                print("Unknown parameter:", k)
-                return
-        ran = False
-        forced_stop = False
-        if "-debug_scene" in flags:
-            ran = True
-            await self.debug_output_scene_strings()
-        if "-debug_wpn" in flags: self.debug_wpn = True
-        if "-wait" in flags: forced_stop = not (await self.wait())
-        if not forced_stop:
+    async def boot(self, argv : list):
+        try:
+            print("GBFAL updater v2.1\n")
+            self.client = aiohttp.ClientSession()
+            start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
+            flags = set()
+            extras = []
+            for i, k in enumerate(argv):
+                if k in start_flags:
+                    flags.add(k) # continue...
+                elif k.startswith("-"):
+                    flags.add(k)
+                    extras = argv[i+1:]
+                    break
+                else:
+                    print("Unknown parameter:", k)
+                    return
+            ran = False
+            forced_stop = False
+            if "-debug_scene" in flags:
+                ran = True
+                await self.debug_output_scene_strings()
+            if "-debug_wpn" in flags: self.debug_wpn = True
+            if "-wait" in flags: forced_stop = not (await self.wait())
             if "-nochange" in flags: self.update_changelog = False
-            if len(flags) == 0:
-                self.print_help()
-            elif "-run" in flags: await self.run()
-            elif "-updaterun" in flags:
-                await self.manualUpdate(extras)
-                await self.run()
-            elif "-update" in flags: await self.manualUpdate(extras)
-            elif "-job" in flags: await self.search_job_detail()
-            elif "-jobedit" in flags: await self.edit_job()
-            elif "-lookup" in flags: await self.buildLookup()
-            elif "-lookupfix" in flags: await self.manualLookup()
-            elif "-relation" in flags: await self.build_relation()
-            elif "-relinput" in flags: await self.relation_edit()
-            elif "-scene" in flags: await self.update_all_scene(extras)
-            elif "-scenesort" in flags: self.sort_all_scene()
-            elif "-thumb" in flags: await self.update_npc_thumb()
-            elif "-sound" in flags: await self.update_all_sound()
-            elif "-partner" in flags: await self.update_all_partner()
-            elif "-event" in flags: await self.check_new_event()
-            elif "-eventedit" in flags: await self.event_edit()
-            elif "-buff" in flags: await self.update_buff()
-            elif not ran:
-                self.print_help()
-                print("")
-                print("Unknown parameter:", k)
-        await self.client.close()
+            
+            if not forced_stop:
+                if len(flags) == 0:
+                    self.print_help()
+                elif "-run" in flags: await self.run()
+                elif "-updaterun" in flags:
+                    await self.manualUpdate(extras)
+                    await self.run()
+                elif "-update" in flags: await self.manualUpdate(extras)
+                elif "-job" in flags: await self.search_job_detail()
+                elif "-jobedit" in flags: await self.edit_job()
+                elif "-lookup" in flags: await self.buildLookup()
+                elif "-lookupfix" in flags: await self.manualLookup()
+                elif "-relation" in flags: await self.build_relation()
+                elif "-relinput" in flags: await self.relation_edit()
+                elif "-scenenpc" in flags: await self.update_all_scene("npcs", extras)
+                elif "-scenechara" in flags: await self.update_all_scene("characters", extras)
+                elif "-sceneskin" in flags: await self.update_all_scene("skins", extras)
+                elif "-scenefull" in flags: await self.update_all_scene(None, extras)
+                elif "-scenesort" in flags: self.sort_all_scene()
+                elif "-thumb" in flags: await self.update_npc_thumb()
+                elif "-sound" in flags: await self.update_all_sound()
+                elif "-partner" in flags: await self.update_all_partner()
+                elif "-event" in flags: await self.check_new_event()
+                elif "-eventedit" in flags: await self.event_edit()
+                elif "-buff" in flags: await self.update_buff()
+                elif not ran:
+                    self.print_help()
+                    print("")
+                    print("Unknown parameter:", k)
+            await self.client.close()
+        except Exception as e:
+            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            try: await self.client.close()
+            except: pass
 
-    def start(self, argv):
+    def start(self, argv : list):
         asyncio.run(self.boot(argv))
 
 
