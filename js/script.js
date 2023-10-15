@@ -16,6 +16,7 @@ var endpoints = [
     "https://prd-game-a4-granbluefantasy.akamaized.net/",
     "https://prd-game-a5-granbluefantasy.akamaized.net/"
 ];
+var init_err = 0;
 var main_endp_count = -1;
 var language = "assets_en/"; // change to "assets/" for japanese
 
@@ -159,6 +160,9 @@ function initIndex(unused) // load data.json
         updateHistory(null, 0); // init history
         if(id != null) lookup(id); // lookup if id param is set
     } catch(err) {
+        console.error(err);
+        init_err++;
+        if(init_err >= 3) return;
         getJSON("json/data.json?" + timestamp, initIndex, initIndex, null); // try again
     }
 }
