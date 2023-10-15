@@ -63,6 +63,7 @@ class Updater():
     MAX_UPDATE = 50
     MAX_HTTP = 100
     MAX_HTTP_WIKI = 20
+    MAX_SOUND_CONCURRENT = 10
     # addition type
     ADD_UNDEF = -1
     ADD_JOB = 0
@@ -130,6 +131,7 @@ class Updater():
     ID_REGEX = re.compile("[123][07][1234]0\\d{4}00")
     VERSION_REGEX = re.compile("Game\.version = \"(\d+)\";")
     # others
+    SAVE_VERSION = 0
     CUT_CONTENT = ["2040145000","2040147000","2040148000","2040150000","2040152000","2040153000","2040154000","2040200000"] # beta arcarum ids
     SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
     SPECIAL_LOOKUP = { # special elements
@@ -145,6 +147,7 @@ class Updater():
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
         self.debug_wpn = False # for testing
         self.data = { # data structure
+            "version":self.SAVE_VERSION,
             "characters":{},
             "partners":{},
             "summons":{},
@@ -193,10 +196,18 @@ class Updater():
             with open('json/data.json', mode='r', encoding='utf-8') as f:
                 data = json.load(f)
                 if not isinstance(data, dict): return
+            data = self.retrocompatibility(data)
             for k in self.data:
+                if k == 'version': continue
                 self.data[k] = data.get(k, {})
         except Exception as e:
             print(e)
+
+    # make older data.json compatible with newer versions
+    def retrocompatibility(self, data):
+        #version = data.get("version", 0)
+        # Does nothing for now
+        return data
 
     # Save data.json and changelog.json (only if self.modified is True)
     def save(self):
@@ -208,20 +219,38 @@ class Updater():
                     outfile.write("{\n")
                     keys = list(self.data.keys())
                     for k, v in self.data.items():
-                        outfile.write('"{}":{}\n'.format(k, '{'))
-                        last = list(v.keys())
-                        if len(last) > 0:
-                            last = last[-1]
-                            for i, d in v.items():
-                                outfile.write('"{}":'.format(i))
+                        outfile.write('"{}":\n'.format(k))
+                        if isinstance(v, int): # INT
+                            outfile.write('{}\n'.format(v))
+                            if k != keys[-1]:
+                                outfile.write(",")
+                            outfile.write("\n")
+                        elif isinstance(v, list): # LIST
+                            outfile.write('[\n')
+                            for d in v:
                                 json.dump(d, outfile, separators=(',', ':'), ensure_ascii=False)
-                                if i != last:
+                                if d is not v[-1]:
                                     outfile.write(",")
                                 outfile.write("\n")
-                        outfile.write("}")
-                        if k != keys[-1]:
-                            outfile.write(",")
-                        outfile.write("\n")
+                            outfile.write("]")
+                            if k != keys[-1]:
+                                outfile.write(",")
+                            outfile.write("\n")
+                        elif isinstance(v, dict): # DICT
+                            outfile.write('{\n')
+                            last = list(v.keys())
+                            if len(last) > 0:
+                                last = last[-1]
+                                for i, d in v.items():
+                                    outfile.write('"{}":'.format(i))
+                                    json.dump(d, outfile, separators=(',', ':'), ensure_ascii=False)
+                                    if i != last:
+                                        outfile.write(",")
+                                    outfile.write("\n")
+                            outfile.write("}")
+                            if k != keys[-1]:
+                                outfile.write(",")
+                            outfile.write("\n")
                     outfile.write("}")
                 print("data.json updated")
                 if self.update_changelog:
@@ -281,11 +310,9 @@ class Updater():
                 return r
         return None
 
-    # Create a shared container for tasks. Used by run()
+    # Create a shared container for tasks.
     def newShared(self, errs : list):
-        errs.append([])
-        errs[-1].append(0)
-        errs[-1].append(True)
+        errs.append([0, True, 0])
         return errs[-1]
 
     # Extract json data from a manifest file
@@ -1326,7 +1353,7 @@ class Updater():
                     # sound
                     try: voices = set(self.data['npcs'][id][self.NPC_SOUND])
                     except: voices = set()
-                    tasks['sound'] = tg.create_task(self.update_chara_sound_file(id, [""], voices))
+                    tasks['sound'] = tg.create_task(self.update_chara_sound_file(id, None, voices))
                 for s, t in tasks['scenes'].items():
                     if t is True or t.result() is not None:
                         data[self.NPC_SCENE].add(s)
@@ -1672,17 +1699,37 @@ class Updater():
 
     ### Sound ###################################################################################################################
 
-    # Called by -sound, update sound data for every character
-
     # Called by -sound, update all npc and character sound datas
     async def update_all_sound(self):
         print("Updating sound data...")
         elements = []
+        shared = []
         for k in ["characters", "skins", "npcs"]:
             for id in self.data[k]:
-                elements.append((k, id))
+                if k == "npcs":
+                    uncaps = ["01"]
+                    idx = self.NPC_SOUND
+                else:
+                    uncaps = []
+                    idx = self.CHARA_SOUND
+                    for u in self.data[k][id][self.CHARA_GENERAL]:
+                        uu = u.replace(id+"_", "")
+                        if "_" not in uu and uu.startswith("0") and uu != "02":
+                            uncaps.append(uu)
+                try: voices = set(self.data[k][id][idx])
+                except: voices = set()
+                prep = self.update_chara_sound_file_prep(id, uncaps, voices)
+                self.newShared(shared)
+                shared[-1][1] = [] # change 2nd value to an array
+                for i in range(0, len(prep), self.MAX_SOUND_CONCURRENT):
+                    prep_split = []
+                    if i == 0: prep_split.append(None)
+                    for kk in prep[i:i + self.MAX_SOUND_CONCURRENT]:
+                        prep_split.append(kk)
+                    elements.append((k, id, idx, shared[-1], voices, prep_split))
+                    shared[-1][2] += 1
         self.progress = Progress(total=len(elements), silent=False)
-        async for result in self.map_unordered(self.update_all_sound_sub, elements, 100):
+        async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_HTTP):
             pass
         self.save()
         print("Done")
@@ -1690,61 +1737,66 @@ class Updater():
     # update_all_sound() subroutine
     async def update_all_sound_sub(self, tup : tuple):
         with self.progress:
-            index, id = tup
-            if index == "npcs":
-                uncaps = [""]
-                idx = self.NPC_SOUND
-            else:
-                uncaps = []
-                idx = self.CHARA_SOUND
-                for u in self.data[index][id][self.CHARA_GENERAL]:
-                    uu = u.replace(id+"_", "")
-                    if "_" not in uu and uu.startswith("0") and uu != "02":
-                        uncaps.append(uu)
-            try: voices = set(self.data[index][id][idx])
-            except: voices = set()
-            self.data[index][id][idx] = await self.update_chara_sound_file(id, uncaps, voices)
-            self.modified = True
+            index, id, idx, shared, existing, elements = tup
+            for t in elements:
+                if t is None:
+                    shared[1] += await self.update_chara_sound_file_sub_banter(id, existing)
+                else:
+                    shared[1] += await self.update_chara_sound_file_sub(*t)
+            shared[0] += 1
+        if shared[0] >= shared[2]:
+            if len(shared[1]) != len(self.data[index][id][idx]):
+                self.data[index][id][idx] = shared[1]
+                self.data[index][id][idx].sort()
+                self.modified = True
+                shared[1] = None
+
+    # prep work for update_chara_sound_file
+    def update_chara_sound_file_prep(self, id : str, uncaps : Optional[list] = None, existing : set = set()):
+        elements = []
+        # standard stuff
+        for uncap in uncaps:
+            if uncap == "01": uncap = ""
+            elif uncap == "02": continue # seems unused
+            elif uncap != "": uncap = "_" + uncap
+            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1)]:
+                match mid: # opti
+                    case "_":
+                        suffixes = ["", "a", "b"]
+                        A = 1
+                        max_err = 1
+                    case "_v_":
+                        suffixes = ["", "a", "_a", "_1", "b", "_b", "_2"]
+                        A = 1
+                        max_err = 6
+                    case _:
+                        suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
+                        A = 0 if mid == "_cutin" else 1
+                        max_err = 1
+                elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
+            # chain burst
+            elements.append((id, existing, "_chain_start", [], None, None, None))
+            for A in range(2, 5):
+                elements.append((id, existing, "_chain{}_"+str(A), [], 1, 1, 1))
+            # seasonal A
+            for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
+                elements.append((id, existing, mid + "{}", [], 1, Z, 5))
+            for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
+                for s in range(1, 6):
+                    elements.append((id, existing, "_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
+        return elements
 
     # search sound files for a character/skin/npc
     async def update_chara_sound_file(self, id : str, base_uncaps : Optional[list] = None, existing : set = set()):
         if base_uncaps is None:
-            base_uncaps = [""]
+            base_uncaps = ["01"]
         uncaps = [u for u in base_uncaps if ("_" not in u and u.startswith("0"))]
         async with asyncio.TaskGroup() as tg:
             tasks = []
-            # standard stuff
-            for uncap in uncaps:
-                if uncap == "01": uncap = ""
-                elif uncap == "02": continue # seems unused
-                elif uncap != "": uncap = "_" + uncap
-                for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1)]:
-                    match mid: # opti
-                        case "_":
-                            suffixes = ["", "a", "b"]
-                            A = 1
-                            max_err = 1
-                        case "_v_":
-                            suffixes = ["", "a", "_a", "_1", "b", "_b", "_2"]
-                            A = 1
-                            max_err = 6
-                        case _:
-                            suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
-                            A = 0 if mid == "_cutin" else 1
-                            max_err = 1
-                    tasks.append(tg.create_task(self.update_chara_sound_file_sub(id, existing, uncap + mid + "{}", suffixes, A, Z, max_err)))
-            # chain burst
-            tasks.append(tg.create_task(self.update_chara_sound_file_sub(id, existing, "_chain_start", [], None, None, None)))
-            for A in range(2, 5):
-                tasks.append(tg.create_task(self.update_chara_sound_file_sub(id, existing, "_chain{}_"+str(A), [], 1, 1, 1)))
+            for t in self.update_chara_sound_file_prep(id, uncaps, existing):
+                tasks.append(tg.create_task(self.update_chara_sound_file_sub(*t)))
             # banter
             tasks.append(tg.create_task(self.update_chara_sound_file_sub_banter(id, existing)))
-            # seasonal A
-            for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
-                tasks.append(tg.create_task(self.update_chara_sound_file_sub(id, existing, mid + "{}", [], 1, Z, 5)))
-            for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
-                for s in range(1, 6):
-                    tasks.append(tg.create_task(self.update_chara_sound_file_sub(id, existing, "_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5)))
         result = []
         for t in tasks:
             result += t.result()
@@ -1759,14 +1811,15 @@ class Updater():
         A.sort()
         B.sort()
         return A+B
-    
+
+    # generic sound subroutine
     async def update_chara_sound_file_sub(self, id : str, existing : set, suffix : str, post : list, index : Optional[int], zfill : Optional[int], max_err : Optional[int]):
         result = []
         if len(post) == 0: post = [""]
         if index is None: # single mode
             for p in post:
                 f = suffix + p
-                if f in existing or await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f)) is not None:
+                if f in existing or (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
                     result.append(f)
         else:
             err = 0
@@ -1782,7 +1835,7 @@ class Updater():
                 if not exists:
                     for p in post:
                         f = suffix.format(str(index).zfill(zfill)) + p
-                        if f in existing or await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f)) is not None:
+                        if f in existing or (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
                             result.append(f)
                             err = 0
                         elif p == post[-1]:
@@ -1792,6 +1845,7 @@ class Updater():
                 index += 1
         return result
 
+    # banter sound subroutine
     async def update_chara_sound_file_sub_banter(self, id : str, existing : set):
         result = []
         A = 1
@@ -2846,7 +2900,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.1\n")
+            print("GBFAL updater v2.2\n")
             self.client = aiohttp.ClientSession()
             start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
             flags = set()
