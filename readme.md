@@ -35,7 +35,10 @@ Action parameters (Only one of those can be used at a time):
 - `-lookupfix`: Open a CLI to manually add lookup data to elements without any. Last resort option.  
 - `-relation`: Check for new relationships between elements.  
 - `-relinput`: Open a CLI to create relationships between elements. Last resort option.  
-- `-scene`: Update scene datas for characters, outfits and NPCs. Very time consuming.  
+- `-scenenpc`: Update scene datas for NPCs. Very time consuming.  
+- `-scenechara`: Update scene datas for characters. Very time consuming.  
+- `-sceneskin`: Update scene datas for outfits. Very time consuming.  
+- `-scenefull`: Update scene datas for characters, outfits and NPCs. Very time consuming.  
 - `-scenesort`: Sort scene datas for every elements. It's called automatically in most cases but this is a way to trigger it manually.  
 - `-thumb`: Check thumbnail data for NPCs.  
 - `-sound`: Update sound datas for characters, outfits and NPCs. Very time consuming.  
