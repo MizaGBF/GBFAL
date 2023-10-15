@@ -1728,11 +1728,15 @@ class Updater():
                         prep_split.append(kk)
                     elements.append((k, id, idx, shared[-1], voices, prep_split))
                     shared[-1][2] += 1
+        # memory cleaning
+        prep = None
+        prep_split = None
+        # start
         self.progress = Progress(total=len(elements), silent=False)
         async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_HTTP):
             pass
-        self.save()
         print("Done")
+        self.save()
 
     # update_all_sound() subroutine
     async def update_all_sound_sub(self, tup : tuple):
