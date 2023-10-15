@@ -1778,6 +1778,7 @@ class Updater():
                     if f in existing:
                         exists = True
                         result.append(f)
+                        err = 0
                 if not exists:
                     for p in post:
                         f = suffix.format(str(index).zfill(zfill)) + p
@@ -2906,7 +2907,6 @@ class Updater():
 
     def start(self, argv : list):
         asyncio.run(self.boot(argv))
-
 
 if __name__ == "__main__":
     Updater().start(sys.argv[1:])
