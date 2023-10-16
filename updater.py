@@ -23,7 +23,7 @@ class Progress():
         if total >= 0:
             self.total = total
         self.silent = silent
-        if not self.silent or self.total <= 0:
+        if not self.silent and self.total > 0:
             sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00', ''))
             sys.stdout.flush()
 
@@ -514,8 +514,8 @@ class Updater():
                     await asyncio.sleep(0.001)
                 else:
                     try:
-                        if f in self.SUM_MULTI: await self.head(self.endpoint + path + f + ext.replace("_damage", "_a_damage"))
-                        else: await self.head(self.endpoint + path + f + ext)
+                        if f in self.SUM_MULTI: await self.head(self.ENDPOINT + path + f + ext.replace("_damage", "_a_damage"))
+                        else: await self.head(self.ENDPOINT + path + f + ext)
                         err[0] = 0
                         self.data[index][f] = 0
                         if index in ["background", "title", "subskills", "suptix"]:
