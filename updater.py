@@ -20,7 +20,7 @@ class Progress():
         self.update()
 
     def set(self, *, total : int = 0, silent = False): # to initialize it after a task start, once we know the total
-        if total > 0:
+        if total >= 0:
             self.total = total
         self.silent = silent
         if not self.silent or self.total <= 0:
