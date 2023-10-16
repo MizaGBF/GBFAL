@@ -62,6 +62,7 @@ class Updater():
     MAX_NEW = 100
     MAX_UPDATE = 50
     MAX_HTTP = 100
+    MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
     MAX_SOUND_CONCURRENT = 10
     # addition type
@@ -1559,7 +1560,7 @@ class Updater():
         for B in variationsB:
             if B != "":
                 special_suffix.append(B.split("_")[-1])
-        return scene_alts, specials, special_suffix
+        return scene_alts, specials,set(special_suffix)
 
     # list known scene strings along with errors encountered along the way
     def list_known_scene_strings(self):
@@ -1639,16 +1640,8 @@ class Updater():
         for s in self.get_scene_string_list_for_uncaps(id, uncaps):
             if s not in existing:
                 tmp = s.split("_")
-                no_bubble = (s != "" and ((tmp[1].isdigit() and len(tmp[1]) == 2) or "_up" in s)) # don't check raid bubbles for uncaps or close ups
-                if not no_bubble:
-                    for k in self.scene_special_suffix: # nor for those suffixes
-                        if k in tmp[-1]:
-                            no_bubble = True
-                            break
-                if no_bubble:
-                    tasks['scenes'][s] = task_group.create_task(self.head_nx(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)))
-                else:
-                    tasks['scenes'][s] = task_group.create_task(self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)]))
+                no_bubble = (s != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.scene_special_suffix # don't check raid bubbles for uncaps or those special ending suffix
+                tasks['scenes'][s] = task_group.create_task(self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)]))
 
     # Called by -scene, update all npc and character scene datas
     async def update_all_scene(self, target_index : Optional[str], targeted_strings : list = []):
@@ -1675,7 +1668,7 @@ class Updater():
                 for i in uncaps: # split per uncap
                     elements.append((k, id, idx, [i]))
         self.progress = Progress(total=len(elements), silent=False)
-        async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_HTTP):
+        async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_UPDATEALL):
             pass
         if len(targeted_strings) > 0:
             self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
@@ -1692,12 +1685,7 @@ class Updater():
             for s in self.get_scene_string_list_for_uncaps(id, uncaps):
                 if s not in existing:
                     tmp = s.split("_")
-                    no_bubble = (s != "" and ((tmp[1].isdigit() and len(tmp[1]) == 2) or "_up" in s)) # don't check raid bubbles for uncaps or close ups
-                    if not no_bubble:
-                        for ss in self.scene_special_suffix: # nor for those suffixes
-                            if ss in tmp[-1]:
-                                no_bubble = True
-                                break
+                    no_bubble = (s != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.scene_special_suffix # don't check raid bubbles for uncaps or those special ending suffix
                     if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)])) is not None:
                         self.data[k][id][idx].append(s)
                         self.modified = True
@@ -1776,7 +1764,7 @@ class Updater():
         prep_split = None
         # start
         self.progress = Progress(total=len(elements), silent=False)
-        async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_HTTP):
+        async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_UPDATEALL):
             pass
         print("Done")
         self.save()
