@@ -556,7 +556,7 @@ class Updater():
                 if self.data[index][f] == 0 and (is_js or index in self.PREEMPTIVE_ADD):
                     self.new_elements.append(f)
                 err[0] = 0
-                await asyncio.sleep(0.001)
+                await asyncio.sleep(0.003)
             else:
                 try:
                     if f in self.SUM_MULTI: await self.head(self.ENDPOINT + path + f + ext.replace("_damage", "_a_damage"))
@@ -2606,7 +2606,7 @@ class Updater():
                 flag = False
                 try: # base check
                     if url.split("/")[-1] not in known_assets:
-                        self.head(url + ".png")
+                        await self.head(url + ".png")
                         l.append(url.split("/")[-1])
                     flag = True
                 except:
@@ -2615,21 +2615,21 @@ class Updater():
                     for k in ["_up", "_shadow"]:
                         try:
                             if url.split("/")[-1]+k not in known_assets:
-                                self.head(url + k + ".png")
+                                await self.head(url + k + ".png")
                                 l.append(url.split("/")[-1]+k)
                         except:
                             pass
                     for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
                         try:
                             if url.split("/")[-1]+k not in known_assets:
-                                self.head(url + k + ".png")
+                                await self.head(url + k + ".png")
                                 l.append(url.split("/")[-1]+k)
                         except:
                             break
                 else:
                     try: # alternative filename format
                         if url.split("/")[-1]+"_00" not in known_assets:
-                            self.head(url + "_00.png")
+                            await self.head(url + "_00.png")
                             l.append(url.split("/")[-1]+"_00")
                         flag = True
                     except:
@@ -2637,7 +2637,7 @@ class Updater():
                     for k in ["_up", "_shadow"]:
                         try:
                             if url.split("/")[-1]+"_00"+k not in known_assets:
-                                self.head(url + "_00" + k + ".png")
+                                await self.head(url + "_00" + k + ".png")
                                 l.append(url.split("/")[-1]+"_00"+k)
                         except:
                             pass
@@ -2647,13 +2647,13 @@ class Updater():
                         k = str(i).zfill(2)
                         try:
                             if url.split("/")[-1]+"_"+k not in known_assets:
-                                self.head(url + "_" + k + ".png")
+                                await self.head(url + "_" + k + ".png")
                                 l.append(url.split("/")[-1]+"_"+k)
                             err = 0
                             for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
                                 try:
                                     if url.split("/")[-1]+"_"+k+kk not in known_assets:
-                                        self.head(url + "_" + k + kk + ".png")
+                                        await self.head(url + "_" + k + kk + ".png")
                                         l.append(url.split("/")[-1]+"_"+k+kk)
                                 except:
                                     break
