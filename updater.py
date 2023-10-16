@@ -179,6 +179,8 @@ class Updater():
         
         # asyncio semaphores
         self.sem = asyncio.Semaphore(self.MAX_UPDATE) # update semaphore
+        self.run_sem = asyncio.Semaphore(self.MAX_HTTP) # run semaphore
+        self.run_global_sem = asyncio.Semaphore(1) # run global semaphore
         self.http_sem = asyncio.Semaphore(self.MAX_HTTP) # http semaphore
         self.wiki_sem = asyncio.Semaphore(self.MAX_HTTP_WIKI) # wiki request semaphor
         
@@ -379,7 +381,7 @@ class Updater():
     
     # Called by -run, update the indexed content
     async def run(self):
-        tasks = []
+        categories = []
         errs = []
         job_task = 10
         skill_task = 10
@@ -393,106 +395,131 @@ class Updater():
                 jkeys.append(k)
         if len(jkeys) > 0:
             job_task == 0
-
-        print("Starting process...")
-        async with asyncio.TaskGroup() as tg:
-            self.progress = Progress()
-            self.newShared(errs)
-            for i in range(job_task):
-                tasks.append(tg.create_task(self.search_job(i, job_task, jkeys, errs[-1])))
-            # skills
-            for i in range(skill_task):
-                tasks.append(tg.create_task(self.search_skill(i, skill_task)))
-            # buffs
-            for i in range(10):
-                for j in range(buff_series_task):
-                    tasks.append(tg.create_task(self.search_buff(1000*i+j, buff_series_task)))
-            # npc
-            self.newShared(errs)
-            for i in range(10): # assets
-                tasks.append(tg.create_task(self.run_sub('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  60)))
-            self.newShared(errs)
-            for i in range(10): # assets
-                tasks.append(tg.create_task(self.run_sub('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/assets/npc/b/", "_01.png",  60)))
-            self.newShared(errs)
-            for i in range(10): # sounds
-                tasks.append(tg.create_task(self.run_sub('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  60)))
-            # special
-            tasks.append(tg.create_task(self.run_sub('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  2)))
-            #rarity of various stuff
-            for r in range(1, 5):
-                # weapons
-                for j in range(10):
-                    self.newShared(errs)
-                    for i in range(5):
-                        tasks.append(tg.create_task(self.run_sub('weapons', i, 5, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg",  20)))
-                # summons
+        # jobs
+        categories.append([])
+        self.newShared(errs)
+        for i in range(job_task):
+            categories[-1].append(self.search_job(i, job_task, jkeys, errs[-1]))
+        # skills
+        categories.append([])
+        for i in range(skill_task):
+            categories[-1].append(self.search_skill(i, skill_task))
+        # buffs
+        categories.append([])
+        for i in range(10):
+            for j in range(buff_series_task):
+                categories[-1].append(self.search_buff(1000*i+j, buff_series_task))
+        # npc
+        categories.append([])
+        self.newShared(errs)
+        for i in range(10): # assets
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  60))
+        categories.append([])
+        self.newShared(errs)
+        for i in range(10): # assets
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/assets/npc/b/", "_01.png",  60))
+        categories.append([])
+        self.newShared(errs)
+        for i in range(10): # sounds
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  60))
+        # special
+        categories.append([])
+        categories[-1].append(self.search_generic('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  2))
+        #rarity of various stuff
+        for r in range(1, 5):
+            # weapons
+            for j in range(10):
+                categories.append([])
                 self.newShared(errs)
                 for i in range(5):
-                    tasks.append(tg.create_task(self.run_sub('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js",  20)))
-                if r > 1:
-                    # characters
-                    self.newShared(errs)
-                    for i in range(5):
-                        tasks.append(tg.create_task(self.run_sub('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg", 20)))
-                    # partners
-                    self.newShared(errs)
-                    for i in range(5):
-                        tasks.append(tg.create_task(self.run_sub('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg",  20)))
-                    self.newShared(errs)
-                    for i in range(5):
-                        tasks.append(tg.create_task(self.run_sub('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js",  20)))
-                    self.newShared(errs)
-                    for i in range(5):
-                        tasks.append(tg.create_task(self.run_sub('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20)))
-            # other partners
-            for r in range(8, 10):
-                self.newShared(errs)
-                for i in range(5):
-                    tasks.append(tg.create_task(self.run_sub('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg",  20)))
-                self.newShared(errs)
-                for i in range(5):
-                    tasks.append(tg.create_task(self.run_sub('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js",  20)))
-                self.newShared(errs)
-                for i in range(5):
-                    tasks.append(tg.create_task(self.run_sub('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20)))
-            # skins
+                    categories[-1].append(self.search_generic('weapons', i, 5, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img_low/sp/assets/weapon/m/", ".jpg",  20))
+            # summons
+            categories.append([])
             self.newShared(errs)
             for i in range(5):
-                tasks.append(tg.create_task(self.run_sub('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01js",  20)))
-            # enemies
-            for a in range(1, 10):
-                for b in range(1, 4):
-                    for d in [1, 2, 3]:
-                        self.newShared(errs)
-                        for i in range(5):
-                            tasks.append(tg.create_task(self.run_sub('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png",  50)))
-            # backgrounds
-            for i in ["event_{}", "common_{}", "main_{}"]:
+                categories[-1].append(self.search_generic('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js",  20))
+            if r > 1:
+                # characters
+                categories.append([])
                 self.newShared(errs)
-                for j in range(5):
-                    tasks.append(tg.create_task(self.run_sub('background', j, 5, errs[-1], i, 1, "img_low/sp/raid/bg/", ".jpg",  10)))
-            for i in ["ra", "rb", "rc"]:
+                for i in range(5):
+                    categories[-1].append(self.search_generic('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/m/", "_01.jpg", 20))
+                # partners
+                categories.append([])
                 self.newShared(errs)
-                for j in range(5):
-                    tasks.append(tg.create_task(self.run_sub('background', j, 5, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg",  50)))
-            for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
+                for i in range(5):
+                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg",  20))
+                categories.append([])
                 self.newShared(errs)
-                for j in range(5):
-                    tasks.append(tg.create_task(self.run_sub('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg",  50)))
-            # titles
+                for i in range(5):
+                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js",  20))
+                categories.append([])
+                self.newShared(errs)
+                for i in range(5):
+                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20))
+        # other partners
+        for r in range(8, 10):
+            categories.append([])
             self.newShared(errs)
-            for i in range(3):
-                tasks.append(tg.create_task(self.run_sub('title', i, 3, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg",  5)))
-            # subskills
+            for i in range(5):
+                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img_low/sp/assets/npc/raid_normal/", "_01.jpg",  20))
+            categories.append([])
             self.newShared(errs)
-            for i in range(3):
-                tasks.append(tg.create_task(self.run_sub('subskills', i, 3, errs[-1], "{}", 1, "img_low/sp/assets/item/ability/s/", "_1.jpg",  5)))
-            # suptix
+            for i in range(5):
+                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js",  20))
+            categories.append([])
             self.newShared(errs)
-            for i in range(3):
-                tasks.append(tg.create_task(self.run_sub('suptix', i, 3, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg",  15)))
-            self.progress.set(total=len(tasks), silent=False)
+            for i in range(5):
+                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20))
+        # skins
+        categories.append([])
+        self.newShared(errs)
+        for i in range(5):
+            categories[-1].append(self.search_generic('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01js",  20))
+        # enemies
+        for a in range(1, 10):
+            for b in range(1, 4):
+                for d in [1, 2, 3]:
+                    categories.append([])
+                    self.newShared(errs)
+                    for i in range(5):
+                        categories[-1].append(self.search_generic('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png",  50))
+        # backgrounds
+        for i in ["event_{}", "common_{}", "main_{}"]:
+            categories.append([])
+            self.newShared(errs)
+            for j in range(5):
+                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i, 1, "img_low/sp/raid/bg/", ".jpg",  10))
+        for i in ["ra", "rb", "rc"]:
+            categories.append([])
+            self.newShared(errs)
+            for j in range(5):
+                categories[-1].append(self.search_generic('background', j, 5, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg",  50))
+        for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
+            categories.append([])
+            self.newShared(errs)
+            for j in range(5):
+                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img_low/sp/raid/bg/", "_1.jpg",  50))
+        # titles
+        categories.append([])
+        self.newShared(errs)
+        for i in range(3):
+            categories[-1].append(self.search_generic('title', i, 3, errs[-1], "{}", 1, "img_low/sp/top/bg/bg_", ".jpg",  5))
+        # subskills
+        categories.append([])
+        self.newShared(errs)
+        for i in range(3):
+            categories[-1].append(self.search_generic('subskills', i, 3, errs[-1], "{}", 1, "img_low/sp/assets/item/ability/s/", "_1.jpg",  5))
+        # suptix
+        categories.append([])
+        self.newShared(errs)
+        for i in range(3):
+            categories[-1].append(self.search_generic('suptix', i, 3, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg",  15))
+        print("Starting process...")
+        self.progress = Progress(total=len(categories), silent=False)
+        async with asyncio.TaskGroup() as tg:
+            for c in categories:
+                tg.create_task(self.run_category(c))
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
             await self.check_new_event()
@@ -500,8 +527,23 @@ class Updater():
         await self.build_relation()
         self.save()
 
-    # standard run subroutine
-    async def run_sub(self, index : str, start : int, step : int, err : list, file : str, zfill : int, path : str, ext : str, maxerr : int):
+    # run subroutine, process a category batch
+    async def run_category(self, coroutines : list):
+        with self.progress:
+                async with self.run_global_sem: # block others while we lock this one
+                    for i in range(len(coroutines)):
+                        await self.run_sem.acquire() # lock for the number of requests we need
+                try:
+                    async with asyncio.TaskGroup() as tg:
+                        for i in range(len(coroutines)): # run the coroutines
+                            tg.create_task(coroutines[i])
+                except Exception as e:
+                    print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                for i in range(len(coroutines)): # free
+                    self.run_sem.release()
+
+    # generic asset search
+    async def search_generic(self, index : str, start : int, step : int, err : list, file : str, zfill : int, path : str, ext : str, maxerr : int):
         with self.progress:
             i = start
             is_js = ext.endswith('.js')
@@ -1500,16 +1542,20 @@ class Updater():
     # Called once at boot. Generate a list of string to check for npc data
     def build_scene_strings(self, expressions : Optional[list] = None):
         if expressions is None or len(expressions) == 0:
-            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_wink", "_shout", "_shout2", "_sad", "_sad2", "_angry", "_angry2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_eyeline"]
+            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_eyeline"]
         variationsA = ["", "_a", "_b", "_c", "_battle"]
-        variationsB = ["", "_speed", "_up", "_shadow", "_shadow2", "_shadow3", "_light"]
+        variationsB = ["", "_a", "_speed", "_up", "_shadow", "_shadow2", "_shadow3", "_light", "_blood", "_up_blood"]
         scene_alts = []
+        added = set()
         for A in variationsA:
             for ex in expressions:
                 for B in variationsB:
-                    if (A == "_battle" and B not in ["", "_speed", "_up", "_shadow"]) or (B != "" and (B == ex or (ex == "_speed2" and B == "_speed") or (ex.startswith("_shadow") and B.startswith("_shadow")))): continue
-                    scene_alts.append(A+ex+B)
-        specials = ["_light_heart", "_nalhe","_nalhe_up","_nalhe_speed", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_girl_angry", "_girl_surprise", "_girl_think", "_town_thug", "_narrator", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
+                    if (A == "_battle" and B not in ["", "_speed", "_up", "_shadow"]) or (B != "" and (B == ex or (ex == "_speed2" and B == "_speed") or (ex.startswith("_shadow") and B.startswith("_shadow")))) or (B == "_up_blood" and ex == "_up") or (B in ["_a", "_b", "_c"] and (A in ["_a", "_b", "_c"] or ex == "")): continue
+                    f = A+ex+B
+                    if f not in added:
+                        added.add(f)
+                        scene_alts.append(f)
+        specials = ["_light_heart", "_nalhe","_nalhe_up","_nalhe_speed", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2022_a", "_2022_laugh", "_2023", "_2023_a", "_2023_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_girl_angry", "_girl_surprise", "_girl_think", "_town_thug", "_narrator", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
         special_suffix = []
         for B in variationsB:
             if B != "":
@@ -1565,42 +1611,45 @@ class Updater():
     # Get suffix list for given uncap values
     def get_scene_string_list_for_uncaps(self, id : str, uncaps : list):
         scene_alts = []
+        has_base = False
         for uncap in uncaps:
-            if uncap == "01": uncap = ""
-            elif uncap[:1] in ['8', '9']: continue
-            elif uncap != "": uncap = "_" + uncap
+            if uncap == "01":
+                uncap = ""
+                has_base = True
+            elif uncap[:1] in ['8', '9']:
+                continue
+            elif uncap != "":
+                uncap = "_" + uncap
             for s in self.scene_strings:
                 scene_alts.append(uncap+s)
-        scene_alts += self.scene_special_strings
-        if id.startswith("305"):
-            i = 0
-            while i < len(scene_alts):
-                if scene_alts[i].endswith("_up"):
-                    scene_alts = scene_alts[:i+1] + [scene_alts[i]+"2", scene_alts[i]+"3", scene_alts[i]+"4"] + scene_alts[i+1:]
-                    i += 3
-                i += 1
-            scene_alts += ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
-            scene_alts = list(set(scene_alts))
+        if has_base:
+            scene_alts += self.scene_special_strings
+            if id.startswith("305"):
+                i = 0
+                while i < len(scene_alts):
+                    if scene_alts[i].endswith("_up"):
+                        scene_alts = scene_alts[:i+1] + [scene_alts[i]+"2", scene_alts[i]+"3", scene_alts[i]+"4"] + scene_alts[i+1:]
+                        i += 3
+                    i += 1
+                scene_alts += ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
+                scene_alts = list(set(scene_alts))
         return scene_alts
 
     # Function to populate the task group
-    def group_scene_task(self, task_group : Optional[asyncio.TaskGroup], tasks : dict, id : str, uncaps : list, scenes : set):
+    def group_scene_task(self, task_group : asyncio.TaskGroup, tasks : dict, id : str, uncaps : list, existing : set):
         for s in self.get_scene_string_list_for_uncaps(id, uncaps):
-            if s not in scenes:
+            if s not in existing:
                 tmp = s.split("_")
-                no_bubble = (s != "" and tmp[1].isdigit() and len(tmp[1]) == 2) # don't check raid bubbles for uncaps
+                no_bubble = (s != "" and ((tmp[1].isdigit() and len(tmp[1]) == 2) or "_up" in s)) # don't check raid bubbles for uncaps or close ups
                 if not no_bubble:
                     for k in self.scene_special_suffix: # nor for those suffixes
                         if k in tmp[-1]:
                             no_bubble = True
                             break
-                if task_group is None:
-                    tasks['scenes'][s] = (no_bubble, s) # this behavior is only for update_all_scene()
+                if no_bubble:
+                    tasks['scenes'][s] = task_group.create_task(self.head_nx(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)))
                 else:
-                    if no_bubble:
-                        tasks['scenes'][s] = task_group.create_task(self.head_nx(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)))
-                    else:
-                        tasks['scenes'][s] = task_group.create_task(self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)]))
+                    tasks['scenes'][s] = task_group.create_task(self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)]))
 
     # Called by -scene, update all npc and character scene datas
     async def update_all_scene(self, target_index : Optional[str], targeted_strings : list = []):
@@ -1610,7 +1659,7 @@ class Updater():
             target_index = [target_index]
         if len(targeted_strings) > 0:
             self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
-        print("Updating scene data for: {}...".format(" / ".join(target_index)))
+        print("Updating scene data for: {}".format(" / ".join(target_index)))
         elements = []
         for k in target_index:
             for id in self.data[k]:
@@ -1624,22 +1673,8 @@ class Updater():
                         uu = u.replace(id+"_", "")
                         if "_" not in uu and uu.startswith("0"):
                             uncaps.append(uu)
-                tasks = {"scenes":{}}
-                try: scenes = set(self.data[k][id][idx])
-                except: scenes = set()
-                self.group_scene_task(None, tasks, id, uncaps, scenes)
-                keys = list(tasks["scenes"].keys())
-                for i in range(0, len(keys), self.MAX_HTTP):
-                    tup = {}
-                    for kk in keys[i:i + self.MAX_HTTP]:
-                        tup[kk] = tasks["scenes"][kk]
-                    elements.append((k, id, idx, tup))
-        try: # mem cleanup
-            tasks = None
-            keys = None
-            uncaps = None
-        except:
-            pass
+                for i in uncaps: # split per uncap
+                    elements.append((k, id, idx, [i]))
         self.progress = Progress(total=len(elements), silent=False)
         async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_HTTP):
             pass
@@ -1652,12 +1687,21 @@ class Updater():
     # update_all_scene() subroutine
     async def update_all_scene_sub(self, tup : tuple):
         with self.progress:
-            k, id, idx, tasks = tup
-            for s, data in tasks.items():
-                no_bubble, s = data
-                if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)])) is not None:
-                    self.data[k][id][idx].append(s)
-                    self.modified = True
+            k, id, idx, uncaps = tup
+            try: existing = set(self.data[k][id][idx])
+            except: existing = set()
+            for s in self.get_scene_string_list_for_uncaps(id, uncaps):
+                if s not in existing:
+                    tmp = s.split("_")
+                    no_bubble = (s != "" and ((tmp[1].isdigit() and len(tmp[1]) == 2) or "_up" in s)) # don't check raid bubbles for uncaps or close ups
+                    if not no_bubble:
+                        for ss in self.scene_special_suffix: # nor for those suffixes
+                            if ss in tmp[-1]:
+                                no_bubble = True
+                                break
+                    if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)])) is not None:
+                        self.data[k][id][idx].append(s)
+                        self.modified = True
 
     # Sort scene data by string suffix order, to keep some sort of coherency on the web page
     def sort_all_scene(self):
@@ -2191,10 +2235,11 @@ class Updater():
 
     # Make a list of elements to check on the wiki and update them
     async def build_relation(self, to_update : list = []):
+        print("Checking for new relationships...")
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
-            print("Element name table loaded")
+            print("Name table loaded")
         except:
             self.name_table = {}
         self.name_table_modified = False
@@ -2218,7 +2263,6 @@ class Updater():
                     tasks.append(tg.create_task(self.get_relation(eid)))
             self.progress.set(total=len(tasks), silent=False)
         if len(tasks) > 0:
-            print("Checking for new relationships...")
             for t in tasks:
                 r = t.result()
                 try:
@@ -2267,6 +2311,7 @@ class Updater():
                     print("Name table updated")
                 except:
                     pass
+        print("Done")
 
     # build_relation() subroutine. Check an element wiki page for alternate version or corresponding weapons
     async def get_relation(self, eid : str):
@@ -2906,7 +2951,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.2\n")
+            print("GBFAL updater v2.3\n")
             self.client = aiohttp.ClientSession()
             start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
             flags = set()
