@@ -179,12 +179,11 @@ class Updater():
         
         # asyncio semaphores
         self.sem = asyncio.Semaphore(self.MAX_UPDATE) # update semaphore
-        self.run_sem = asyncio.Semaphore(self.MAX_HTTP) # run semaphore
-        self.run_global_sem = asyncio.Semaphore(1) # run global semaphore
         self.http_sem = asyncio.Semaphore(self.MAX_HTTP) # http semaphore
         self.wiki_sem = asyncio.Semaphore(self.MAX_HTTP_WIKI) # wiki request semaphor
         
         # others
+        self.run_count = 0
         self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings()
         self.progress = Progress() # initialized with a silent progress bar
         
@@ -530,149 +529,150 @@ class Updater():
     # run subroutine, process a category batch
     async def run_category(self, coroutines : list):
         with self.progress:
-                async with self.run_global_sem: # block others while we lock this one
-                    for i in range(len(coroutines)):
-                        await self.run_sem.acquire() # lock for the number of requests we need
-                try:
-                    async with asyncio.TaskGroup() as tg:
-                        for i in range(len(coroutines)): # run the coroutines
-                            tg.create_task(coroutines[i])
-                except Exception as e:
-                    print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                for i in range(len(coroutines)): # free
-                    self.run_sem.release()
+            while True:
+                if self.run_count + len(coroutines) <= self.MAX_HTTP:
+                    self.run_count += len(coroutines)
+                    break
+                await asyncio.sleep(1)
+            try:
+                tasks = []
+                async with asyncio.TaskGroup() as tg:
+                    for i in range(len(coroutines)): # run the coroutines
+                        tasks.append(tg.create_task(coroutines[i]))
+                for t in tasks:
+                    t.result()
+            except Exception as e:
+                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            self.run_count -= len(coroutines)
 
     # generic asset search
     async def search_generic(self, index : str, start : int, step : int, err : list, file : str, zfill : int, path : str, ext : str, maxerr : int):
-        with self.progress:
-            i = start
-            is_js = ext.endswith('.js')
-            while err[0] < maxerr and err[1]:
-                f = file.format(str(i).zfill(zfill))
-                if f in self.data[index]:
-                    if self.data[index][f] == 0 and (is_js or index in self.PREEMPTIVE_ADD):
-                        self.new_elements.append(f)
+        i = start
+        is_js = ext.endswith('.js')
+        while err[0] < maxerr and err[1]:
+            f = file.format(str(i).zfill(zfill))
+            if f in self.data[index]:
+                if self.data[index][f] == 0 and (is_js or index in self.PREEMPTIVE_ADD):
+                    self.new_elements.append(f)
+                err[0] = 0
+                await asyncio.sleep(0.001)
+            else:
+                try:
+                    if f in self.SUM_MULTI: await self.head(self.ENDPOINT + path + f + ext.replace("_damage", "_a_damage"))
+                    else: await self.head(self.ENDPOINT + path + f + ext)
                     err[0] = 0
-                    await asyncio.sleep(0.001)
-                else:
-                    try:
-                        if f in self.SUM_MULTI: await self.head(self.ENDPOINT + path + f + ext.replace("_damage", "_a_damage"))
-                        else: await self.head(self.ENDPOINT + path + f + ext)
-                        err[0] = 0
-                        self.data[index][f] = 0
-                        if index in ["background", "title", "subskills", "suptix"]:
-                            self.addition[index+":"+f] = self.ADD_UNDEF
-                        self.modified = True
-                        self.new_elements.append(f)
-                    except:
-                        err[0] += 1
-                        if err[0] >= maxerr:
-                            err[1] = False
-                            return
-                i += step
+                    self.data[index][f] = 0
+                    if index in ["background", "title", "subskills", "suptix"]:
+                        self.addition[index+":"+f] = self.ADD_UNDEF
+                    self.modified = True
+                    self.new_elements.append(f)
+                except:
+                    err[0] += 1
+                    if err[0] >= maxerr:
+                        err[1] = False
+                        return
+            i += step
 
     # -run subroutine to search for new skills
     async def search_skill(self, start : int, step : int): # skill search
-        with self.progress:
-            err = 0
-            i = start
-            tmp = []
-            tmp_c = ("0" if start < 1000 else str(start)[0])
-            for k in list(self.data["skills"].keys()):
-                if k[0] == tmp_c:
-                    tmp.append(k)
-            tmp.sort()
-            try:
-                highest = int(tmp[-1])
-            except:
-                highest = i - 1
-            tmp = None
-            highest = start
-            while err < 12:
-                fi = str(i).zfill(4)
-                if fi in self.data["skills"]:
-                    i += step
-                    err = 0
-                    continue
-                found = False
-                for s in [".png", "_1.png", "_2.png", "_3.png", "_4.png", "_5.png"]:
-                    try:
-                        headers = await self.head(self.IMG + "sp/ui/icon/ability/m/" + str(i) + s)
-                        if 'content-length' in headers and int(headers['content-length']) < 200: raise Exception()
-                        found = True
-                        err = 0
-                        self.data["skills"][fi] = [[str(i) + s.split('.')[0]]]
-                        self.addition[fi] = self.ADD_SKILL
-                        self.modified = True
-                        break
-                    except:
-                        pass
+        err = 0
+        i = start
+        tmp = []
+        tmp_c = ("0" if start < 1000 else str(start)[0])
+        for k in list(self.data["skills"].keys()):
+            if k[0] == tmp_c:
+                tmp.append(k)
+        tmp.sort()
+        try:
+            highest = int(tmp[-1])
+        except:
+            highest = i - 1
+        tmp = None
+        highest = start
+        while err < 12:
+            fi = str(i).zfill(4)
+            if fi in self.data["skills"]:
                 i += step
-                if not found and i > highest: err += 1
+                err = 0
+                continue
+            found = False
+            for s in [".png", "_1.png", "_2.png", "_3.png", "_4.png", "_5.png"]:
+                try:
+                    headers = await self.head(self.IMG + "sp/ui/icon/ability/m/" + str(i) + s)
+                    if 'content-length' in headers and int(headers['content-length']) < 200: raise Exception()
+                    found = True
+                    err = 0
+                    self.data["skills"][fi] = [[str(i) + s.split('.')[0]]]
+                    self.addition[fi] = self.ADD_SKILL
+                    self.modified = True
+                    break
+                except:
+                    pass
+            i += step
+            if not found and i > highest: err += 1
 
     # -run subroutine to search for new buffs
     async def search_buff(self, start : int, step : int, full : bool = False): # buff search
-        with self.progress:
-            err = 0
-            i = start
-            end = (start // 1000) * 1000 + 1000
-            tmp = []
-            tmp_c = ("0" if start < 1000 else str(start)[0])
-            for k in list(self.data["buffs"].keys()):
-                if k[0] == tmp_c:
-                    tmp.append(k)
-            tmp.sort()
-            try:
-                highest = int(tmp[-1])
-            except:
-                highest = i - 1
-            tmp = None
-            highest = start
-            slist = ["", "_1", "_10"] + (["1"] if start >= 1000 else []) + ["_30", "_1_1", "_1_10"]
-            known = set()
-            while err < 10 and i < end:
-                fi = str(i).zfill(4)
-                if not full:
-                    if fi in self.data["buffs"]:
-                        i += step
-                        err = 0
-                        continue
-                    data = [[], []]
-                else:
-                    try:
-                        data = self.data["buffs"][fi]
-                        known = set(data[1])
-                        if '_' not in data[0] and len(data[0]) < 5:
-                            known.add("")
-                    except:
-                        data = [[], []]
-                        known = set()
-                found = False
-                modified = False
-                for s in slist:
-                    try:
-                        if s not in known:
-                            headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
-                            if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
-                            if len(data[0]) == 0:
-                                data[0].append(str(i) + s)
-                            if s != "":
-                                data[1].append(s)
-                            modified = True
-                        found = True
-                    except:
-                        if s == "1" and not found:
-                            break
-                if not found:
-                    if i > highest:
-                        err += 1
-                else:
+        err = 0
+        i = start
+        end = (start // 1000) * 1000 + 1000
+        tmp = []
+        tmp_c = ("0" if start < 1000 else str(start)[0])
+        for k in list(self.data["buffs"].keys()):
+            if k[0] == tmp_c:
+                tmp.append(k)
+        tmp.sort()
+        try:
+            highest = int(tmp[-1])
+        except:
+            highest = i - 1
+        tmp = None
+        highest = start
+        slist = ["", "_1", "_10"] + (["1"] if start >= 1000 else []) + ["_30", "_1_1", "_1_10"]
+        known = set()
+        while err < 10 and i < end:
+            fi = str(i).zfill(4)
+            if not full:
+                if fi in self.data["buffs"]:
+                    i += step
                     err = 0
-                    if modified:
-                        self.data["buffs"][fi] = data
-                        self.addition[fi] = self.ADD_BUFF
-                        self.modified = True
-                i += step
+                    continue
+                data = [[], []]
+            else:
+                try:
+                    data = self.data["buffs"][fi]
+                    known = set(data[1])
+                    if '_' not in data[0] and len(data[0]) < 5:
+                        known.add("")
+                except:
+                    data = [[], []]
+                    known = set()
+            found = False
+            modified = False
+            for s in slist:
+                try:
+                    if s not in known:
+                        headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
+                        if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
+                        if len(data[0]) == 0:
+                            data[0].append(str(i) + s)
+                        if s != "":
+                            data[1].append(s)
+                        modified = True
+                    found = True
+                except:
+                    if s == "1" and not found:
+                        break
+            if not found:
+                if i > highest:
+                    err += 1
+            else:
+                err = 0
+                if modified:
+                    self.data["buffs"][fi] = data
+                    self.addition[fi] = self.ADD_BUFF
+                    self.modified = True
+            i += step
 
     ### Job #####################################################################################################################
     
@@ -725,51 +725,50 @@ class Updater():
 
     # run subroutine to search for new jobs
     async def search_job(self, start : int, step : int, keys : list, shared : list):
-        with self.progress:
-            i = start
-            while i < len(keys):
-                if keys[i] in self.data['job']: continue
-                cmh = []
-                colors = [1]
-                alts = []
-                # mh check
-                for mh in self.MAINHAND:
+        i = start
+        while i < len(keys):
+            if keys[i] in self.data['job']: continue
+            cmh = []
+            colors = [1]
+            alts = []
+            # mh check
+            for mh in self.MAINHAND:
+                try:
+                    await self.head(self.IMG + "sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(keys[i], mh))
+                    cmh.append(mh)
+                except:
+                    continue
+            if len(cmh) > 0:
+                # alt check
+                for j in [2, 3, 4, 5, 80]:
                     try:
-                        await self.head(self.IMG + "sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(keys[i], mh))
-                        cmh.append(mh)
+                        await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
+                        colors.append(j)
+                        if j >= 80:
+                            alts.append(j)
                     except:
                         continue
-                if len(cmh) > 0:
-                    # alt check
-                    for j in [2, 3, 4, 5, 80]:
-                        try:
-                            await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
-                            colors.append(j)
-                            if j >= 80:
-                                alts.append(j)
-                        except:
-                            continue
-                    # set data
-                    data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp
-                    for j in alts:
-                        data[1].append(keys[i][:-2]+str(j).zfill(2)+"_01")
+                # set data
+                data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp
+                for j in alts:
+                    data[1].append(keys[i][:-2]+str(j).zfill(2)+"_01")
+                for k in range(2):
+                    data[2].append(keys[i]+"_"+cmh[0]+"_"+str(k)+"_01")
+                for j in [1]+alts:
                     for k in range(2):
-                        data[2].append(keys[i]+"_"+cmh[0]+"_"+str(k)+"_01")
-                    for j in [1]+alts:
-                        for k in range(2):
-                            data[3].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
-                    for j in colors:
-                        for k in range(2):
-                            data[4].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
-                    for j in colors:
-                        data[5].append(keys[i][:-2]+str(j).zfill(2))
+                        data[3].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+                for j in colors:
+                    for k in range(2):
+                        data[4].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+                for j in colors:
+                    data[5].append(keys[i][:-2]+str(j).zfill(2))
 
-                    self.data['job'][keys[i]] = data
-                    self.modified = True
-                    self.addition[keys[i]] = self.ADD_JOB
-                i += step
-            if shared[1]:
-                shared[1] = False
+                self.data['job'][keys[i]] = data
+                self.modified = True
+                self.addition[keys[i]] = self.ADD_JOB
+            i += step
+        if shared[1]:
+            shared[1] = False
 
     # Used by -job, more specific but also slower job detection system
     async def search_job_detail(self):
@@ -990,7 +989,7 @@ class Updater():
                             for jid, s in tmp["lookup"].items():
                                 # add job if needed
                                 if jid not in self.data['job']:
-                                    self.search_job(0, 1, [jid], self.newShared([]))
+                                    await self.search_job(0, 1, [jid], self.newShared([]))
                                 if s is not None:
                                     # set key
                                     sheets = []
@@ -1550,7 +1549,7 @@ class Updater():
         for A in variationsA:
             for ex in expressions:
                 for B in variationsB:
-                    if (A == "_battle" and B not in ["", "_speed", "_up", "_shadow"]) or (B != "" and (B == ex or (ex == "_speed2" and B == "_speed") or (ex.startswith("_shadow") and B.startswith("_shadow")))) or (B == "_up_blood" and ex == "_up") or (B in ["_a", "_b", "_c"] and (A in ["_a", "_b", "_c"] or ex == "")): continue
+                    if (A == "_battle" and B not in ["", "_speed", "_up", "_shadow"]) or (B != "" and (B == ex or (ex == "_speed2" and B == "_speed") or (ex.startswith("_shadow") and B.startswith("_shadow")))) or (B == "_up_blood" and (ex == "_up" or ex == "")) or (B in ["_a", "_b", "_c"] and (A in ["_a", "_b", "_c"] or ex == "")): continue
                     f = A+ex+B
                     if f not in added:
                         added.add(f)
@@ -2239,7 +2238,6 @@ class Updater():
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
-            print("Name table loaded")
         except:
             self.name_table = {}
         self.name_table_modified = False
@@ -2872,12 +2870,17 @@ class Updater():
             self.progress = Progress(total=10*10, silent=False)
             for i in range(10):
                 for j in range(10):
-                    tasks.append(tg.create_task(self.search_buff(1000*i+j, 10, True)))
+                    tasks.append(tg.create_task(self.update_buff_sub(1000*i+j, 10, True)))
         for t in tasks:
             t.result()
         print("Done")
         self.save()
         self.update_changelog = tmp
+
+    # search_buff() wrapper to track the progress
+    async def update_buff_sub(self, start : int, step : int, full : bool = False):
+        with self.progress:
+            await self.search_buff(start, step, full)
 
     ### Others ##################################################################################################################
 
