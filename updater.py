@@ -2857,7 +2857,6 @@ class Updater():
 
     # Check buff data for new icons
     async def update_buff(self):
-        tmp = self.update_changelog
         self.update_changelog = False
         tasks = []
         async with asyncio.TaskGroup() as tg:
@@ -2869,7 +2868,6 @@ class Updater():
             t.result()
         print("Done")
         self.save()
-        self.update_changelog = tmp
 
     # search_buff() wrapper to track the progress
     async def update_buff_sub(self, start : int, step : int, full : bool = False):
