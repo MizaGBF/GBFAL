@@ -64,6 +64,7 @@ class Updater():
     MAX_HTTP = 100
     MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
+    MAX_SCENE_CONCURRENT = 20
     MAX_SOUND_CONCURRENT = 10
     # addition type
     ADD_UNDEF = -1
@@ -1655,6 +1656,7 @@ class Updater():
         elements = []
         for k in target_index:
             for id in self.data[k]:
+                if not isinstance(self.data[k][id], list): continue
                 if k == "npcs":
                     uncaps = [""]
                     idx = self.NPC_SCENE
@@ -1665,8 +1667,9 @@ class Updater():
                         uu = u.replace(id+"_", "")
                         if "_" not in uu and uu.startswith("0"):
                             uncaps.append(uu)
-                for i in uncaps: # split per uncap
-                    elements.append((k, id, idx, [i]))
+                for u in uncaps: # split per uncap
+                    for i in range(self.MAX_SCENE_CONCURRENT): # and split by self.MAX_SCENE_CONCURRENT
+                        elements.append((k, id, idx, [u], i, self.MAX_SCENE_CONCURRENT))
         self.progress = Progress(total=len(elements), silent=False)
         async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_UPDATEALL):
             pass
@@ -1679,10 +1682,12 @@ class Updater():
     # update_all_scene() subroutine
     async def update_all_scene_sub(self, tup : tuple):
         with self.progress:
-            k, id, idx, uncaps = tup
+            k, id, idx, uncaps, off, maxt = tup
             try: existing = set(self.data[k][id][idx])
             except: existing = set()
-            for s in self.get_scene_string_list_for_uncaps(id, uncaps):
+            suffixes = self.get_scene_string_list_for_uncaps(id, uncaps)
+            for i, s in enumerate(suffixes):
+                if i % maxt != off: continue # used to split the processing among multiple tasks, for speedup
                 if s not in existing:
                     tmp = s.split("_")
                     no_bubble = (s != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.scene_special_suffix # don't check raid bubbles for uncaps or those special ending suffix
@@ -1737,6 +1742,7 @@ class Updater():
         shared = []
         for k in ["characters", "skins", "npcs"]:
             for id in self.data[k]:
+                if not isinstance(self.data[k][id], list): continue
                 if k == "npcs":
                     uncaps = ["01"]
                     idx = self.NPC_SOUND
