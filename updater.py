@@ -476,7 +476,7 @@ class Updater():
         categories.append([])
         self.newShared(errs)
         for i in range(5):
-            categories[-1].append(self.search_generic('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01js",  20))
+            categories[-1].append(self.search_generic('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01.js",  20))
         # enemies
         for a in range(1, 10):
             for b in range(1, 4):
