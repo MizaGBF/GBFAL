@@ -24,6 +24,10 @@ summary {
     font-size: 28px;
 }
 
+.summary-wide {
+    width: 350px;
+}
+
 .red-sum {
     background: url(../assets/ui/button_bg_red.png) no-repeat;
     background-size: 100% 100%;
@@ -378,6 +382,10 @@ a:active {
         margin-top: 20px;
         margin-bottom: 20px;
         font-size: 38px;
+    }
+    
+    .summary-wide {
+        width: 550px;
     }
 
     .tooltip {
