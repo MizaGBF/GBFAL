@@ -557,7 +557,7 @@ class Updater():
                 if self.data[index][f] == 0 and (is_js or index in self.PREEMPTIVE_ADD):
                     self.new_elements.append(f)
                 err[0] = 0
-                await asyncio.sleep(0.003)
+                await asyncio.sleep(0.005)
             else:
                 try:
                     if f in self.SUM_MULTI: await self.head(self.ENDPOINT + path + f + ext.replace("_damage", "_a_damage"))
