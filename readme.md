@@ -27,7 +27,7 @@ Start parameters:
   
 Action parameters (Only one of those can be used at a time):
 - `-run`: Look for new content. If new content is found, it will automatically run `-update`, `-event`, `-thumb` and `-relation`.  
-- `-update`: Update the content for specified IDs. Example usage: `python updater.py-update 3040000000 3040001000` to update those two characters. Usable with all ten digit IDs and boss IDs.  
+- `-update`: Update the content for specified IDs. Example usage: `python updater.py-update 3040000000 3040001000` to update those two characters. Usable with all ten digit IDs, boss IDs and indexed background IDs.  
 - `-updaterun`: Same as `-update` but does `-run` after.  
 - `-job`: Check for new MC jobs. Time consuming and not always accurate.  
 - `-jobedit`: Open the `JOB EDIT` CLI, allowing you to manually edit the job data.  
