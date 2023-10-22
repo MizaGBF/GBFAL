@@ -1417,6 +1417,12 @@ function updateDynamicList(dynarea, idlist)
                 }
                 break;
             }
+            case 10: // backgrounds
+            {
+                var path = e[0].startsWith("main_") ? ["sp/guild/custom/bg/", ".png"] : ["sp/raid/bg/", ".jpg"];
+                addIndexImageGeneric(dynarea, path[0] + e[0] + path[1], e[0], null);
+                break;
+            }
             case -1: // assets
             {
                 let x = e[0].split(":");
@@ -1424,11 +1430,6 @@ function updateDynamicList(dynarea, idlist)
                 x = x[0];
                 switch(x)
                 {
-                    case "background":
-                        addIndexImageGeneric(dynarea, "sp/raid/bg/" + id + "_3.jpg", id+"_3", null);
-                        addIndexImageGeneric(dynarea, "sp/raid/bg/" + id + "_2.jpg", id+"_2", null);
-                        addIndexImageGeneric(dynarea, "sp/raid/bg/" + id + "_1.jpg", id+"_1", null);
-                        break;
                     case "title":
                         addIndexImageGeneric(dynarea, "sp/top/bg/bg_" + slist[k] + ".jpg", slist[k], null);
                         break;
@@ -2158,24 +2159,22 @@ function displayBG(elem, i=null)
     if("background" in index)
     {
         let slist = {};
-        for(const id in index["background"])
+        for(const [id, data] of Object.entries(index["background"]))
         {
-            slist[id.padStart(9, "0")] = id;
+            slist[id.padStart(9, "0")] = [id, data];
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
         {
-            const id = slist[k];
-            if(i == null && !id.startsWith("common") && !id.startsWith("event") && !id.startsWith("main"))
+            const id = slist[k][0];
+            const data = slist[k][1];
+            const path = id.startsWith("main_") ? ["sp/guild/custom/bg/", ".png"] : ["sp/raid/bg/", ".jpg"];
+            if((i == null && !id.startsWith("common") && !id.startsWith("event") && !id.startsWith("main")) || id.startsWith(i))
             {
-                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_3.jpg", id+"_3", null);
-                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_2.jpg", id+"_2", null);
-                addIndexImageGeneric(node, "sp/raid/bg/" + id + "_1.jpg", id+"_1", null);
-            }
-            else if(id.startsWith(i))
-            {
-                if(i == "main") addIndexImageGeneric(node, "sp/guild/custom/bg/" + id + ".png", id, null);
-                else addIndexImageGeneric(node, "sp/raid/bg/" + id + ".jpg", id, null);
+                for(let j = data[0].length - 1; j >= 0; --j)
+                {
+                    addIndexImageGeneric(node, path[0] + data[0][j] + path[1], data[0][j], null);
+                }
             }
         }
     }

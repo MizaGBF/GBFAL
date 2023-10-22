@@ -46,6 +46,7 @@ Action parameters (Only one of those can be used at a time):
 - `-event`: Update event datas. Time consuming.  
 - `-eventedit`: Open the `EVENT EDIT` CLI, allowing you to add event thumbnail, update skycompass arts and more.  
 - `-buff`: Update all buff datas. Time consuming.  
+- `-bg`: Update all background datas. Time consuming.  
   
 ## Other Informations  
 - On Windows, [local_server.bat](https://github.com/MizaGBF/GBFAL/blob/main/local_server.bat) can be used to test the project locally, in a web browser.  

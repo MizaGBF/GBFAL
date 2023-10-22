@@ -59,13 +59,14 @@ class Progress():
 class Updater():
     ### CONSTANT
     # limit
-    MAX_NEW = 100
+    MAX_NEW = 60
     MAX_UPDATE = 50
     MAX_HTTP = 100
     MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
     MAX_SCENE_CONCURRENT = 20
     MAX_SOUND_CONCURRENT = 10
+    LOOKUP_TYPES = ['characters', 'summons', 'weapons']
     # addition type
     ADD_UNDEF = -1
     ADD_JOB = 0
@@ -78,7 +79,9 @@ class Updater():
     ADD_EVENT = 7
     ADD_SKILL = 8
     ADD_BUFF = 9
-    PREEMPTIVE_ADD = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs"])
+    ADD_BG = 10
+    PREEMPTIVE_ADD = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs", "background"])
+    ADD_SINGLE_ASSET = ["title", "subskills", "suptix"]
     # chara/skin/partner update
     CHARA_SPRITE = 0
     CHARA_PHIT = 1
@@ -486,16 +489,24 @@ class Updater():
                     for i in range(5):
                         categories[-1].append(self.search_generic('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png",  50))
         # backgrounds
-        for i in ["event_{}", "common_{}", "main_{}"]:
+        # event & common
+        for i in ["event_{}", "common_{}"]:
             categories.append([])
             self.newShared(errs)
             for j in range(5):
-                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i, 1, "img_low/sp/raid/bg/", ".jpg",  10))
+                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i, 3 if i.startswith("common_") else 1, "img_low/sp/raid/bg/", ".jpg",  10))
+        # main
+        categories.append([])
+        self.newShared(errs)
+        for j in range(5):
+            categories[-1].append(self.search_generic('background', j, 5, errs[-1], "main_{}", 1, "img_low/sp/guild/custom/bg/", ".png",  10))
+        # others
         for i in ["ra", "rb", "rc"]:
             categories.append([])
             self.newShared(errs)
             for j in range(5):
                 categories[-1].append(self.search_generic('background', j, 5, errs[-1], "{}"+i, 1, "img_low/sp/raid/bg/", "_1.jpg",  50))
+            break
         for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
             categories.append([])
             self.newShared(errs)
@@ -564,7 +575,7 @@ class Updater():
                     else: await self.head(self.ENDPOINT + path + f + ext)
                     err[0] = 0
                     self.data[index][f] = 0
-                    if index in ["background", "title", "subskills", "suptix"]:
+                    if index in self.ADD_SINGLE_ASSET:
                         self.addition[index+":"+f] = self.ADD_UNDEF
                     self.modified = True
                     self.new_elements.append(f)
@@ -1045,7 +1056,10 @@ class Updater():
             remaining = 0
             self.progress = Progress()
             for id in ids:
-                if len(id) >= 10:
+                if id in self.data.get('background', {}):
+                    tasks.append(tg.create_task(self.bgUpdate(id)))
+                    remaining += 1
+                elif len(id) >= 10:
                     if id.startswith('2'):
                         tasks.append(tg.create_task(self.sumUpdate(id)))
                     elif id.startswith('10'):
@@ -1537,6 +1551,49 @@ class Updater():
                 self.data['enemies'][id] = data
                 self.addition[id] = self.ADD_BOSS
             return True
+
+    # Update Background data
+    async def bgUpdate(self, id : str):
+        with self.progress:
+            async with self.sem:
+                modified = False
+                try:
+                    if isinstance(self.data['background'][id], list):
+                        data = self.data['background'][id]
+                    else:
+                        data = [[]]
+                except:
+                    data = [[]]
+                if id.startswith("event_") or id.startswith("main_") or id.startswith("common_"):
+                    if id.startswith("main_"): path = "sp/guild/custom/bg/{}.png"
+                    else: path = "sp/raid/bg/{}.jpg"
+                    for s in ["", "_a", "_b", "_c"]:
+                        f = id + s
+                        if f in data[0]:
+                            continue
+                        elif s == "":
+                            data[0].append(f)
+                            modified = True
+                            self.addition[f] = self.ADD_BG
+                        else:
+                            try:
+                                await self.head(self.IMG + path.format(f))
+                                data[0].append(f)
+                                modified = True
+                                self.addition[f] = self.ADD_BG
+                            except:
+                                break
+                else:
+                    if len(data[0]) != 3:
+                        data[0] = [id+"_1",id+"_2",id+"_3"]
+                        modified = True
+                        for f in data[0]:
+                            self.addition[f] = self.ADD_BG
+                if modified:
+                    data[0].sort()
+                    self.modified = True
+                    self.data['background'][id] = data
+                return modified
 
     ### Scene ###################################################################################################################
 
@@ -2091,7 +2148,7 @@ class Updater():
         async with asyncio.TaskGroup() as tg:
             print("Checking elements in need of update...")
             self.progress = Progress()
-            for t in ['characters', 'summons', 'weapons']:
+            for t in self.LOOKUP_TYPES:
                 for k in self.data[t]:
                     if k not in self.data['lookup'] or self.data['lookup'][k] is None:
                         if k in self.SPECIAL_LOOKUP:
@@ -2103,7 +2160,7 @@ class Updater():
         for t in tasks:
             t.result()
         # second pass
-        for t in ['characters', 'summons', 'weapons']:
+        for t in self.LOOKUP_TYPES:
             for k in self.data[t]:
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
                     for l in self.SHARED_NAMES:
@@ -2121,7 +2178,7 @@ class Updater():
                         self.modified = True
         # print remaining
         count = 0
-        for t in ['characters', 'summons', 'weapons']:
+        for t in self.LOOKUP_TYPES:
             for k in self.data[t]:
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
                     count += 1
@@ -2181,7 +2238,7 @@ class Updater():
                 for k in to_delete:
                     self.data["lookup"].pop(k)
                 self.modified = True
-        for t in ['characters', 'summons', 'weapons']:
+        for t in self.LOOKUP_TYPES:
             for k in self.data[t]:
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
                     print("##########################################")
@@ -2943,10 +3000,11 @@ class Updater():
         print("-event       : Update unique event arts (Very time consuming).")
         print("-eventedit   : Edit event data")
         print("-buff        : Update buff data")
+        print("-bg          : Update background data")
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.3\n")
+            print("GBFAL updater v2.4\n")
             self.client = aiohttp.ClientSession()
             start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
             flags = set()
@@ -2995,6 +3053,7 @@ class Updater():
                 elif "-event" in flags: await self.check_new_event()
                 elif "-eventedit" in flags: await self.event_edit()
                 elif "-buff" in flags: await self.update_buff()
+                elif "-bg" in flags: await self.manualUpdate(list(self.data.get('background', {}).keys()))
                 elif not ran:
                     self.print_help()
                     print("")
