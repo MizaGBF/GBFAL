@@ -389,7 +389,7 @@ class Updater():
         errs = []
         job_task = 10
         skill_task = 10
-        buff_series_task = 10
+        buff_series_task = 15
         # job keys to check
         jkeys = []
         if self.job_list is None:
@@ -405,14 +405,12 @@ class Updater():
         for i in range(job_task):
             categories[-1].append(self.search_job(i, job_task, jkeys, errs[-1]))
         # skills
-        categories.append([])
         for i in range(skill_task):
-            categories[-1].append(self.search_skill(i, skill_task))
+            categories.append([self.search_skill(i, skill_task)])
         # buffs
-        categories.append([])
         for i in range(10):
             for j in range(buff_series_task):
-                categories[-1].append(self.search_buff(1000*i+j, buff_series_task))
+                categories.append([self.search_buff(1000*i+j, buff_series_task)])
         # npc
         categories.append([])
         self.newShared(errs)
