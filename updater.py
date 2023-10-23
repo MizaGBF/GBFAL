@@ -1522,11 +1522,12 @@ class Updater():
                 except:
                     pass
                 # appear
-                try:
-                    fn = "raid_appear_{}".format(id)
-                    data[self.BOSS_APPEAR] += await self.processManifest(fn)
-                except:
-                    pass
+                for k in ["", "_shade"]:
+                    try:
+                        fn = "raid_appear_{}{}".format(id, k)
+                        data[self.BOSS_APPEAR] += await self.processManifest(fn)
+                    except:
+                        pass
                 # ehit
                 try:
                     fn = "ehit_{}".format(id)
