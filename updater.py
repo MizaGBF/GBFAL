@@ -639,7 +639,7 @@ class Updater():
             highest = i - 1
         tmp = None
         highest = start
-        slist = ["", "_1", "_10"] + (["1"] if start >= 1000 else []) + ["_30", "_1_1", "_1_10"]
+        slist = ["", "_1", "_10", "_11", "_30"] + (["1"] if start >= 1000 else []) + ["_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
         known = set()
         while err < 10 and i < end:
             fi = str(i).zfill(4)
@@ -672,16 +672,19 @@ class Updater():
                         modified = True
                     found = True
                 except:
-                    if s == "1" and not found:
-                        break
+                    pass
             if not found:
                 if i > highest:
                     err += 1
             else:
                 err = 0
                 if modified:
+                    try:
+                        if len(data[1]) != len(self.data["buffs"][fi][1]):
+                            self.addition[fi] = self.ADD_BUFF
+                    except:
+                        self.addition[fi] = self.ADD_BUFF
                     self.data["buffs"][fi] = data
-                    self.addition[fi] = self.ADD_BUFF
                     self.modified = True
             i += step
 
@@ -2913,13 +2916,13 @@ class Updater():
 
     # Check buff data for new icons
     async def update_buff(self):
-        self.update_changelog = False
         tasks = []
+        task_count = 20
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(total=10*10, silent=False)
+            self.progress = Progress(total=10*task_count, silent=False)
             for i in range(10):
-                for j in range(10):
-                    tasks.append(tg.create_task(self.update_buff_sub(1000*i+j, 10, True)))
+                for j in range(task_count):
+                    tasks.append(tg.create_task(self.update_buff_sub(1000*i+j, task_count, True)))
         for t in tasks:
             t.result()
         print("Done")
@@ -3003,7 +3006,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.4\n")
+            print("GBFAL updater v2.5\n")
             self.client = aiohttp.ClientSession()
             start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
             flags = set()

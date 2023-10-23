@@ -402,55 +402,105 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             break;
         case 9: // buffs
             assets = [
-                ["Main Icon", "sp/ui/icon/status/x64/status_", "png", "img/", 0, false, false],
-                ["Variations #1", "sp/ui/icon/status/x64/status_", "png", "img/", 1, false, false],
-                ["Variations #2", "sp/ui/icon/status/x64/status_", "png", "img/", 2, false, false],
-                ["Variations #3", "sp/ui/icon/status/x64/status_", "png", "img/", 3, false, false]
+                ["Main Icon", "sp/ui/icon/status/x64/status_", "png", "img/", 0, false, false]
             ];
-            // build a possible list of icon dynamically here
             let tmp = obj[0][0];
             let variations = obj[1];
-            obj = [[], [], [], []];
+            obj = [[]];
             if(!tmp.includes("_"))
                 obj[0].push(""+parseInt(id));
-            if(variations.includes("_1"))
+            let v1 = variations.includes("1");
+            let vu1 = variations.includes("_1");
+            let vu10 = variations.includes("_10");
+            let vu11 = variations.includes("_11");
+            let vu30 = variations.includes("_30");
+            let vu1u1 = variations.includes("_1_1");
+            let vu2u1 = variations.includes("_2_1");
+            let vu0u10 = variations.includes("_0_10");
+            let vu1u10 = variations.includes("_1_10");
+            let vu1u20 = variations.includes("_1_20");
+            let vu2u10 = variations.includes("_2_10");
+            if(vu1 && vu10)
             {
-                let m = variations.includes("_30") ? 10 : 11;
-                for(let i = 0; i < m; ++i)
-                    obj[1].push(""+parseInt(id)+"_"+i);
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 0; i < 21; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+"_"+i);
             }
-            if(variations.includes("1")) // weird exception for satyr and siete (among maybe others)
+            else if(vu1)
             {
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
                 for(let i = 0; i < 10; ++i)
-                    obj[2].push(""+parseInt(id)+""+i);
+                    obj[obj.length-1].push(""+parseInt(id)+"_"+i);
             }
-            if((!variations.includes("_1") && variations.includes("_10")) || variations.includes("_30"))
+            if(v1) // weird exception for satyr and siete (among maybe others)
             {
-                for(let i = 10; i < 110; i+=10)
-                    obj[3].push(""+parseInt(id)+"_"+i);
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 0; i < 10; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+""+i);
             }
-            if(variations.includes("_1_1"))
+            if(vu10 && vu30)
             {
-                let offset = assets.length;
-                for(let j = 0; j < 10; ++j)
-                {
-                    obj.push([]);
-                    assets.push(["Variations #"+(offset+j), "sp/ui/icon/status/x64/status_", "png", "img/", offset+j, false, false]);
-                    for(let i = 1; i < 11; ++i)
-                        obj[offset+j].push(""+parseInt(id)+"_"+j+"_"+i);
-                }
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 10; i < 70; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+"_"+i);
             }
-            if(variations.includes("_1_10") && !variations.includes("_1_1"))
+            else if((vu10 && !vu1) || (!vu10 && vu11))
             {
-                let offset = assets.length;
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 10; i < 101; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+"_"+i);
+            }
+            if(vu0u10)
+            {
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 10; i < 101; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+"_0_"+i);
+            }
+            if(vu1u1 && vu1u10)
+            {
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 0; i < 21; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+"_1_"+i);
+            }
+            else if(vu1u1)
+            {
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 0; i < 11; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+"_1_"+i);
+            }
+            else if(vu1u10)
+            {
                 for(let j = 0; j < 11; ++j)
                 {
                     obj.push([]);
-                    assets.push(["Variations #"+(offset+j), "sp/ui/icon/status/x64/status_", "png", "img/", offset+j, false, false]);
-                    for(let i = 10; i < 110; i+=10)
-                        obj[offset+j].push(""+parseInt(id)+"_"+j+"_"+i);
+                    assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                    for(let i = 0; i < 101; ++i)
+                        obj[obj.length-1].push(""+parseInt(id)+"_"+j+"_"+i);
                 }
             }
+            if(vu2u1 && vu2u10)
+            {
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 0; i < 21; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+"_2_"+i);
+            }
+            else if(vu2u1)
+            {
+                obj.push([]);
+                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                for(let i = 0; i < 11; ++i)
+                    obj[obj.length-1].push(""+parseInt(id)+"_2_"+i);
+            }
+            
             break;
         case 3: // characters / skins
             assets = [
