@@ -1309,7 +1309,7 @@ function hideNextFiles(div, file_count)
     let details = document.createElement("details");
     let summary = document.createElement("summary");
     summary.classList.add("summary-wide");
-    summary.innerHTML = "Up to " + file_count + " More Files";
+    summary.innerHTML = "Try to load " + file_count + " Files";
     details.appendChild(summary);
     div.appendChild(details);
     result_area.appendChild(div);
