@@ -385,11 +385,12 @@ class Updater():
     
     # Called by -run, update the indexed content
     async def run(self):
+        self.run_count = 0
         categories = []
         errs = []
         job_task = 10
         skill_task = 10
-        buff_series_task = 15
+        buff_series_task = 12
         # job keys to check
         jkeys = []
         if self.job_list is None:
@@ -415,15 +416,15 @@ class Updater():
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  60))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  70))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/assets/npc/b/", "_01.png",  60))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/assets/npc/b/", "_01.png",  70))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # sounds
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  60))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  70))
         # special
         categories.append([])
         categories[-1].append(self.search_generic('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  2))
