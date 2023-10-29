@@ -1619,7 +1619,7 @@ class Updater():
         specials = ["_light_heart", "_nalhe","_nalhe_up","_nalhe_speed", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2022_a", "_2022_laugh", "_2023", "_2023_a", "_2023_laugh", "_girl_laugh", "_girl_sad", "_girl_serious", "_girl_angry", "_girl_surprise", "_girl_think", "_town_thug", "_narrator", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday2", "_whiteday3"]
         special_suffix = []
         for B in variationsB:
-            if B != "":
+            if B not in ["", "_a"]:
                 special_suffix.append(B.split("_")[-1])
         return scene_alts, specials,set(special_suffix)
 
