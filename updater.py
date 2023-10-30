@@ -59,7 +59,7 @@ class Progress():
 class Updater():
     ### CONSTANT
     # limit
-    MAX_NEW = 60
+    MAX_NEW = 80
     MAX_UPDATE = 50
     MAX_HTTP = 100
     MAX_UPDATEALL = MAX_HTTP+10

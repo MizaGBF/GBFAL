@@ -976,7 +976,7 @@ function loadUnindexed(id, check)// minimal load of an element not indexed or no
                                 data = [true, ["","_up","_laugh","_laugh_up","_laugh2","_laugh2_up","_laugh3","_laugh3_up","_sad","_sad_speed","_sad_up","_angry","_angry_speed","_angry_up","_shadow","_shadow_up","_surprise","_surprise_speed","_surprise_up","_suddenly","_suddenly_up","_suddenly2","_suddenly2_up","_ef","_weak","_weak_up","_a","_b_sad","_town_thug","_narrator","_valentine","_valentine2","_birthday","_birthday2","_birthday3","_birthday3_a","_birthday3_b"],[]];
                                 break;
                             default: // playable r, sr, ssr
-                                data = [["npc_" + id + "_01.png","npc_" + id + "_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],dummy_scene_strings,[]];
+                                data = [["npc_" + id + "_01.png","npc_" + id + "_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],[],[]];
                                 break;
                         };
                         break;
@@ -984,7 +984,7 @@ function loadUnindexed(id, check)// minimal load of an element not indexed or no
                         switch(id[2])
                         {
                             case '1': // skins
-                                data = [["npc_" + id + "_01.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_01.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],dummy_scene_strings,[]];
+                                data = [["npc_" + id + "_01.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_01.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],[],[]];
                                 break;
                             default:
                                 return;
@@ -1251,18 +1251,19 @@ function newArea(name, id, include_link, indexed=true)
     }
     else if(name == "Character" && id.slice(0, 2) == "30") // partner chara matching
     {
-        if(did_lookup) div.appendChild(document.createElement('br'));
         let cid = "38" + id.slice(2);
         if("partners" in index && cid in index["partners"])
         {
-            div.appendChild(document.createTextNode("Partner: "));
+            if(did_lookup) div.appendChild(document.createElement('br'));
+            div.appendChild(document.createTextNode("Associated Partner:"));
+            div.appendChild(document.createElement('br'));
             let i = document.createElement('i');
             i.classList.add("tag");
             i.onclick = function() {
                 lookup(cid);
             };
-            i.appendChild(document.createTextNode(cid)); 
             div.appendChild(i);
+            updateDynamicList(i, [[cid, 6]]);
         }
     }
     else if(name == "Partner") // partner chara matching
@@ -1270,14 +1271,16 @@ function newArea(name, id, include_link, indexed=true)
         let cid = "30" + id.slice(2);
         if("characters" in index && cid in index["characters"])
         {
-            div.appendChild(document.createTextNode("Character: "));
+            if(did_lookup) div.appendChild(document.createElement('br'));
+            div.appendChild(document.createTextNode("Associated Character:"));
+            div.appendChild(document.createElement('br'));
             let i = document.createElement('i');
             i.classList.add("tag");
             i.onclick = function() {
                 lookup(cid);
             };
-            i.appendChild(document.createTextNode(cid)); 
             div.appendChild(i);
+            updateDynamicList(i, [[cid, 3]]);
         }
     }
     else if(name == "Event") // event
