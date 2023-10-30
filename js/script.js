@@ -579,6 +579,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", 0, false, false],
                 ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", 0, false, false],
                 ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", 0, false, false],
+                ["Forge Portraits", "sp/archaic/", "", "img_mid/", -3, false, false],
                 ["Battle Sprites", "sp/cjs/", "png", "img/", 0, false, false],
                 ["Attack Effects", "sp/cjs/", "png", "img/", 1, false, false],
                 ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
@@ -630,6 +631,9 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                     break;
                 case -2: // for chara popup portraits
                     files = [id, id+"_001"];
+                    break;
+                case -3: // for weapon forge portraits
+                    files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png"];
                     break;
                 default:
                     files = obj[asset[4]];
@@ -691,7 +695,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                         img.src = getMainEndpoint() + language + asset[3] + asset[1] + file + "." + asset[2];
                         url_target = img.src;
                     }
-                    ref.setAttribute('href', url_target.replace("img_low", "img"));
+                    ref.setAttribute('href', url_target.replace("img_low", "img").replace("img_mid", "img"));
                     img.classList.add("loading");
                     if(is_home) img.classList.add("homepage"); // use this class name as a flag
                     img.setAttribute('loading', 'lazy');
