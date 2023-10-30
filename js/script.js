@@ -1983,7 +1983,7 @@ function displayEnemies(elem, i)
         let slist = {};
         for(const id in index["enemies"])
         {
-            if(id[0] != i) continue;
+            if(id.slice(0, 2) != i) continue;
             slist[id] = ["sp/assets/enemy/s/" + id + ".png", "e"+id];
         }
         const keys = Object.keys(slist).sort().reverse();
