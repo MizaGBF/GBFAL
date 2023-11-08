@@ -633,7 +633,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                     files = [id, id+"_001"];
                     break;
                 case -3: // for weapon forge portraits
-                    files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png"];
+                    files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
                     break;
                 default:
                     files = obj[asset[4]];
