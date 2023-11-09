@@ -579,7 +579,8 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", 0, false, false],
                 ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", 0, false, false],
                 ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", 0, false, false],
-                ["Forge Portraits", "sp/archaic/", "", "img_mid/", -3, false, false],
+                ["Forge Headers", "sp/archaic/", "", "img_low/", -3, false, false],
+                ["Forge Portraits", "sp/archaic/", "", "img_mid/", -4, false, false],
                 ["Battle Sprites", "sp/cjs/", "png", "img/", 0, false, false],
                 ["Attack Effects", "sp/cjs/", "png", "img/", 1, false, false],
                 ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 2, false, false]
@@ -632,7 +633,10 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 case -2: // for chara popup portraits
                     files = [id, id+"_001"];
                     break;
-                case -3: // for weapon forge portraits
+                case -3: // for weapon forge headers
+                    files = ["job/header/"+id+".png", "number/header/"+id+".png", "seraphic/header/"+id+".png", "xeno/header/"+id+".png", "bahamut/header/"+id+".png", "omega/header/"+id+".png", "draconic/header/"+id+".png", "revans/header/"+id+".png"];
+                    break;
+                case -4: // for weapon forge portraits
                     files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
                     break;
                 default:
