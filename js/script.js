@@ -1498,10 +1498,10 @@ function updateDynamicList(dynarea, idlist)
                 switch(x)
                 {
                     case "title":
-                        addIndexImageGeneric(dynarea, "sp/top/bg/bg_" + slist[k] + ".jpg", slist[k], null);
+                        addIndexImageGeneric(dynarea, "sp/top/bg/bg_" + id + ".jpg", id, null);
                         break;
                     case "suptix":
-                        addIndexImageGeneric(dynarea, "sp/gacha/campaign/surprise/top_" + slist[k] + ".jpg", slist[k], null, "preview-wide");
+                        addIndexImageGeneric(dynarea, "sp/gacha/campaign/surprise/top_" + id + ".jpg", id, null, "preview-wide");
                         break;
                     case "subskills":
                         addIndexImageGeneric(dynarea, "sp/assets/item/ability/s/" + id + "_1.jpg", id+"_1", null);
