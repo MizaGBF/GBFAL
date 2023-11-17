@@ -415,6 +415,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             let vu11 = variations.includes("_11");
             let vu101 = variations.includes("_101");
             let vu110 = variations.includes("_110");
+            let vu111 = variations.includes("_111");
             let vu30 = variations.includes("_30");
             let vu1u1 = variations.includes("_1_1");
             let vu2u1 = variations.includes("_2_1");
@@ -447,29 +448,42 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             {
                 obj.push([]);
                 assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
-                for(let i = 10; i < 70; ++i)
+                for(let i = 10; i < 100; ++i)
                     obj[obj.length-1].push(""+parseInt(id)+"_"+i);
             }
-            else if(!vu10 && vu11 && vu110)
+            else if(!vu10)
             {
-                obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
-                for(let i = 0; i < 21; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_1"+i);
-            }
-            else if((vu10 && !vu1) || (!vu10 && vu11))
-            {
-                obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
-                for(let i = 10; i < 111; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_"+i);
-            }
-            else if(vu101)
-            {
-                obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
-                for(let i = 1; i < 21; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_1"+JSON.stringify(i).padStart(2, '0'));
+                if(vu11)
+                {
+                    if(vu111)
+                    {
+                        obj.push([]);
+                        assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                        for(let i = 0; i < 200; ++i)
+                            obj[obj.length-1].push(""+parseInt(id)+"_"+i);
+                    }
+                    else if(vu110)
+                    {
+                        obj.push([]);
+                        assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                        for(let i = 0; i < 21; ++i)
+                            obj[obj.length-1].push(""+parseInt(id)+"_1"+i);
+                    }
+                    else
+                    {
+                        obj.push([]);
+                        assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                        for(let i = 10; i < 111; ++i)
+                            obj[obj.length-1].push(""+parseInt(id)+"_"+i);
+                    }
+                }
+                else if(vu101)
+                {
+                    obj.push([]);
+                    assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                    for(let i = 1; i < 21; ++i)
+                        obj[obj.length-1].push(""+parseInt(id)+"_1"+JSON.stringify(i).padStart(2, '0'));
+                }
             }
             if(vu0u10)
             {
