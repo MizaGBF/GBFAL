@@ -29,6 +29,8 @@ var result_area = null;
 
 // constant
 const DISPLAY_MINI = 4; // number of file to display at the minimum if a lot of files are present
+const HIDE_DISPLAY = 21; // number of file to trigger the "load more" button
+const HISTORY_LENGTH = 20; // size limit of the history
 // list of null characters/skins
 const null_characters = [
     "3030182000", "3710092000", "3710139000", "3710078000", "3710105000", "3710083000", "3020072000", "3710184000"
@@ -404,6 +406,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             assets = [
                 ["Main Icon", "sp/ui/icon/status/x64/status_", "png", "img/", 0, false, false]
             ];
+            let iid = parseInt(id);
             let tmp = obj[0][0];
             let variations = obj[1];
             obj = [[]];
@@ -425,31 +428,36 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             let vu2u10 = variations.includes("_2_10");
             if(vu1 && vu10)
             {
-                obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
-                for(let i = 0; i < 21; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_"+i);
+                for(let i = 0; i < 31; ++i)
+                {
+                    if(i%10 == 1)
+                    {
+                        obj.push([]);
+                        assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
+                    }
+                    obj[obj.length-1].push(""+iid+"_"+i);
+                }
             }
             else if(vu1)
             {
                 obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                 for(let i = 0; i < 10; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_"+i);
+                    obj[obj.length-1].push(""+iid+"_"+i);
             }
             if(v1) // weird exception for satyr and siete (among maybe others)
             {
                 obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                 for(let i = 0; i < 10; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+""+i);
+                    obj[obj.length-1].push(""+iid+""+i);
             }
             if(vu10 && vu30)
             {
                 obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                 for(let i = 10; i < 100; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_"+i);
+                    obj[obj.length-1].push(""+iid+"_"+i);
             }
             else if(!vu10)
             {
@@ -457,83 +465,103 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 {
                     if(vu111)
                     {
-                        obj.push([]);
-                        assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
                         for(let i = 0; i < 200; ++i)
-                            obj[obj.length-1].push(""+parseInt(id)+"_"+i);
+                        {
+                            if(i % 10 == 0)
+                            {
+                                obj.push([]);;
+                                assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                            }
+                            obj[obj.length-1].push(""+iid+"_"+i);
+                        }
                     }
                     else if(vu110)
                     {
                         obj.push([]);
-                        assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                        assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                         for(let i = 0; i < 21; ++i)
-                            obj[obj.length-1].push(""+parseInt(id)+"_1"+i);
+                            obj[obj.length-1].push(""+iid+"_1"+i);
                     }
                     else
                     {
                         obj.push([]);
-                        assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                        assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                         for(let i = 10; i < 111; ++i)
-                            obj[obj.length-1].push(""+parseInt(id)+"_"+i);
+                            obj[obj.length-1].push(""+iid+"_"+i);
                     }
                 }
                 else if(vu101)
                 {
                     obj.push([]);
-                    assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                    assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                     for(let i = 1; i < 21; ++i)
-                        obj[obj.length-1].push(""+parseInt(id)+"_1"+JSON.stringify(i).padStart(2, '0'));
+                        obj[obj.length-1].push(""+iid+"_1"+JSON.stringify(i).padStart(2, '0'));
                 }
             }
-            if(vu0u10)
+            if(vu0u10 && !vu1u10)
             {
                 obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                 for(let i = 10; i < 101; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_0_"+i);
+                {
+                    obj[obj.length-1].push(""+iid+"_0_"+i);
+                }
             }
             if(vu1u1 && vu1u10)
             {
                 obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                 for(let i = 0; i < 21; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_1_"+i);
+                    obj[obj.length-1].push(""+iid+"_1_"+i);
             }
             else if(vu1u1)
             {
                 obj.push([]);
-                assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
                 for(let i = 0; i < 11; ++i)
-                    obj[obj.length-1].push(""+parseInt(id)+"_1_"+i);
+                    obj[obj.length-1].push(""+iid+"_1_"+i);
             }
             else if(vu1u10)
             {
-                for(let j = 0; j < 11; ++j)
+                for(let j = 0; j < ((vu2u1 || vu2u10) ? 9 : 2); ++j)
                 {
-                    obj.push([]);
-                    assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
                     for(let i = 0; i < 101; ++i)
-                        obj[obj.length-1].push(""+parseInt(id)+"_"+j+"_"+i);
-                }
-            }
-            if(vu2u1 && vu2u10)
-            {
-                for(let j = 2; j < 7; ++j)
-                {
-                    obj.push([]);
-                    assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
-                    for(let i = 0; i < 21; ++i)
-                        obj[obj.length-1].push(""+parseInt(id)+"_"+j+"_"+i);
+                    {
+                        if(i % 10 == 0)
+                        {
+                            obj.push([]);;
+                            assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                        }
+                        obj[obj.length-1].push(""+iid+"_"+j+"_"+i);
+                    }
                 }
             }
             else if(vu2u1)
             {
-                for(let j = 2; j < 7; ++j)
+                if(vu2u10)
                 {
-                    obj.push([]);
-                    assets.push(["Variations #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
-                    for(let i = 0; i < 11; ++i)
-                        obj[obj.length-1].push(""+parseInt(id)+"_"+j+"_"+i);
+                    for(let j = 2; j < 7; ++j)
+                    {
+                        for(let i = 0; i < 21; ++i)
+                        {
+                            if(i % 10 == 0)
+                            {
+                                obj.push([]);;
+                                assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false])
+                            }
+                            obj[obj.length-1].push(""+iid+"_"+j+"_"+i);$
+                        }
+                    }
+                }
+                else
+                {
+                    for(let j = 2; j < 7; ++j)
+                    {
+                        obj.push([]);
+                        assets.push(["Set #"+(obj.length-1), "sp/ui/icon/status/x64/status_", "png", "img/", obj.length-1, false, false]);
+                        for(let i = 0; i < 11; ++i)
+                            obj[obj.length-1].push(""+iid+"_"+j+"_"+i);
+                    }
                 }
             }
             
@@ -711,7 +739,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             for(let i = 0; i < files.length; ++i)
             {
                 let file = files[i];
-                if(file_count > 20 && i == DISPLAY_MINI)
+                if(file_count > HIDE_DISPLAY && i == DISPLAY_MINI)
                     div = hideNextFiles(div, file_count - DISPLAY_MINI);
                 if(asset[3].length > 0)
                 {
@@ -811,7 +839,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             for(let i = 0; i < npcdata.length; ++i)
             {
                 let file = npcdata[i];
-                if(asset[0] == "Scene Arts" && file_count > 20 && i == 8)
+                if(asset[0] == "Scene Arts" && file_count > HIDE_DISPLAY && i == 8)
                     div = hideNextFiles(div, file_count - 8);
                 if(asset[0] == "Raid Bubble Arts" && no_bubble_scene_suffix.includes(file.split("_").slice(-1)[0])) continue; // ignore those
                 let img = document.createElement("img");
@@ -1729,7 +1757,7 @@ function updateHistory(id, search_type)
         else
         {
             searchHistory = JSON.parse(searchHistory);
-            if(searchHistory.length > 20) searchHistory = searchHistory.slice(searchHistory.length - 20); // resize if too big to not cause problems
+            if(searchHistory.length > HISTORY_LENGTH) searchHistory = searchHistory.slice(searchHistory.length - HISTORY_LENGTH); // resize if too big to not cause problems
         }
     }
     catch(err)
@@ -1743,7 +1771,7 @@ function updateHistory(id, search_type)
             if(e[0] == id) return; // don't update if already in
         }
         searchHistory.push([id, search_type]);
-        if(searchHistory.length > 20) searchHistory = searchHistory.slice(searchHistory.length - 20);
+        if(searchHistory.length > HISTORY_LENGTH) searchHistory = searchHistory.slice(searchHistory.length - HISTORY_LENGTH);
         localStorage.setItem("gbfal-history", JSON.stringify(searchHistory));
     }
     if(searchHistory.length == 0)
