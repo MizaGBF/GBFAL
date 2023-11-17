@@ -650,7 +650,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
             {
                 case "Quest Portraits":
                     if(search_type == 2)
-                        files = [files[0], files[0]+"_hard", files[0]+"_ex", files[0]+"_high", files[0]+"_high_plus"]; // summon quest icon
+                        files = [files[0], files[0]+"_hard", files[0]+"_hard_plus", files[0]+"_ex", files[0]+"_ex_plus", files[0]+"_high", files[0]+"_high_plus"]; // summon quest icon
                     break;
                 case "Gacha Cover": // gacha cover
                     files = [files[0]+"_1", files[0]+"_3"];
