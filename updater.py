@@ -640,7 +640,7 @@ class Updater():
             highest = i - 1
         tmp = None
         highest = start
-        slist = ["", "_1", "_10", "_11", "_30"] + (["1"] if start >= 1000 else []) + ["_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
+        slist = ["", "_1", "_10", "_11", "_101", "_110", "_30"] + (["1"] if start >= 1000 else []) + ["_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
         known = set()
         while err < 10 and i < end:
             fi = str(i).zfill(4)
