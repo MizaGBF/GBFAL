@@ -2888,11 +2888,12 @@ class Updater():
         with self.progress:
             err = 0
             i = start
-            while err < 10 and i < end:
+            while err < 50 and i < end:
                 try:
                     f = "{}0".format(i)
                     if f not in self.data["eventthumb"]:
                         await self.head(self.IMG + "sp/archive/assets/island_m2/{}.png".format(f))
+                        print("TEST EVT THUMB:", f)
                         self.data["eventthumb"][f] = 0
                         self.modified = True
                     err = 0
