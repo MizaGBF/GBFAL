@@ -874,8 +874,8 @@ class Updater():
         for mh in self.MAINHAND:
             try:
                 await self.processManifest("{}_{}_0_01".format(key, mh))
-                self.data["job_key"][key] = None
-                self.modified = True
+                """self.data["job_key"][key] = None
+                self.modified = True"""
                 print("Unknown job key", key, "for mh", mh)
                 break
             except:
