@@ -786,7 +786,7 @@ class Updater():
             shared[1] = False
 
     # Used by -job, more specific but also slower job detection system
-    async def search_job_detail(self):
+    async def search_job_detail(self, args : list):
         if self.job_list is None:
             self.job_list = await self.init_job_list()
         print("Searching additional job data...")
@@ -871,7 +871,7 @@ class Updater():
 
     # search_job_detail() subroutine
     async def detail_job_search_single(self, key : str):
-        for mh in self.MAINHAND:
+        for mh in ["sw"]:#self.MAINHAND:
             try:
                 await self.processManifest("{}_{}_0_01".format(key, mh))
                 self.data["job_key"][key] = None
@@ -3040,7 +3040,7 @@ class Updater():
                     await self.manualUpdate(extras)
                     await self.run()
                 elif "-update" in flags: await self.manualUpdate(extras)
-                elif "-job" in flags: await self.search_job_detail()
+                elif "-job" in flags: await self.search_job_detail(extras)
                 elif "-jobedit" in flags: await self.edit_job()
                 elif "-lookup" in flags: await self.buildLookup()
                 elif "-lookupfix" in flags: await self.manualLookup()
