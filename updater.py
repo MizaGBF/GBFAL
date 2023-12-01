@@ -871,7 +871,7 @@ class Updater():
 
     # search_job_detail() subroutine
     async def detail_job_search_single(self, key : str):
-        for mh in ["sw"]:#self.MAINHAND:
+        for mh in self.MAINHAND:
             try:
                 await self.processManifest("{}_{}_0_01".format(key, mh))
                 self.data["job_key"][key] = None
