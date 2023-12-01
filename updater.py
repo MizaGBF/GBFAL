@@ -823,10 +823,9 @@ class Updater():
                 for a in string.ascii_lowercase:
                     for b in string.ascii_lowercase:
                         for c in string.ascii_lowercase:
-                            d = a+b+c
+                            d = "vs"+a+b+c
                             if d in self.data["job_key"]: continue
                             tasks.append(tg.create_task(self.detail_job_search_single(d)))
-                            await asyncio.sleep(0.005) # delay to give time to detail_job_search
         for t in tasks:
             t.result()
         print("Done")
@@ -871,7 +870,7 @@ class Updater():
 
     # search_job_detail() subroutine
     async def detail_job_search_single(self, key : str):
-        for mh in self.MAINHAND:
+        for mh in ["sw"]:#self.MAINHAND:
             try:
                 await self.processManifest("{}_{}_0_01".format(key, mh))
                 """self.data["job_key"][key] = None
@@ -925,10 +924,12 @@ class Updater():
                                     print(len(sheets),"sprites set to job", jid)
                                 elif s in self.data['job_wpn']:
                                     # phit
-                                    try:
-                                        self.data['job'][jid][8] = list(dict.fromkeys(await self.processManifest("phit_{}".format(s))))
-                                    except:
-                                        pass
+                                    self.data['job'][jid][8] = []
+                                    for u in ["", "_1", "_2", "_3"]:
+                                        try:
+                                            self.data['job'][jid][8] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
+                                        except:
+                                            pass
                                     # ougi
                                     sheets = []
                                     for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
@@ -1021,7 +1022,7 @@ class Updater():
                                 if s is not None:
                                     # phit
                                     self.data['job'][jid][8] = []
-                                    for u in ["", "_2", "_3"]:
+                                    for u in ["", "_1", "_2", "_3"]:
                                         try:
                                             self.data['job'][jid][8] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
                                         except:
