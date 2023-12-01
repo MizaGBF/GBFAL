@@ -17,7 +17,7 @@ class Progress():
         self.total = total
         self.current = -1
         self.start_time = time.time()
-        self.update()
+        if self.total > 0: self.update()
 
     def set(self, *, total : int = 0, silent = False): # to initialize it after a task start, once we know the total
         if total >= 0:
@@ -97,6 +97,17 @@ class Updater():
     NPC_JOURNAL = 0
     NPC_SCENE = 1
     NPC_SOUND = 2
+    # MC update
+    JOB_ID = 0
+    JOB_ALT = 1
+    JOB_DETAIL = 2
+    JOB_DETAIL_ALT = 3
+    JOB_DETAIl_ALL = 4
+    JOB_SD = 5
+    JOB_MH = 6
+    JOB_SPRITE = 7
+    JOB_PHIT = 8
+    JPB_SP = 9
     # summon update
     SUM_GENERAL = 0
     SUM_CALL = 1
@@ -766,17 +777,17 @@ class Updater():
                 # set data
                 data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp
                 for j in alts:
-                    data[1].append(keys[i][:-2]+str(j).zfill(2)+"_01")
+                    data[self.JOB_ALT].append(keys[i][:-2]+str(j).zfill(2)+"_01")
                 for k in range(2):
-                    data[2].append(keys[i]+"_"+cmh[0]+"_"+str(k)+"_01")
+                    data[self.JOB_DETAIL].append(keys[i]+"_"+cmh[0]+"_"+str(k)+"_01")
                 for j in [1]+alts:
                     for k in range(2):
-                        data[3].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+                        data[self.JOB_DETAIL_ALT].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
                 for j in colors:
                     for k in range(2):
-                        data[4].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+                        data[self.JOB_DETAIl_ALL].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
                 for j in colors:
-                    data[5].append(keys[i][:-2]+str(j).zfill(2))
+                    data[self.JOB_SD].append(keys[i][:-2]+str(j).zfill(2))
 
                 self.data['job'][keys[i]] = data
                 self.modified = True
@@ -786,7 +797,7 @@ class Updater():
             shared[1] = False
 
     # Used by -job, more specific but also slower job detection system
-    async def search_job_detail(self, args : list):
+    async def search_job_detail(self):
         if self.job_list is None:
             self.job_list = await self.init_job_list()
         print("Searching additional job data...")
@@ -794,7 +805,7 @@ class Updater():
         full_key_search = False
         # key search
         for k, v in self.data['job'].items():
-            if len(v[7]) == 0:
+            if len(v[self.JOB_SPRITE]) == 0:
                 if self.job_list[k] != string.ascii_lowercase:
                     to_search.append((0, self.job_list[k], k)) # keyword search type, letters, class id
                 else:
@@ -810,75 +821,81 @@ class Updater():
                 to_search.append((1, wid)) # skin weapon search, id
                 err += 1
                 if err > 15: break
-        async with asyncio.TaskGroup() as tg:
-            tasks = []
-            for v in to_search:
-                if v[0] == 0:
-                    tasks.append(tg.create_task(self.detail_job_search(v[1], v[2])))
-                elif v[0] == 1:
-                    tasks.append(tg.create_task(self.detail_job_weapon_search(v[1])))
-            # full key search
-            if full_key_search:
-                await asyncio.sleep(5) # delay to give time to detail_job_search
-                for a in string.ascii_lowercase:
-                    for b in string.ascii_lowercase:
-                        for c in string.ascii_lowercase:
-                            d = "vs"+a+b+c
-                            if d in self.data["job_key"]: continue
-                            tasks.append(tg.create_task(self.detail_job_search_single(d)))
-        for t in tasks:
-            t.result()
+        tasks = []
+        for v in to_search:
+            if v[0] == 0:
+                tasks.append(self.detail_job_search(v[1], v[2]))
+            elif v[0] == 1:
+                tasks.append(self.detail_job_weapon_search(v[1]))
+        # full key search
+        if full_key_search:
+            for a in string.ascii_lowercase:
+                for b in string.ascii_lowercase:
+                    for c in string.ascii_lowercase:
+                        d = a+b+c
+                        if d in self.data["job_key"]: continue
+                        tasks.append(self.detail_job_search_single(d))
+        self.progress = Progress(total=len(tasks), silent=False)
+        async for result in self.map_unordered(self.search_job_detail_task, tasks, self.MAX_UPDATEALL):
+            pass
         print("Done")
         self.save()
 
     # search_job_detail() subroutine
+    async def search_job_detail_task(self, task):
+        await task
+
+    # search_job_detail() subroutine
     async def detail_job_search(self, key : str, job : str):
-        cmh = self.data['job'][job][6]
-        a = key[0]
-        for b in key:
-            for c in key:
-                d = a+b+c
-                if d in self.data["job_key"] and self.data["job_key"][d] is not None: continue
-                passed = True
-                for mh in cmh:
-                    try:
-                        await self.processManifest("{}_{}_0_01".format(d, mh))
-                    except:
-                        passed = False
-                        break
-                if passed:
-                    self.data["job_key"][d] = job
-                    self.modified = True
-                    print("Set", job, "to", d)
+        with self.progress:
+            cmh = self.data['job'][job][self.JOB_MH]
+            a = key[0]
+            for b in key:
+                for c in key:
+                    d = a+b+c
+                    if d in self.data["job_key"] and self.data["job_key"][d] is not None: continue
+                    passed = True
+                    for mh in cmh:
+                        try:
+                            await self.processManifest("{}_{}_0_01".format(d, mh))
+                        except:
+                            passed = False
+                            break
+                    if passed:
+                        self.data["job_key"][d] = job
+                        self.modified = True
+                        print("\nSet", job, "to", d)
 
     # search_job_detail() subroutine
     async def detail_job_weapon_search(self, wid : str):
-        try:
-            await self.head(self.IMG + '_low/sp/assets/weapon/m/' + wid + ".jpg")
-            return
-        except:
-            pass
-        for k in [["phit_", ""], ["sp_", "_1_s2"]]:
+        with self.progress:
             try:
-                await self.head(self.MANIFEST + k[0] + wid + k[1] + ".js")
-                self.data["job_wpn"][wid] = None
-                self.modified = True
-                print("Possible job skin related weapon:", wid)
-                break
+                await self.head(self.IMG + '_low/sp/assets/weapon/m/' + wid + ".jpg")
+                return
             except:
                 pass
+            for k in [["phit_", ""], ["phit_", "_2"], ["phit_", "_3"], ["sp_", "_1_s2"]]:
+                try:
+                    await self.head(self.MANIFEST + k[0] + wid + k[1] + ".js")
+                    self.data["job_wpn"][wid] = None
+                    self.modified = True
+                    print("\nPossible job skin related weapon:", wid)
+                    break
+                except:
+                    pass
 
     # search_job_detail() subroutine
     async def detail_job_search_single(self, key : str):
-        for mh in ["sw"]:#self.MAINHAND:
-            try:
-                await self.processManifest("{}_{}_0_01".format(key, mh))
-                """self.data["job_key"][key] = None
-                self.modified = True"""
-                print("Unknown job key", key, "for mh", mh)
-                break
-            except:
-                pass
+        with self.progress:
+            for mh in self.MAINHAND:
+                try:
+                    await self.processManifest("{}_{}_0_01".format(key, mh))
+                    self.data["job_key"][key] = None
+                    self.modified = True
+                    print("\nUnknown job key", key, "for mh", mh)
+                    break
+                except:
+                    pass
 
     # -jobedit CLI
     async def edit_job(self):
@@ -913,21 +930,21 @@ class Updater():
                                 s = input().lower()
                                 if s in self.data['job_key']:
                                     sheets = []
-                                    for v in self.data['job'][jid][4]:
+                                    for v in self.data['job'][jid][self.JOB_DETAIl_ALL]:
                                         try:
                                             sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
                                         except:
                                             pass
-                                    self.data['job'][jid][7] = list(dict.fromkeys(sheets))
+                                    self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
                                     self.data['job_key'][s] = jid
                                     self.modified = True
                                     print(len(sheets),"sprites set to job", jid)
                                 elif s in self.data['job_wpn']:
                                     # phit
-                                    self.data['job'][jid][8] = []
+                                    self.data['job'][jid][self.JOB_PHIT] = []
                                     for u in ["", "_1", "_2", "_3"]:
                                         try:
-                                            self.data['job'][jid][8] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
+                                            self.data['job'][jid][self.JOB_PHIT] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
                                         except:
                                             pass
                                     # ougi
@@ -937,8 +954,8 @@ class Updater():
                                             sheets += await self.processManifest("sp_{}{}".format(s, u))
                                         except:
                                             pass
-                                    self.data['job'][jid][9] = list(dict.fromkeys(sheets))
-                                    print(len(self.data['job'][jid][8]),"attack sprites and",len(self.data['job'][jid][9]),"ougi sprites set to job", jid)
+                                    self.data['job'][jid][self.JOB_SP] = list(dict.fromkeys(sheets))
+                                    print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
                                     self.data['job_wpn'][s] = jid
                                     self.modified = True
                                 elif s == "":
@@ -964,10 +981,10 @@ class Updater():
                 case "3":
                     tmp = 0
                     for k, v in self.data['job'].items():
-                        if len(v[7]) == 0:
+                        if len(v[self.JOB_MH]) == 0:
                             print(k, "has no sprites")
                             tmp += 1
-                        elif len(v[8]) + len(v[9]) == 0 and 4100 > int(k[:4]) > 3100:
+                        elif len(v[self.JOB_PHIT]) + len(v[self.JOB_SP]) == 0 and 4100 > int(k[:4]) > 3100:
                             print(k, "might be an uncomplete skin")
                             tmp += 1
                         if v is None: tmp.append(k)
@@ -1009,22 +1026,22 @@ class Updater():
                                 if s is not None:
                                     # set key
                                     sheets = []
-                                    for v in self.data['job'][jid][4]:
+                                    for v in self.data['job'][jid][self.JOB_DETAIl_ALL]:
                                         try:
                                             sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
                                         except:
                                             pass
-                                    self.data['job'][jid][7] = list(dict.fromkeys(sheets))
+                                    self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
                                     self.data['job_key'][s] = jid
                                     self.modified = True
                                     print(len(sheets),"sprites set to job", jid)
                             for jid, s in tmp["weapon"].items():
                                 if s is not None:
                                     # phit
-                                    self.data['job'][jid][8] = []
+                                    self.data['job'][jid][self.JOB_PHIT] = []
                                     for u in ["", "_1", "_2", "_3"]:
                                         try:
-                                            self.data['job'][jid][8] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
+                                            self.data['job'][jid][self.JOB_PHIT] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
                                         except:
                                             pass
                                     # ougi
@@ -1034,8 +1051,8 @@ class Updater():
                                             sheets += await self.processManifest("sp_{}{}".format(s, u))
                                         except:
                                             pass
-                                    self.data['job'][jid][9] = list(dict.fromkeys(sheets))
-                                    print(len(self.data['job'][jid][8]),"attack sprites and",len(self.data['job'][jid][9]),"ougi sprites set to job", jid)
+                                    self.data['job'][jid][self.JOB_SP] = list(dict.fromkeys(sheets))
+                                    print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
                                     self.data['job_wpn'][s] = jid
                                     self.modified = True
                             print("Job Data Import finished with success")
@@ -3009,7 +3026,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.5\n")
+            print("GBFAL updater v2.6\n")
             self.client = aiohttp.ClientSession()
             start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
             flags = set()
@@ -3041,7 +3058,7 @@ class Updater():
                     await self.manualUpdate(extras)
                     await self.run()
                 elif "-update" in flags: await self.manualUpdate(extras)
-                elif "-job" in flags: await self.search_job_detail(extras)
+                elif "-job" in flags: await self.search_job_detail()
                 elif "-jobedit" in flags: await self.edit_job()
                 elif "-lookup" in flags: await self.buildLookup()
                 elif "-lookupfix" in flags: await self.manualLookup()
