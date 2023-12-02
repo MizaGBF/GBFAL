@@ -107,7 +107,7 @@ class Updater():
     JOB_MH = 6
     JOB_SPRITE = 7
     JOB_PHIT = 8
-    JPB_SP = 9
+    JOB_SP = 9
     # summon update
     SUM_GENERAL = 0
     SUM_CALL = 1
@@ -1060,10 +1060,10 @@ class Updater():
                         except Exception as e:
                             print("An error occured while processing ({}, {}), exiting to preserve data...".format(jid, s))
                             print(e)
-                            exit(0)
+                            return
                 case _:
                     break
-        self.save()
+            self.save()
 
     ### Update ##################################################################################################################
 
