@@ -2855,8 +2855,9 @@ class Updater():
                                 self.data["events"][s] = [-1, th, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
                                 self.modified = True
                             elif th is not None:
-                                self.data["events"][s][self.EVENT_THUMB ] = th
+                                self.data["events"][s][self.EVENT_THUMB] = th
                                 self.modified = True
+                            print("Event added")
                         else:
                             break
                     self.save()
