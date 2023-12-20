@@ -2598,7 +2598,7 @@ class Updater():
                 ev = r[0]
                 if r[1] is not None:
                     check[ev] = max(check[ev], int(r[1].split('_')[2][2:]))
-            for ev in check and ev not in self.Data:
+            for ev in check and ev not in self.data:
                 if check[ev] >= 0:
                     print("Event", ev, "has", check[ev], "chapters")
                     thumbnail_check.append(ev)
