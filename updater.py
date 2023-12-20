@@ -2581,8 +2581,8 @@ class Updater():
             for ev in known_events:
                 if ev in self.data["events"]: # event already registered
                     if now >= int(ev) and nyear == 2000 + int(ev[:2]) and nmonth - int(ev[2:4]) < 2: # if event is recent
-                        check[ev] = self.data["events"][self.EVENT_CHAPTER_COUNT] # add to check list
-                        if self.data["events"][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
+                        check[ev] = self.data["events"][ev][self.EVENT_CHAPTER_COUNT] # add to check list
+                        if self.data["events"][ev][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
                             thumbnail_check.append(ev)
                 elif now >= int(ev): # new event
                     check[ev] = -1
