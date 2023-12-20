@@ -149,6 +149,7 @@ class Updater():
     # others
     SAVE_VERSION = 0
     STRING_CHAR = string.ascii_lowercase + string.digits
+    SEASONAL_EVENTS = ["201017", "211017", "221017", "231017", "241017", "200214", "210214", "220214", "230214", "240214", "200314", "210314", "220314", "230314", "240314", "201216", "211216", "221216", "231216", "241216", "210316", "220304", "220313", "230303"]
     CUT_CONTENT = ["2040145000","2040147000","2040148000","2040150000","2040152000","2040153000","2040154000","2040200000"] # beta arcarum ids
     SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
     SPECIAL_LOOKUP = { # special elements
@@ -2530,7 +2531,7 @@ class Updater():
         r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22')
         soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
         res = soup.find_all("div", class_="searchresult")
-        l = ["201017", "211017", "221017", "231017", "200214", "210214", "220214", "230214", "200314", "210314", "220314", "230314", "201216", "211216", "221216", "231216", "210316", "230303", "220304", "220313"]
+        l = self.SEASONAL_EVENTS
         for r in res:
             try:
                 x = r.text.split(": ")[1].split(" Rerun")[0].split(" Added")[0].replace(",", "").split(" ")
@@ -2541,19 +2542,20 @@ class Updater():
                 l.append(x[2]+x[0]+x[1])
             except:
                 pass
-        r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Event+duration%22')
-        soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
-        res = soup.find_all("div", class_="searchresult")
-        for r in res:
-            try:
-                x = r.text.split("JST, ")[1].split(" - ")[0].split(" //")[0].replace(",", "").split(" ")
-                if len(x) != 3: raise Exception()
-                x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
-                x[1] = str(x[1]).zfill(2)
-                x[2] = x[2][2:]
-                l.append(x[2]+x[0]+x[1])
-            except:
-                pass
+        for offset in [0, 500]:
+            r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset={}&profile=default&search=%22Event+duration%22'.format(offset))
+            soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
+            res = soup.find_all("div", class_="searchresult")
+            for r in res:
+                try:
+                    x = r.text.split("JST, ")[1].split(" - ")[0].split(" //")[0].replace(",", "").split(" ")
+                    if len(x) != 3: raise Exception()
+                    x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
+                    x[1] = str(x[1]).zfill(2)
+                    x[2] = x[2][2:]
+                    l.append(x[2]+x[0]+x[1])
+                except:
+                    pass
         l = list(set(l))
         l.sort()
         return l
@@ -2561,7 +2563,9 @@ class Updater():
     # Call get_event_list() and check the current time to determine if new events have been added. If so, check if they got voice lines to determine if they got chapters, and then call update_event()
     async def check_new_event(self, init_list : Optional[list] = None):
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
-        now = int(str(now.year)[2:] + str(now.month).zfill(2) + str(now.day).zfill(2))
+        nyear = now.year
+        nmonth = now.month
+        now = int(str(nyear)[2:] + str(nmonth).zfill(2) + str(now.day).zfill(2))
         if init_list is None:
             known_events = await self.get_event_list()
         else:
@@ -2569,37 +2573,44 @@ class Updater():
             known_events = init_list
         # check
         print("Checking for new events...")
+        thumbnail_check = []
         tasks = []
         async with asyncio.TaskGroup() as tg:
             check = {}
             self.progress = Progress()
             for ev in known_events:
-                if ev not in self.data["events"] and now >= int(ev):
+                if ev in self.data["events"]: # event already registered
+                    if now >= int(ev) and nyear == 2000 + int(ev[:2]) and nmonth - int(ev[2:4]) < 2: # if event is recent
+                        check[ev] = self.data["events"][self.EVENT_CHAPTER_COUNT] # add to check list
+                        if self.data["events"][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
+                            thumbnail_check.append(ev)
+                elif now >= int(ev): # new event
                     check[ev] = -1
                     for i in range(0, self.EVENT_MAX_CHAPTER):
                         for j in range(1, 2):
                             for k in range(1, 2):
                                tasks.append(tg.create_task(self.update_event_sub(ev, self.VOICE + "scene_evt{}_cp{}_q{}_s{}0".format(ev, i, j, k))))
             self.progress.set(total=len(tasks), silent=False)
-        if len(tasks) > 0:
+        if len(tasks) > 0: # processing tasks
             print(len(check.keys()), "potential new event(s)")
-            new_story_event = []
             for t in tasks:
                 r = t.result()
                 ev = r[0]
                 if r[1] is not None:
                     check[ev] = max(check[ev], int(r[1].split('_')[2][2:]))
-            for ev in check:
+            for ev in check and ev not in self.Data:
                 if check[ev] >= 0:
                     print("Event", ev, "has", check[ev], "chapters")
-                    new_story_event.append(ev)
+                    thumbnail_check.append(ev)
                 self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
                 self.modified = True
-            if len(new_story_event) > 0:
-                new_story_event.sort()
-                await self.event_thumbnail_association(new_story_event)
+        # check thumbnail
+        if len(thumbnail_check) > 0:
+            thumbnail_check.sort()
+            await self.event_thumbnail_association(thumbnail_check)
         print("Done")
         self.save()
+        # update content
         if init_list is None:
             await self.update_event(list(check.keys()))
         else:
