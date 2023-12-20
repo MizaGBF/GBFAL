@@ -133,6 +133,8 @@ class Updater():
     EVENT_CHAPTER_START = 5
     EVENT_MAX_CHAPTER = 15
     EVENT_SKY = EVENT_CHAPTER_START+EVENT_MAX_CHAPTER
+    EVENT_UPDATE_COUNT = 20
+    EVENT_UPDATE_STEP = 5
     # job update
     MAINHAND = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'] # weapon type keywords
     # CDN endpoints
@@ -2565,7 +2567,8 @@ class Updater():
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
         nyear = now.year
         nmonth = now.month
-        now = int(str(nyear)[2:] + str(nmonth).zfill(2) + str(now.day).zfill(2))
+        nday = now.day
+        now = int(str(nyear)[2:] + str(nmonth).zfill(2) + str(nday).zfill(2))
         if init_list is None:
             known_events = await self.get_event_list()
         else:
@@ -2580,10 +2583,11 @@ class Updater():
             self.progress = Progress()
             for ev in known_events:
                 if ev in self.data["events"]: # event already registered
-                    if now >= int(ev) and nyear == 2000 + int(ev[:2]) and nmonth - int(ev[2:4]) < 2: # if event is recent
-                        check[ev] = self.data["events"][ev][self.EVENT_CHAPTER_COUNT] # add to check list
-                        if self.data["events"][ev][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
-                            thumbnail_check.append(ev)
+                    if now >= int(ev) and nyear == 2000 + int(ev[:2]) and ((nday <= 10 and nmonth - int(ev[2:4]) < 2) or (nday - int(ev[4:]) < 12 and nmonth == int(ev[2:4]))): # if event is recent
+                        if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
+                            check[ev] = self.data["events"][ev][self.EVENT_CHAPTER_COUNT] # add to check list
+                            if self.data["events"][ev][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
+                                thumbnail_check.append(ev)
                 elif now >= int(ev): # new event
                     check[ev] = -1
                     for i in range(0, self.EVENT_MAX_CHAPTER):
@@ -2598,18 +2602,17 @@ class Updater():
                 ev = r[0]
                 if r[1] is not None:
                     check[ev] = max(check[ev], int(r[1].split('_')[2][2:]))
-            for ev in check and ev not in self.data:
-                if check[ev] >= 0:
-                    print("Event", ev, "has", check[ev], "chapters")
-                    thumbnail_check.append(ev)
-                self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
-                self.modified = True
+            for ev in check:
+                if ev not in self.data:
+                    if check[ev] >= 0:
+                        print("Event", ev, "has been added (", check[ev], "chapters )")
+                        thumbnail_check.append(ev)
+                    self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
+                    self.modified = True
         # check thumbnail
         if len(thumbnail_check) > 0:
             thumbnail_check.sort()
             await self.event_thumbnail_association(thumbnail_check)
-        print("Done")
-        self.save()
         # update content
         if init_list is None:
             await self.update_event(list(check.keys()))
@@ -2630,74 +2633,74 @@ class Updater():
     # Check the given event list for potential art pieces
     async def update_event(self, events : list, full : bool = False):
         # dig
+        print("Checking for content of", len(events), "event(s)")
+        
         tasks = []
-        async with asyncio.TaskGroup() as tg:
-            modified = set()
-            ec = 0
-            self.progress = Progress()
-            for ev in events:
-                if full and ev not in self.data["events"]:
-                    self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
-                if ev in self.data["events"] and (full or (not full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0)):
-                    known_assets = set()
-                    for i in range(self.EVENT_OP, len(self.data["events"][ev])):
-                        for e in self.data["events"][ev][i]:
-                            known_assets.add(e)
-                    ec += 1
-                    if full: ch_count = self.EVENT_MAX_CHAPTER
-                    else: ch_count = self.data["events"][ev][self.EVENT_CHAPTER_COUNT]
-                    for j in range(4):
-                        for i in range(1, ch_count+1):
-                            fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
-                            tasks.append(tg.create_task(self.update_event_sub_big(ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*25)))
-                        for ch in ["op", "ed"]:
-                            fn = "scene_evt{}_{}".format(ev, ch)
-                            tasks.append(tg.create_task(self.update_event_sub_big(ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*25)))
-                        fn = "evt{}".format(ev)
-                        tasks.append(tg.create_task(self.update_event_sub_big(ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*25)))
-                        fn = "scene_evt{}".format(ev)
-                        tasks.append(tg.create_task(self.update_event_sub_big(ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*25)))
-            self.progress.set(total=len(tasks), silent=False)
-        if len(tasks) > 0:
-            print("Checking assets for", ec, "event(s)")
-            for t in tasks:
-                r = t.result()
-                if r is not None:
-                    ev = r[0]
-                    if len(r[1])  > 0:
-                        for e in r[1]:
-                            try:
-                                x = e.split("_")[2]
-                                match x:
-                                    case "op":
-                                        self.data["events"][ev][self.EVENT_OP].append(e)
-                                    case "ed":
-                                        self.data["events"][ev][self.EVENT_ED].append(e)
-                                    case "osarai":
+        modified = set()
+        ec = 0
+        self.progress = Progress()
+        for ev in events:
+            if full and ev not in self.data["events"]:
+                self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
+            if ev in self.data["events"] and (full or (not full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0)):
+                known_assets = set()
+                for i in range(self.EVENT_OP, len(self.data["events"][ev])):
+                    for e in self.data["events"][ev][i]:
+                        known_assets.add(e)
+                ec += 1
+                if full: ch_count = self.EVENT_MAX_CHAPTER
+                else: ch_count = self.data["events"][ev][self.EVENT_CHAPTER_COUNT]
+                for j in range(self.EVENT_UPDATE_COUNT):
+                    for i in range(1, ch_count+1):
+                        fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
+                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
+                    for ch in ["op", "ed"]:
+                        fn = "scene_evt{}_{}".format(ev, ch)
+                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
+                    fn = "evt{}".format(ev)
+                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
+                    fn = "scene_evt{}".format(ev)
+                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
+        self.progress = Progress(total=len(tasks), silent=False)
+        async for task in self.map_unordered(self.update_event_sub_big, tasks, self.MAX_UPDATEALL):
+            r = task.result()
+            if r is not None:
+                ev = r[0]
+                if len(r[1])  > 0:
+                    for e in r[1]:
+                        try:
+                            x = e.split("_")[2]
+                            match x:
+                                case "op":
+                                    self.data["events"][ev][self.EVENT_OP].append(e)
+                                case "ed":
+                                    self.data["events"][ev][self.EVENT_ED].append(e)
+                                case "osarai":
+                                    self.data["events"][ev][self.EVENT_INT].append(e)
+                                case _:
+                                    if "_cp" in e:
+                                        self.data["events"][ev][self.EVENT_CHAPTER_START-1+int(x[2:])].append(e)
+                                    else:
                                         self.data["events"][ev][self.EVENT_INT].append(e)
-                                    case _:
-                                        if "_cp" in e:
-                                            self.data["events"][ev][self.EVENT_CHAPTER_START-1+int(x[2:])].append(e)
-                                        else:
-                                            self.data["events"][ev][self.EVENT_INT].append(e)
-                            except:
-                                self.data["events"][ev][self.EVENT_INT].append(e)
-                        modified.add(ev)
-            for ev in modified:
-                if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
-                for i in range(self.EVENT_OP , len(self.data["events"][ev])):
-                    self.data["events"][ev][i] = list(set(self.data["events"][ev][i]))
-                    self.data["events"][ev][i].sort()
-                    self.modified = True
-                self.addition[ev] = self.ADD_EVENT
-            print("Done")
+                        except:
+                            self.data["events"][ev][self.EVENT_INT].append(e)
+                    modified.add(ev)
+        for ev in modified:
+            if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
+            for i in range(self.EVENT_OP , len(self.data["events"][ev])):
+                self.data["events"][ev][i] = list(set(self.data["events"][ev][i]))
+                self.data["events"][ev][i].sort()
+                self.modified = True
+            self.addition[ev] = self.ADD_EVENT
+        print("Done")
         self.save()
 
     # update_event() subroutine to check an event possible art pieces
-    async def update_event_sub_big(self, ev : str, base_url : str, known_assets : set, step : int):
+    async def update_event_sub_big(self, tup : tuple):
+        ev, base_url, known_assets, step = tup
+        l = []
         with self.progress:
-            l = []
-            for j in range(step, step+25):
+            for j in range(step, step+self.EVENT_UPDATE_STEP):
                 url = base_url + "_" + str(j).zfill(2)
                 flag = False
                 try: # base check
@@ -2707,29 +2710,29 @@ class Updater():
                     flag = True
                 except:
                     pass
-                if flag: # check for extras
-                    for k in ["_up", "_shadow"]:
-                        try:
-                            if url.split("/")[-1]+k not in known_assets:
-                                await self.head(url + k + ".png")
-                                l.append(url.split("/")[-1]+k)
-                        except:
-                            pass
-                    for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                        try:
-                            if url.split("/")[-1]+k not in known_assets:
-                                await self.head(url + k + ".png")
-                                l.append(url.split("/")[-1]+k)
-                        except:
-                            break
-                else:
+                for k in ["_up", "_shadow"]:
+                    try:
+                        if url.split("/")[-1]+k not in known_assets:
+                            await self.head(url + k + ".png")
+                            l.append(url.split("/")[-1]+k)
+                        flag = True
+                    except:
+                        pass
+                for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                    try:
+                        if url.split("/")[-1]+k not in known_assets:
+                            await self.head(url + k + ".png")
+                            l.append(url.split("/")[-1]+k)
+                        flag = True
+                    except:
+                        break
+                if not flag: # check for extras
                     try: # alternative filename format
                         if url.split("/")[-1]+"_00" not in known_assets:
                             await self.head(url + "_00.png")
                             l.append(url.split("/")[-1]+"_00")
-                        flag = True
                     except:
-                        flag = False
+                        pass
                     for k in ["_up", "_shadow"]:
                         try:
                             if url.split("/")[-1]+"_00"+k not in known_assets:
@@ -2880,7 +2883,7 @@ class Updater():
         print("Checking event thumbnails...")
         in_use = set()
         for eid, ev in self.data["events"].items():
-            if ev[1] is not None: in_use.add(str(ev[1]))
+            if ev[self.EVENT_THUMB] is not None: in_use.add(str(ev[self.EVENT_THUMB]))
         in_use = list(in_use)
         in_use.sort()
         for eid in in_use:
@@ -2891,8 +2894,8 @@ class Updater():
         async with asyncio.TaskGroup() as tg:
             self.progress = Progress(total=40, silent=False)
             for i in range(20):
-                tasks.append(tg.create_task(self.event_thumbnail_association_sub(7001, 9000, 20)))
-                tasks.append(tg.create_task(self.event_thumbnail_association_sub(9001, 10000, 20)))
+                tasks.append(tg.create_task(self.event_thumbnail_association_sub(7001+i, 9000, 20)))
+                tasks.append(tg.create_task(self.event_thumbnail_association_sub(9001+i, 10000, 20)))
         for t in tasks:
             t.result()
         new = []
@@ -2911,7 +2914,6 @@ class Updater():
                 print("Please make sure they have been set to their correct events")
             else:
                 print("Can't match new events to new thumbnails with certainty, -eventedit is required")
-        print("Done")
         self.save()
 
     # event_thumbnail_association subroutine()
@@ -2924,7 +2926,6 @@ class Updater():
                     f = "{}0".format(i)
                     if f not in self.data["eventthumb"]:
                         await self.head(self.IMG + "sp/archive/assets/island_m2/{}.png".format(f))
-                        print("TEST EVT THUMB:", f)
                         self.data["eventthumb"][f] = 0
                         self.modified = True
                     err = 0
@@ -3039,7 +3040,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.6\n")
+            print("GBFAL updater v2.7\n")
             self.client = aiohttp.ClientSession()
             start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
             flags = set()
