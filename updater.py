@@ -196,6 +196,7 @@ class Updater():
         self.job_list = None
         self.name_table = {} # relation table
         self.name_table_modified = False # and its modified flag
+        self.scene_string_cache = {} # contains list of suffix
         
         # asyncio semaphores
         self.sem = asyncio.Semaphore(self.MAX_UPDATE) # update semaphore
@@ -1643,7 +1644,7 @@ class Updater():
         for B in variationsB:
             if B not in ["", "_a"]:
                 special_suffix.append(B.split("_")[-1])
-        return scene_alts, specials,set(special_suffix)
+        return scene_alts, specials, set(special_suffix)
 
     # list known scene strings along with errors encountered along the way
     def list_known_scene_strings(self):
@@ -1693,29 +1694,40 @@ class Updater():
 
     # Get suffix list for given uncap values
     def get_scene_string_list_for_uncaps(self, id : str, uncaps : list):
-        scene_alts = []
-        has_base = False
+        uncap_list = []
         for uncap in uncaps:
             if uncap == "01":
                 uncap = ""
-                has_base = True
             elif uncap[:1] in ['8', '9']:
                 continue
             elif uncap != "":
                 uncap = "_" + uncap
+            uncap_list.append(uncap)
+        hashable = str(uncap_list)+":"+str(id.startswith("305"))
+        if hashable in self.scene_string_cache:
+            return self.scene_string_cache[hashable]
+        scene_alts = []
+        for uncap in uncap_list:
             for s in self.scene_strings:
                 scene_alts.append(uncap+s)
-        if has_base:
-            scene_alts += self.scene_special_strings
-            if id.startswith("305"):
-                i = 0
-                while i < len(scene_alts):
-                    if scene_alts[i].endswith("_up"):
-                        scene_alts = scene_alts[:i+1] + [scene_alts[i]+"2", scene_alts[i]+"3", scene_alts[i]+"4"] + scene_alts[i+1:]
-                        i += 3
-                    i += 1
-                scene_alts += ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
-                scene_alts = list(set(scene_alts))
+        scene_alts += self.scene_special_strings
+        if id.startswith("305"):
+            i = 0
+            appended = [] # for lyria muffler so far
+            while i < len(scene_alts):
+                c = 0
+                if "_up" in scene_alts[i]: c += 1
+                if "_speed" in scene_alts[i]: c += 1
+                l = len(scene_alts[i].split("_"))
+                if l == 2 or l == c+2:
+                    appended.append("_muffler" + scene_alts[i])
+                if scene_alts[i].endswith("_up"):
+                    scene_alts = scene_alts[:i+1] + [scene_alts[i]+"2", scene_alts[i]+"3", scene_alts[i]+"4"] + scene_alts[i+1:]
+                    i += 3
+                i += 1
+            scene_alts += appended + ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
+            scene_alts = list(set(scene_alts))
+        self.scene_string_cache[hashable] = scene_alts
         return scene_alts
 
     # Function to populate the task group
@@ -1788,7 +1800,7 @@ class Updater():
                 for s in v[idx]:
                     if s not in tmp:
                         tmp.append(s)
-                v[idx] = tmp
+                v[idx] = list(set(v[idx]))
                 before = str(v[idx])
                 data = {"01":dummy_data.copy()}
                 for s in v[idx]:
@@ -3040,7 +3052,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.7\n")
+            print("GBFAL updater v2.8\n")
             self.client = aiohttp.ClientSession()
             start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
             flags = set()
