@@ -1796,10 +1796,6 @@ class Updater():
             if t == "npcs": idx = self.NPC_SCENE
             else: idx = self.CHARA_SCENE
             for k, v in self.data[t].items():
-                tmp = []
-                for s in v[idx]:
-                    if s not in tmp:
-                        tmp.append(s)
                 v[idx] = list(set(v[idx]))
                 before = str(v[idx])
                 data = {"01":dummy_data.copy()}
