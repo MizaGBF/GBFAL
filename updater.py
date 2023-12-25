@@ -112,7 +112,7 @@ class Updater():
     SUM_GENERAL = 0
     SUM_CALL = 1
     SUM_DAMAGE = 2
-    SUM_MULTI = set(["2040414000"]) # summons with multiple calls
+    SUM_MULTI = set(["2040414000", "2040427000"]) # summons with multiple calls
     # weapon update
     WEAP_GENERAL = 0
     WEAP_PHIT = 1
