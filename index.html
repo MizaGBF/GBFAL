@@ -29,7 +29,7 @@
 <body onload="init()">
     <a id="to-title" href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div>v7.46</div>
+        <div>v7.47</div>
         <div id="timestamp"></div>
     </div>
     <div id="to-bottom" class="clickable" onclick="window.scroll(0, document.body.scrollHeight);"><img src="assets/ui/button.png"></div>
@@ -86,7 +86,13 @@
     <details>
         <summary>Characters</summary>
         <div class="subdetails">
-            <details onclick="displayCharacters(this, 10, 0, -1, 0, -1, 443, 508)">
+            <details onclick="displayCharacters(this, 11, 0, -1, 0, -1, 504, 999)">
+                <summary>Dragon 2024</summary>
+                <h3 class="result mobile-big" id="areacharacters11">
+                    <small>Non-exhaustive list</small><br>
+                </h3>
+            </details>
+            <details onclick="displayCharacters(this, 10, 0, -1, 0, -1, 443, 504)">
                 <summary>Rabbit 2023</summary>
                 <h3 class="result mobile-big" id="areacharacters10">
                     <small>Non-exhaustive list</small><br>
@@ -785,6 +791,17 @@
                 </h3>
             </details>
             <details>
+                <summary>Year 2024</summary>
+                <div class="subdetails">
+                    <details onclick="displayNPC(this, 3400, 9999)">
+                        <summary>3400 - ????</summary>
+                        <h3 class="result mobile-big" id="areanpc3400">
+                            <small>Non-exhaustive list</small><br>
+                        </h3>
+                    </details>
+                </div>
+            </details>
+            <details>
                 <summary>Year 2023</summary>
                 <div class="subdetails">
                     <details onclick="displayNPC(this, 2915, 3187)">
@@ -793,8 +810,8 @@
                             <small>Non-exhaustive list</small><br>
                         </h3>
                     </details>
-                    <details onclick="displayNPC(this, 3188, 9999)">
-                        <summary>3188 - ????</summary>
+                    <details onclick="displayNPC(this, 3188, 3399)">
+                        <summary>3188 - 3399summary>
                         <h3 class="result mobile-big" id="areanpc3188">
                             <small>Non-exhaustive list</small><br>
                         </h3>
