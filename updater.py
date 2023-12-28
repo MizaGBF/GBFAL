@@ -2616,10 +2616,9 @@ class Updater():
                 if r[1] is not None:
                     check[ev] = max(check[ev], int(r[1].split('_')[2][2:]))
             for ev in check:
-                if ev not in self.data:
+                if ev not in self.data["events"]:
                     if check[ev] >= 0:
                         print("Event", ev, "has been added (", check[ev], "chapters )")
-                        thumbnail_check.append(ev)
                     self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
                     self.modified = True
         # check thumbnail
