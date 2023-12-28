@@ -112,7 +112,6 @@ class Updater():
     SUM_GENERAL = 0
     SUM_CALL = 1
     SUM_DAMAGE = 2
-    SUM_MULTI = set(["2040414000", "2040427000"]) # summons with multiple calls
     # weapon update
     WEAP_GENERAL = 0
     WEAP_PHIT = 1
@@ -585,20 +584,27 @@ class Updater():
                 err[0] = 0
                 await asyncio.sleep(0.02)
             else:
-                try:
-                    if f in self.SUM_MULTI: await self.head(self.ENDPOINT + path + f + ext.replace("_damage", "_a_damage"))
-                    else: await self.head(self.ENDPOINT + path + f + ext)
-                    err[0] = 0
-                    self.data[index][f] = 0
-                    if index in self.ADD_SINGLE_ASSET:
-                        self.addition[index+":"+f] = self.ADD_UNDEF
-                    self.modified = True
-                    self.new_elements.append(f)
-                except:
-                    err[0] += 1
-                    if err[0] >= maxerr:
-                        err[1] = False
-                        return
+                if len(f) == 10 and f.startswith("20"):
+                    replaces = [None, ("_damage", "_a_damage")]
+                else:
+                    replaces = [None]
+                for r in replaces:
+                    try:
+                        if r is not None: await self.head(self.ENDPOINT + path + f + ext.replace(r[0], r[1]))
+                        else: await self.head(self.ENDPOINT + path + f + ext)
+                        err[0] = 0
+                        self.data[index][f] = 0
+                        if index in self.ADD_SINGLE_ASSET:
+                            self.addition[index+":"+f] = self.ADD_UNDEF
+                        self.modified = True
+                        self.new_elements.append(f)
+                        break
+                    except:
+                        if r is replaces[-1]:
+                            err[0] += 1
+                            if err[0] >= maxerr:
+                                err[1] = False
+                                return
             i += step
 
     # -run subroutine to search for new skills
@@ -1474,10 +1480,9 @@ class Updater():
                         break
                 if len(uncaps) == 0 and id not in self.CUT_CONTENT:
                     return False
-                multi = [""] if id not in self.SUM_MULTI else ["", "_a", "_b", "_c", "_d", "_e"]
                 # attack
                 for u in uncaps:
-                    for m in multi:
+                    for m in ["", "_a", "_b", "_c", "_d", "_e"]:
                         try:
                             fn = "summon_{}_{}{}_attack".format(id, u, m)
                             data[self.SUM_CALL] += await self.processManifest(fn)
@@ -1485,7 +1490,7 @@ class Updater():
                             pass
                 # damage
                 for u in uncaps:
-                    for m in multi:
+                    for m in ["", "_a", "_b", "_c", "_d", "_e"]:
                         try:
                             fn = "summon_{}_{}{}_damage".format(id, u, m)
                             data[self.SUM_DAMAGE] += await self.processManifest(fn)
