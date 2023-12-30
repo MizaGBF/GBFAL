@@ -305,7 +305,7 @@ class Updater():
         async with self.http_sem:
             response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=50)
             async with response:
-                if response.status != 200: raise Exception("HTTP error {}".format(response.status_code))
+                if response.status != 200: raise Exception("HTTP error {}".format(response.status))
                 return await response.content.read()
     
     # Generic HEAD request function
@@ -313,7 +313,7 @@ class Updater():
         async with self.http_sem:
             response = await self.client.head(url, headers={'connection':'keep-alive'} | headers, timeout=50)
             async with response:
-                if response.status != 200: raise Exception("HTTP error {}".format(response.status_code))
+                if response.status != 200: raise Exception("HTTP error {}".format(response.status))
                 return response.headers
 
     # wrapper of head() if the exception isn't needed (return None in case of error instead)
