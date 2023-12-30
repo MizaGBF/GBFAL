@@ -2547,27 +2547,14 @@ class Updater():
 
     # Ask the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
     async def get_event_list(self):
-        r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22')
-        soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
-        res = soup.find_all("div", class_="searchresult")
-        l = self.SEASONAL_EVENTS
-        for r in res:
-            try:
-                x = r.text.split(": ")[1].split(" Rerun")[0].split(" Added")[0].replace(",", "").split(" ")
-                if len(x) != 3: raise Exception()
-                x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
-                x[1] = str(x[1]).zfill(2)
-                x[2] = x[2][2:]
-                l.append(x[2]+x[0]+x[1])
-            except:
-                pass
-        for offset in [0, 500]:
-            r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset={}&profile=default&search=%22Event+duration%22'.format(offset))
+        try:
+            l = self.SEASONAL_EVENTS
+            r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22')
             soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
             res = soup.find_all("div", class_="searchresult")
             for r in res:
                 try:
-                    x = r.text.split("JST, ")[1].split(" - ")[0].split(" //")[0].replace(",", "").split(" ")
+                    x = r.text.split(": ")[1].split(" Rerun")[0].split(" Added")[0].replace(",", "").split(" ")
                     if len(x) != 3: raise Exception()
                     x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
                     x[1] = str(x[1]).zfill(2)
@@ -2575,6 +2562,22 @@ class Updater():
                     l.append(x[2]+x[0]+x[1])
                 except:
                     pass
+            for offset in [0, 500]:
+                r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset={}&profile=default&search=%22Event+duration%22'.format(offset))
+                soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
+                res = soup.find_all("div", class_="searchresult")
+                for r in res:
+                    try:
+                        x = r.text.split("JST, ")[1].split(" - ")[0].split(" //")[0].replace(",", "").split(" ")
+                        if len(x) != 3: raise Exception()
+                        x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
+                        x[1] = str(x[1]).zfill(2)
+                        x[2] = x[2][2:]
+                        l.append(x[2]+x[0]+x[1])
+                    except:
+                        pass
+        except:
+            pass
         l = list(set(l))
         l.sort()
         return l
