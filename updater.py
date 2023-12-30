@@ -2019,37 +2019,40 @@ class Updater():
     async def generateNameLookup(self, cid : str):
         with self.progress:
             if not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30"): return
-            r = await self.get("https://gbf.wiki/index.php?search={}".format(cid))
-            if r is not None:
-                try: content = r.decode('utf-8')
-                except: content = r.decode('iso-8859-1')
-                soup = BeautifulSoup(content, 'html.parser')
-                m = None
-                try:
-                    res = soup.find_all("ul", class_="mw-search-results")[0].findChildren("li", class_="mw-search-result", recursive=False) # recuperate the search results
-                    for r in res: # for each, get the title
-                        m = r.findChildren("div", class_="mw-search-result-heading", recursive=False)[0].findChildren("a", recursive=False)[0].attrs['title']
-                        break
-                except:
-                    pass
-                if m is not None:
-                    await self.generateNameLookup_sub(cid, m)
-                else: # CN wiki fallback
+            try:
+                r = await self.get("https://gbf.wiki/index.php?search={}".format(cid))
+                if r is not None:
+                    try: content = r.decode('utf-8')
+                    except: content = r.decode('iso-8859-1')
+                    soup = BeautifulSoup(content, 'html.parser')
+                    m = None
                     try:
-                        r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
-                        if r is not None:
-                            try: content = r.decode('utf-8')
-                            except: content = r.decode('iso-8859-1')
-                            soup = BeautifulSoup(content, 'html.parser')
-                            res = soup.find_all("div", class_="gbf-infobox-section")
-                            for r in res:
-                                a = str(r).find("https://gbf.wiki/")
-                                if a != -1:
-                                    a+=len("https://gbf.wiki/")
-                                    b = str(r).find('"', a)
-                                    await self.generateNameLookup_sub(cid, str(r)[a:b])
+                        res = soup.find_all("ul", class_="mw-search-results")[0].findChildren("li", class_="mw-search-result", recursive=False) # recuperate the search results
+                        for r in res: # for each, get the title
+                            m = r.findChildren("div", class_="mw-search-result-heading", recursive=False)[0].findChildren("a", recursive=False)[0].attrs['title']
+                            break
                     except:
                         pass
+                    if m is not None:
+                        await self.generateNameLookup_sub(cid, m)
+                    else: # CN wiki fallback
+                        try:
+                            r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
+                            if r is not None:
+                                try: content = r.decode('utf-8')
+                                except: content = r.decode('iso-8859-1')
+                                soup = BeautifulSoup(content, 'html.parser')
+                                res = soup.find_all("div", class_="gbf-infobox-section")
+                                for r in res:
+                                    a = str(r).find("https://gbf.wiki/")
+                                    if a != -1:
+                                        a+=len("https://gbf.wiki/")
+                                        b = str(r).find('"', a)
+                                        await self.generateNameLookup_sub(cid, str(r)[a:b])
+                        except:
+                            pass
+            except:
+                pass
 
     # generateNameLookup() subroutine. Read the wiki page to extract element details (element, etc...)
     async def generateNameLookup_sub(self, cid : str, wiki_lookup : str):
