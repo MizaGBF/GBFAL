@@ -206,6 +206,7 @@ class Updater():
         self.run_count = 0
         self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings()
         self.progress = Progress() # initialized with a silent progress bar
+        self.use_wiki = True # if True, use wiki features
         
         self.client = None # will contain the aiohttp client. Is initialized at startup or must be initialized by a third party.
 
@@ -301,9 +302,9 @@ class Updater():
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
     # Generic GET request function
-    async def get(self, url : str, headers : dict = {}):
+    async def get(self, url : str, headers : dict = {}, timeout : Optional[aiohttp.ClientTimeout] = None):
         async with self.http_sem:
-            response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=50)
+            response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=timeout)
             async with response:
                 if response.status != 200: raise Exception("HTTP error {}".format(response.status))
                 return await response.content.read()
@@ -311,7 +312,7 @@ class Updater():
     # Generic HEAD request function
     async def head(self, url : str, headers : dict = {}):
         async with self.http_sem:
-            response = await self.client.head(url, headers={'connection':'keep-alive'} | headers, timeout=50)
+            response = await self.client.head(url, headers={'connection':'keep-alive'} | headers)
             async with response:
                 if response.status != 200: raise Exception("HTTP error {}".format(response.status))
                 return response.headers
@@ -330,6 +331,15 @@ class Updater():
             if r is not None:
                 return r
         return None
+
+    # test if the wiki is usable
+    async def test_wiki(self):
+        try:
+            t = (await self.get("https://gbf.wiki", timeout=aiohttp.ClientTimeout(total=5))).decode('utf-8')
+            if "<p id='status'>50" in t or 'gbf.wiki unavailable' in t: return False
+            return True
+        except:
+            return False
 
     # Create a shared container for tasks.
     def newShared(self, errs : list):
@@ -1127,8 +1137,8 @@ class Updater():
             if t.result():
                 tsuccess += 1
         print(tsuccess, "positive result(s)")
-        if tsuccess > 0:
-            self.sort_all_scene()
+        """if tsuccess > 0:
+            self.sort_all_scene()"""
         self.save()
 
     # Art check system for characters. Detect gendered arts, etc...
@@ -1273,7 +1283,6 @@ class Updater():
                 self.modified = True
                 self.data[index][id] = data
                 self.addition[id] = self.ADD_CHAR
-                await self.generateNameLookup(id)
             return True
 
     # Update partner data. Note: It's based on charaUpdate and is terribly inefficient
@@ -1496,10 +1505,11 @@ class Updater():
                             data[self.SUM_DAMAGE] += await self.processManifest(fn)
                         except:
                             pass
+                print(data)
+                if len(data[self.SUM_CALL]) == 0 and len(data[self.SUM_DAMAGE]) == 0: return False
                 self.modified = True
                 self.data['summons'][id] = data
                 self.addition[id] = self.ADD_SUMM
-                await self.generateNameLookup(id)
             return True
 
     # Update Weapon data
@@ -1533,7 +1543,6 @@ class Updater():
                 self.modified = True
                 self.data['weapons'][id] = data
                 self.addition[id] = self.ADD_WEAP
-                await self.generateNameLookup(id)
             return True
 
     # Update Enemy data
@@ -2018,7 +2027,7 @@ class Updater():
     # Check the given id on the wiki to retrieve element details. Only for summons, weapons and characters.
     async def generateNameLookup(self, cid : str):
         with self.progress:
-            if not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30"): return
+            if not self.use_wiki or (not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30")): return
             try:
                 r = await self.get("https://gbf.wiki/index.php?search={}".format(cid))
                 if r is not None:
@@ -2407,6 +2416,7 @@ class Updater():
     # build_relation() subroutine. Check an element wiki page for alternate version or corresponding weapons
     async def get_relation(self, eid : str):
         with self.progress:
+            if not self.use_wiki: return None, []
             async with self.wiki_sem:
                 try:
                     page = await self.get("https://gbf.wiki/index.php?search={}".format(eid))
@@ -2549,6 +2559,7 @@ class Updater():
     async def get_event_list(self):
         try:
             l = self.SEASONAL_EVENTS
+            if not self.use_wiki: raise Exception()
             r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22')
             soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
             res = soup.find_all("div", class_="searchresult")
@@ -3059,8 +3070,10 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.8\n")
-            self.client = aiohttp.ClientSession()
+            print("GBFAL updater v2.9\n")
+            self.client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50))
+            self.use_wiki = await self.test_wiki()
+            if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
             start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
             flags = set()
             extras = []
