@@ -2046,14 +2046,12 @@ class Updater():
                         await self.generateNameLookup_sub(cid, m)
                     else: # CN wiki fallback
                         try:
-                            print("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
                             r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
                             if r is not None:
                                 try: content = r.decode('utf-8')
                                 except: content = r.decode('iso-8859-1')
                                 soup = BeautifulSoup(content, 'html.parser')
                                 res = soup.find_all("div", class_="gbf-infobox-section")
-                                print(res)
                                 for r in res:
                                     a = str(r).find("https://gbf.wiki/")
                                     if a != -1:
