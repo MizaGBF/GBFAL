@@ -1137,8 +1137,8 @@ class Updater():
             if t.result():
                 tsuccess += 1
         print(tsuccess, "positive result(s)")
-        """if tsuccess > 0:
-            self.sort_all_scene()"""
+        if tsuccess > 0:
+            self.sort_all_scene()
         self.save()
 
     # Art check system for characters. Detect gendered arts, etc...
