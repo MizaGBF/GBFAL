@@ -370,7 +370,7 @@ class Updater():
     def cleanName(self, name : str):
         for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)']:
             name = name.replace(k, '')
-        return name.strip().strip('_')
+        return name.strip().strip('_').replace('_', ' ')
 
     # for limited queued asyncio concurrency
     def map_unordered(self, func, iterable, limit):
