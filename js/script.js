@@ -1252,6 +1252,7 @@ function lookup(id)
                 results.insertBefore(document.createTextNode("Results for \"" + id + "\""), results.firstChild);
                 if(f.value != id) f.value = id;
             }
+            results.scrollIntoView()
             searchResults = positives;
         }
     } catch(error) {

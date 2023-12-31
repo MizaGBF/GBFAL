@@ -302,7 +302,7 @@ class Updater():
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
     # Generic GET request function
-    async def get(self, url : str, headers : dict = {}, timeout : Optional[aiohttp.ClientTimeout] = None):
+    async def get(self, url : str, headers : dict = {}, timeout : Optional[int] = None):
         async with self.http_sem:
             response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=timeout)
             async with response:
@@ -335,7 +335,7 @@ class Updater():
     # test if the wiki is usable
     async def test_wiki(self):
         try:
-            t = (await self.get("https://gbf.wiki", timeout=aiohttp.ClientTimeout(total=5))).decode('utf-8')
+            t = (await self.get("https://gbf.wiki", timeout=5)).decode('utf-8')
             if "<p id='status'>50" in t or 'gbf.wiki unavailable' in t: return False
             return True
         except:
@@ -368,7 +368,7 @@ class Updater():
 
     # Remove extra from wiki name
     def cleanName(self, name : str):
-        for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)']:
+        for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)', '(Summon)', '(Weapon)']:
             name = name.replace(k, '')
         return name.strip().strip('_').replace('_', ' ')
 
@@ -2046,12 +2046,14 @@ class Updater():
                         await self.generateNameLookup_sub(cid, m)
                     else: # CN wiki fallback
                         try:
+                            print("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
                             r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
                             if r is not None:
                                 try: content = r.decode('utf-8')
                                 except: content = r.decode('iso-8859-1')
                                 soup = BeautifulSoup(content, 'html.parser')
                                 res = soup.find_all("div", class_="gbf-infobox-section")
+                                print(res)
                                 for r in res:
                                     a = str(r).find("https://gbf.wiki/")
                                     if a != -1:
@@ -2148,7 +2150,7 @@ class Updater():
                     for img in imgs:
                         if img.has_attr('alt') and 'Series' in img.attrs['alt']:
                             if 'Series' not in data: data['Series'] = []
-                            data['Series'].append(img.attrs['alt'].split(' ')[1])
+                            data['Series'].append(' '.join(img.attrs['alt'].split(' icon')[0].split(' ')[1:]))
                 except:
                     pass
             # validity check
@@ -2217,7 +2219,7 @@ class Updater():
                     for l in self.SHARED_NAMES:
                         if k not in l: continue
                         for m in l:
-                            if m != k and m in self.data['lookup'] and m is not None:
+                            if m != k and m in self.data['lookup'] and m is not None and self.data['lookup'][m] is not None:
                                 self.data['lookup'][k] = self.data['lookup'][m].replace(m, k)
                                 self.modified = True
                                 print(k,"and",m,"matched up")
@@ -2241,7 +2243,7 @@ class Updater():
     async def manualLookup(self):
         to_delete = []
         for k, v in self.data["lookup"].items():
-            if 'cut-content' in v: continue
+            if v is None or 'cut-content' in v: continue
             x = v.split(" ")
             match k[0]:
                 case '3':
