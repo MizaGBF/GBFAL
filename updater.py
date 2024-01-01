@@ -1640,7 +1640,7 @@ class Updater():
     # Called once at boot. Generate a list of string to check for npc data
     def build_scene_strings(self, expressions : Optional[list] = None):
         if expressions is None or len(expressions) == 0:
-            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_eyeline"]
+            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_ef", "_body", "_speed2", "_shy", "_shy2", "_weak", "_bad", "_amaze", "_joy", "_pride", "_eyeline"]
         variationsA = ["", "_a", "_b", "_c", "_battle"]
         variationsB = ["", "_a", "_speed", "_up", "_shadow", "_shadow2", "_shadow3", "_light", "_blood", "_up_blood"]
         scene_alts = []
@@ -3126,11 +3126,10 @@ class Updater():
                     self.print_help()
                     print("")
                     print("Unknown parameter:", k)
-            await self.client.close()
         except Exception as e:
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-            try: await self.client.close()
-            except: pass
+        try: await self.client.close()
+        except: pass
 
     def start(self, argv : list):
         asyncio.run(self.boot(argv))
