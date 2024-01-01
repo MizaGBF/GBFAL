@@ -12,14 +12,14 @@ from typing import Optional
 
 # progress bar class
 class Progress():
-    def __init__(self, *, total : int = 9999999999999, silent : bool = True): # set to silent with a high total by default
+    def __init__(self, *, total : int = 9999999999999, silent : bool = True) -> None: # set to silent with a high total by default
         self.silent = silent
         self.total = total
         self.current = -1
         self.start_time = time.time()
         if self.total > 0: self.update()
 
-    def set(self, *, total : int = 0, silent = False): # to initialize it after a task start, once we know the total
+    def set(self, *, total : int = 0, silent : bool = False) -> None: # to initialize it after a task start, once we know the total
         if total >= 0:
             self.total = total
         self.silent = silent
@@ -27,7 +27,7 @@ class Progress():
             sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00', ''))
             sys.stdout.flush()
 
-    def update(self): # to call to update the progress text (if not silent and not done)
+    def update(self) -> None: # to call to update the progress text (if not silent and not done)
         if self.current < self.total:
             self.current += 1
             if not self.silent:
@@ -161,7 +161,7 @@ class Updater():
         "2030014000": "sr summon dark not-playable",
     }
     
-    def __init__(self):
+    def __init__(self) -> None:
         # main variables
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
         self.debug_wpn = False # for testing
@@ -554,8 +554,11 @@ class Updater():
         print("Starting process...")
         self.progress = Progress(total=len(categories), silent=False)
         async with asyncio.TaskGroup() as tg:
+            tasks = []
             for c in categories:
-                tg.create_task(self.run_category(c))
+                tasks.append(tg.create_task(self.run_category(c)))
+            for t in tasks:
+                t.result()
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
             await self.check_new_event()
