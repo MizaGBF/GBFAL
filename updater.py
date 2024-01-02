@@ -36,7 +36,7 @@ class Progress():
                 if self.silent:
                     sys.stdout.write("\r")
                 else:
-                    print("\rState: {}/{} - Autosaving...".format(self.current, self.total))
+                    print("\rState: {}/{} - Autosave".format(self.current, self.total))
                 self.elapsed = time.time()
                 self.parent.save()
             if not self.silent:
