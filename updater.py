@@ -1773,13 +1773,14 @@ class Updater():
         start_index = 0
         if len(targeted_strings) > 0:
             try:
-                start_index = targeted_strings[0]
+                start_index = int(targeted_strings[0])
                 targeted_strings = targeted_strings[1:]
             except:
                 pass
             if len(targeted_strings) > 0:
                 self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
         print("Updating scene data for: {}".format(" / ".join(target_index)))
+        if start_index > 0: print("(Skipping the first {} element(s) )".format(start_index))
         elements = []
         for k in target_index:
             for id in self.data[k]:
@@ -1863,8 +1864,15 @@ class Updater():
     ### Sound ###################################################################################################################
 
     # Called by -sound, update all npc and character sound datas
-    async def update_all_sound(self):
+    async def update_all_sound(self, parameters : list = []):
+        start_index = 0
+        if len(parameters) > 0:
+            try:
+                start_index = int(parameters[0])
+            except:
+                pass
         print("Updating sound data...")
+        if start_index > 0: print("(Skipping the first {} element(s) )".format(start_index))
         elements = []
         shared = []
         for k in ["characters", "skins", "npcs"]:
@@ -1890,8 +1898,11 @@ class Updater():
                     if i == 0: prep_split.append(None)
                     for kk in prep[i:i + self.MAX_SOUND_CONCURRENT]:
                         prep_split.append(kk)
-                    elements.append((k, id, idx, shared[-1], voices, prep_split))
-                    shared[-1][2] += 1
+                    if start_index > 0:
+                        start_index -= 1
+                    else:
+                        elements.append((k, id, idx, shared[-1], voices, prep_split))
+                        shared[-1][2] += 1
         # memory cleaning
         prep = None
         prep_split = None
@@ -2988,13 +2999,21 @@ class Updater():
     ### Partners ################################################################################################################
 
     # Called by -partner. Make a list of partners and potential partners to update. VERY slow.
-    async def update_all_partner(self):
+    async def update_all_partner(self, parameters : list = []):
+        start_index = 0
+        if len(parameters) > 0:
+            try:
+                start_index = int(parameters[0])
+            except:
+                pass
+        if start_index > 0: print("(Skipping the first {} element(s) )".format(start_index))
         t = self.update_changelog
         self.update_changelog = False
         ids = list(self.data.get('partners', {}).keys())
         for id in self.data.get('characters', {}):
             if 'st' in id: continue
             ids.append("38" + id[2:])
+        if start_index > 0: ids = ids[start_index:]
         await self.manualUpdate(ids)
         self.update_changelog = t
 
@@ -3138,8 +3157,8 @@ class Updater():
                 elif "-scenefull" in flags: await self.update_all_scene(None, extras)
                 elif "-scenesort" in flags: self.sort_all_scene()
                 elif "-thumb" in flags: await self.update_npc_thumb()
-                elif "-sound" in flags: await self.update_all_sound()
-                elif "-partner" in flags: await self.update_all_partner()
+                elif "-sound" in flags: await self.update_all_sound(extras)
+                elif "-partner" in flags: await self.update_all_partner(extras)
                 elif "-event" in flags: await self.check_new_event()
                 elif "-eventedit" in flags: await self.event_edit()
                 elif "-buff" in flags: await self.update_buff()
