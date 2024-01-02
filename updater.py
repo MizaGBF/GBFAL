@@ -12,11 +12,13 @@ from typing import Optional
 
 # progress bar class
 class Progress():
-    def __init__(self, *, total : int = 9999999999999, silent : bool = True) -> None: # set to silent with a high total by default
+    def __init__(self, parent : 'Updater', *, total : int = 9999999999999, silent : bool = True) -> None: # set to silent with a high total by default
         self.silent = silent
         self.total = total
         self.current = -1
         self.start_time = time.time()
+        self.elapsed = self.start_time
+        self.parent = parent
         if self.total > 0: self.update()
 
     def set(self, *, total : int = 0, silent : bool = False) -> None: # to initialize it after a task start, once we know the total
@@ -30,6 +32,13 @@ class Progress():
     def update(self) -> None: # to call to update the progress text (if not silent and not done)
         if self.current < self.total:
             self.current += 1
+            if self.parent is not None and time.time() - self.elapsed >= 3600: # 1h passed, autosave (if set)
+                if self.silent:
+                    sys.stdout.write("\r")
+                else:
+                    print("\rState: {}/{} - Autosaving...".format(self.current, self.total))
+                self.elapsed = time.time()
+                self.parent.save()
             if not self.silent:
                 sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00', ''))
                 sys.stdout.flush()
@@ -205,7 +214,7 @@ class Updater():
         # others
         self.run_count = 0
         self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings()
-        self.progress = Progress() # initialized with a silent progress bar
+        self.progress = Progress(self) # initialized with a silent progress bar
         self.use_wiki = True # if True, use wiki features
         
         self.client = None # will contain the aiohttp client. Is initialized at startup or must be initialized by a third party.
@@ -552,7 +561,7 @@ class Updater():
         for i in range(3):
             categories[-1].append(self.search_generic('suptix', i, 3, errs[-1], "{}", 1, "img_low/sp/gacha/campaign/surprise/top_", ".jpg",  15))
         print("Starting process...")
-        self.progress = Progress(total=len(categories), silent=False)
+        self.progress = Progress(self, total=len(categories), silent=False)
         async with asyncio.TaskGroup() as tg:
             tasks = []
             for c in categories:
@@ -859,7 +868,7 @@ class Updater():
                         d = a+b+c
                         if d in self.data["job_key"]: continue
                         tasks.append(self.detail_job_search_single(d))
-        self.progress = Progress(total=len(tasks), silent=False)
+        self.progress = Progress(self, total=len(tasks), silent=False)
         async for result in self.map_unordered(self.search_job_detail_task, tasks, self.MAX_UPDATEALL):
             pass
         print("Done")
@@ -1098,7 +1107,7 @@ class Updater():
         async with asyncio.TaskGroup() as tg:
             tasks = []
             remaining = 0
-            self.progress = Progress()
+            self.progress = Progress(self)
             for id in ids:
                 if id in self.data.get('background', {}):
                     tasks.append(tg.create_task(self.bgUpdate(id)))
@@ -1755,14 +1764,21 @@ class Updater():
                 no_bubble = (s != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.scene_special_suffix # don't check raid bubbles for uncaps or those special ending suffix
                 tasks['scenes'][s] = task_group.create_task(self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)]))
 
-    # Called by -scene, update all npc and character scene datas
+    # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
     async def update_all_scene(self, target_index : Optional[str], targeted_strings : list = []):
         if target_index is None:
             target_index = ["characters", "skins", "npcs"]
         elif not isinstance(target_index, list):
             target_index = [target_index]
+        start_index = 0
         if len(targeted_strings) > 0:
-            self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
+            try:
+                start_index = targeted_strings[0]
+                targeted_strings = targeted_strings[1:]
+            except:
+                pass
+            if len(targeted_strings) > 0:
+                self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
         print("Updating scene data for: {}".format(" / ".join(target_index)))
         elements = []
         for k in target_index:
@@ -1780,8 +1796,11 @@ class Updater():
                             uncaps.append(uu)
                 for u in uncaps: # split per uncap
                     for i in range(self.MAX_SCENE_CONCURRENT): # and split by self.MAX_SCENE_CONCURRENT
-                        elements.append((k, id, idx, [u], i, self.MAX_SCENE_CONCURRENT))
-        self.progress = Progress(total=len(elements), silent=False)
+                        if start_index > 0:
+                            start_index -= 1
+                        else:
+                            elements.append((k, id, idx, [u], i, self.MAX_SCENE_CONCURRENT))
+        self.progress = Progress(self, total=len(elements), silent=False)
         async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_UPDATEALL):
             pass
         if len(targeted_strings) > 0:
@@ -1877,7 +1896,7 @@ class Updater():
         prep = None
         prep_split = None
         # start
-        self.progress = Progress(total=len(elements), silent=False)
+        self.progress = Progress(self, total=len(elements), silent=False)
         async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_UPDATEALL):
             pass
         print("Done")
@@ -2201,7 +2220,7 @@ class Updater():
         tasks = []
         async with asyncio.TaskGroup() as tg:
             print("Checking elements in need of update...")
-            self.progress = Progress()
+            self.progress = Progress(self)
             for t in self.LOOKUP_TYPES:
                 for k in self.data[t]:
                     if k not in self.data['lookup'] or self.data['lookup'][k] is None:
@@ -2315,7 +2334,7 @@ class Updater():
         print("Updating NPC thumbnail data...")
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress()
+            self.progress = Progress(self)
             for id in self.data["npcs"]:
                 if not isinstance(self.data["npcs"][id], int) and not self.data["npcs"][id][0]:
                     tasks.append(tg.create_task(self.update_npc_thumb_sub(id)))
@@ -2350,7 +2369,7 @@ class Updater():
         new = []
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress()
+            self.progress = Progress(self)
             if len(to_update) == 0:
                 for eid in self.data['characters']:
                     if eid not in relation or len(relation[eid]) == 0:
@@ -2614,7 +2633,7 @@ class Updater():
         tasks = []
         async with asyncio.TaskGroup() as tg:
             check = {}
-            self.progress = Progress()
+            self.progress = Progress(self)
             for ev in known_events:
                 if ev in self.data["events"]: # event already registered
                     if now >= int(ev) and nyear == 2000 + int(ev[:2]) and ((nday <= 10 and nmonth - int(ev[2:4]) < 2) or (nday - int(ev[4:]) < 12 and nmonth == int(ev[2:4]))): # if event is recent
@@ -2671,7 +2690,7 @@ class Updater():
         tasks = []
         modified = set()
         ec = 0
-        self.progress = Progress()
+        self.progress = Progress(self)
         for ev in events:
             if full and ev not in self.data["events"]:
                 self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
@@ -2694,7 +2713,7 @@ class Updater():
                     tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
                     fn = "scene_evt{}".format(ev)
                     tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
-        self.progress = Progress(total=len(tasks), silent=False)
+        self.progress = Progress(self, total=len(tasks), silent=False)
         async for task in self.map_unordered(self.update_event_sub_big, tasks, self.MAX_UPDATEALL):
             r = task.result()
             if r is not None:
@@ -2925,7 +2944,7 @@ class Updater():
                 self.data["eventthumb"][eid] = 1
         tasks = []
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(total=40, silent=False)
+            self.progress = Progress(self, total=40, silent=False)
             for i in range(20):
                 tasks.append(tg.create_task(self.event_thumbnail_association_sub(7001+i, 9000, 20)))
                 tasks.append(tg.create_task(self.event_thumbnail_association_sub(9001+i, 10000, 20)))
@@ -2986,7 +3005,7 @@ class Updater():
         tasks = []
         task_count = 20
         async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(total=10*task_count, silent=False)
+            self.progress = Progress(self, total=10*task_count, silent=False)
             for i in range(10):
                 for j in range(task_count):
                     tasks.append(tg.create_task(self.update_buff_sub(1000*i+j, task_count, True)))
@@ -3073,7 +3092,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.9\n")
+            print("GBFAL updater v2.10\n")
             self.client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50))
             self.use_wiki = await self.test_wiki()
             if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
