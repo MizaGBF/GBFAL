@@ -566,8 +566,8 @@ class Updater():
             tasks = []
             for c in categories:
                 tasks.append(tg.create_task(self.run_category(c)))
-            for t in tasks:
-                t.result()
+        for t in tasks:
+            t.result()
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
             await self.check_new_event()
