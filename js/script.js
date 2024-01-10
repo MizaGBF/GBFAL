@@ -1094,7 +1094,7 @@ function lookup(id)
     try
     {
         main_endp_count = -1;
-        f = document.getElementById('filter');
+        let filter = document.getElementById('filter');
         if(
             (id.length == 10 && !isNaN(id)) || 
             (id.length == 5 && id.toLowerCase()[0] === 'b' && !isNaN(id.slice(1))) ||
@@ -1106,9 +1106,9 @@ function lookup(id)
         {
             if(blacklist.includes(id)) return;
             // process id
-            if(f.value == "" || f.value != id)
+            if(filter.value == "" || filter.value != id)
             {
-                f.value = id;
+                filter.value = id;
             }
             let check = null;
             switch(id.length)
@@ -1250,9 +1250,17 @@ function lookup(id)
             {
                 results.insertBefore(document.createElement("br"), results.firstChild);
                 results.insertBefore(document.createTextNode("Results for \"" + id + "\""), results.firstChild);
-                if(f.value != id) f.value = id;
+                if(filter.value != id) filter.value = id;
             }
-            results.scrollIntoView()
+            
+            var rect = filter.getBoundingClientRect();
+            if(
+                rect.bottom < 0 ||
+                rect.right < 0 ||
+                rect.top > (window.innerHeight || document.documentElement.clientHeight) ||
+                rect.left > (window.innerWidth || document.documentElement.clientWidth)
+            )
+                filter.scrollIntoView();
             searchResults = positives;
         }
     } catch(error) {
