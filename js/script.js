@@ -1285,14 +1285,15 @@ function newArea(name, id, include_link, indexed=true)
         div.appendChild(l);
         div.appendChild(document.createElement('br'));
     }
+    let did_lookup = false;
     if((id.length == 10 && (id.slice(0, 3) == "302" || id.slice(0, 3) == "303" || id.slice(0, 3) == "304" || id.slice(0, 3) == "371" || id.slice(0, 2) == "10")) || (id.length == 6 && name == "Main Character"))
     {
         l = document.createElement('a');
         l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
         l.appendChild(document.createTextNode("Animation"));
         div.appendChild(l);
+        did_lookup = true;
     }
-    let did_lookup = false;
     if(id in index["lookup"] && index["lookup"][id].split(' ').length > 1)
     {
         div.appendChild(document.createElement('br'));
