@@ -1517,7 +1517,6 @@ class Updater():
                             data[self.SUM_DAMAGE] += await self.processManifest(fn)
                         except:
                             pass
-                print(data)
                 if len(data[self.SUM_CALL]) == 0 and len(data[self.SUM_DAMAGE]) == 0: return False
                 self.modified = True
                 self.data['summons'][id] = data
