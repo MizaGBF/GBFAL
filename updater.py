@@ -2857,6 +2857,7 @@ class Updater():
             print("[3] Update All Valid Events")
             print("[4] Update SkyCompass")
             print("[5] Add Events")
+            print("[6] Check new thumbnails")
             print("[Any] Quit")
             s = input().lower()
             match s:
@@ -2937,11 +2938,16 @@ class Updater():
                         else:
                             break
                     self.save()
+                case "6":
+                    s = input("Input a list of Event dates (Leave blank to cancel):")
+                    if s != "":
+                        await self.event_thumbnail_association(s.split(" "))
                 case _:
                     break
 
     # Attempt to automatically associate new event thumbnails to events
     async def event_thumbnail_association(self, events : list):
+        events = [ev for ev in events if ev != ""]
         print("Checking event thumbnails...")
         in_use = set()
         for eid, ev in self.data["events"].items():
@@ -2971,7 +2977,7 @@ class Updater():
                 for i in range(len(new)):
                     self.data["events"][str(events[i])][self.EVENT_THUMB] = new[i]
                     self.data["eventthumb"][str(new[i])] = 1
-                    self.update_event_sky(str(events[i]))
+                    await self.update_event_sky(str(events[i]))
                     self.modified = True
                 print("Please make sure they have been set to their correct events")
             else:
