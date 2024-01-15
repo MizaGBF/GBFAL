@@ -2028,10 +2028,16 @@ function displayWeapons(elem, r, i)
     if("weapons" in index)
     {
         let slist = {};
-        for(const id in index["weapons"])
+        for(const [id, data] of Object.entries(index["weapons"]))
         {
             if(id[4] != i || id[2] != r) continue;
-            slist[id] = ["sp/assets/weapon/m/" + id + ".jpg", id];
+            let uncap = "";
+            if(data != 0)
+            {
+                for(const f of data[0])
+                    if(f.includes("_")) uncap = f.slice(10);
+            }
+            slist[id] = ["sp/assets/weapon/m/" + id + uncap + ".jpg", id, data != 0];
         }
         const keys = Object.keys(slist).sort().reverse();
         for(const k of keys)
