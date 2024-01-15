@@ -1528,7 +1528,7 @@ class Updater():
         with self.progress:
             async with self.sem:
                 data = [[], [], []] # general, phit, sp
-                for s in ["", "_02"]:
+                for s in ["", "_02", "_03"]:
                     # art
                     try:
                         await self.head(self.IMG + "sp/assets/weapon/m/{}{}.jpg".format(id, s))
