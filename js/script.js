@@ -631,9 +631,10 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
         case 1: // weapons{
             assets = [
                 ["Main Arts", "sp/assets/weapon/b/", "png", "img_low/", 0, false, false], // index, skycompass, side form
-                ["Gacha Art", "sp/assets/weapon/g/", "png", "img_low/", 0, false, false],
-                ["Gacha Cover", "sp/gacha/cjs_cover/", "png", "img_mid/", 0, false, false],
-                ["Gacha Header", "sp/gacha/header/", "png", "img_low/", 0, false, false],
+                ["Gacha Arts", "sp/assets/weapon/g/", "png", "img_low/", 0, false, false],
+                ["Gacha Covers", "sp/gacha/cjs_cover/", "png", "img_mid/", 0, false, false],
+                ["Gacha Headers", "sp/gacha/header/", "png", "img_low/", 0, false, false],
+                ["Transcendence Headers", "sp/assets/weapon/weapon_evolution/main/", "png", "img_low/", 0, false, false],
                 ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", "img_low/", 0, false, false],
                 ["Square Portraits", "sp/assets/weapon/s/", "jpg", "img_low/", 0, false, false],
                 ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", "img_low/", 0, false, false],
