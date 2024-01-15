@@ -1432,7 +1432,7 @@ function updateDynamicList(dynarea, idlist)
                     if(data != 0)
                     {
                         for(const f of data[6])
-                            if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
+                            if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(f.slice(10)))))) uncap = f.slice(10);
                     }
                 }
                 let onerr = null;
@@ -1461,7 +1461,19 @@ function updateDynamicList(dynarea, idlist)
             }
             case 1: // weapon
             {
-                addIndexImage(dynarea, "sp/assets/weapon/m/" + e[0] + ".jpg", e[0]);
+                let uncap = "";
+                if("weapons" in index && e[0] in index["weapons"])
+                {
+                    let data = index["weapons"][e[0]];
+                    if(data != 0)
+                    {
+                        for(const f of data[0])
+                            if(["_02", "_03", "_04", "_05"].includes(f.slice(10))) uncap = f.slice(10);
+                    }
+                }
+                let onerr = null;
+                if(uncap != "") onerr = function() {this.src = "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/weapon/m/"+e[0]+".jpg";};
+                addIndexImage(dynarea, "sp/assets/weapon/m/" + e[0] + uncap + ".jpg", e[0]);
                 break;
             }
             case 0: // mc

@@ -1528,27 +1528,28 @@ class Updater():
         with self.progress:
             async with self.sem:
                 data = [[], [], []] # general, phit, sp
-                # art
-                try:
-                    await self.head(self.IMG + "sp/assets/weapon/m/{}.jpg".format(id))
-                    data[self.WEAP_GENERAL].append("{}".format(id))
-                except:
-                    if self.debug_wpn: data[self.WEAP_GENERAL].append("{}".format(id))
-                    else: return False
-                # attack
-                for u in ["", "_2", "_3", "_4"]:
+                for s in ["", "_02"]:
+                    # art
                     try:
-                        fn = "phit_{}{}".format(id, u)
-                        data[self.WEAP_PHIT] += await self.processManifest(fn)
+                        await self.head(self.IMG + "sp/assets/weapon/m/{}{}.jpg".format(id, s))
+                        data[self.WEAP_GENERAL].append("{}{}".format(id, s))
                     except:
-                        pass
-                # ougi
-                for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
-                    try:
-                        fn = "sp_{}{}".format(id, u)
-                        data[self.WEAP_SP] += await self.processManifest(fn)
-                    except:
-                        pass
+                        if self.debug_wpn: data[self.WEAP_GENERAL].append("{}{}".format(id, s))
+                        elif s == "": return False
+                    # attack
+                    for u in ["", "_2", "_3", "_4"]:
+                        try:
+                            fn = "phit_{}{}{}".format(id, s, u)
+                            data[self.WEAP_PHIT] += await self.processManifest(fn)
+                        except:
+                            pass
+                    # ougi
+                    for u in ["", "_0", "_1", "_2", "_3", "_0_s2", "_1_s2", "_2_s2", "_3_s2", "_0_s3", "_1_s3", "_2_s3", "_3_s3"]:
+                        try:
+                            fn = "sp_{}{}{}".format(id, s, u)
+                            data[self.WEAP_SP] += await self.processManifest(fn)
+                        except:
+                            pass
                 if self.debug_wpn and len(data[self.WEAP_PHIT]) == 0 and len(data[self.WEAP_SP]) == 0:
                     return False
                 self.modified = True
