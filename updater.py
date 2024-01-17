@@ -169,6 +169,7 @@ class Updater():
         "2030004000": "sr summon fire not-playable",
         "2030014000": "sr summon dark not-playable",
     }
+    PARTNER_STEP = 10
     
     def __init__(self) -> None:
         # main variables
@@ -205,6 +206,7 @@ class Updater():
         self.name_table = {} # relation table
         self.name_table_modified = False # and its modified flag
         self.scene_string_cache = {} # contains list of suffix
+        self.force_partner = False # set to True by -partner
         
         # asyncio semaphores
         self.sem = asyncio.Semaphore(self.MAX_UPDATE) # update semaphore
@@ -1122,16 +1124,8 @@ class Updater():
                     elif id.startswith('38'):
                         try:
                             pid = int(id)
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid), 10))) # separate in multiple threads to speed up
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+1), 10)))
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+2), 10)))
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+3), 10)))
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+4), 10)))
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+5), 10)))
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+6), 10)))
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+7), 10)))
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+8), 10)))
-                            tasks.append(tg.create_task(self.partnerUpdate(str(pid+9), 10)))
+                            for i in range(self.PARTNER_STEP):
+                               tasks.append(tg.create_task(self.partnerUpdate(str(pid+i), self.PARTNER_STEP))) # separate in multiple threads to speed up
                         except:
                             continue
                     elif id.startswith('3'):
@@ -1336,7 +1330,7 @@ class Updater():
                 err = 0
                 # search loop
                 while err < max_err:
-                    if tid in lookup:
+                    if not self.force_partner and tid in lookup:
                         err = 0
                     else:
                         tmp = [[], [], [], [], [], []]
@@ -1363,7 +1357,7 @@ class Updater():
                                 for form in ["", "_f", "_f1", "_f_01"]:
                                     try:
                                         fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
-                                        sheets += await self.processManifest(fn, True)
+                                        if fn not in lookup: sheets += await self.processManifest(fn, True)
                                         if form == "": uncaps.append(uncap)
                                         else: altForm = True
                                     except:
@@ -1382,19 +1376,21 @@ class Updater():
                                 for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
                                     try:
                                         fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
-                                        attacks += await self.processManifest(fn, True)
+                                        if fn not in lookup: attacks += await self.processManifest(fn, True)
                                     except:
                                         pass
                         tmp[self.CHARA_PHIT] = attacks
                         # ougi
                         attacks = []
                         for uncap in uncaps:
+                            try: uf = flags[uncap.split('_')[-1]]
+                            except: uf = [False]
                             for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
                                 for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
                                     for catype in ["", "_s2", "_s3", "_s2_b"]:
                                         try:
                                             fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, form, g, catype)
-                                            attacks += await self.processManifest(fn, True)
+                                            if fn not in lookup: attacks += await self.processManifest(fn, True)
                                             break
                                         except:
                                             pass
@@ -1404,7 +1400,7 @@ class Updater():
                         for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
                             try:
                                 fn = "ab_all_{}{}_{}".format(tid, style, el)
-                                attacks += await self.processManifest(fn, True)
+                                if fn not in lookup: attacks += await self.processManifest(fn, True)
                             except:
                                 pass
                         tmp[self.CHARA_AB_ALL] = attacks
@@ -1412,7 +1408,7 @@ class Updater():
                         for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
                             try:
                                 fn = "ab_{}{}_{}".format(tid, style, el)
-                                attacks += await self.processManifest(fn, True)
+                                if fn not in lookup: attacks += await self.processManifest(fn, True)
                             except:
                                 pass
                         tmp[self.CHARA_AB] = attacks
@@ -3007,6 +3003,7 @@ class Updater():
 
     # Called by -partner. Make a list of partners and potential partners to update. VERY slow.
     async def update_all_partner(self, parameters : list = []):
+        self.force_partner = True
         start_index = 0
         if len(parameters) > 0:
             try:
@@ -3023,6 +3020,7 @@ class Updater():
         if start_index > 0: ids = ids[start_index:]
         await self.manualUpdate(ids)
         self.update_changelog = t
+        self.force_partner = False
 
     ### Buffs ###################################################################################################################
 
