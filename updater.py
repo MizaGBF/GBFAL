@@ -1193,7 +1193,7 @@ class Updater():
                     # # # Main sheets
                     tid = self.CHARA_SPECIAL_REUSE.get(id, id) # special substitution (mostly for bobobo)
                     for uncap in ["01", "02", "03", "04"]:
-                        for ftype in ["", "_s2"]:
+                        for ftype in ["", "_s2", "_0", "_1"]:
                             for form in ["", "_f", "_f1", "_f_01"]:
                                 try:
                                     fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
@@ -1223,7 +1223,6 @@ class Updater():
                                         targets.append(base_fn + af + g + m + n)
                         # sprites
                         sd.append(base_fn)
-                    flags = None
                     data[self.CHARA_GENERAL] += targets
                     data[self.CHARA_SD] += sd
                     if len(targets) == 0:
@@ -1259,14 +1258,16 @@ class Updater():
                         # ougi
                         attacks = []
                         for uncap in uncaps:
-                            for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
-                                for catype in ["", "_s2", "_s3"]:
-                                    try:
-                                        fn = "nsp_{}_{}{}{}{}".format(tid, uncap, style, form, catype)
-                                        attacks += await self.processManifest(fn)
-                                        break
-                                    except:
-                                        pass
+                            uf = flags[uncap]
+                            for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                                for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
+                                    for catype in ["", "_s2", "_s3"]:
+                                        try:
+                                            fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, form, g, catype)
+                                            attacks += await self.processManifest(fn)
+                                            break
+                                        except:
+                                            pass
                         data[self.CHARA_SP] += attacks
                         # skills
                         attacks = []
@@ -3117,7 +3118,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.10\n")
+            print("GBFAL updater v2.11\n")
             self.client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50))
             self.use_wiki = await self.test_wiki()
             if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
