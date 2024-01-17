@@ -1356,11 +1356,10 @@ class Updater():
                                     for n in (["_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
                                         for af in (["", "_f", "_f1"] if altForm else [""]):
                                             targets.append(base_fn + af + g + m + n)
-                        flags = None
                         tmp[self.CHARA_GENERAL] = targets
                         # # # Main sheets
                         for uncap in (["0_01", "1_01", "0_02", "1_02"] if is_mc else ["01", "02", "03", "04"]):
-                            for ftype in ["", "_s2"]:
+                            for ftype in ["", "_s2", "_0", "_1"]:
                                 for form in ["", "_f", "_f1", "_f_01"]:
                                     try:
                                         fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
@@ -1390,14 +1389,15 @@ class Updater():
                         # ougi
                         attacks = []
                         for uncap in uncaps:
-                            for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
-                                for catype in ["", "_s2", "_s3", "_s2_b"]:
-                                    try:
-                                        fn = "nsp_{}_{}{}{}{}".format(tid, uncap, style, form, catype)
-                                        attacks += await self.processManifest(fn, True)
-                                        break
-                                    except:
-                                        pass
+                            for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                                for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
+                                    for catype in ["", "_s2", "_s3", "_s2_b"]:
+                                        try:
+                                            fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, form, g, catype)
+                                            attacks += await self.processManifest(fn, True)
+                                            break
+                                        except:
+                                            pass
                         tmp[self.CHARA_SP] = attacks
                         # skills
                         attacks = []
