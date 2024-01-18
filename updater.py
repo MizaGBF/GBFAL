@@ -1229,8 +1229,7 @@ class Updater():
                             # scene
                             try: scenes = set(self.data[index][id][self.CHARA_SCENE])
                             except: scenes = set()
-                            data[self.CHARA_SCENE] = scenes
-                            self.group_scene_task(tg, tasks, id, uncaps, scenes)
+                            data[self.CHARA_SCENE] = self.data[index][id][self.CHARA_SCENE]
                             # sound
                             try: voices = set(self.data[index][id][self.CHARA_SOUND])
                             except: voices = set()
@@ -1254,15 +1253,18 @@ class Updater():
                         attacks = []
                         for uncap in uncaps:
                             uf = flags[uncap]
+                            found = False
                             for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
                                 for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
                                     for catype in ["", "_s2", "_s3"]:
-                                        try:
-                                            fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, g, form, catype)
-                                            attacks += await self.processManifest(fn)
-                                            break
-                                        except:
-                                            pass
+                                        for sub in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]:
+                                            try:
+                                                fn = "nsp_{}_{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub)
+                                                attacks += await self.processManifest(fn)
+                                                found = True
+                                            except:
+                                                pass
+                                        if found: break
                         data[self.CHARA_SP] += attacks
                         # skills
                         attacks = []
@@ -1387,15 +1389,18 @@ class Updater():
                         for uncap in uncaps:
                             try: uf = flags[uncap.split('_')[-1]]
                             except: uf = [False]
+                            found = False
                             for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
                                 for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
-                                    for catype in ["", "_s2", "_s3", "_s2_b"]:
-                                        try:
-                                            fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, g, form, catype)
-                                            if fn not in lookup: attacks += await self.processManifest(fn, True)
-                                            break
-                                        except:
-                                            pass
+                                    for catype in ["", "_s2", "_s3"]:
+                                        for sub in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]:
+                                            try:
+                                                fn = "nsp_{}_{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub)
+                                                if fn not in lookup: attacks += await self.processManifest(fn, True)
+                                                found = True
+                                            except:
+                                                pass
+                                        if found: break
                         tmp[self.CHARA_SP] = attacks
                         # skills
                         attacks = []
