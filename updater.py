@@ -1230,6 +1230,7 @@ class Updater():
                             try: scenes = set(self.data[index][id][self.CHARA_SCENE])
                             except: scenes = set()
                             data[self.CHARA_SCENE] = self.data[index][id][self.CHARA_SCENE]
+                            self.group_scene_task(tg, tasks, id, uncaps, scenes)
                             # sound
                             try: voices = set(self.data[index][id][self.CHARA_SOUND])
                             except: voices = set()
