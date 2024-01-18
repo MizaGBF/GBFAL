@@ -1187,16 +1187,17 @@ class Updater():
                     # # # Main sheets
                     tid = self.CHARA_SPECIAL_REUSE.get(id, id) # special substitution (mostly for bobobo)
                     for uncap in ["01", "02", "03", "04"]:
-                        for ftype in ["", "_s2", "_0", "_1"]:
-                            for form in ["", "_f", "_f1", "_f_01"]:
-                                try:
-                                    fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
-                                    sheets += await self.processManifest(fn)
-                                    if form == "": uncaps.append(uncap)
-                                    else: altForm = True
-                                except:
-                                    if form == "":
-                                        break
+                        for gender in ["", "_0", "_1"]:
+                            for ftype in ["", "_s2", "_0", "_1"]:
+                                for form in ["", "_f", "_f1", "_f_01"]:
+                                    try:
+                                        fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
+                                        sheets += await self.processManifest(fn)
+                                        if form == "": uncaps.append(uncap)
+                                        else: altForm = True
+                                    except:
+                                        if form == "":
+                                            break
                     data[self.CHARA_SPRITE] += sheets
                     if len(uncaps) == 0:
                         if style == "": return False
@@ -1353,16 +1354,17 @@ class Updater():
                         tmp[self.CHARA_GENERAL] = targets
                         # # # Main sheets
                         for uncap in (["0_01", "1_01", "0_02", "1_02"] if is_mc else ["01", "02", "03", "04"]):
-                            for ftype in ["", "_s2", "_0", "_1"]:
-                                for form in ["", "_f", "_f1", "_f_01"]:
-                                    try:
-                                        fn = "npc_{}_{}{}{}{}".format(tid, uncap, style, form, ftype)
-                                        if fn not in lookup: sheets += await self.processManifest(fn, True)
-                                        if form == "": uncaps.append(uncap)
-                                        else: altForm = True
-                                    except:
-                                        if form == "":
-                                            break
+                            for gender in ["", "_0", "_1"]:
+                                for ftype in ["", "_s2", "_0", "_1"]:
+                                    for form in ["", "_f", "_f1", "_f_01"]:
+                                        try:
+                                            fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
+                                            if fn not in lookup: sheets += await self.processManifest(fn, True)
+                                            if form == "": uncaps.append(uncap)
+                                            else: altForm = True
+                                        except:
+                                            if form == "":
+                                                break
                         tmp[self.CHARA_SPRITE] = sheets
                         if is_mc: uncaps = ["01", "02"]
                         # # # Other sheets
