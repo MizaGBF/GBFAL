@@ -1978,6 +1978,7 @@ class Updater():
         result = []
         for t in tasks:
             result += t.result()
+        result = list(set(result))
         # sorting
         A = []
         B = []
