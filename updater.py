@@ -1258,7 +1258,7 @@ class Updater():
                                 for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
                                     for catype in ["", "_s2", "_s3"]:
                                         try:
-                                            fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, form, g, catype)
+                                            fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, g, form, catype)
                                             attacks += await self.processManifest(fn)
                                             break
                                         except:
@@ -1391,7 +1391,7 @@ class Updater():
                                 for form in (["", "_f", "_f1", "_f_01"] if altForm else [""]):
                                     for catype in ["", "_s2", "_s3", "_s2_b"]:
                                         try:
-                                            fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, form, g, catype)
+                                            fn = "nsp_{}_{}{}{}{}{}".format(tid, uncap, style, g, form, catype)
                                             if fn not in lookup: attacks += await self.processManifest(fn, True)
                                             break
                                         except:
