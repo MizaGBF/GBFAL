@@ -1433,7 +1433,7 @@ function updateDynamicList(dynarea, idlist)
                     if(data != 0)
                     {
                         for(const f of data[6])
-                            if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(f.slice(10)))))) uncap = f.slice(10);
+                            if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
                     }
                 }
                 let onerr = null;
