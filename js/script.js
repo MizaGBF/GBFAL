@@ -1437,7 +1437,18 @@ function updateDynamicList(dynarea, idlist)
                     }
                 }
                 let onerr = null;
-                if(uncap != "_01") onerr = function() {this.src = "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/"+e[0]+"_01.jpg";};
+                if(uncap != "_01")
+                {
+                    onerr = function() {
+                        this.src = "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/"+e[0]+"_01.jpg";
+                    };
+                }
+                else
+                {
+                    onerr = function() {
+                        this.src = "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/m/3999999999.jpg";
+                    };
+                }
                 addIndexImage(dynarea, "sp/assets/npc/m/" + e[0] + uncap + ".jpg", e[0], onerr);
                 break;
             }
@@ -1902,7 +1913,10 @@ function displayCharacters(elem, i, r_start, r_end, sr_start, sr_end, ssr_start,
                     if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
             }
             let onerr = null;
-            if(uncap != "_01") onerr = function() {this.src="https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"};
+            if(uncap != "_01")
+                onerr = function() {this.src="https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/m/"+id+"_01.jpg"};
+            else
+                onerr = function() {this.src="https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/m/3999999999.jpg"};
             slist[id.padEnd(15, "0")] = ["sp/assets/npc/m/" + id + uncap + ".jpg", id, onerr];
         }
         const keys = Object.keys(slist).sort().reverse();
