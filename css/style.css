@@ -185,6 +185,10 @@ footer, #header {
     max-height: 80px;
 }
 
+.index-image {
+    max-height: 80px;
+}
+
 img {
     object-fit: contain;
 }
@@ -509,6 +513,10 @@ a:active {
         max-width: 278px;
         min-height: 158px;
         max-height: 158px;
+    }
+
+    .index-image {
+        max-height: 160px;
     }
 
     .sound-only {

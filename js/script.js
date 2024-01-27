@@ -1872,6 +1872,7 @@ function addIndexImage(node, path, id, onerr = null, quality="img_low/")
     img.onload = function() {
         this.classList.remove("loading");
         this.classList.add("clickable");
+        this.classList.add("index-image");
         this.onclick = function()
         {
             window.scrollTo(0, 0);
