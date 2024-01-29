@@ -2666,6 +2666,7 @@ class Updater():
                         for j in range(1, 2):
                             for k in range(1, 2):
                                tasks.append(tg.create_task(self.update_event_sub(ev, self.VOICE + "scene_evt{}_cp{}_q{}_s{}0".format(ev, i, j, k))))
+                               thumbnail_check.append(ev)
             self.progress.set(total=len(tasks), silent=False)
         if len(tasks) > 0: # processing tasks
             print(len(check.keys()), "potential new event(s)")

@@ -672,6 +672,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 ["Mastery Portraits", "sp/assets/leader/zenith/", "png", "img_low/", 2, false, false],
                 ["Master Level Portraits", "sp/assets/leader/master_level/", "png", "img_low/", 2, false, false],
                 ["Sprites", "sp/assets/leader/sd/", "png", "img/", 4, false, false],
+                ["Custom Skill Previews", "sp/assets/leader/sd_ability/", "png", "img/", -5, false, false],
                 ["Character Sheets", "sp/cjs/", "png", "img_low/", 7, false, false],
                 ["Attack Effects", "sp/cjs/", "png", "img/", 8, false, false],
                 ["Charge Attack Sheets", "sp/cjs/", "png", "img_low/", 9, false, false]
@@ -697,6 +698,12 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                     break;
                 case -4: // for weapon forge portraits
                     files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
+                    break;
+                case -5: // custom skin skills
+                    files = [id+"_0_attack", id+"_1_attack"];
+                    for(let i = 0; i < 5; ++i)
+                        for(let j = 0; j < 2; ++j)
+                            files.push(id+"_"+j+"_vs_motion_"+i);
                     break;
                 default:
                     files = obj[asset[4]];
