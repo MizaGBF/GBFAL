@@ -585,6 +585,7 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 ["EMP Up Portraits", "sp/assets/npc/result_lvup/", "png", "img_low/", 5, false, false],
                 ["Detail Banners", "sp/assets/npc/detail/", "png", "img_low/", 5, false, false],
                 ["Sprites", "sp/assets/npc/sd/", "png", "img/", 6, false, false],
+                ["Custom Skill Previews", "sp/assets/npc/sd_ability/", "png", "img/", -6, false, false],
                 ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", "img/", 5, false, true],
                 ["Twitter Arts", "sp/assets/npc/sns/", "jpg", "img_low/", 5, false, false],
                 ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", "img_low/", 5, false, false],
@@ -699,11 +700,16 @@ function loadIndexed(id, obj, check, indexed=true) // load an element from data.
                 case -4: // for weapon forge portraits
                     files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
                     break;
-                case -5: // custom skin skills
+                case -5: // custom MC skin skills
                     files = [id+"_0_attack", id+"_1_attack"];
-                    for(let i = 0; i < 5; ++i)
+                    for(let i = 1; i < 5; ++i)
                         for(let j = 0; j < 2; ++j)
                             files.push(id+"_"+j+"_vs_motion_"+i);
+                    break;
+                case -6: // custom character skin skills
+                    files = [id+"_01_attack"];
+                    for(let i = 1; i < 5; ++i)
+                        files.push(id+"_01_vs_motion_"+i);
                     break;
                 default:
                     files = obj[asset[4]];
