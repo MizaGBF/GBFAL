@@ -166,8 +166,8 @@ class Updater():
         "3020065000": "r character brown poppet trial",
         "3030158000": "sr character blue poppet trial",
         "3040097000": "ssr character sierokarte trial",
-        "2030004000": "sr summon fire not-playable",
-        "2030014000": "sr summon dark not-playable",
+        "2030004000": "sr summon fire cut-content",
+        "2030014000": "sr summon dark cut-content",
         "3040114000": "ssr character cut-content"
     }
     PARTNER_STEP = 10
