@@ -77,7 +77,6 @@ class Updater():
     MAX_SOUND_CONCURRENT = 10
     LOOKUP_TYPES = ['characters', 'summons', 'weapons']
     # addition type
-    ADD_UNDEF = -1
     ADD_JOB = 0
     ADD_WEAP = 1
     ADD_SUMM = 2
@@ -620,7 +619,7 @@ class Updater():
                         err[0] = 0
                         self.data[index][f] = 0
                         if index in self.ADD_SINGLE_ASSET:
-                            self.addition[index+":"+f] = self.ADD_UNDEF
+                            self.addition[index+":"+f] = index
                         self.modified = True
                         self.new_elements.append(f)
                         break
@@ -3128,7 +3127,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.11\n")
+            print("GBFAL updater v2.12\n")
             self.client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50))
             self.use_wiki = await self.test_wiki()
             if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
