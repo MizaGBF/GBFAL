@@ -27,6 +27,7 @@ body {
     border-style: solid;
     border: none;
     outline: none;
+    cursor: pointer;
 }
 
 .element-detail:hover {
@@ -95,6 +96,7 @@ details[open] > .element-detail {
     color: white;
     margin: 1px;
     font-size: 20px;
+    cursor: pointer;
 }
 
 #fav-btn {
@@ -111,6 +113,7 @@ details[open] > .element-detail {
     align-items: center;
     position: relative;
     display: inline-block;
+    cursor: pointer;
 }
 
 #fav-btn:hover {
@@ -135,6 +138,7 @@ details[open] > .element-detail {
     color: white;
     margin: 1px;
     font-size: 20px;
+    cursor: pointer;
 }
 
 .tabbutton:hover, .std-button:hover {
