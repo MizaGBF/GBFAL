@@ -775,7 +775,7 @@ function display_weapons(id, data, rarity, proficiency)
     else
         onerr = function() {this.src=idToEndpoint(id) + "assets_en/img/sp/assets/summon/m/2999999999.jpg"};
     let path = "GBF/assets_en/img_low/sp/assets/weapon/m/" + id + uncap + ".jpg";
-    return [[id, path, onerr, ""]];
+    return [[id, path, onerr, "", false]];
 }
 
 function display_mc(id, data, unusedA = null, unusedB = null)
