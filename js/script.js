@@ -164,11 +164,7 @@ function getJSON(url, callback) { // generic function to request a file. will al
     };
     xhr.onload = function() {
         if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                callback.apply(xhr);
-            } else {
-                callback.apply(xhr);
-            }
+            callback.apply(xhr);
         }
     };
     xhr.open("GET", url, true);
