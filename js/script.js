@@ -855,7 +855,7 @@ function display_skills(id, data, range, unused = null)
 {
     let val = parseInt(id);
     if(val < range[0] || val >= range[1]) return null;
-    return [["sk"+id, "assets_en/img_low/sp/ui/icon/ability/m/" + data[0][0] + ".png", null, "preview", false]];
+    return [["sk"+id, "GBF/assets_en/img_low/sp/ui/icon/ability/m/" + data[0][0] + ".png", null, "preview", false]];
 }
 
 function display_subskills(id, data, unusedA = null, unusedB = null)
