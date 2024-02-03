@@ -88,9 +88,9 @@ const ENEMIES_CATEGORIES = [
     ["Others", "9", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/9101463.png"]
 ]
 const ENEMIES = [
-    ["1 - Small", "1"],
-    ["2 - Medium", "2"],
-    ["3 - Big", "3"]
+    ["1 - Size A", "1"],
+    ["2 - Size B", "2"],
+    ["3 - Size C", "3"]
 ];
 const NPCS = [
     ["Special", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_612320.png", "05", [0, 100000]],
