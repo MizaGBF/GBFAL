@@ -26,17 +26,17 @@ var endpoint_count = -1;
 const NO_BUBBLE_FILTER = ["speed", "up", "shadow", "shadow2", "shadow3", "light", "blood"];
 // HTML UI indexes
 const CHARACTERS = [
-    ["Year 2024 (Dragon)", [0, -1, 0, -1, 504, 999]],
-    ["Year 2023 (Rabbit)", [0, -1, 0, -1, 443, 504]],
-    ["Year 2022 (Tiger)", [0, -1, 0, -1, 379, 443]],
-    ["Year 2021 (Ox)", [74, 75, 0, -1, 316, 379]],
-    ["Year 2020 (Rat)", [73, 74, 281, 323, 256, 316]],
-    ["Year 2019 (Pig)", [72, 73, 263, 281, 199, 256]],
-    ["Year 2018 (Dog)", [71, 72, 233, 263, 149, 199]],
-    ["Year 2017 (Chicken)", [0, -1, 173, 233, 108, 149]],
-    ["Year 2016 (Monkey)", [47, 71, 113, 173, 72, 108]],
-    ["Year 2015 (Sheep)", [30, 47, 51, 113, 30, 72]],
-    ["Year 2014", [0, 30, 0, 51, 0, 30]]
+    ["Year 2024 (Dragon)", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7789.png", [0, -1, 0, -1, 504, 999]],
+    ["Year 2023 (Rabbit)", "https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7514.png", [0, -1, 0, -1, 443, 504]],
+    ["Year 2022 (Tiger)", "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7300.png", [0, -1, 0, -1, 379, 443]],
+    ["Year 2021 (Ox)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7493.png", [74, 75, 0, -1, 316, 379]],
+    ["Year 2020 (Rat)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6761.png", [73, 74, 281, 323, 256, 316]],
+    ["Year 2019 (Pig)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6377.png", [72, 73, 263, 281, 199, 256]],
+    ["Year 2018 (Dog)", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6198_1.png", [71, 72, 233, 263, 149, 199]],
+    ["Year 2017 (Chicken)", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6019.png", [0, -1, 173, 233, 108, 149]],
+    ["Year 2016 (Monkey)", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_1467.png", [47, 71, 113, 173, 72, 108]],
+    ["Year 2015 (Sheep)", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6054.png", [30, 47, 51, 113, 30, 72]],
+    ["Year 2014", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6093.png", [0, 30, 0, 51, 0, 30]]
 ];
 const SKINS = [
     ["ID 200 to 299", [200, 300]],
@@ -77,15 +77,15 @@ const WEAPONS = [
     ["Katana", "9", "assets/ui/icon/katana.png"]
 ];
 const ENEMIES_CATEGORIES = [
-    ["Beasts and Animals", "1", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/1300123.png"],
-    ["Plants and Insects", "2", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/2100543.png"],
-    ["Fishes and Sea Life", "3", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/3101163.png"],
-    ["Golems and Robots", "4", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/4300903.png"],
-    ["Undeads and Otherworlders", "5", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/5200293.png"],
-    ["Humans and Humanoids", "6", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/6205783.png"],
-    ["Dragons and Wyverns", "7", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/7300733.png"],
-    ["Primal Beasts", "8", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/8103063.png"],
-    ["Others", "9", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img/sp/assets/enemy/s/9101463.png"]
+    ["Beasts and Animals", "1", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/1300123.png"],
+    ["Plants and Insects", "2", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/2100543.png"],
+    ["Fishes and Sea Life", "3", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/3101163.png"],
+    ["Golems and Robots", "4", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/4300903.png"],
+    ["Undeads and Otherworlders", "5", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/5200293.png"],
+    ["Humans and Humanoids", "6", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/6205783.png"],
+    ["Dragons and Wyverns", "7", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/7300733.png"],
+    ["Primal Beasts", "8", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/8103063.png"],
+    ["Others", "9", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/9101463.png"]
 ]
 const ENEMIES = [
     ["1 - Small", "1"],
@@ -93,31 +93,31 @@ const ENEMIES = [
     ["3 - Big", "3"]
 ];
 const NPCS = [
-    ["Special", "05", [0, 100000]],
-    ["Year 2024 (Dragon)", "99", [3391, 100000]],
-    ["Year 2023 (Rabbit)", "99", [2915, 3188], [3188, 3391]],
-    ["Year 2022 (Tiger)", "99", [2519, 2714], [2714, 2915]],
-    ["Year 2021 (Ox)", "99", [2008, 2248], [2248, 2519]],
-    ["Year 2020 (Rat)", "99", [1637, 1814], [1814, 2008]],
-    ["Year 2019 (Pig)", "99", [1254, 1432], [1432, 1637]],
-    ["Year 2018 (Dog)", "99", [981, 1092], [1092, 1254]],
-    ["Year 2017 (Chicken)", "99", [603, 735], [735, 981]],
-    ["Year 2016 (Monkey)", "99", [378, 476], [476, 603]],
-    ["Years 2014 & 2015", "99", [0, 239], [239, 378]],
+    ["Special", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_612320.png", "05", [0, 100000]],
+    ["Year 2024 (Dragon)", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7789.png", "99", [3391, 100000]],
+    ["Year 2023 (Rabbit)", "https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7514.png", "99", [2915, 3188], [3188, 3391]],
+    ["Year 2022 (Tiger)", "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7300.png", "99", [2519, 2714], [2714, 2915]],
+    ["Year 2021 (Ox)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7493.png", "99", [2008, 2248], [2248, 2519]],
+    ["Year 2020 (Rat)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6761.png", "99", [1637, 1814], [1814, 2008]],
+    ["Year 2019 (Pig)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6377.png", "99", [1254, 1432], [1432, 1637]],
+    ["Year 2018 (Dog)", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6198_1.png", "99", [981, 1092], [1092, 1254]],
+    ["Year 2017 (Chicken)", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6019.png", "99", [603, 735], [735, 981]],
+    ["Year 2016 (Monkey)", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_1467.png", "99", [378, 476], [476, 603]],
+    ["Years 2014 & 2015", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6054.png", "99", [0, 239], [239, 378]],
 ];
 const SKILLS = [
-    [[0, 250], [250, 500], [500, 750], [750, 1000]],
-    [[1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000]],
-    [[2000, 2250], [2250, 2500], [2500, 2750], [2750, 3000]]
+    ["https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/ability/m/1_4.png", [0, 250], [250, 500], [500, 750], [750, 1000]],
+    ["https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/ability/m/1008_3.png", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000]],
+    ["https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/ability/m/2012_3.png", [2000, 2250], [2250, 2500], [2500, 2750], [2750, 3000]]
 ];
 const BUFFS = [
-    ["Old Set", [0, 1000]],
-    ["Basic Set", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000], [2000, 2250], [2250, 2500], [2500, 2750], [2750, 3000]],
-    ["Unique Set 1", [3000, 3250], [3250, 3500], [3500, 3750], [3750, 4000]],
-    ["Unique Set 2", [4000, 4250], [4250, 4500], [4500, 4750], [4750, 5000]],
-    ["Field Effect Set", [5000, 5250], [5250, 5500], [5500, 5750], [5750, 6000]],
-    ["Buff Set", [6000, 6250], [6250, 6500], [6500, 6750], [6750, 7000], [7000, 7250], [7250, 7500], [7500, 7750], [7750, 8000]],
-    ["Old Stack Set", [8000, 10000]]
+    ["Old Set", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_1.png", [0, 1000]],
+    ["Basic Set", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_1019_0_100.png", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000], [2000, 2250], [2250, 2500], [2500, 2750], [2750, 3000]],
+    ["Unique Set 1", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_3045_12.png", [3000, 3250], [3250, 3500], [3500, 3750], [3750, 4000]],
+    ["Unique Set 2", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_4031.png", [4000, 4250], [4250, 4500], [4500, 4750], [4750, 5000]],
+    ["Field Effect Set", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_5031.png", [5000, 5250], [5250, 5500], [5500, 5750], [5750, 6000]],
+    ["Buff Set", "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6064.png", [6000, 6250], [6250, 6500], [6500, 6750], [6750, 7000], [7000, 7250], [7250, 7500], [7500, 7750], [7750, 8000]],
+    ["Old Stack Set", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_80275.png", [8000, 10000]]
 ];
 const BACKGROUNDS = [
     ["Mains", "main"],
@@ -242,8 +242,8 @@ function initIndex() // build the html index. simply edit the constants above to
     parents = makeIndexSummary(content, "Characters", true, false, "assets/ui/icon/characters.png");
     for(let i of CHARACTERS)
     {
-        elems = makeIndexSummary(parents[0], i[0], false, true);
-        const tmp = [elems[0], i[1]];
+        elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+        const tmp = [elems[0], i[2]];
         elems[1].onclick = function (){
             display(tmp[0], 'characters', tmp[1], null, false, true);
             this.onclick = null;
@@ -318,13 +318,13 @@ function initIndex() // build the html index. simply edit the constants above to
     parents = makeIndexSummary(content, "NPCs", true, false, "assets/ui/icon/npcs.png");
     for(let i of NPCS)
     {
-        if(i.length > 3)
+        if(i.length > 4)
         {
-            let inter = makeIndexSummary(parents[0], i[0], true, true);
-            for(let j = 2; j < i.length; ++j)
+            let inter = makeIndexSummary(parents[0], i[0], true, true, i[1]);
+            for(let j = 3; j < i.length; ++j)
             {
-                elems = makeIndexSummary(inter[0], (j == 2 ? "First Half" : (j == 3 ? "Second Half" : "???")), false, true);
-                const tmp = [elems[0], i[1], i[j]];
+                elems = makeIndexSummary(inter[0], (j == 3 ? "First Half" : (j == 4 ? "Second Half" : "???")), false, true);
+                const tmp = [elems[0], i[2], i[j]];
                 elems[1].onclick = function (){
                     display(tmp[0], 'npcs', tmp[1], tmp[2], false, false);
                     this.onclick = null;
@@ -333,8 +333,8 @@ function initIndex() // build the html index. simply edit the constants above to
         }
         else
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true);
-            const tmp = [elems[0], i[1], i[2]];
+            elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+            const tmp = [elems[0], i[2], i[3]];
             elems[1].onclick = function (){
                 display(tmp[0], 'npcs', tmp[1], tmp[2], false, false);
                 this.onclick = null;
@@ -352,12 +352,12 @@ function initIndex() // build the html index. simply edit the constants above to
     parents = makeIndexSummary(content, "Skills", true, false, "assets/ui/icon/skills.png");
     for(let i of SKILLS)
     {
-        const name = "ID " + JSON.stringify(i[0][0]).padStart(4, "0") + " to " + JSON.stringify(i[i.length-1][1]-1).padStart(4, "0");
-        let inter = makeIndexSummary(parents[0], name, true, true);
-        for(let j of i)
+        const name = "ID " + JSON.stringify(i[1][0]).padStart(4, "0") + " to " + JSON.stringify(i[i.length-1][1]-1).padStart(4, "0");
+        let inter = makeIndexSummary(parents[0], name, true, true, i[0]);
+        for(let j = 1; j < i.length; ++j)
         {
-            elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(j[0]).padStart(4, "0") + " to " + JSON.stringify(j[1]-1).padStart(4, "0"), false, true);
-            const tmp = [elems[0], j];
+            elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, true);
+            const tmp = [elems[0], i[j]];
             elems[1].onclick = function (){
                 display(tmp[0], 'skills', tmp[1],null, false, false);
                 this.onclick = null;
@@ -375,10 +375,10 @@ function initIndex() // build the html index. simply edit the constants above to
     parents = makeIndexSummary(content, "Buffs", true, false, "assets/ui/icon/buffs.png");
     for(let i of BUFFS)
     {
-        if(i.length > 2)
+        if(i.length > 3)
         {
-            let inter = makeIndexSummary(parents[0], i[0], true, true);
-            for(let j = 1; j < i.length; ++j)
+            let inter = makeIndexSummary(parents[0], i[0], true, true, i[1]);
+            for(let j = 2; j < i.length; ++j)
             {
                 elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, true);
                 const tmp = [elems[0], i[j]];
@@ -390,8 +390,8 @@ function initIndex() // build the html index. simply edit the constants above to
         }
         else
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true);
-            const tmp = [elems[0], i[1]];
+            elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+            const tmp = [elems[0], i[2]];
             elems[1].onclick = function (){
                 display(tmp[0], 'buffs', tmp[1], null, false, false);
                 this.onclick = null;
@@ -508,7 +508,7 @@ function makeIndexSummary(node, name, is_parent, is_sub_detail, icon = null) // 
     let summary = document.createElement("summary");
     summary.classList.add("element-detail");
     if(is_sub_detail) summary.classList.add("sub-detail");
-    if(icon != null)
+    if(icon != null && icon != "")
     {
         let img = document.createElement("img");
         img.classList.add(is_sub_detail ? "sub-detail-icon" : "detail-icon");
@@ -1806,7 +1806,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "b"+id;
             search_type = 9;
             assets = [
-                ["Main Icon", "sp/ui/icon/status/x64/status_", "png", 0, false, false]
+                ["Icons", "sp/ui/icon/status/x64/status_", "png", 0, false, false]
             ];
             let tmp = getBuffSets(id, data, assets);
             data = tmp[0];
@@ -1932,7 +1932,7 @@ function loadAssets(id, data, target, indexed = true)
                 if(asset[0] == "Scene Arts" && file_count > HIDE_DISPLAY && i == 8)
                     div = hideNextFiles(div, file_count - 8);
                 if(asset[0] == "Raid Bubble Arts" && NO_BUBBLE_FILTER.includes(file.split("_").slice(-1)[0])) continue; // ignore those
-                addImageScene(div, id, asset, file);
+                addImageScene(div, file, id, asset);
             }
         }
     }
@@ -2223,7 +2223,7 @@ function addImage(div, file, asset, is_home) // add an asset
     return true;
 }
 
-function addImageScene(div, id, asset, file) // add a npc/scene asset
+function addImageScene(div, file, id, asset) // add a npc/scene asset
 {
     let img = document.createElement("img");
     let ref = document.createElement('a');
@@ -2367,33 +2367,20 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
     if(vu1 && vu10)
     {
         for(let i = 0; i < 31; ++i)
-        {
-            if(i%10 == 1)
-            {
-                data.push([]);
-                assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
-            }
             data[data.length-1].push(""+iid+"_"+i);
-        }
     }
     else if(vu1)
     {
-        data.push([]);
-        assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
         for(let i = 0; i < 10; ++i)
             data[data.length-1].push(""+iid+"_"+i);
     }
     if(v1) // weird exception for satyr and siete (among maybe others)
     {
-        data.push([]);
-        assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
-        for(let i = 0; i < 10; ++i)
+        for(let i = 0; i < 21; ++i)
             data[data.length-1].push(""+iid+""+i);
     }
     if(vu10 && vu30)
     {
-        data.push([]);
-        assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
         for(let i = 10; i < 100; ++i)
             data[data.length-1].push(""+iid+"_"+i);
     }
@@ -2404,42 +2391,27 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
             if(vu111)
             {
                 for(let i = 0; i < 200; ++i)
-                {
-                    if(i % 10 == 0)
-                    {
-                        data.push([]);;
-                        assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false])
-                    }
                     data[data.length-1].push(""+iid+"_"+i);
-                }
             }
             else if(vu110)
             {
-                data.push([]);
-                assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
                 for(let i = 0; i < 21; ++i)
                     data[data.length-1].push(""+iid+"_1"+i);
             }
             else
             {
-                data.push([]);
-                assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
                 for(let i = 10; i < 111; ++i)
                     data[data.length-1].push(""+iid+"_"+i);
             }
         }
         else if(vu101)
         {
-            data.push([]);
-            assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
             for(let i = 1; i < 21; ++i)
                 data[data.length-1].push(""+iid+"_1"+JSON.stringify(i).padStart(2, '0'));
         }
     }
     if(vu0u10 && !vu1u10)
     {
-        data.push([]);
-        assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
         for(let i = 10; i < 101; ++i)
         {
             data[data.length-1].push(""+iid+"_0_"+i);
@@ -2447,15 +2419,11 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
     }
     if(vu1u1 && vu1u10)
     {
-        data.push([]);
-        assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
         for(let i = 0; i < 21; ++i)
             data[data.length-1].push(""+iid+"_1_"+i);
     }
     else if(vu1u1)
     {
-        data.push([]);
-        assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
         for(let i = 0; i < 11; ++i)
             data[data.length-1].push(""+iid+"_1_"+i);
     }
@@ -2464,14 +2432,7 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
         for(let j = 0; j < ((vu2u1 || vu2u10) ? 9 : 2); ++j)
         {
             for(let i = 0; i < 101; ++i)
-            {
-                if(i % 10 == 0)
-                {
-                    data.push([]);;
-                    assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false])
-                }
                 data[data.length-1].push(""+iid+"_"+j+"_"+i);
-            }
         }
     }
     else if(vu2u1)
@@ -2481,22 +2442,13 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
             for(let j = 2; j < 7; ++j)
             {
                 for(let i = 0; i < 21; ++i)
-                {
-                    if(i % 10 == 0)
-                    {
-                        data.push([]);;
-                        assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false])
-                    }
-                    data[data.length-1].push(""+iid+"_"+j+"_"+i);$
-                }
+                    data[data.length-1].push(""+iid+"_"+j+"_"+i);
             }
         }
         else
         {
             for(let j = 2; j < 7; ++j)
             {
-                data.push([]);
-                assets.push(["Set #"+(data.length-1), "sp/ui/icon/status/x64/status_", "png", data.length-1, false, false]);
                 for(let i = 0; i < 11; ++i)
                     data[data.length-1].push(""+iid+"_"+j+"_"+i);
             }
