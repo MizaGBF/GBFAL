@@ -313,11 +313,12 @@ class Updater():
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
     # Generic GET request function
-    async def get(self, url : str, headers : dict = {}, timeout : Optional[int] = None):
+    async def get(self, url : str, headers : dict = {}, timeout : Optional[int] = None, get_json : Optional[bool] = None):
         async with self.http_sem:
             response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=timeout)
             async with response:
                 if response.status != 200: raise Exception("HTTP error {}".format(response.status))
+                if get_json: return await response.json()
                 return await response.content.read()
     
     # Generic HEAD request function
@@ -2067,23 +2068,12 @@ class Updater():
     # Check the given id on the wiki to retrieve element details. Only for summons, weapons and characters.
     async def generateNameLookup(self, cid : str):
         with self.progress:
-            if not self.use_wiki or (not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30")): return
-            try:
-                r = await self.get("https://gbf.wiki/index.php?search={}".format(cid))
-                if r is not None:
-                    try: content = r.decode('utf-8')
-                    except: content = r.decode('iso-8859-1')
-                    soup = BeautifulSoup(content, 'html.parser')
-                    m = None
-                    try:
-                        res = soup.find_all("ul", class_="mw-search-results")[0].findChildren("li", class_="mw-search-result", recursive=False) # recuperate the search results
-                        for r in res: # for each, get the title
-                            m = r.findChildren("div", class_="mw-search-result-heading", recursive=False)[0].findChildren("a", recursive=False)[0].attrs['title']
-                            break
-                    except:
-                        pass
-                    if m is not None:
-                        await self.generateNameLookup_sub(cid, m)
+            async with self.wiki_sem:
+                if not self.use_wiki or (not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30")): return
+                try:
+                    data = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(cid), get_json=True))['query']['search']
+                    if len(data) > 0:
+                        await self.generateNameLookup_sub(cid, data[0]['title'])
                     else: # CN wiki fallback
                         try:
                             r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
@@ -2100,8 +2090,8 @@ class Updater():
                                         await self.generateNameLookup_sub(cid, str(r)[a:b])
                         except:
                             pass
-            except:
-                pass
+                except:
+                    pass
 
     # generateNameLookup() subroutine. Read the wiki page to extract element details (element, etc...)
     async def generateNameLookup_sub(self, cid : str, wiki_lookup : str):
@@ -2459,33 +2449,19 @@ class Updater():
             if not self.use_wiki: return None, []
             async with self.wiki_sem:
                 try:
-                    page = await self.get("https://gbf.wiki/index.php?search={}".format(eid))
-                    try: page = page.decode('utf-8')
-                    except: page = page.decode('iso-8859-1')
-                    page = page[page.find('mw-content-text'):page.find('printfooter')]
-                    links = []
-                    b = 0
-                    while True:
-                        a = page.find('<a href="', b)
-                        if a == -1: break
-                        a += len('<a href="')
-                        b = page.find('"', a)
-                        link = page[a:b]
-                        if 'index.php' not in link and '/' not in link[1:]:
-                            links.append(link)
+                    data = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(eid), get_json=True))['query']['search']
                 except:
                     return None, []
-                for link in links:
+                for entry in data:
                     try:
-                        page = await self.get("https://gbf.wiki" + link)
-                        name = link[1:].split('(')[0].replace('_', ' ').strip().lower()
+                        page = await self.get("https://gbf.wiki/" + entry['title'].replace(' ', '_'))
+                        name = entry['title'].split('(')[0].replace('_', ' ').strip().lower()
                         if not eid.startswith('10'):
-                            with self.name_lock:
-                                if name not in self.name_table:
-                                    self.name_table[name] = []
-                                if eid not in self.name_table[name] and not eid.startswith('399') and not eid.startswith('305'):
-                                    self.name_table[name].append(eid)
-                                    self.name_table_modified = True
+                            if name not in self.name_table:
+                                self.name_table[name] = []
+                            if eid not in self.name_table[name] and not eid.startswith('399') and not eid.startswith('305'):
+                                self.name_table[name].append(eid)
+                                self.name_table_modified = True
                         try: page = page.decode('utf-8')
                         except: page = page.decode('iso-8859-1')
                         ids = set()
@@ -2567,10 +2543,11 @@ class Updater():
         while True:
             print("[0] Redo Relationship")
             print("[1] Add Relationship")
+            print("[Any] Quit")
             match input():
                 case '0':
                     while True:
-                        s = input("ID(s):")
+                        s = input("List of ID(s) to redo:")
                         if s == "":
                             break
                         else:
@@ -2578,7 +2555,7 @@ class Updater():
                             break
                 case '1':
                     while True:
-                        s = input("ID(s) to edit:")
+                        s = input("List of ID(s) to edit:")
                         if s == "":
                             break
                         else:
@@ -2600,33 +2577,37 @@ class Updater():
         try:
             l = self.SEASONAL_EVENTS
             if not self.use_wiki: raise Exception()
-            r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset=0&profile=default&search=%22Initial+Release%22')
-            soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
-            res = soup.find_all("div", class_="searchresult")
-            for r in res:
-                try:
-                    x = r.text.split(": ")[1].split(" Rerun")[0].split(" Added")[0].replace(",", "").split(" ")
-                    if len(x) != 3: raise Exception()
-                    x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
-                    x[1] = str(x[1]).zfill(2)
-                    x[2] = x[2][2:]
-                    l.append(x[2]+x[0]+x[1])
-                except:
-                    pass
-            for offset in [0, 500]:
-                r = await self.get('https://gbf.wiki/index.php?title=Special:Search&limit=500&offset={}&profile=default&search=%22Event+duration%22'.format(offset))
-                soup = BeautifulSoup(r.decode("utf-8"), 'html.parser')
-                res = soup.find_all("div", class_="searchresult")
-                for r in res:
+            for st in [("%22Initial+Release%22", 0), ("%22Event+duration%22", 1)]:
+                offset = 0
+                err = 0
+                while True:
                     try:
-                        x = r.text.split("JST, ")[1].split(" - ")[0].split(" //")[0].replace(",", "").split(" ")
-                        if len(x) != 3: raise Exception()
-                        x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
-                        x[1] = str(x[1]).zfill(2)
-                        x[2] = x[2][2:]
-                        l.append(x[2]+x[0]+x[1])
+                        r = await self.get('https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}&sroffset={}&srlimit=500'.format(st[0], offset), get_json=True)
                     except:
-                        pass
+                        err += 1
+                        if err >= 3: break
+                        await asyncio.sleep(3)
+                        continue
+                    for entry in r['query']['search']:
+                        try:
+                            match st[1]:
+                                case 0:
+                                    x = entry['snippet'].split('<span class="searchmatch">', 1)[1].split(": ")[1].split(" Rerun")[0].split(" Added")[0].replace(",", "").split(" ")
+                                case 1:
+                                    x = entry['snippet'].split("JST, ")[1].split(" - ")[0].split(" //")[0].replace(",", "").split(" ")
+                            if len(x) != 3: raise Exception()
+                            x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
+                            x[1] = str(x[1]).zfill(2)
+                            x[2] = x[2][2:]
+                            l.append(x[2]+x[0]+x[1])
+                        except:
+                            continue
+                    if 'continue' in r:
+                        offset = r['continue']['sroffset']
+                        print(offset)
+                    else:
+                        break
+                print(">", len(l))
         except:
             pass
         l = list(set(l))
@@ -3111,7 +3092,7 @@ class Updater():
         print("-lookup      : Force update the lookup table (Time Consuming).")
         print("-lookupfix   : Lookup CLI.")
         print("-relation    : Update the relationship index.")
-        print("-relinput    : Relation CLI.")
+        print("-relationedit: Relation CLI.")
         print("-scenenpc    : Update scene index for every npcs (Time consuming).")
         print("-scenechara  : Update scene index for every characters (Time consuming).")
         print("-sceneskin   : Update scene index for every skins (Time consuming).")
@@ -3127,7 +3108,7 @@ class Updater():
 
     async def boot(self, argv : list):
         try:
-            print("GBFAL updater v2.12\n")
+            print("GBFAL updater v2.13\n")
             self.client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50))
             self.use_wiki = await self.test_wiki()
             if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
@@ -3152,7 +3133,6 @@ class Updater():
             if "-debug_wpn" in flags: self.debug_wpn = True
             if "-wait" in flags: forced_stop = not (await self.wait())
             if "-nochange" in flags: self.update_changelog = False
-            
             if not forced_stop:
                 if len(flags) == 0:
                     self.print_help()
@@ -3166,7 +3146,7 @@ class Updater():
                 elif "-lookup" in flags: await self.buildLookup()
                 elif "-lookupfix" in flags: await self.manualLookup()
                 elif "-relation" in flags: await self.build_relation()
-                elif "-relinput" in flags: await self.relation_edit()
+                elif "-relationedit" in flags: await self.relation_edit()
                 elif "-scenenpc" in flags: await self.update_all_scene("npcs", extras)
                 elif "-scenechara" in flags: await self.update_all_scene("characters", extras)
                 elif "-sceneskin" in flags: await self.update_all_scene("skins", extras)

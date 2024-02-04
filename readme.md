@@ -34,7 +34,7 @@ Action parameters (Only one of those can be used at a time):
 - `-lookup`: Force update the lookup table. Time consuming.  
 - `-lookupfix`: Open a CLI to manually add lookup data to elements without any. Last resort option.  
 - `-relation`: Check for new relationships between elements.  
-- `-relinput`: Open a CLI to create relationships between elements. Last resort option.  
+- `-relationedit`: Open a CLI to create relationships between elements. Last resort option.  
 - `-scenenpc`: Update scene datas for NPCs. Very time consuming.  
 - `-scenechara`: Update scene datas for characters. Very time consuming.  
 - `-sceneskin`: Update scene datas for outfits. Very time consuming.  
