@@ -141,7 +141,6 @@ var index = {}; // data index (loaded from data.json)
 var searchHistory = []; // history
 var searchResults = []; // search results
 var searchID = null; // search result id
-var searchFilters = [true, true, true]; // search result booleans
 var bookmarks = []; // bookmarks
 var timestamp = Date.now(); // timestamp (loaded from changelog.json)
 var updated = []; // list of recently updated elements (loaded from changelog.json)
@@ -1532,6 +1531,20 @@ function search(id) // generate search results
 function updateSearchResuls()
 {
     if(searchResults.length == 0) return;
+    let searchFilters = localStorage.getItem("gbfal-search");
+    if(searchFilters != null)
+    {
+        try
+        {
+            searchFilters = JSON.parse(searchFilters);
+        }
+        catch(err)
+        {
+            console.error("Exception thrown", err.stack);
+            searchFilters = [true, true, true];
+        }
+    }
+    else searchFilters = [true, true, true];
     // filter results
     let results = [];
     for(let e of searchResults)
@@ -1597,7 +1610,29 @@ function updateSearchResuls()
 
 function toggleSearchFilter(indice)
 {
+    let searchFilters = localStorage.getItem("gbfal-search");
+    if(searchFilters != null)
+    {
+        try
+        {
+            searchFilters = JSON.parse(searchFilters);
+        }
+        catch(err)
+        {
+            console.error("Exception thrown", err.stack);
+            searchFilters = [true, true, true];
+        }
+    }
+    else searchFilters = [true, true, true];
     searchFilters[indice] = !searchFilters[indice];
+    try
+    {
+        localStorage.setItem("gbfal-search", JSON.stringify(searchFilters));
+    }
+    catch(err)
+    {
+        console.error("Exception thrown", err.stack);
+    }
     updateSearchResuls();
 }
 
