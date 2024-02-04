@@ -140,6 +140,8 @@ var last_type = null; // last asset type loaded
 var index = {}; // data index (loaded from data.json)
 var searchHistory = []; // history
 var searchResults = []; // search results
+var searchID = null; // search result id
+var searchFilters = [true, true, true]; // search result booleans
 var bookmarks = []; // bookmarks
 var timestamp = Date.now(); // timestamp (loaded from changelog.json)
 var updated = []; // list of recently updated elements (loaded from changelog.json)
@@ -1150,13 +1152,14 @@ function exportBookmark() // export the bookmark list to the clipboard
         {
             bookmarks = JSON.parse(bookmarks);
         }
+        navigator.clipboard.writeText(JSON.stringify(bookmarks));
+        pushPopup("Bookmarks have been copied");
     }
     catch(err)
     {
         console.error("Exception thrown", err.stack);
         bookmarks = [];
     }
-    pushPopup("Bookmarks have been copied");
 }
 
 function importBookmark() // import the bookmark list from the clipboard. need localhost or a HTTPS host
@@ -1437,6 +1440,7 @@ function lookup(id) // check element validity and either load it or return searc
         {
             document.getElementById('results').style.display = "none";
             searchResults = [];
+            searchID = null;
         }
         // remove fav button before loading
         favButton(false);
@@ -1467,11 +1471,7 @@ function lookup(id) // check element validity and either load it or return searc
 
 function search(id) // generate search results
 {
-    // clear result
-    let node = document.getElementById('results');
-    node.style.display = "none";
-    node.innerHTML = "";
-    if(id == "") return;
+    if(id == "" || id == searchID) return;
     // search
     let words = id.toLowerCase().split(' ');
     let positives = [];
@@ -1519,28 +1519,72 @@ function search(id) // generate search results
         }
         return 0;
     });
-    // limit to 50
-    positives = positives.slice(0, 50);
-    // update html
-    updateList(node, positives);
-    results.style.display = null;
-    if(positives.length == 50)
+    searchResults = positives;
+    searchID = id;
+    if(searchResults.length > 0)
     {
-        results.appendChild(document.createElement("br"));
-        results.appendChild(document.createTextNode("(First 50 results)"));
-    }
-    else if(positives.length == 0)
-    {
-        results.appendChild(document.createTextNode("No Results"));
-    }
-    let filter = document.getElementById('filter');
-    if(positives.length > 0)
-    {
-        results.insertBefore(document.createElement("br"), results.firstChild);
-        results.insertBefore(document.createTextNode("Results for \"" + id + "\""), results.firstChild);
+        let filter = document.getElementById('filter');
         if(filter.value != id) filter.value = id;
     }
+    updateSearchResuls();
+}
+
+function updateSearchResuls()
+{
+    if(searchResults.length == 0) return;
+    // filter results
+    let results = [];
+    for(let e of searchResults)
+    {
+        switch(e[1])
+        {
+            case 1:
+            case 2:
+            case 3:
+                if(searchFilters[e[1]-1])
+                    results.push(e);
+                break;
+            default:
+                continue
+        };
+        if(results.length >= 50)
+            break;
+    }
+    let node = document.getElementById('results');
+    node.style.display = null;
+    if(results.length == 0)
+    {
+        node.innerHTML = "No Results";
+    }
+    else
+    {
+        updateList(node, results);
+        node.insertBefore(document.createElement("br"), node.firstChild);
+        node.insertBefore(document.createTextNode((results.length >= 50) ? "First 50 Results for \"" + searchID + "\"" : "Results for \"" + searchID + "\""), node.firstChild);
+    }
+    // add checkboxes
+    node.appendChild(document.createElement("br"));
+    node.appendChild(document.createElement("br"));
+    let div = document.createElement("div");
+    div.classList.add("std-button-container");
+    node.appendChild(div);
+    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"]])
+    {
+        let input = document.createElement("input");
+        input.type = "checkbox";
+        input.classList.add("checkbox");
+        input.name = e[1];
+        input.onclick = function() {toggleSearchFilter(e[0]);};
+        input.checked = searchFilters[e[0]];
+        div.appendChild(input);
+        let label = document.createElement("label");
+        label.classList.add("checkbox-label");
+        label.for = e[1];
+        label.innerHTML = e[1];
+        div.appendChild(label);
+    }
     // scroll up if needed
+    let filter = document.getElementById('filter');
     var rect = filter.getBoundingClientRect();
     if(
         rect.bottom < 0 ||
@@ -1548,8 +1592,13 @@ function search(id) // generate search results
         rect.top > (window.innerHeight || document.documentElement.clientHeight) ||
         rect.left > (window.innerWidth || document.documentElement.clientWidth)
     )
-        document.getElementById('filter').scrollIntoView();
-    searchResults = positives;
+    filter.scrollIntoView();
+}
+
+function toggleSearchFilter(indice)
+{
+    searchFilters[indice] = !searchFilters[indice];
+    updateSearchResuls();
 }
 
 function loadDummy(id, target)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder

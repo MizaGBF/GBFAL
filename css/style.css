@@ -385,6 +385,15 @@ a:active {
     height: 20px;
 }
 
+.checkbox {
+    width: 25px;
+    height: 25px;
+}
+
+.checkbox-label {
+    font-size: 20px;
+}
+
 @media (hover: none) { /* mobile stuff */
     body {
         font-size: 50px;
@@ -541,5 +550,14 @@ a:active {
         left: 50px;
         width: 140px;
         height: 40px;
+    }
+
+    .checkbox {
+        width: 70px;
+        height: 70px;
+    }
+
+    .checkbox-label {
+        font-size: 40px;
     }
 }
