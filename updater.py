@@ -2380,7 +2380,7 @@ class Updater():
             self.progress = Progress(self)
             if len(to_update) == 0:
                 for eid in self.data['characters']:
-                    if eid not in relation or len(relation[eid]) == 0::
+                    if eid not in relation or len(relation[eid]) == 0:
                         tasks.append(tg.create_task(self.get_relation(eid)))
                 for eid in self.data['summons']:
                     if eid not in relation:
