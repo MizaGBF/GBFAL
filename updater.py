@@ -2380,7 +2380,7 @@ class Updater():
             self.progress = Progress(self)
             if len(to_update) == 0:
                 for eid in self.data['characters']:
-                    if eid not in relation or len(relation[eid]) == 0:
+                    if eid not in relation or len(relation[eid]) == 0::
                         tasks.append(tg.create_task(self.get_relation(eid)))
                 for eid in self.data['summons']:
                     if eid not in relation:
@@ -2392,55 +2392,54 @@ class Updater():
                 for eid in to_update:
                     tasks.append(tg.create_task(self.get_relation(eid)))
             self.progress.set(total=len(tasks), silent=False)
-        if len(tasks) > 0:
-            for t in tasks:
-                r = t.result()
-                try:
-                    if r[0] is None or (r[0] not in self.data['characters'] and r[0] not in self.data['summons'] and r[0] not in self.data['weapons'] and r[0] not in self.data['skins']) or (r[0] in relation and len(r[1]) == len(relation[r[0]])): raise Exception()
-                    relation[r[0]] = r[1]
-                    new.append(r[0])
-                except:
-                    pass
-            for n in new:
-                for eid in relation[n]:
+        for t in tasks:
+            r = t.result()
+            try:
+                if r[0] is None or (r[0] not in self.data['characters'] and r[0] not in self.data['summons'] and r[0] not in self.data['weapons'] and r[0] not in self.data['skins']) or (r[0] in relation and len(r[1]) == len(relation[r[0]])): raise Exception()
+                relation[r[0]] = r[1]
+                new.append(r[0])
+            except:
+                pass
+        for n in new:
+            for eid in relation[n]:
+                if eid not in relation:
+                    relation[eid] = []
+                    self.modified = True
+                if n not in relation[eid]:
+                    relation[eid].append(n)
+                    relation[eid].sort()
+                    self.modified = True
+            relation[n].sort()
+        if len(new) > 0:
+            print("Comparing with the name table...")
+            for k in self.name_table:
+                ks = k.replace(',', '').split(' ')
+                for l in self.name_table:
+                    ls = l.replace(',', '').split(' ')
+                    if l != k and k in ls or l in ks and self.name_table[k] != self.name_table[l]:
+                        for e in self.name_table[l]:
+                            if e not in self.name_table[k]:
+                                self.name_table[k].append(e)
+                        self.name_table[l] = self.name_table[k]
+            for k in self.name_table:
+                for eid in self.name_table[k]:
                     if eid not in relation:
                         relation[eid] = []
                         self.modified = True
-                    if n not in relation[eid]:
-                        relation[eid].append(n)
+                    for oid in self.name_table[k]:
+                        if oid == eid or oid in relation[eid]: continue
+                        relation[eid].append(oid)
                         relation[eid].sort()
                         self.modified = True
-                relation[n].sort()
-            if len(new) > 0:
-                print("Comparing with the name table...")
-                for k in self.name_table:
-                    ks = k.replace(',', '').split(' ')
-                    for l in self.name_table:
-                        ls = l.replace(',', '').split(' ')
-                        if l != k and k in ls or l in ks and self.name_table[k] != self.name_table[l]:
-                            for e in self.name_table[l]:
-                                if e not in self.name_table[k]:
-                                    self.name_table[k].append(e)
-                            self.name_table[l] = self.name_table[k]
-                for k in self.name_table:
-                    for eid in self.name_table[k]:
-                        if eid not in relation:
-                            relation[eid] = []
-                            self.modified = True
-                        for oid in self.name_table[k]:
-                            if oid == eid or oid in relation[eid]: continue
-                            relation[eid].append(oid)
-                            relation[eid].sort()
-                            self.modified = True
-                self.data['relations'] = relation
-                self.save()
-            if self.name_table_modified:
-                try:
-                    with open("json/relation_name.json", "w") as f:
-                        json.dump(self.name_table, f, sort_keys=True, indent='\t', separators=(',', ':'))
-                    print("Name table updated")
-                except:
-                    pass
+            self.data['relations'] = relation
+            self.save()
+        if self.name_table_modified:
+            try:
+                with open("json/relation_name.json", "w") as f:
+                    json.dump(self.name_table, f, sort_keys=True, indent='\t', separators=(',', ':'))
+                print("Name table updated")
+            except:
+                pass
         print("Done")
 
     # build_relation() subroutine. Check an element wiki page for alternate version or corresponding weapons
