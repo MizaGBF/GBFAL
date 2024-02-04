@@ -236,193 +236,202 @@ function initData() // load data.json
 function initIndex() // build the html index. simply edit the constants above to change the index.
 {
     let content = document.getElementById('index');
-    let parents = null;
-    let inter = null;
-    let elems = null;
-    parents = makeIndexSummary(content, "Characters", true, false, "assets/ui/icon/characters.png");
-    for(let i of CHARACTERS)
+    try
     {
-        elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
-        const tmp = [elems[0], i[2]];
-        elems[1].onclick = function (){
-            display(tmp[0], 'characters', tmp[1], null, false, true);
-            this.onclick = null;
-        };
-    }
-    parents = makeIndexSummary(content, "Skins", true, false, "assets/ui/icon/skins.png");
-    for(let i of SKINS)
-    {
-        elems = makeIndexSummary(parents[0], i[0], false, true);
-        const tmp = [elems[0], i[1]];
-        elems[1].onclick = function (){
-            display(tmp[0], 'skins', tmp[1], null, false, true);
-            this.onclick = null;
-        };
-    }
-    parents = makeIndexSummary(content, "Partners", true, false, "assets/ui/icon/partners.png");
-    for(let i of PARTNERS)
-    {
-        elems = makeIndexSummary(parents[0], i[0], false, true, i[2]);
-        const tmp = [elems[0], i[1]];
-        elems[1].onclick = function (){
-            display(tmp[0], 'partners', tmp[1], null, false, true);
-            this.onclick = null;
-        };
-    }
-    parents = makeIndexSummary(content, "Summons", true, false, "assets/ui/icon/summons.png");
-    for(let i of SUMMONS)
-    {
-        elems = makeIndexSummary(parents[0], i[0], false, true, i[3]);
-        const tmp = [elems[0], i[1], i[2]];
-        elems[1].onclick = function (){
-            display(tmp[0], 'summons', tmp[1], tmp[2], false, true);
-            this.onclick = null;
-        };
-    }
-    parents = makeIndexSummary(content, "Weapons", true, false, "assets/ui/icon/weapons.png");
-    for(let i of WEAPONS_RARITY)
-    {
-        let inter = makeIndexSummary(parents[0], i[0], true, true, i[2]);
-        for(let j of WEAPONS)
+        content.innerHTML = "";
+        let parents = null;
+        let inter = null;
+        let elems = null;
+        parents = makeIndexSummary(content, "Characters", true, false, "assets/ui/icon/characters.png");
+        for(let i of CHARACTERS)
         {
-            elems = makeIndexSummary(inter[0], j[0], false, true, j[2]);
-            const tmp = [elems[0], i[1], j[1]];
+            elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+            const tmp = [elems[0], i[2]];
             elems[1].onclick = function (){
-                display(tmp[0], 'weapons', tmp[1], tmp[2], false, true);
+                display(tmp[0], 'characters', tmp[1], null, false, true);
                 this.onclick = null;
             };
         }
-    }
-    elems = makeIndexSummary(content, "Classes", false, false, "assets/ui/icon/classes.png");
-    {
-        const tmp = elems[0];
-        elems[1].onclick = function (){
-            display(tmp, 'job', null, null, false, true);
-            this.onclick = null;
-        };
-    }
-    parents = makeIndexSummary(content, "Enemies", true, false, "assets/ui/icon/enemies.png");
-    for(let i of ENEMIES_CATEGORIES)
-    {
-        let inter = makeIndexSummary(parents[0], i[0], true, true, i[2]);
-        for(let j of ENEMIES)
+        parents = makeIndexSummary(content, "Skins", true, false, "assets/ui/icon/skins.png");
+        for(let i of SKINS)
         {
-            elems = makeIndexSummary(inter[0], j[0], false, true);
-            const tmp = [elems[0], i[1], j[1]];
+            elems = makeIndexSummary(parents[0], i[0], false, true);
+            const tmp = [elems[0], i[1]];
             elems[1].onclick = function (){
-                display(tmp[0], 'enemies', tmp[1], tmp[2], false, true);
+                display(tmp[0], 'skins', tmp[1], null, false, true);
                 this.onclick = null;
             };
         }
-    }
-    parents = makeIndexSummary(content, "NPCs", true, false, "assets/ui/icon/npcs.png");
-    for(let i of NPCS)
-    {
-        if(i.length > 4)
+        parents = makeIndexSummary(content, "Partners", true, false, "assets/ui/icon/partners.png");
+        for(let i of PARTNERS)
         {
-            let inter = makeIndexSummary(parents[0], i[0], true, true, i[1]);
-            for(let j = 3; j < i.length; ++j)
+            elems = makeIndexSummary(parents[0], i[0], false, true, i[2]);
+            const tmp = [elems[0], i[1]];
+            elems[1].onclick = function (){
+                display(tmp[0], 'partners', tmp[1], null, false, true);
+                this.onclick = null;
+            };
+        }
+        parents = makeIndexSummary(content, "Summons", true, false, "assets/ui/icon/summons.png");
+        for(let i of SUMMONS)
+        {
+            elems = makeIndexSummary(parents[0], i[0], false, true, i[3]);
+            const tmp = [elems[0], i[1], i[2]];
+            elems[1].onclick = function (){
+                display(tmp[0], 'summons', tmp[1], tmp[2], false, true);
+                this.onclick = null;
+            };
+        }
+        parents = makeIndexSummary(content, "Weapons", true, false, "assets/ui/icon/weapons.png");
+        for(let i of WEAPONS_RARITY)
+        {
+            let inter = makeIndexSummary(parents[0], i[0], true, true, i[2]);
+            for(let j of WEAPONS)
             {
-                elems = makeIndexSummary(inter[0], (j == 3 ? "First Half" : (j == 4 ? "Second Half" : "???")), false, true);
-                const tmp = [elems[0], i[2], i[j]];
+                elems = makeIndexSummary(inter[0], j[0], false, true, j[2]);
+                const tmp = [elems[0], i[1], j[1]];
+                elems[1].onclick = function (){
+                    display(tmp[0], 'weapons', tmp[1], tmp[2], false, true);
+                    this.onclick = null;
+                };
+            }
+        }
+        elems = makeIndexSummary(content, "Classes", false, false, "assets/ui/icon/classes.png");
+        {
+            const tmp = elems[0];
+            elems[1].onclick = function (){
+                display(tmp, 'job', null, null, false, true);
+                this.onclick = null;
+            };
+        }
+        parents = makeIndexSummary(content, "Enemies", true, false, "assets/ui/icon/enemies.png");
+        for(let i of ENEMIES_CATEGORIES)
+        {
+            let inter = makeIndexSummary(parents[0], i[0], true, true, i[2]);
+            for(let j of ENEMIES)
+            {
+                elems = makeIndexSummary(inter[0], j[0], false, true);
+                const tmp = [elems[0], i[1], j[1]];
+                elems[1].onclick = function (){
+                    display(tmp[0], 'enemies', tmp[1], tmp[2], false, true);
+                    this.onclick = null;
+                };
+            }
+        }
+        parents = makeIndexSummary(content, "NPCs", true, false, "assets/ui/icon/npcs.png");
+        for(let i of NPCS)
+        {
+            if(i.length > 4)
+            {
+                let inter = makeIndexSummary(parents[0], i[0], true, true, i[1]);
+                for(let j = 3; j < i.length; ++j)
+                {
+                    elems = makeIndexSummary(inter[0], (j == 3 ? "First Half" : (j == 4 ? "Second Half" : "???")), false, true);
+                    const tmp = [elems[0], i[2], i[j]];
+                    elems[1].onclick = function (){
+                        display(tmp[0], 'npcs', tmp[1], tmp[2], false, false);
+                        this.onclick = null;
+                    };
+                }
+            }
+            else
+            {
+                elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+                const tmp = [elems[0], i[2], i[3]];
                 elems[1].onclick = function (){
                     display(tmp[0], 'npcs', tmp[1], tmp[2], false, false);
                     this.onclick = null;
                 };
             }
         }
-        else
+        elems = makeIndexSummary(content, "Events", false, false, "assets/ui/icon/events.png");
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
-            const tmp = [elems[0], i[2], i[3]];
+            const tmp = elems[0];
             elems[1].onclick = function (){
-                display(tmp[0], 'npcs', tmp[1], tmp[2], false, false);
+                display(tmp, 'events', null, null, false, true);
                 this.onclick = null;
             };
         }
-    }
-    elems = makeIndexSummary(content, "Events", false, false, "assets/ui/icon/events.png");
-    {
-        const tmp = elems[0];
-        elems[1].onclick = function (){
-            display(tmp, 'events', null, null, false, true);
-            this.onclick = null;
-        };
-    }
-    parents = makeIndexSummary(content, "Skills", true, false, "assets/ui/icon/skills.png");
-    for(let i of SKILLS)
-    {
-        const name = "ID " + JSON.stringify(i[1][0]).padStart(4, "0") + " to " + JSON.stringify(i[i.length-1][1]-1).padStart(4, "0");
-        let inter = makeIndexSummary(parents[0], name, true, true, i[0]);
-        for(let j = 1; j < i.length; ++j)
+        parents = makeIndexSummary(content, "Skills", true, false, "assets/ui/icon/skills.png");
+        for(let i of SKILLS)
         {
-            elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, true);
-            const tmp = [elems[0], i[j]];
-            elems[1].onclick = function (){
-                display(tmp[0], 'skills', tmp[1],null, false, false);
-                this.onclick = null;
-            };
-        }
-    }
-    elems = makeIndexSummary(content, "Sub Skills", false, false, "assets/ui/icon/subskills.png");
-    {
-        const tmp = elems[0];
-        elems[1].onclick = function (){
-            display(tmp, 'subskills', null, null, false, false);
-            this.onclick = null;
-        };
-    }
-    parents = makeIndexSummary(content, "Buffs", true, false, "assets/ui/icon/buffs.png");
-    for(let i of BUFFS)
-    {
-        if(i.length > 3)
-        {
-            let inter = makeIndexSummary(parents[0], i[0], true, true, i[1]);
-            for(let j = 2; j < i.length; ++j)
+            const name = "ID " + JSON.stringify(i[1][0]).padStart(4, "0") + " to " + JSON.stringify(i[i.length-1][1]-1).padStart(4, "0");
+            let inter = makeIndexSummary(parents[0], name, true, true, i[0]);
+            for(let j = 1; j < i.length; ++j)
             {
                 elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, true);
                 const tmp = [elems[0], i[j]];
+                elems[1].onclick = function (){
+                    display(tmp[0], 'skills', tmp[1],null, false, false);
+                    this.onclick = null;
+                };
+            }
+        }
+        elems = makeIndexSummary(content, "Sub Skills", false, false, "assets/ui/icon/subskills.png");
+        {
+            const tmp = elems[0];
+            elems[1].onclick = function (){
+                display(tmp, 'subskills', null, null, false, false);
+                this.onclick = null;
+            };
+        }
+        parents = makeIndexSummary(content, "Buffs", true, false, "assets/ui/icon/buffs.png");
+        for(let i of BUFFS)
+        {
+            if(i.length > 3)
+            {
+                let inter = makeIndexSummary(parents[0], i[0], true, true, i[1]);
+                for(let j = 2; j < i.length; ++j)
+                {
+                    elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, true);
+                    const tmp = [elems[0], i[j]];
+                    elems[1].onclick = function (){
+                        display(tmp[0], 'buffs', tmp[1], null, false, false);
+                        this.onclick = null;
+                    };
+                }
+            }
+            else
+            {
+                elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+                const tmp = [elems[0], i[2]];
                 elems[1].onclick = function (){
                     display(tmp[0], 'buffs', tmp[1], null, false, false);
                     this.onclick = null;
                 };
             }
         }
-        else
+        parents = makeIndexSummary(content, "Backgrounds", true, false, "assets/ui/icon/backgrounds.png");
+        for(let i of BACKGROUNDS)
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
-            const tmp = [elems[0], i[2]];
+            elems = makeIndexSummary(parents[0], i[0], false, true);
+            const tmp = [elems[0], i[1], i[2]];
             elems[1].onclick = function (){
-                display(tmp[0], 'buffs', tmp[1], null, false, false);
+                display(tmp[0], 'background', tmp[1], tmp[2], true, true);
+                this.onclick = null;
+            };
+        }
+        elems = makeIndexSummary(content, "Title Screens", true, false, "assets/ui/icon/titles.png");
+        {
+            const tmp = elems[0];
+            elems[1].onclick = function (){
+                display(tmp, 'title', null, null, true, false);
+                this.onclick = null;
+            };
+        }
+        elems = makeIndexSummary(content, "Suprise Tickets", true, false, "assets/ui/icon/suptix.png");
+        {
+            const tmp = elems[0];
+            elems[1].onclick = function (){
+                display(tmp, 'suptix', null, null, true, true);
                 this.onclick = null;
             };
         }
     }
-    parents = makeIndexSummary(content, "Backgrounds", true, false, "assets/ui/icon/backgrounds.png");
-    for(let i of BACKGROUNDS)
+    catch(err)
     {
-        elems = makeIndexSummary(parents[0], i[0], false, true);
-        const tmp = [elems[0], i[1], i[2]];
-        elems[1].onclick = function (){
-            display(tmp[0], 'background', tmp[1], tmp[2], true, true);
-            this.onclick = null;
-        };
-    }
-    elems = makeIndexSummary(content, "Title Screens", true, false, "assets/ui/icon/titles.png");
-    {
-        const tmp = elems[0];
-        elems[1].onclick = function (){
-            display(tmp, 'title', null, null, true, false);
-            this.onclick = null;
-        };
-    }
-    elems = makeIndexSummary(content, "Suprise Tickets", true, false, "assets/ui/icon/suptix.png");
-    {
-        const tmp = elems[0];
-        elems[1].onclick = function (){
-            display(tmp, 'suptix', null, null, true, true);
-            this.onclick = null;
-        };
+        if(content != null)
+            content.innerHTML = '<div class="container">An error occured while loading the index.<br>Please notify me if you see this message.</div>';
     }
 }
 
