@@ -1531,6 +1531,7 @@ function search(id) // generate search results
 function updateSearchResuls()
 {
     if(searchResults.length == 0) return;
+    // read
     let searchFilters = localStorage.getItem("gbfal-search");
     if(searchFilters != null)
     {
@@ -1610,6 +1611,7 @@ function updateSearchResuls()
 
 function toggleSearchFilter(indice)
 {
+    // read
     let searchFilters = localStorage.getItem("gbfal-search");
     if(searchFilters != null)
     {
@@ -1624,7 +1626,9 @@ function toggleSearchFilter(indice)
         }
     }
     else searchFilters = [true, true, true];
+    // toggle
     searchFilters[indice] = !searchFilters[indice];
+    // write
     try
     {
         localStorage.setItem("gbfal-search", JSON.stringify(searchFilters));
@@ -1633,6 +1637,7 @@ function toggleSearchFilter(indice)
     {
         console.error("Exception thrown", err.stack);
     }
+    // update
     updateSearchResuls();
 }
 
