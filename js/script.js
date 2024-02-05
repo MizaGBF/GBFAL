@@ -169,7 +169,7 @@ function getJSON(url, callback) { // generic function to request a file. will al
         }
     };
     xhr.open("GET", url, true);
-    xhr.timeout = 1000;
+    xhr.timeout = 60000;
     xhr.send(null);
 }
 
