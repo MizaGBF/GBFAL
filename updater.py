@@ -457,6 +457,10 @@ class Updater():
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/quest/scene/character/body/", "_a.png",  70))
+        categories.append([])
+        self.newShared(errs)
+        for i in range(10): # assets
             categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img_low/sp/assets/npc/b/", "_01.png",  70))
         categories.append([])
         self.newShared(errs)
@@ -2606,7 +2610,6 @@ class Updater():
                         print(offset)
                     else:
                         break
-                print(">", len(l))
         except:
             pass
         l = list(set(l))
