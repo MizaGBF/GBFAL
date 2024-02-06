@@ -2070,7 +2070,7 @@ class Updater():
     ### Lookup ##################################################################################################################
 
     # Check the given id on the wiki to retrieve element details. Only for summons, weapons and characters.
-    async def generateNameLookup(self, cid : str):
+    async def generateNameLookup(self, cid : str) -> None:
         with self.progress:
             async with self.wiki_sem:
                 if not self.use_wiki or (not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30")): return
@@ -2220,7 +2220,7 @@ class Updater():
             for v in data.values():
                 if isinstance(v, list): tmp += v
                 else: tmp.append(v)
-            self.data["lookup"][cid] = " ".join(tmp).lower().replace('  ', ' ')
+            self.data["lookup"][cid] = " ".join(tmp).lower().replace('   ', ' ').replace('  ', ' ')
             self.modified = True
             return True
         except:
