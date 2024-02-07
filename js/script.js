@@ -220,7 +220,7 @@ function initData() // load data.json
         console.error("Exception thrown", err.stack);
         // put a message if GBFAL is broken
         let el = document.getElementById("issues");
-        el.innerHTML = '<p>A critical error occured, please report the issue if it persists.<br><a href="https://mizagbf.github.io/">Home Page</a><br><a href="https://github.com/MizaGBF/GBFAL/issues">Github</a></p>'
+        el.innerHTML = '<p>A critical error occured, please report the issue if it persists.<br>You can also try to clear your cache or do a CTRL+F5.<br><a href="https://mizagbf.github.io/">Home Page</a><br><a href="https://github.com/MizaGBF/GBFAL/issues">Github</a></p>'
         el.style.display = null;
     }
     // init index
@@ -344,6 +344,14 @@ function initIndex() // build the html index. simply edit the constants above to
                     this.onclick = null;
                 };
             }
+        }
+        elems = makeIndexSummary(content, "Main Story", false, false, "assets/ui/icon/story.png");
+        {
+            const tmp = elems[0];
+            elems[1].onclick = function (){
+                display(tmp, 'story', null, null, false, true);
+                this.onclick = null;
+            };
         }
         elems = makeIndexSummary(content, "Events", false, false, "assets/ui/icon/events.png");
         {
@@ -598,6 +606,7 @@ function customSortSeasonal(a, b) // used to sort seasonal sound files
 function display(node, key, argA, argB, pad, reverse) // generic function to display the index lists
 {
     let callback = null;
+    let image_callback = addIndexImage;
     switch(key)
     {
         case "characters":
@@ -623,6 +632,10 @@ function display(node, key, argA, argB, pad, reverse) // generic function to dis
             break;
         case "npcs":
             callback = display_npcs;
+            break;
+        case "story":
+            callback = display_story;
+            image_callback = addTextImage;
             break;
         case "events":
             callback = display_events;
@@ -665,10 +678,11 @@ function display(node, key, argA, argB, pad, reverse) // generic function to dis
         {
             for(let r of slist[k])
             {
-                addIndexImage(node, r[1], r[0], r[2], r[3], r[4]);
+                image_callback(node, r[1], r[0], r[2], r[3], r[4]);
             }
         }
     }
+    else node.innerHTML = '<div>Empty</div><img src="assets/ui/sorry.png">';
 }
 
 function display_characters(id, data, range, unused = null)
@@ -820,11 +834,17 @@ function display_npcs(id, data, prefix, range)
         else
         {
             path = "assets/ui/sound_only.png";
-            className = "sound-only";
+            className = "preview-noborder";
         }
     }
     else return null;
     return [[id, path, null, className, false]];
+}
+
+function display_story(id, data, unusedA = null, unusedB = null)
+{
+    if(data[0].length == 0) return null;
+    return [["ms"+id, "story", "Chapter " + parseInt(id), null, null]];
 }
 
 function display_events(id, data, unusedA = null, unusedB = null)
@@ -845,7 +865,7 @@ function display_events(id, data, unusedA = null, unusedB = null)
         if(index["events"][id][1] == null)
         {
             path = "assets/ui/event.png"
-            className = "sound-only";
+            className = "preview-noborder";
         }
         else
         {
@@ -976,6 +996,22 @@ function addIndexImage(node, path, id, onerr, className, is_link) // add an imag
     }
 }
 
+function addTextImage(node, className, id, string, unusedA, unusedB) // like addIndexImage but currently story specific
+{
+    let elem = document.createElement("div");
+    elem.classList.add(className);
+    elem.classList.add("preview-noborder");
+    elem.classList.add("clickable");
+    elem.onclick = function()
+    {
+        window.scrollTo(0, 0);
+        lookup(id);
+    };
+    elem.title = id;
+    elem.appendChild(document.createTextNode(string));
+    node.appendChild(elem);
+}
+
 // =================================================================================================
 // bookmark, history, relation
 function updateList(node, elems) // update a list of elements
@@ -984,6 +1020,7 @@ function updateList(node, elems) // update a list of elements
     for(let e of elems)
     {
         let res = null;
+        let image_callback = addIndexImage;
         switch(e[1])
         {
             case 3:
@@ -1041,6 +1078,11 @@ function updateList(node, elems) // update a list of elements
                     res = display_backgrounds(e[0], index['backgrounds'][e[0]], (["common", "main", "event"].includes(tmp) ? tmp : ""));
                 }
                 break;
+            case 11:
+                if(e[0] in index['story'])
+                    res = display_story(e[0], index['story'][e[0]]);
+                image_callback = addTextImage;
+                break;
             case "subskills":
                 if(e[0] in index['subskills'])
                 {
@@ -1067,7 +1109,7 @@ function updateList(node, elems) // update a list of elements
         {
             for(let r of res)
             {
-                addIndexImage(node, r[1], r[0], r[2], r[3], r[4]);
+                image_callback(node, r[1], r[0], r[2], r[3], r[4]);
             }
         }
     }
@@ -1422,6 +1464,11 @@ function lookup(id) // check element validity and either load it or return searc
                     target = "buffs";
                     id = id.slice(1);
                 }
+                else if(id.toLowerCase().slice(0, 2) === 'ms' && !isNaN(id.slice(2)))
+                {
+                    target = "story";
+                    id = id.slice(2);
+                }
                 break;
         };
         if(target != null && BANNED.includes(id)) return;
@@ -1685,7 +1732,7 @@ function loadAssets(id, data, target, indexed = true)
     endpoint_count = -1;
     let tmp_last_id = last_id;
     let area_name = ""
-    let area_extra = false;
+    let include_link = false;
     let search_type = null;
     let assets = null;
     let skycompass = null;
@@ -1698,7 +1745,7 @@ function loadAssets(id, data, target, indexed = true)
     {
         case "weapons":
             area_name = "Weapon";
-            area_extra = true;
+            include_link = true;
             last_id = id;
             search_type = 1;
             assets = [
@@ -1720,7 +1767,7 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "summons":
             area_name = "Summon";
-            area_extra = true;
+            include_link = true;
             last_id = id;
             search_type = 2;
             assets = [
@@ -1744,7 +1791,7 @@ function loadAssets(id, data, target, indexed = true)
         case "skins":
         case "characters":
             area_name = target == "characters" ? "Character" : "Skin";
-            area_extra = true;
+            include_link = true;
             last_id = id;
             search_type = 3;
             assets = [
@@ -1798,7 +1845,7 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "npcs":
             area_name = "NPC";
-            area_extra = data[0] && indexed;
+            include_link = data[0] && indexed;
             last_id = id;
             search_type = 5;
             assets = [
@@ -1826,7 +1873,7 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "job":
             area_name = "Main Character";
-            area_extra = true;
+            include_link = true;
             indexed = (data[7].length != 0) && indexed;
             last_id = "e"+id;
             search_type = 0;
@@ -1862,6 +1909,14 @@ function loadAssets(id, data, target, indexed = true)
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
             mc_skycompass = true;
+            break;
+        case "story":
+            area_name = "Main Story Chapter";
+            last_id = "ms"+id;
+            search_type = 11;
+            assets = [
+                ["Arts", "sp/quest/scene/character/body/", "png", 0, false, false]
+            ];
             break;
         case "events":
             area_name = "Event";
@@ -1921,7 +1976,7 @@ function loadAssets(id, data, target, indexed = true)
         updateHistory(id, search_type);
         favButton(true, id, search_type);
     }
-    prepareOuputAndHeader(area_name, id, area_extra, indexed);
+    prepareOuputAndHeader(area_name, id, include_link, indexed);
     updateRelated(id);
     if(assets != null)
     {

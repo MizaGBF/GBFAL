@@ -88,6 +88,7 @@ class Updater():
     ADD_SKILL = 8
     ADD_BUFF = 9
     ADD_BG = 10
+    ADD_STORY = 11
     PREEMPTIVE_ADD = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs", "background"])
     ADD_SINGLE_ASSET = ["title", "subskills", "suptix"]
     # chara/skin/partner update
@@ -141,7 +142,11 @@ class Updater():
     EVENT_MAX_CHAPTER = 15
     EVENT_SKY = EVENT_CHAPTER_START+EVENT_MAX_CHAPTER
     EVENT_UPDATE_COUNT = 20
-    EVENT_UPDATE_STEP = 5
+    # story update
+    STORY_CONTENT = 0
+    STORY_UPDATE_COUNT = 10
+    # common to story, event
+    SCENE_UPDATE_STEP = 5
     # job update
     MAINHAND = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'] # weapon type keywords
     # CDN endpoints
@@ -155,6 +160,7 @@ class Updater():
     # regex
     ID_REGEX = re.compile("[123][07][1234]0\\d{4}00")
     VERSION_REGEX = re.compile("Game\.version = \"(\d+)\";")
+    CHAPTER_REGEX = re.compile("Chapter (\d+)(-(\d+))?")
     # others
     SAVE_VERSION = 0
     STRING_CHAR = string.ascii_lowercase + string.digits
@@ -197,7 +203,8 @@ class Updater():
             "subskills":{},
             "buffs":{},
             "relations":{},
-            "eventthumb":{}
+            "eventthumb":{},
+            "story":{}
         }
         self.load() # load self.data NOW
         self.modified = False # if set to true, data.json will be written on the next call of save()
@@ -225,7 +232,7 @@ class Updater():
     ### Utility #################################################################################################################
 
     # Load data.json
-    def load(self):
+    def load(self) -> None:
         try:
             with open('json/data.json', mode='r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -238,13 +245,13 @@ class Updater():
             print(e)
 
     # make older data.json compatible with newer versions
-    def retrocompatibility(self, data):
+    def retrocompatibility(self, data : dict) -> dict:
         #version = data.get("version", 0)
         # Does nothing for now
         return data
 
     # Save data.json and changelog.json (only if self.modified is True)
-    def save(self):
+    def save(self) -> None:
         try:
             if self.modified:
                 self.modified = False
@@ -346,7 +353,7 @@ class Updater():
         return None
 
     # test if the wiki is usable
-    async def test_wiki(self):
+    async def test_wiki(self) -> bool:
         try:
             t = (await self.get("https://gbf.wiki", timeout=5)).decode('utf-8')
             if "<p id='status'>50" in t or 'gbf.wiki unavailable' in t: return False
@@ -355,12 +362,12 @@ class Updater():
             return False
 
     # Create a shared container for tasks.
-    def newShared(self, errs : list):
+    def newShared(self, errs : list) -> list:
         errs.append([0, True, 0])
         return errs[-1]
 
     # Extract json data from a manifest file
-    async def processManifest(self, file : str, verify_file : bool = False):
+    async def processManifest(self, file : str, verify_file : bool = False) -> list:
         manifest = (await self.get(self.MANIFEST + file + ".js")).decode('utf-8')
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
@@ -380,7 +387,7 @@ class Updater():
         return res
 
     # Remove extra from wiki name
-    def cleanName(self, name : str):
+    def cleanName(self, name : str) -> str:
         for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)', '(Summon)', '(Weapon)']:
             name = name.replace(k, '')
         return name.strip().strip('_').replace('_', ' ')
@@ -422,7 +429,7 @@ class Updater():
     ### Run #####################################################################################################################
     
     # Called by -run, update the indexed content
-    async def run(self):
+    async def run(self) -> None:
         self.run_count = 0
         categories = []
         errs = []
@@ -578,13 +585,14 @@ class Updater():
             t.result()
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
+            await self.check_msq()
             await self.check_new_event()
             await self.update_npc_thumb()
         await self.build_relation()
         self.save()
 
     # run subroutine, process a category batch
-    async def run_category(self, coroutines : list):
+    async def run_category(self, coroutines : list) -> None:
         with self.progress:
             while True:
                 if self.run_count + len(coroutines) <= self.MAX_HTTP:
@@ -603,7 +611,7 @@ class Updater():
             self.run_count -= len(coroutines)
 
     # generic asset search
-    async def search_generic(self, index : str, start : int, step : int, err : list, file : str, zfill : int, path : str, ext : str, maxerr : int):
+    async def search_generic(self, index : str, start : int, step : int, err : list, file : str, zfill : int, path : str, ext : str, maxerr : int) -> None:
         i = start
         is_js = ext.endswith('.js')
         while err[0] < maxerr and err[1]:
@@ -638,7 +646,7 @@ class Updater():
             i += step
 
     # -run subroutine to search for new skills
-    async def search_skill(self, start : int, step : int): # skill search
+    async def search_skill(self, start : int, step : int) -> None: # skill search
         err = 0
         i = start
         tmp = []
@@ -676,7 +684,7 @@ class Updater():
             if not found and i > highest: err += 1
 
     # -run subroutine to search for new buffs
-    async def search_buff(self, start : int, step : int, full : bool = False): # buff search
+    async def search_buff(self, start : int, step : int, full : bool = False) -> None: # buff search
         err = 0
         i = start
         end = (start // 1000) * 1000 + 1000
@@ -744,7 +752,7 @@ class Updater():
     ### Job #####################################################################################################################
     
     # To be called once when needed
-    async def init_job_list(self):
+    async def init_job_list(self) -> dict:
         print("Initializing job list...")
         # existing classes
         try: job_list = (await self.get(self.JS + "constant/job.js")).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
@@ -783,7 +791,7 @@ class Updater():
         return job_list
 
     # Subroutine for init_job_list
-    async def init_job_list_sub(self, id : str):
+    async def init_job_list_sub(self, id : str) -> Optional[str]:
         try:
             await self.head(self.IMG + "sp/assets/leader/m/{}_01.jpg".format(id))
             return id
@@ -791,7 +799,7 @@ class Updater():
             return None
 
     # run subroutine to search for new jobs
-    async def search_job(self, start : int, step : int, keys : list, shared : list):
+    async def search_job(self, start : int, step : int, keys : list, shared : list) -> None:
         i = start
         while i < len(keys):
             if keys[i] in self.data['job']: continue
@@ -838,7 +846,7 @@ class Updater():
             shared[1] = False
 
     # Used by -job, more specific but also slower job detection system
-    async def search_job_detail(self):
+    async def search_job_detail(self) -> None:
         if self.job_list is None:
             self.job_list = await self.init_job_list()
         print("Searching additional job data...")
@@ -883,11 +891,11 @@ class Updater():
         self.save()
 
     # search_job_detail() subroutine
-    async def search_job_detail_task(self, task):
+    async def search_job_detail_task(self, task) -> None:
         await task
 
     # search_job_detail() subroutine
-    async def detail_job_search(self, key : str, job : str):
+    async def detail_job_search(self, key : str, job : str) -> None:
         with self.progress:
             cmh = self.data['job'][job][self.JOB_MH]
             a = key[0]
@@ -908,7 +916,7 @@ class Updater():
                         print("\nSet", job, "to", d)
 
     # search_job_detail() subroutine
-    async def detail_job_weapon_search(self, wid : str):
+    async def detail_job_weapon_search(self, wid : str) -> None:
         with self.progress:
             try:
                 await self.head(self.IMG + '_low/sp/assets/weapon/m/' + wid + ".jpg")
@@ -926,7 +934,7 @@ class Updater():
                     pass
 
     # search_job_detail() subroutine
-    async def detail_job_search_single(self, key : str):
+    async def detail_job_search_single(self, key : str) -> None:
         with self.progress:
             for mh in self.MAINHAND:
                 try:
@@ -939,7 +947,7 @@ class Updater():
                     pass
 
     # -jobedit CLI
-    async def edit_job(self):
+    async def edit_job(self) -> None:
         while True:
             print("")
             print("[EDIT JOB MENU]")
@@ -1108,7 +1116,7 @@ class Updater():
     ### Update ##################################################################################################################
 
     # Called by -update or other function when new content is detected
-    async def manualUpdate(self, ids : list): 
+    async def manualUpdate(self, ids : list) -> None: 
         if len(ids) == 0:
             return
         ids = list(set(ids)) # remove dupes
@@ -1155,7 +1163,7 @@ class Updater():
         self.save()
 
     # Art check system for characters. Detect gendered arts, etc...
-    async def artCheck(self, id : str, style : str, uncaps : list):
+    async def artCheck(self, id : str, style : str, uncaps : list) -> dict:
         tasks = {}
         if id.startswith("38"):
             uncaps = ["01", "02", "03", "04"]
@@ -1180,7 +1188,7 @@ class Updater():
         return flags
 
     # Update character and skin data
-    async def charaUpdate(self, id : str):
+    async def charaUpdate(self, id : str) -> bool:
         with self.progress:
             async with self.sem:
                 index = "skins" if id.startswith("371") else "characters"
@@ -1304,7 +1312,7 @@ class Updater():
             return True
 
     # Update partner data. Note: It's based on charaUpdate and is terribly inefficient
-    async def partnerUpdate(self, id : str, step : int):
+    async def partnerUpdate(self, id : str, step : int) -> bool:
         with self.progress:
             async with self.sem:
                 is_mc = id.startswith("389")
@@ -1454,7 +1462,7 @@ class Updater():
             return True
 
     # Update NPC data
-    async def npcUpdate(self, id : str):
+    async def npcUpdate(self, id : str) -> bool:
         with self.progress:
             async with self.sem:
                 data = [False, [], []] # journal flag, npc, voice
@@ -1497,7 +1505,7 @@ class Updater():
             return True
 
     # Update Summon data
-    async def sumUpdate(self, id : str):
+    async def sumUpdate(self, id : str) -> bool:
         with self.progress:
             async with self.sem:
                 data = [[], [], []] # general, call, damage
@@ -1536,7 +1544,7 @@ class Updater():
             return True
 
     # Update Weapon data
-    async def weapUpdate(self, id : str):
+    async def weapUpdate(self, id : str) -> bool:
         with self.progress:
             async with self.sem:
                 data = [[], [], []] # general, phit, sp
@@ -1570,7 +1578,7 @@ class Updater():
             return True
 
     # Update Enemy data
-    async def mobUpdate(self, id : str):
+    async def mobUpdate(self, id : str) -> bool:
         with self.progress:
             async with self.sem:
                 data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
@@ -1617,7 +1625,7 @@ class Updater():
             return True
 
     # Update Background data
-    async def bgUpdate(self, id : str):
+    async def bgUpdate(self, id : str) -> bool:
         with self.progress:
             async with self.sem:
                 modified = False
@@ -1662,7 +1670,7 @@ class Updater():
     ### Scene ###################################################################################################################
 
     # Called once at boot. Generate a list of string to check for npc data
-    def build_scene_strings(self, expressions : Optional[list] = None):
+    def build_scene_strings(self, expressions : Optional[list] = None) -> tuple:
         if expressions is None or len(expressions) == 0:
             expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_bad", "_bad2", "_amaze", "_amaze2", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_letter", "_two", "_three", "_ef", "_body", "_eyeline"]
         variationsA = ["", "_a", "_b", "_c", "_battle", "_nalhe", "_astral"]
@@ -1685,7 +1693,7 @@ class Updater():
         return scene_alts, specials, set(special_suffix)
 
     # list known scene strings along with errors encountered along the way
-    def list_known_scene_strings(self):
+    def list_known_scene_strings(self) -> tuple:
         keys = set()
         errs = []
         for x in ["characters", "skins"]:
@@ -1712,7 +1720,7 @@ class Updater():
         return keys, errs
 
     # output known scene strings in a JSON file. For debugging purpose
-    async def debug_output_scene_strings(self, recur : bool = False):
+    async def debug_output_scene_strings(self, recur : bool = False) -> None:
         print("Exporting all scene file suffixes...")
         keys, errs = self.list_known_scene_strings()
         if len(errs) > 0: # refresh elements with errors
@@ -1731,7 +1739,7 @@ class Updater():
             print("Data exported to 'json/debug_scene_strings.json'")
 
     # Get suffix list for given uncap values
-    def get_scene_string_list_for_uncaps(self, id : str, uncaps : list):
+    def get_scene_string_list_for_uncaps(self, id : str, uncaps : list) -> list:
         uncap_list = []
         for uncap in uncaps:
             if uncap == "01":
@@ -1769,7 +1777,7 @@ class Updater():
         return scene_alts
 
     # Function to populate the task group
-    def group_scene_task(self, task_group : asyncio.TaskGroup, tasks : dict, id : str, uncaps : list, existing : set):
+    def group_scene_task(self, task_group : asyncio.TaskGroup, tasks : dict, id : str, uncaps : list, existing : set) -> None:
         for s in self.get_scene_string_list_for_uncaps(id, uncaps):
             if s not in existing:
                 tmp = s.split("_")
@@ -1777,7 +1785,7 @@ class Updater():
                 tasks['scenes'][s] = task_group.create_task(self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)]))
 
     # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
-    async def update_all_scene(self, target_index : Optional[str], targeted_strings : list = []):
+    async def update_all_scene(self, target_index : Optional[str], targeted_strings : list = []) -> None:
         if target_index is None:
             target_index = ["characters", "skins", "npcs"]
         elif not isinstance(target_index, list):
@@ -1823,7 +1831,7 @@ class Updater():
         print("Done")
 
     # update_all_scene() subroutine
-    async def update_all_scene_sub(self, tup : tuple):
+    async def update_all_scene_sub(self, tup : tuple) -> None:
         with self.progress:
             k, id, idx, uncaps, off, maxt = tup
             try: existing = set(self.data[k][id][idx])
@@ -1839,7 +1847,7 @@ class Updater():
                         self.modified = True
 
     # Sort scene data by string suffix order, to keep some sort of coherency on the web page
-    def sort_all_scene(self):
+    def sort_all_scene(self) -> None:
         dummy_data = {s : False for s in self.scene_strings}
         for t in ["characters", "skins", "npcs"]:
             if t == "npcs": idx = self.NPC_SCENE
@@ -1876,7 +1884,7 @@ class Updater():
     ### Sound ###################################################################################################################
 
     # Called by -sound, update all npc and character sound datas
-    async def update_all_sound(self, parameters : list = []):
+    async def update_all_sound(self, parameters : list = []) -> None:
         start_index = 0
         if len(parameters) > 0:
             try:
@@ -1926,7 +1934,7 @@ class Updater():
         self.save()
 
     # update_all_sound() subroutine
-    async def update_all_sound_sub(self, tup : tuple):
+    async def update_all_sound_sub(self, tup : tuple) -> None:
         with self.progress:
             index, id, idx, shared, existing, elements = tup
             for t in elements:
@@ -1943,7 +1951,7 @@ class Updater():
                 shared[1] = None
 
     # prep work for update_chara_sound_file
-    def update_chara_sound_file_prep(self, id : str, uncaps : Optional[list] = None, existing : set = set()):
+    def update_chara_sound_file_prep(self, id : str, uncaps : Optional[list] = None, existing : set = set()) -> list:
         elements = []
         # standard stuff
         for uncap in uncaps:
@@ -1978,7 +1986,7 @@ class Updater():
         return elements
 
     # search sound files for a character/skin/npc
-    async def update_chara_sound_file(self, id : str, base_uncaps : Optional[list] = None, existing : set = set()):
+    async def update_chara_sound_file(self, id : str, base_uncaps : Optional[list] = None, existing : set = set()) -> list:
         if base_uncaps is None:
             base_uncaps = ["01"]
         uncaps = [u for u in base_uncaps if ("_" not in u and u.startswith("0"))]
@@ -2005,7 +2013,7 @@ class Updater():
         return A+B
 
     # generic sound subroutine
-    async def update_chara_sound_file_sub(self, id : str, existing : set, suffix : str, post : list, index : Optional[int], zfill : Optional[int], max_err : Optional[int]):
+    async def update_chara_sound_file_sub(self, id : str, existing : set, suffix : str, post : list, index : Optional[int], zfill : Optional[int], max_err : Optional[int]) -> list:
         result = []
         if len(post) == 0: post = [""]
         if index is None: # single mode
@@ -2040,7 +2048,7 @@ class Updater():
         return result
 
     # banter sound subroutine
-    async def update_chara_sound_file_sub_banter(self, id : str, existing : set):
+    async def update_chara_sound_file_sub_banter(self, id : str, existing : set) -> list:
         result = []
         A = 1
         B = 1
@@ -2099,7 +2107,7 @@ class Updater():
                     pass
 
     # generateNameLookup() subroutine. Read the wiki page to extract element details (element, etc...)
-    async def generateNameLookup_sub(self, cid : str, wiki_lookup : str):
+    async def generateNameLookup_sub(self, cid : str, wiki_lookup : str) -> bool:
         data = {}
         if cid.startswith("20"):
             data["What"] = "Summon"
@@ -2229,7 +2237,8 @@ class Updater():
         return False
 
     # Check for new elements to lookup on the wiki, to update the lookup list
-    async def buildLookup(self):
+    async def buildLookup(self) -> None:
+        if not self.use_wiki: return
         tasks = []
         async with asyncio.TaskGroup() as tg:
             print("Checking elements in need of update...")
@@ -2273,7 +2282,7 @@ class Updater():
         print("Done")
 
     # called by -lookupfix, to manually edit missing data in case of system failure
-    async def manualLookup(self):
+    async def manualLookup(self) -> None:
         to_delete = []
         for k, v in self.data["lookup"].items():
             if v is None or 'cut-content' in v: continue
@@ -2343,7 +2352,7 @@ class Updater():
     ### Thumbnail ###############################################################################################################
 
     # Check the NPC list for npc with new thumbnails.
-    async def update_npc_thumb(self):
+    async def update_npc_thumb(self) -> None:
         print("Updating NPC thumbnail data...")
         tasks = []
         async with asyncio.TaskGroup() as tg:
@@ -2358,7 +2367,7 @@ class Updater():
         self.save()
 
     # update_npc_thumb() subroutine
-    async def update_npc_thumb_sub(self, id : str): # subroutine
+    async def update_npc_thumb_sub(self, id : str) -> None: # subroutine
         with self.progress:
             try:
                 await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(id))
@@ -2370,7 +2379,7 @@ class Updater():
     ### Relation ################################################################################################################
 
     # Make a list of elements to check on the wiki and update them
-    async def build_relation(self, to_update : list = []):
+    async def build_relation(self, to_update : list = []) -> None:
         print("Checking for new relationships...")
         try:
             with open("json/relation_name.json", "r") as f:
@@ -2448,7 +2457,7 @@ class Updater():
         print("Done")
 
     # build_relation() subroutine. Check an element wiki page for alternate version or corresponding weapons
-    async def get_relation(self, eid : str):
+    async def get_relation(self, eid : str) -> tuple:
         with self.progress:
             if not self.use_wiki: return None, []
             async with self.wiki_sem:
@@ -2491,7 +2500,7 @@ class Updater():
                         return eid, []
 
     # Used to manually connect elements in A to B
-    def connect_relation(self, As : list, B : str):
+    def connect_relation(self, As : list, B : str) -> None:
         try:
             with open("json/relation_name.json", "r") as f:
                 self.name_table = json.load(f)
@@ -2543,7 +2552,7 @@ class Updater():
             self.save()
 
     # CLI
-    async def relation_edit(self):
+    async def relation_edit(self) -> None:
         while True:
             print("[0] Redo Relationship")
             print("[1] Add Relationship")
@@ -2574,10 +2583,11 @@ class Updater():
                             break
                 case _:
                     break
+
     ### Events ##################################################################################################################
 
     # Ask the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
-    async def get_event_list(self):
+    async def get_event_list(self) -> list:
         try:
             l = self.SEASONAL_EVENTS
             if not self.use_wiki: raise Exception()
@@ -2618,7 +2628,7 @@ class Updater():
         return l
 
     # Call get_event_list() and check the current time to determine if new events have been added. If so, check if they got voice lines to determine if they got chapters, and then call update_event()
-    async def check_new_event(self, init_list : Optional[list] = None):
+    async def check_new_event(self, init_list : Optional[list] = None) -> None:
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
         nyear = now.year
         nmonth = now.month
@@ -2675,7 +2685,7 @@ class Updater():
             await self.update_event(init_list, full=True)
 
     # check_new_event() subroutine to request sound files
-    async def update_event_sub(self, ev : str, url : str):
+    async def update_event_sub(self, ev : str, url : str) -> tuple:
         with self.progress:
             for m in range(1, 20):
                 try:
@@ -2686,7 +2696,7 @@ class Updater():
             return ev, None
 
     # Check the given event list for potential art pieces
-    async def update_event(self, events : list, full : bool = False):
+    async def update_event(self, events : list, full : bool = False) -> None:
         # dig
         print("Checking for content of", len(events), "event(s)")
         
@@ -2708,16 +2718,16 @@ class Updater():
                 for j in range(self.EVENT_UPDATE_COUNT):
                     for i in range(1, ch_count+1):
                         fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
-                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
+                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
                     for ch in ["op", "ed"]:
                         fn = "scene_evt{}_{}".format(ev, ch)
-                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
+                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
                     fn = "evt{}".format(ev)
-                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
+                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
                     fn = "scene_evt{}".format(ev)
-                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.EVENT_UPDATE_STEP))
+                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
         self.progress = Progress(self, total=len(tasks), silent=False)
-        async for task in self.map_unordered(self.update_event_sub_big, tasks, self.MAX_UPDATEALL):
+        async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
             r = task.result()
             if r is not None:
                 ev = r[0]
@@ -2750,13 +2760,15 @@ class Updater():
         print("Done")
         self.save()
 
-    # update_event() subroutine to check an event possible art pieces
-    async def update_event_sub_big(self, tup : tuple):
+    # update_event() and check_msq() subroutine to check for possible art pieces
+    async def check_scene_art_list(self, tup : tuple) -> tuple:
         ev, base_url, known_assets, step = tup
+        is_tuto = "tuto_scene" in base_url
+        Z = 1 if is_tuto else 2 # zfill value, for msq tutorial
         l = []
         with self.progress:
-            for j in range(step, step+self.EVENT_UPDATE_STEP):
-                url = base_url + "_" + str(j).zfill(2)
+            for j in range(step, step+self.SCENE_UPDATE_STEP):
+                url = base_url + "_" + str(j).zfill(Z)
                 flag = False
                 try: # base check
                     if url.split("/")[-1] not in known_assets:
@@ -2781,7 +2793,7 @@ class Updater():
                         flag = True
                     except:
                         break
-                if not flag: # check for extras
+                if not flag or is_tuto: # check for extras
                     try: # alternative filename format
                         if url.split("/")[-1]+"_00" not in known_assets:
                             await self.head(url + "_00.png")
@@ -2798,7 +2810,7 @@ class Updater():
                     err = 0
                     i = 1
                     while i < 100 and err < 10:
-                        k = str(i).zfill(2)
+                        k = str(i).zfill(Z)
                         try:
                             if url.split("/")[-1]+"_"+k not in known_assets:
                                 await self.head(url + "_" + k + ".png")
@@ -2817,7 +2829,7 @@ class Updater():
         return ev, l
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
-    async def update_event_sky(self, ev : str):
+    async def update_event_sky(self, ev : str) -> None:
         known = set(self.data['events'][ev][self.EVENT_SKY])
         evid = self.data['events'][ev][self.EVENT_THUMB]
         try:
@@ -2841,7 +2853,7 @@ class Updater():
             self.data['events'][ev][self.EVENT_SKY] = known
 
     # -eventedit CLI
-    async def event_edit(self):
+    async def event_edit(self) -> None:
         while True:
             print("\n[EDIT EVENT MENU]")
             print("[0] Stats")
@@ -2939,7 +2951,7 @@ class Updater():
                     break
 
     # Attempt to automatically associate new event thumbnails to events
-    async def event_thumbnail_association(self, events : list):
+    async def event_thumbnail_association(self, events : list) -> None:
         events = [ev for ev in events if ev != ""]
         print("Checking event thumbnails...")
         in_use = set()
@@ -2978,7 +2990,7 @@ class Updater():
         self.save()
 
     # event_thumbnail_association subroutine()
-    async def event_thumbnail_association_sub(self, start : int, end : int, step : int):
+    async def event_thumbnail_association_sub(self, start : int, end : int, step : int) -> None:
         with self.progress:
             err = 0
             i = start
@@ -2994,10 +3006,58 @@ class Updater():
                     err += 1
                 i += step
 
+    ### MSQ ####################################################################################################################
+
+    # check for new story chapter files
+    async def check_msq(self, check_all : bool = False, max_chapter : Optional[str] = None) -> None:
+        if not self.use_wiki: return
+        try:
+            max_chapter = int(max_chapter)
+        except:
+            try:
+                # retrieve current last chapter from wiki
+                m = self.CHAPTER_REGEX.findall((await self.get("https://gbf.wiki/Main_Quest")).decode('utf-8'))
+                s = set()
+                for i in m:
+                    for j in i:
+                        if j != "": s.add(int(j.replace('-', '')))
+                max_chapter = max(s)
+            except:
+                print("An error occured while attempting to retrieve the MSQ Chapter count from gbf.wiki")
+                return
+        # make list to check
+        tasks = []
+        for i in range(0, max_chapter+1):
+            id = str(i).zfill(3)
+            if check_all or id not in self.data['story']:
+                self.data['story'][id] = [[]]
+                if i == 0: fn = "tuto_scene"
+                else: fn = "scene_cp{}".format(i)
+                for j in range(self.STORY_UPDATE_COUNT):
+                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn, set(self.data['story'].get(id, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+                for q in range(1, 6):
+                    for j in range(self.STORY_UPDATE_COUNT):
+                        tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn+"_q"+str(q), set(self.data['story'].get(id, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        # do and update
+        if len(tasks) > 0:
+            if check_all: print("Checking all chapters up to {} included...".format(max_chapter))
+            else: print("Checking new story chapters up to {} included...".format(max_chapter))
+            self.progress = Progress(self, total=len(tasks), silent=False)
+            async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
+                r = task.result()
+                if r is not None:
+                    id = r[0].zfill(3)
+                    if len(r[1]) > 0:
+                        self.data['story'][id][self.STORY_CONTENT] += r[1]
+                        self.data['story'][id][self.STORY_CONTENT].sort()
+                        self.addition[id] = self.ADD_STORY
+                        self.modified = True
+            self.save()
+
     ### Partners ################################################################################################################
 
     # Called by -partner. Make a list of partners and potential partners to update. VERY slow.
-    async def update_all_partner(self, parameters : list = []):
+    async def update_all_partner(self, parameters : list = []) -> None:
         self.force_partner = True
         start_index = 0
         if len(parameters) > 0:
@@ -3020,7 +3080,7 @@ class Updater():
     ### Buffs ###################################################################################################################
 
     # Check buff data for new icons
-    async def update_buff(self):
+    async def update_buff(self) -> None:
         tasks = []
         task_count = 20
         async with asyncio.TaskGroup() as tg:
@@ -3034,14 +3094,14 @@ class Updater():
         self.save()
 
     # search_buff() wrapper to track the progress
-    async def update_buff_sub(self, start : int, step : int, full : bool = False):
+    async def update_buff_sub(self, start : int, step : int, full : bool = False) -> None:
         with self.progress:
             await self.search_buff(start, step, full)
 
     ### Others ##################################################################################################################
 
     # Request the current GBF version or possible maintenance state
-    async def gbfversion(self):
+    async def gbfversion(self) -> Optional[int]:
         try:
             res = await self.get('https://game.granbluefantasy.jp/', headers={'User-Agent':self.USER_AGENT, 'Accept-Language':'en', 'Host':'game.granbluefantasy.jp', 'Connection':'keep-alive'})
             res = res.decode('utf-8')
@@ -3054,7 +3114,7 @@ class Updater():
             return None
 
     # Wait for an update to occur
-    async def wait(self):
+    async def wait(self) -> bool:
         v = await self.gbfversion()
         if v is None:
             print("Impossible to currently access the game.\nWait and try again.")
@@ -3079,7 +3139,7 @@ class Updater():
             return False
 
     # Print the help
-    def print_help(self):
+    def print_help(self) -> None:
         print("Usage: python updater.py [START] [MODE]")
         print("")
         print("START parameters (Optional):")
@@ -3104,14 +3164,15 @@ class Updater():
         print("-thumb       : Update npc thumbnail data.")
         print("-sound       : Update sound index for characters (Very time consuming).")
         print("-partner     : Update data for partner characters (Very time consuming).")
+        print("-story       : Update main story arts. Can add 'all' to update all or a number to specify the chapter.")
         print("-event       : Update unique event arts (Very time consuming).")
         print("-eventedit   : Edit event data")
         print("-buff        : Update buff data")
         print("-bg          : Update background data")
 
-    async def boot(self, argv : list):
+    async def boot(self, argv : list) -> None:
         try:
-            print("GBFAL updater v2.14\n")
+            print("GBFAL updater v2.15\n")
             self.client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50))
             self.use_wiki = await self.test_wiki()
             if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
@@ -3163,6 +3224,18 @@ class Updater():
                 elif "-thumb" in flags: await self.update_npc_thumb()
                 elif "-sound" in flags: await self.update_all_sound(extras)
                 elif "-partner" in flags: await self.update_all_partner(extras)
+                elif "-story" in flags:
+                    all = False
+                    cp = None
+                    for e in extras:
+                        if e.lower() == "all": all = True
+                        else:
+                            try:
+                                e = int(e)
+                                if e > 0: cp = e
+                            except:
+                                pass
+                    await self.check_msq(all, cp)
                 elif "-event" in flags: await self.check_new_event()
                 elif "-eventedit" in flags: await self.event_edit()
                 elif "-buff" in flags: await self.update_buff()

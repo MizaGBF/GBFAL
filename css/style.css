@@ -272,6 +272,12 @@ footer, #header {
     border-radius: 10px;
 }
 
+.preview-noborder {
+    min-width : 140px;
+    max-width : 140px;
+    height: 80px;
+}
+
 .sky-event {
     background-color: #73ffff;
 }
@@ -359,6 +365,20 @@ a:hover {
 a:active {
     color: #ff0000;
     font-size: 1em;
+}
+
+.story {
+    background: url(../assets/ui/event.png) no-repeat;
+    background-size: 100% 100%;
+    font-size: 16px;
+    color: black;
+    font-weight: bold;
+    text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+    text-align: center;
+    display: inline-block;
+    margin: 0px;
+    vertical-align: top;
+    position: relative;
 }
 
 .sound-file {
@@ -503,6 +523,12 @@ a:active {
         height: 158px;
     }
 
+    .preview-noborder {
+        min-width : 280px;
+        max-width : 280px;
+        height: 160px;
+    }
+
     .asset {
         min-width: min(200px, 40%);
         max-width: min(350px, 50%);
@@ -537,6 +563,10 @@ a:active {
         max-height: 890px;
         width: 605px;
         height: 890px;
+    }
+
+    .story {
+        font-size: 32px;
     }
 
     .sound-file {
