@@ -3139,11 +3139,16 @@ class Updater():
             if not forced_stop:
                 if len(flags) == 0:
                     self.print_help()
-                elif "-run" in flags: await self.run()
+                elif "-run" in flags:
+                    await self.run()
+                    await self.buildLookup()
                 elif "-updaterun" in flags:
                     await self.manualUpdate(extras)
                     await self.run()
-                elif "-update" in flags: await self.manualUpdate(extras)
+                    await self.buildLookup()
+                elif "-update" in flags:
+                    await self.manualUpdate(extras)
+                    await self.buildLookup()
                 elif "-job" in flags: await self.search_job_detail()
                 elif "-jobedit" in flags: await self.edit_job()
                 elif "-lookup" in flags: await self.buildLookup()

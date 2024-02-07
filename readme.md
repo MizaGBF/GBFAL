@@ -26,8 +26,8 @@ Start parameters:
 - `-nochange`: Disable changes to [changelog.json](https://github.com/MizaGBF/GBFAL/blob/main/json/changelog.json) "new" list.  
   
 Action parameters (Only one of those can be used at a time):
-- `-run`: Look for new content. If new content is found, it will automatically run `-update`, `-event`, `-thumb` and `-relation`.  
-- `-update`: Update the content for specified IDs. Example usage: `python updater.py-update 3040000000 3040001000` to update those two characters. Usable with all ten digit IDs, boss IDs and indexed background IDs.  
+- `-run`: Look for new content. If new content is found, it will automatically run `-update`, `-event`, `-thumb`, `-relation` and `-lookup`.  
+- `-update`: Update the content for specified IDs. Example usage: `python updater.py-update 3040000000 3040001000` to update those two characters. Usable with all ten digit IDs, boss IDs and indexed background IDs. It will run `-lookup` after.  
 - `-updaterun`: Same as `-update` but does `-run` after.  
 - `-job`: Check for new MC jobs. Time consuming and not always accurate.  
 - `-jobedit`: Open the `JOB EDIT` CLI, allowing you to manually edit the job data.  
