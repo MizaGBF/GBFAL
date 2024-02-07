@@ -1720,7 +1720,7 @@ class Updater():
         return keys, errs
 
     # output known scene strings in a JSON file. For debugging purpose
-    async def debug_output_scene_strings(self, recur : bool = False) -> None:
+    async def debug_output_scene_strings(self, out_return : bool = False, recur : bool = False) -> None:
         print("Exporting all scene file suffixes...")
         keys, errs = self.list_known_scene_strings()
         if len(errs) > 0: # refresh elements with errors
@@ -1731,12 +1731,15 @@ class Updater():
                 self.update_changelog = False
                 print(len(errs), "elements incorrectly formed, attempting to update")
                 await self.manualUpdate(errs)
-                await self.debug_output_scene_strings()
+                await self.debug_output_scene_strings(out_return, True)
                 self.update_changelog = tmp
         else:
-            with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
-                json.dump(keys, f)
-            print("Data exported to 'json/debug_scene_strings.json'")
+            if out_return:
+                return keys
+            else:
+                with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
+                    json.dump(keys, f)
+                print("Data exported to 'json/debug_scene_strings.json'")
 
     # Get suffix list for given uncap values
     def get_scene_string_list_for_uncaps(self, id : str, uncaps : list) -> list:
@@ -3172,82 +3175,80 @@ class Updater():
 
     async def boot(self, argv : list) -> None:
         try:
-            print("GBFAL updater v2.15\n")
-            self.client = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50))
-            self.use_wiki = await self.test_wiki()
-            if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
-            start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
-            flags = set()
-            extras = []
-            for i, k in enumerate(argv):
-                if k in start_flags:
-                    flags.add(k) # continue...
-                elif k.startswith("-"):
-                    flags.add(k)
-                    extras = argv[i+1:]
-                    break
-                else:
-                    print("Unknown parameter:", k)
-                    return
-            ran = False
-            forced_stop = False
-            if "-debug_scene" in flags:
-                ran = True
-                await self.debug_output_scene_strings()
-            if "-debug_wpn" in flags: self.debug_wpn = True
-            if "-wait" in flags: forced_stop = not (await self.wait())
-            if "-nochange" in flags: self.update_changelog = False
-            if not forced_stop:
-                if len(flags) == 0:
-                    self.print_help()
-                elif "-run" in flags:
-                    await self.run()
-                    await self.buildLookup()
-                elif "-updaterun" in flags:
-                    await self.manualUpdate(extras)
-                    await self.run()
-                    await self.buildLookup()
-                elif "-update" in flags:
-                    await self.manualUpdate(extras)
-                    await self.buildLookup()
-                elif "-job" in flags: await self.search_job_detail()
-                elif "-jobedit" in flags: await self.edit_job()
-                elif "-lookup" in flags: await self.buildLookup()
-                elif "-lookupfix" in flags: await self.manualLookup()
-                elif "-relation" in flags: await self.build_relation()
-                elif "-relationedit" in flags: await self.relation_edit()
-                elif "-scenenpc" in flags: await self.update_all_scene("npcs", extras)
-                elif "-scenechara" in flags: await self.update_all_scene("characters", extras)
-                elif "-sceneskin" in flags: await self.update_all_scene("skins", extras)
-                elif "-scenefull" in flags: await self.update_all_scene(None, extras)
-                elif "-scenesort" in flags: self.sort_all_scene()
-                elif "-thumb" in flags: await self.update_npc_thumb()
-                elif "-sound" in flags: await self.update_all_sound(extras)
-                elif "-partner" in flags: await self.update_all_partner(extras)
-                elif "-story" in flags:
-                    all = False
-                    cp = None
-                    for e in extras:
-                        if e.lower() == "all": all = True
-                        else:
-                            try:
-                                e = int(e)
-                                if e >= 0: cp = e
-                            except:
-                                pass
-                    await self.check_msq(all, cp)
-                elif "-event" in flags: await self.check_new_event()
-                elif "-eventedit" in flags: await self.event_edit()
-                elif "-buff" in flags: await self.update_buff()
-                elif "-bg" in flags: await self.manualUpdate(list(self.data.get('background', {}).keys()))
-                elif not ran:
-                    self.print_help()
-                    print("")
-                    print("Unknown parameter:", k)
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
+                print("GBFAL updater v2.15\n")
+                self.use_wiki = await self.test_wiki()
+                if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
+                start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
+                flags = set()
+                extras = []
+                for i, k in enumerate(argv):
+                    if k in start_flags:
+                        flags.add(k) # continue...
+                    elif k.startswith("-"):
+                        flags.add(k)
+                        extras = argv[i+1:]
+                        break
+                    else:
+                        print("Unknown parameter:", k)
+                        return
+                ran = False
+                forced_stop = False
+                if "-debug_scene" in flags:
+                    ran = True
+                    await self.debug_output_scene_strings()
+                if "-debug_wpn" in flags: self.debug_wpn = True
+                if "-wait" in flags: forced_stop = not (await self.wait())
+                if "-nochange" in flags: self.update_changelog = False
+                if not forced_stop:
+                    if len(flags) == 0:
+                        self.print_help()
+                    elif "-run" in flags:
+                        await self.run()
+                        await self.buildLookup()
+                    elif "-updaterun" in flags:
+                        await self.manualUpdate(extras)
+                        await self.run()
+                        await self.buildLookup()
+                    elif "-update" in flags:
+                        await self.manualUpdate(extras)
+                        await self.buildLookup()
+                    elif "-job" in flags: await self.search_job_detail()
+                    elif "-jobedit" in flags: await self.edit_job()
+                    elif "-lookup" in flags: await self.buildLookup()
+                    elif "-lookupfix" in flags: await self.manualLookup()
+                    elif "-relation" in flags: await self.build_relation()
+                    elif "-relationedit" in flags: await self.relation_edit()
+                    elif "-scenenpc" in flags: await self.update_all_scene("npcs", extras)
+                    elif "-scenechara" in flags: await self.update_all_scene("characters", extras)
+                    elif "-sceneskin" in flags: await self.update_all_scene("skins", extras)
+                    elif "-scenefull" in flags: await self.update_all_scene(None, extras)
+                    elif "-scenesort" in flags: self.sort_all_scene()
+                    elif "-thumb" in flags: await self.update_npc_thumb()
+                    elif "-sound" in flags: await self.update_all_sound(extras)
+                    elif "-partner" in flags: await self.update_all_partner(extras)
+                    elif "-story" in flags:
+                        all = False
+                        cp = None
+                        for e in extras:
+                            if e.lower() == "all": all = True
+                            else:
+                                try:
+                                    e = int(e)
+                                    if e >= 0: cp = e
+                                except:
+                                    pass
+                        await self.check_msq(all, cp)
+                    elif "-event" in flags: await self.check_new_event()
+                    elif "-eventedit" in flags: await self.event_edit()
+                    elif "-buff" in flags: await self.update_buff()
+                    elif "-bg" in flags: await self.manualUpdate(list(self.data.get('background', {}).keys()))
+                    elif not ran:
+                        self.print_help()
+                        print("")
+                        print("Unknown parameter:", k)
         except Exception as e:
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-        try: await self.client.close()
-        except: pass
 
     def start(self, argv : list):
         asyncio.run(self.boot(argv))
