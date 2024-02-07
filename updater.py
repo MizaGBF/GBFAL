@@ -3232,7 +3232,7 @@ class Updater():
                         else:
                             try:
                                 e = int(e)
-                                if e > 0: cp = e
+                                if e >= 0: cp = e
                             except:
                                 pass
                     await self.check_msq(all, cp)
