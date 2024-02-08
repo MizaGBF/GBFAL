@@ -419,7 +419,8 @@ class Updater():
     ### Run #####################################################################################################################
     
     # Called by -run, update the indexed content
-    async def run(self) -> None:
+    async def run(self, ids : list = []) -> None:
+        self.new_elements = ids
         self.run_count = 0
         categories = []
         errs = []
@@ -3142,9 +3143,8 @@ class Updater():
         print("-nochange    : Disable the update of changelog.json.")
         print("")
         print("MODE parameters (One at a time):")
-        print("-run         : Update the data with new content.")
+        print("-run         : Update the data with new content (Followed by IDs to check if needed).")
         print("-update      : Manual data update (Followed by IDs to check).")
-        print("-updaterun   : Like '-update' but also do '-run' after.")
         print("-job         : Search for MC jobs (Time consuming).")
         print("-jobedit     : Job CLI.")
         print("-lookup      : Force update the lookup table (Time Consuming).")
@@ -3168,7 +3168,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.15\n")
+                print("GBFAL updater v2.16\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
@@ -3196,11 +3196,7 @@ class Updater():
                     if len(flags) == 0:
                         self.print_help()
                     elif "-run" in flags:
-                        await self.run()
-                        await self.buildLookup()
-                    elif "-updaterun" in flags:
-                        await self.manualUpdate(extras)
-                        await self.run()
+                        await self.run(extras)
                         await self.buildLookup()
                     elif "-update" in flags:
                         await self.manualUpdate(extras)
