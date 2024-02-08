@@ -8,7 +8,7 @@ import string
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone, timedelta
 import traceback
-from typing import Optional
+from typing import Optional, Callable, Collection, AsyncIterator, Iterator, Union
 
 # progress bar class
 class Progress():
@@ -393,17 +393,8 @@ class Updater():
         return name.strip().strip('_').replace('_', ' ')
 
     # for limited queued asyncio concurrency
-    def map_unordered(self, func, iterable, limit):
-        aws = map(func, iterable)
-        return self.limit_concurrency(aws, limit)
-
-    async def limit_concurrency(self, aws, limit):
-        try:
-            aws = aiter(aws)
-            is_async = True
-        except TypeError:
-            aws = iter(aws)
-            is_async = False
+    async def map_unordered(self, func : Callable, iterable : Union[Iterator,Collection,AsyncIterator], limit : int) -> asyncio.Task:
+        aws = iter(map(func, iterable))
 
         aws_ended = False
         pending = set()
@@ -411,12 +402,11 @@ class Updater():
         while pending or not aws_ended:
             while len(pending) < limit and not aws_ended:
                 try:
-                    aw = await anext(aws) if is_async else next(aws)
-                except StopAsyncIteration if is_async else StopIteration:
+                    aw = next(aws)
+                except StopIteration:
                     aws_ended = True
                 else:
                     pending.add(asyncio.ensure_future(aw))
-
             if not pending:
                 return
 
