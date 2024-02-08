@@ -12,10 +12,10 @@ from typing import Optional
 
 # progress bar class
 class Progress():
-    def __init__(self, parent : 'Updater', *, total : int = 9999999999999, silent : bool = True) -> None: # set to silent with a high total by default
+    def __init__(self, parent : 'Updater', *, total : int = 9999999999999, silent : bool = True, current : int = 0) -> None: # set to silent with a high total by default
         self.silent = silent
         self.total = total
-        self.current = -1
+        self.current = current - 1
         self.start_time = time.time()
         self.elapsed = self.start_time
         self.parent = parent
@@ -1670,7 +1670,7 @@ class Updater():
     ### Scene ###################################################################################################################
 
     # Called once at boot. Generate a list of string to check for npc data
-    def build_scene_strings(self, expressions : Optional[list] = None) -> tuple:
+    def build_scene_strings(self, expressions : Optional[list] = None) -> tuple: # note: the coverage isn't perfect but it's the best balance between it and speed
         if expressions is None or len(expressions) == 0:
             expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_bad", "_bad2", "_amaze", "_amaze2", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_letter", "_two", "_three", "_ef", "_body", "_eyeline"]
         variationsA = ["", "_a", "_b", "_c", "_battle", "_nalhe", "_astral"]
@@ -1804,6 +1804,7 @@ class Updater():
                 self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
         print("Updating scene data for: {}".format(" / ".join(target_index)))
         if start_index > 0: print("(Skipping the first {} element(s) )".format(start_index))
+        sk = start_index
         elements = []
         for k in target_index:
             for id in self.data[k]:
@@ -1820,18 +1821,19 @@ class Updater():
                             uncaps.append(uu)
                 for u in uncaps: # split per uncap
                     for i in range(self.MAX_SCENE_CONCURRENT): # and split by self.MAX_SCENE_CONCURRENT
-                        if start_index > 0:
-                            start_index -= 1
+                        if sk > 0:
+                            sk -= 1
                         else:
                             elements.append((k, id, idx, [u], i, self.MAX_SCENE_CONCURRENT))
-        self.progress = Progress(self, total=len(elements), silent=False)
-        async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_UPDATEALL):
-            pass
-        if len(targeted_strings) > 0:
-            self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
-        self.sort_all_scene()
-        self.save()
-        print("Done")
+        if len(elements) > 0:
+            self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
+            async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_UPDATEALL):
+                pass
+            if len(targeted_strings) > 0:
+                self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
+            self.sort_all_scene()
+            self.save()
+            print("Done")
 
     # update_all_scene() subroutine
     async def update_all_scene_sub(self, tup : tuple) -> None:
