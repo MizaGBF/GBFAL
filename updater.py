@@ -1663,7 +1663,7 @@ class Updater():
     # Called once at boot. Generate a list of string to check for npc data
     def build_scene_strings(self, expressions : Optional[list] = None) -> tuple: # note: the coverage isn't perfect but it's the best balance between it and speed
         if expressions is None or len(expressions) == 0:
-            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_bad", "_bad2", "_amaze", "_amaze2", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_concentration", "_letter", "_two", "_three", "_ef", "_body", "_eyeline"]
+            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_bad", "_bad2", "_amaze", "_amaze2", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_two", "_three", "_ef", "_body", "_eyeline"]
         variationsA = ["", "_a", "_b", "_c", "_battle", "_nalhe", "_astral"]
         variationsB = ["", "_a", "_speed", "_up", "_shadow", "_shadow2", "_shadow3", "_light", "_blood", "_up_blood"]
         scene_alts = []
@@ -2694,8 +2694,20 @@ class Updater():
     # Check the given event list for potential art pieces
     async def update_event(self, events : list, full : bool = False) -> None:
         # dig
-        print("Checking for content of", len(events), "event(s)")
+        special_events = {
+           "221121": "_arcarum_maria",
+           "230322": "_arcarum_caim",
+           "230515": "_arcarum_nier",
+           "230607": "_arcarum_estarriola",
+           "230723": "_arcarum_fraux",
+           "230816": "_arcarum_lobelia",
+           "231007": "_arcarum_geisenborger",
+           "231114": "_arcarum_haaselia",
+           "240122": "_arcarum_alanaan",
+           "249999": "_arcarum_katzelia" # placeholder
+        }
         
+        print("Checking for content of", len(events), "event(s)")
         tasks = []
         modified = set()
         ec = 0
@@ -2712,15 +2724,16 @@ class Updater():
                 if full: ch_count = self.EVENT_MAX_CHAPTER
                 else: ch_count = self.data["events"][ev][self.EVENT_CHAPTER_COUNT]
                 for j in range(self.EVENT_UPDATE_COUNT):
-                    for i in range(1, ch_count+1):
-                        fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
+                    if ev not in special_events:
+                        for i in range(1, ch_count+1):
+                            fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
+                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                        for ch in ["op", "ed"]:
+                            fn = "scene_evt{}_{}".format(ev, ch)
+                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                        fn = "evt{}".format(ev)
                         tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    for ch in ["op", "ed"]:
-                        fn = "scene_evt{}_{}".format(ev, ch)
-                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    fn = "evt{}".format(ev)
-                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    fn = "scene_evt{}".format(ev)
+                    fn = "scene_evt{}".format(ev) + special_events.get(ev, '')
                     tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
         self.progress = Progress(self, total=len(tasks), silent=False)
         async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
