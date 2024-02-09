@@ -255,6 +255,7 @@ class Updater():
         try:
             if self.modified:
                 self.modified = False
+                # data.json
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
                     # custom json indentation
                     outfile.write("{\n")
@@ -293,29 +294,30 @@ class Updater():
                                 outfile.write(",")
                             outfile.write("\n")
                     outfile.write("}")
-                print("data.json updated")
-                if self.update_changelog:
-                    try:
-                        with open('json/changelog.json', mode='r', encoding='utf-8') as f:
-                            data = json.load(f)
-                            issues = data.get('issues', [])
-                            existing = {}
-                            for e in data.get('new', []): # convert content to dict
-                                existing[e[0]] = e[1]
-                    except:
+                # changelog.json
+                try:
+                    with open('json/changelog.json', mode='r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        issues = data.get('issues', [])
                         existing = {}
-                        issues = []
-                    new = []
+                        for e in data.get('new', []): # convert content to dict
+                            existing[e[0]] = e[1]
+                except:
+                    existing = {}
+                    issues = []
+                if self.update_changelog:
                     for k, v in self.addition.items(): # merge but put updated elements last
                         if k in existing: existing.pop(k)
                         existing[k] = v
                     self.addition = {} # clear self.addition
-                    for k, v in existing.items(): # convert back to list. NOTE: maybe make a cleaner way later
-                        new.append([k, v])
-                    if len(new) > self.MAX_NEW: new = new[len(new)-self.MAX_NEW:]
-                    with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
-                        json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues}, outfile)
-                    print("changelog.json updated")
+                new = []
+                for k, v in existing.items(): # convert back to list. NOTE: maybe make a cleaner way later
+                    new.append([k, v])
+                if len(new) > self.MAX_NEW: new = new[len(new)-self.MAX_NEW:]
+                with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
+                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues}, outfile)
+                if self.update_changelog: print("data.json and changelog.json updated")
+                else: print("data.json updated")
         except Exception as e:
             print(e)
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
@@ -1663,7 +1665,7 @@ class Updater():
     # Called once at boot. Generate a list of string to check for npc data
     def build_scene_strings(self, expressions : Optional[list] = None) -> tuple: # note: the coverage isn't perfect but it's the best balance between it and speed
         if expressions is None or len(expressions) == 0:
-            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_bad", "_bad2", "_amaze", "_amaze2", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_two", "_three", "_ef", "_body", "_eyeline"]
+            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_two", "_three", "_ef", "_body", "_eyeline"]
         variationsA = ["", "_a", "_b", "_c", "_battle", "_nalhe", "_astral"]
         variationsB = ["", "_a", "_speed", "_up", "_shadow", "_shadow2", "_shadow3", "_light", "_blood", "_up_blood"]
         scene_alts = []
@@ -3181,7 +3183,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.16\n")
+                print("GBFAL updater v2.17\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
