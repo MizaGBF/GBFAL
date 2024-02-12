@@ -1585,38 +1585,44 @@ function updateSearchResuls()
         try
         {
             searchFilters = JSON.parse(searchFilters);
-            while(searchFilters.length < 5) searchFilters.push(true); // retrocompability
+            while(searchFilters.length < 6) searchFilters.push(true); // retrocompability
         }
         catch(err)
         {
             console.error("Exception thrown", err.stack);
-            searchFilters = [true, true, true, true, true];
+            searchFilters = [true, true, true, true, true, true];
         }
     }
-    else searchFilters = [true, true, true, true, true];
+    else searchFilters = [true, true, true, true, true, true];
     // filter results
     let results = [];
     for(let e of searchResults)
     {
+        if(e[0].length == 6) // classes
+        {
+            if(searchFilters[5])
+                results.push([e[0], 0]); // hotfix the type to 0
+            continue;
+        }
         switch(e[1])
         {
             case 1:
             case 2:
-                if(searchFilters[e[1]-1])
+                if(searchFilters[e[1]-1]) // summons and weapons
                     results.push(e);
                 break;
             case 3:
-                if(["305", "399"].includes(e[0].slice(0, 3)))
+                if(["305", "399"].includes(e[0].slice(0, 3))) // npcs
                 {
-                    if(searchFilters[4]) // npcs
-                        results.push([e[0], 5]); // gotta hotfix the type to 5
+                    if(searchFilters[4])
+                        results.push([e[0], 5]); // hotfix the type to 5
                 }
-                else if(e[0].slice(0, 2) == "37")
+                else if(e[0].slice(0, 2) == "37") // skins
                 {
-                    if(searchFilters[3]) // skin
+                    if(searchFilters[3])
                         results.push(e);
                 }
-                else
+                else // characters
                 {
                     if(searchFilters[e[1]-1])
                         results.push(e);
@@ -1646,7 +1652,7 @@ function updateSearchResuls()
     let div = document.createElement("div");
     div.classList.add("std-button-container");
     node.appendChild(div);
-    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"], [3, "Skins"], [4, "NPCs"]])
+    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"], [3, "Skins"], [4, "NPCs"], [5, "Classes"]])
     {
         let input = document.createElement("input");
         input.type = "checkbox";
@@ -1682,15 +1688,15 @@ function toggleSearchFilter(indice)
         try
         {
             searchFilters = JSON.parse(searchFilters);
-            while(searchFilters.length < 5) searchFilters.push(true); // retrocompability
+            while(searchFilters.length < 6) searchFilters.push(true); // retrocompability
         }
         catch(err)
         {
             console.error("Exception thrown", err.stack);
-            searchFilters = [true, true, true, true, true];
+            searchFilters = [true, true, true, true, true, true];
         }
     }
-    else searchFilters = [true, true, true, true, true];
+    else searchFilters = [true, true, true, true, true, true];
     // toggle
     searchFilters[indice] = !searchFilters[indice];
     // write

@@ -433,6 +433,9 @@ class Updater():
         jkeys = []
         if self.job_list is None:
             self.job_list = await self.init_job_list()
+        if self.job_list is None:
+            print("Couldn't retrieve job list from the game")
+            return
         for k in list(self.job_list.keys()):
             if k not in self.data['job']:
                 jkeys.append(k)
@@ -842,6 +845,9 @@ class Updater():
     async def search_job_detail(self) -> None:
         if self.job_list is None:
             self.job_list = await self.init_job_list()
+        if self.job_list is None:
+            print("Couldn't retrieve job list from the game")
+            return
         print("Searching additional job data...")
         to_search = []
         full_key_search = False
@@ -2234,8 +2240,27 @@ class Updater():
             pass
         return False
 
+    # build lookup for classes
+    async def mc_lookup(self) -> None:
+        try:
+            job_list = (await self.get(self.JS + "constant/job.js")).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
+        except:
+            return
+        print("Checking class elements...")
+        a = job_list.find("var a={")
+        if a == -1: return
+        a+=len("var a={")
+        b = job_list.find("};", a)
+        if b == -b: return
+        job_list = job_list[a:b].split(',')
+        for j in job_list:
+            e = j.split(':')
+            if e[1] not in self.data['lookup']:
+                self.data['lookup'][e[1]] = ("main character gran djeeta job class " + e[0].replace('_', ' ') + " " + e[1]).lower()
+                self.modified = True
+
     # build lookup for skins
-    async def npc_lookup(self):
+    async def npc_lookup(self) -> None:
         try:
             print("Checking npc elements...")
             for id, data in self.data['npcs'].items():
@@ -2250,7 +2275,7 @@ class Updater():
             pass
 
     # build lookup for skins
-    async def skin_lookup(self):
+    async def skin_lookup(self) -> None:
         try:
             print("Checking skin elements...")
             r = await self.get("https://gbf.wiki/Character_Skins")
@@ -2260,6 +2285,16 @@ class Updater():
             res = soup.find_all("tbody")
             for r in res:
                 element = [None, None]
+                leader_id = None
+                try:
+                    for i in r.parent.parent.findChildren('img', recursive=True):
+                        if i.has_attr('alt') and 'leader' in i.attrs['alt'].lower():
+                            id = i.attrs['alt'].split(' ')[2]
+                            if id.isdigit() and len(id) == 6:
+                                leader_id = id
+                                break
+                except:
+                    pass
                 for tr in r.findChildren("tr"):
                     c = tr.findChildren()
                     try:
@@ -2276,11 +2311,21 @@ class Updater():
                                         if id not in self.data['lookup']:
                                             self.data['lookup'][id] = ("outfit skin " + element[1] + " " + element[0] + " " + id).lower()
                                             self.modified = True
+                                        element = [None, None]
                                     except:
                                         pass
                                 break
                     except:
                         pass
+                if leader_id is not None and element[0] is not None:
+                    if leader_id not in self.data['lookup']:
+                        if 'gran / djeeta' in element[0].lower():
+                            if '(' in element[0]:
+                                element[0] = element[0].split('(')[1].split(')')[0]
+                            else:
+                                element[0] = element[0].lower().replace('gran / djeeta', '').strip()
+                        self.data['lookup'][leader_id] = ("main character gran djeeta job class outfit skin " + element[0] + " " + leader_id).lower()
+                        self.modified = True
         except:
             pass
 
@@ -2320,10 +2365,6 @@ class Updater():
                     if k not in self.data['lookup'][k]:
                         self.data['lookup'][k] = self.data['lookup'][k].strip() + " " + k
                         self.modified = True
-        # skin
-        await self.skin_lookup()
-        # npc
-        await self.npc_lookup()
         # print remaining
         count = 0
         for t in self.LOOKUP_TYPES:
@@ -2331,6 +2372,12 @@ class Updater():
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
                     count += 1
         print(count, "element(s) remaining without data")
+        # skin
+        await self.skin_lookup()
+        # npc
+        await self.npc_lookup()
+        # npc
+        await self.mc_lookup()
         self.save()
         print("Done")
 
@@ -3238,7 +3285,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.18\n")
+                print("GBFAL updater v2.19\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
