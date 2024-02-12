@@ -1546,10 +1546,10 @@ function search(id) // generate search results
         }
         if(matching)
         {
-            positives.push([value, parseInt(value[0])]);
+            positives.push([value, (value.length == 6 ? 0 : (["305", "399"].includes(value.slice(0, 3)) ? 5 : parseInt(value[0])))]);
         }
     }
-    // sort (per type (character > summon > weapon) and per id)
+    // sort (per type (npcs > character > summon > weapon > classes) and per id)
     positives.sort(function(x, y) {
         if (x[1] > y[1]) {
             return -1;
@@ -1598,35 +1598,21 @@ function updateSearchResuls()
     let results = [];
     for(let e of searchResults)
     {
-        if(e[0].length == 6) // classes
-        {
-            if(searchFilters[5])
-                results.push([e[0], 0]); // hotfix the type to 0
-            continue;
-        }
         switch(e[1])
         {
-            case 1:
-            case 2:
-                if(searchFilters[e[1]-1]) // summons and weapons
+            case 0:
+                if(searchFilters[5]) // classes
                     results.push(e);
                 break;
+            case 1:
+            case 2: // skins or characters or summons or weapons
             case 3:
-                if(["305", "399"].includes(e[0].slice(0, 3))) // npcs
-                {
-                    if(searchFilters[4])
-                        results.push([e[0], 5]); // hotfix the type to 5
-                }
-                else if(e[0].slice(0, 2) == "37") // skins
-                {
-                    if(searchFilters[3])
-                        results.push(e);
-                }
-                else // characters
-                {
-                    if(searchFilters[e[1]-1])
-                        results.push(e);
-                }
+                if(searchFilters[e[0].slice(0, 2) == "37" ? 3 : e[1]-1])
+                    results.push(e);
+                break;
+            case 5:
+                if(searchFilters[4]) // npcs
+                    results.push(e);
                 break;
             default:
                 continue
