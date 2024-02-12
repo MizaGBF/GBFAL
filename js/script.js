@@ -1585,14 +1585,15 @@ function updateSearchResuls()
         try
         {
             searchFilters = JSON.parse(searchFilters);
+            while(searchFilters.length < 5) searchFilters.push(true); // retrocompability
         }
         catch(err)
         {
             console.error("Exception thrown", err.stack);
-            searchFilters = [true, true, true];
+            searchFilters = [true, true, true, true, true];
         }
     }
-    else searchFilters = [true, true, true];
+    else searchFilters = [true, true, true, true, true];
     // filter results
     let results = [];
     for(let e of searchResults)
@@ -1601,9 +1602,25 @@ function updateSearchResuls()
         {
             case 1:
             case 2:
-            case 3:
                 if(searchFilters[e[1]-1])
                     results.push(e);
+                break;
+            case 3:
+                if(["305", "399"].includes(e[0].slice(0, 3)))
+                {
+                    if(searchFilters[4]) // npcs
+                        results.push([e[0], 5]); // gotta hotfix the type to 5
+                }
+                else if(e[0].slice(0, 2) == "37")
+                {
+                    if(searchFilters[3]) // skin
+                        results.push(e);
+                }
+                else
+                {
+                    if(searchFilters[e[1]-1])
+                        results.push(e);
+                }
                 break;
             default:
                 continue
@@ -1629,7 +1646,7 @@ function updateSearchResuls()
     let div = document.createElement("div");
     div.classList.add("std-button-container");
     node.appendChild(div);
-    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"]])
+    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"], [3, "Skins"], [4, "NPCs"]])
     {
         let input = document.createElement("input");
         input.type = "checkbox";
@@ -1665,14 +1682,15 @@ function toggleSearchFilter(indice)
         try
         {
             searchFilters = JSON.parse(searchFilters);
+            while(searchFilters.length < 5) searchFilters.push(true); // retrocompability
         }
         catch(err)
         {
             console.error("Exception thrown", err.stack);
-            searchFilters = [true, true, true];
+            searchFilters = [true, true, true, true, true];
         }
     }
-    else searchFilters = [true, true, true];
+    else searchFilters = [true, true, true, true, true];
     // toggle
     searchFilters[indice] = !searchFilters[indice];
     // write

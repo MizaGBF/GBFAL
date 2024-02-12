@@ -2234,6 +2234,56 @@ class Updater():
             pass
         return False
 
+    # build lookup for skins
+    async def npc_lookup(self):
+        try:
+            print("Checking npc elements...")
+            for id, data in self.data['npcs'].items():
+                if data[self.NPC_JOURNAL] and id not in self.data['lookup']:
+                    try:
+                        name = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(id), get_json=True))['query']['search'][0]['title'].replace(' (NPC)', '')
+                        self.data['lookup'][id] = ("npc " + name + " " + id).lower()
+                        self.modified = True
+                    except:
+                        pass
+        except:
+            pass
+
+    # build lookup for skins
+    async def skin_lookup(self):
+        try:
+            print("Checking skin elements...")
+            r = await self.get("https://gbf.wiki/Character_Skins")
+            try: content = r.decode('utf-8')
+            except: content = r.decode('iso-8859-1')
+            soup = BeautifulSoup(content, 'html.parser')
+            res = soup.find_all("tbody")
+            for r in res:
+                element = [None, None]
+                for tr in r.findChildren("tr"):
+                    c = tr.findChildren()
+                    try:
+                        match c[0].text.strip():
+                            case "Outfit Name":
+                                element[0] = c[1].text.strip()
+                            case "Base Character":
+                                element[1] = c[1].text.strip()
+                            case "ID":
+                                if None not in element:
+                                    id = c[1].text.strip()
+                                    try:
+                                        int(id) # check number
+                                        if id not in self.data['lookup']:
+                                            self.data['lookup'][id] = ("outfit skin " + element[1] + " " + element[0] + " " + id).lower()
+                                            self.modified = True
+                                    except:
+                                        pass
+                                break
+                    except:
+                        pass
+        except:
+            pass
+
     # Check for new elements to lookup on the wiki, to update the lookup list
     async def buildLookup(self) -> None:
         if not self.use_wiki: return
@@ -2241,6 +2291,7 @@ class Updater():
         async with asyncio.TaskGroup() as tg:
             print("Checking elements in need of update...")
             self.progress = Progress(self)
+            # first pass
             for t in self.LOOKUP_TYPES:
                 for k in self.data[t]:
                     if k not in self.data['lookup'] or self.data['lookup'][k] is None:
@@ -2269,6 +2320,10 @@ class Updater():
                     if k not in self.data['lookup'][k]:
                         self.data['lookup'][k] = self.data['lookup'][k].strip() + " " + k
                         self.modified = True
+        # skin
+        await self.skin_lookup()
+        # npc
+        await self.npc_lookup()
         # print remaining
         count = 0
         for t in self.LOOKUP_TYPES:
@@ -2356,7 +2411,7 @@ class Updater():
         async with asyncio.TaskGroup() as tg:
             self.progress = Progress(self)
             for id in self.data["npcs"]:
-                if not isinstance(self.data["npcs"][id], int) and not self.data["npcs"][id][0]:
+                if not isinstance(self.data["npcs"][id], int) and not self.data["npcs"][id][self.NPC_JOURNAL]:
                     tasks.append(tg.create_task(self.update_npc_thumb_sub(id)))
             self.progress.set(total=len(tasks), silent=False)
         for t in tasks:
@@ -2369,7 +2424,7 @@ class Updater():
         with self.progress:
             try:
                 await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(id))
-                self.data["npcs"][id][0] = True
+                self.data["npcs"][id][self.NPC_JOURNAL] = True
                 self.modified = True
             except:
                 pass
@@ -3183,7 +3238,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.17\n")
+                print("GBFAL updater v2.18\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
