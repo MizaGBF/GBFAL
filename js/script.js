@@ -1792,7 +1792,7 @@ function loadAssets(id, data, target, indexed = true)
                 ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", 0, false, false],
                 ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", 0, false, false],
                 ["Result Portraits", "sp/assets/summon/btn/", "png", 0, false, false],
-                ["Quest Portraits", "sp/assets/summon/qm/", "png", 0, false, false],
+                ["Quest Portraits", "sp/assets/summon/qm/", "png", -7, false, false],
                 ["Summon Call Sheets", "sp/cjs/", "png", 1, false, false],
                 ["Summon Damage Sheets", "sp/cjs/", "png", 2, false, false]
             ];
@@ -2018,6 +2018,9 @@ function loadAssets(id, data, target, indexed = true)
                     for(let i = 1; i < 5; ++i)
                         files.push(id+"_01_vs_motion_"+i);
                     break;
+                case -7: // custom summon quest portraits
+                    files = [id, id+"_hard", id+"_hard_plus", id+"_ex", id+"_ex_plus", id+"_high", id+"_high_plus"]; 
+                    break;
                 default:
                     files = data[asset[3]];
                     break;
@@ -2027,10 +2030,6 @@ function loadAssets(id, data, target, indexed = true)
             // exceptions
             switch(asset[0])
             {
-                case "Quest Portraits":
-                    if(search_type == 2)
-                        files = [files[0], files[0]+"_hard", files[0]+"_hard_plus", files[0]+"_ex", files[0]+"_ex_plus", files[0]+"_high", files[0]+"_high_plus"]; // summon quest icon
-                    break;
                 case "Gacha Cover": // gacha cover
                     files = [files[0]+"_1", files[0]+"_3"];
                     break;
