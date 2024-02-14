@@ -1523,6 +1523,7 @@ class Updater():
                     return False
                 if len(data[self.SUM_GENERAL]) == 0 and id in self.CUT_CONTENT:
                     data[self.SUM_GENERAL].append(id)
+                    uncaps = ["01"]
                 # attack
                 for u in uncaps:
                     for m in ["", "_a", "_b", "_c", "_d", "_e"]:
