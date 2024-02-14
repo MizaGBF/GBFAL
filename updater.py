@@ -173,7 +173,8 @@ class Updater():
         "3040097000": "ssr character sierokarte trial",
         "2030004000": "sr summon fire cut-content",
         "2030014000": "sr summon dark cut-content",
-        "3040114000": "ssr character cut-content"
+        "2020001000": "sr summon goblin earth cut-content",
+        "3040114000": "ssr character cut-content",
     }
     PARTNER_STEP = 10
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
@@ -1520,6 +1521,8 @@ class Updater():
                         break
                 if len(uncaps) == 0 and id not in self.CUT_CONTENT:
                     return False
+                if len(data[self.SUM_GENERAL]) == 0 and id in self.CUT_CONTENT:
+                    data[self.SUM_GENERAL].append(id)
                 # attack
                 for u in uncaps:
                     for m in ["", "_a", "_b", "_c", "_d", "_e"]:
