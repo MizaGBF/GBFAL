@@ -1529,6 +1529,10 @@ class Updater():
                         except:
                             pass
                 # damage
+                try:
+                    data[self.SUM_DAMAGE] += await self.processManifest("summon_{}".format(id)) # old summons
+                except:
+                    pass
                 for u in uncaps:
                     for m in ["", "_a", "_b", "_c", "_d", "_e"]:
                         try:
@@ -3285,7 +3289,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.19\n")
+                print("GBFAL updater v2.20\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
