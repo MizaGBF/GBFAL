@@ -2199,7 +2199,7 @@ function prepareOuputAndHeader(name, id, include_link, indexed=true) // prepare 
     }
     let did_lookup = false;
     // include GBFAP link if element is compatible
-    if((id.length == 10 && (["302", "303", "304", "371"].includes(id.slice(0, 3)) ||  id.slice(0, 2) == "10")) || (id.length == 6 && name == "Main Character"))
+    if((id.length == 10 && ["302", "303", "304", "371", "101", "102", "103", "104", "201", "202", "203", "204"].includes(id.slice(0, 3))) || (id.length == 6 && name == "Main Character"))
     {
         l = document.createElement('a');
         l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
