@@ -1148,7 +1148,7 @@ class Updater():
                     else:
                         continue
                     remaining += 1
-                elif len(id) >= 6:
+                elif len(id) == 7:
                     tasks.append(tg.create_task(self.mobUpdate(id)))
                     remaining += 1
             print("Attempting to update", remaining, "element(s)")
@@ -1601,7 +1601,7 @@ class Updater():
                 except:
                     pass
                 # appear
-                for k in ["", "_shade"]:
+                for k in ["", "_2", "_3", "_shade"]:
                     try:
                         fn = "raid_appear_{}{}".format(id, k)
                         data[self.BOSS_APPEAR] += await self.processManifest(fn)
@@ -3283,6 +3283,7 @@ class Updater():
         print("-thumb       : Update npc thumbnail data.")
         print("-sound       : Update sound index for characters (Very time consuming).")
         print("-partner     : Update data for partner characters (Very time consuming).")
+        print("-enemy       : Update data for enemies (Time consuming).")
         print("-story       : Update main story arts. Can add 'all' to update all or a number to specify the chapter.")
         print("-event       : Update unique event arts (Very time consuming).")
         print("-eventedit   : Edit event data")
@@ -3292,7 +3293,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.20\n")
+                print("GBFAL updater v2.21\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
@@ -3339,6 +3340,7 @@ class Updater():
                     elif "-thumb" in flags: await self.update_npc_thumb()
                     elif "-sound" in flags: await self.update_all_sound(extras)
                     elif "-partner" in flags: await self.update_all_partner(extras)
+                    elif "-enemy" in flags: await self.manualUpdate(list(self.data['enemies'].keys()))
                     elif "-story" in flags:
                         all = False
                         cp = None
