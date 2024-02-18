@@ -44,6 +44,10 @@ details[open] > .element-detail {
     font-size: 24px;
 }
 
+.sub-detail-child {
+    background: #353535;
+}
+
 .detail-icon {
     height: 40px;
     vertical-align: middle;

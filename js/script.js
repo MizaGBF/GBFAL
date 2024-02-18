@@ -26,17 +26,17 @@ var endpoint_count = -1;
 const NO_BUBBLE_FILTER = ["speed", "up", "shadow", "shadow2", "shadow3", "light", "blood"];
 // HTML UI indexes
 const CHARACTERS = [
-    ["Year 2024 (Dragon)", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7789.png", [0, -1, 0, -1, 504, 999]],
-    ["Year 2023 (Rabbit)", "https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7514.png", [0, -1, 0, -1, 443, 504]],
-    ["Year 2022 (Tiger)", "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7300.png", [0, -1, 0, -1, 379, 443]],
-    ["Year 2021 (Ox)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7493.png", [74, 75, 0, -1, 316, 379]],
-    ["Year 2020 (Rat)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6761.png", [73, 74, 281, 323, 256, 316]],
-    ["Year 2019 (Pig)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6377.png", [72, 73, 263, 281, 199, 256]],
-    ["Year 2018 (Dog)", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6198_1.png", [71, 72, 233, 263, 149, 199]],
-    ["Year 2017 (Chicken)", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6019.png", [0, -1, 173, 233, 108, 149]],
-    ["Year 2016 (Monkey)", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_1467.png", [47, 71, 113, 173, 72, 108]],
-    ["Year 2015 (Sheep)", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6054.png", [30, 47, 51, 113, 30, 72]],
-    ["Year 2014", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6093.png", [0, 30, 0, 51, 0, 30]]
+    ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", [0, -1, 0, -1, 504, 999]],
+    ["Year 2023 (Rabbit)", "assets/ui/index_icon/year_2023_(rabbit).png", [0, -1, 0, -1, 443, 504]],
+    ["Year 2022 (Tiger)", "assets/ui/index_icon/year_2022_(tiger).png", [0, -1, 0, -1, 379, 443]],
+    ["Year 2021 (Ox)", "assets/ui/index_icon/year_2021_(ox).png", [74, 75, 0, -1, 316, 379]],
+    ["Year 2020 (Rat)", "assets/ui/index_icon/year_2020_(rat).png", [73, 74, 281, 323, 256, 316]],
+    ["Year 2019 (Pig)", "assets/ui/index_icon/year_2019_(pig).png", [72, 73, 263, 281, 199, 256]],
+    ["Year 2018 (Dog)", "assets/ui/index_icon/year_2018_(dog).png", [71, 72, 233, 263, 149, 199]],
+    ["Year 2017 (Chicken)", "assets/ui/index_icon/year_2017_(chicken).png", [0, -1, 173, 233, 108, 149]],
+    ["Year 2016 (Monkey)", "assets/ui/index_icon/year_2016_(monkey).png", [47, 71, 113, 173, 72, 108]],
+    ["Year 2015 (Sheep)", "assets/ui/index_icon/year_2015_(sheep).png", [30, 47, 51, 113, 30, 72]],
+    ["Year 2014", "assets/ui/index_icon/year_2014.png", [0, 30, 0, 51, 0, 30]]
 ];
 const SKINS = [
     ["ID 200 to 299", [200, 300]],
@@ -76,48 +76,43 @@ const WEAPONS = [
     ["Harp", "8", "assets/ui/icon/harp.png"],
     ["Katana", "9", "assets/ui/icon/katana.png"]
 ];
-const ENEMIES_CATEGORIES = [
-    ["Beasts and Animals", "1", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/1300123.png"],
-    ["Plants and Insects", "2", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/2100543.png"],
-    ["Fishes and Sea Life", "3", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/3101163.png"],
-    ["Golems and Robots", "4", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/4300903.png"],
-    ["Undeads and Otherworlders", "5", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/5200293.png"],
-    ["Humans and Humanoids", "6", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/6205783.png"],
-    ["Dragons and Wyverns", "7", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/7300733.png"],
-    ["Primal Beasts", "8", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/8103063.png"],
-    ["Astrals and Others", "9", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/9101463.png"]
-]
 const ENEMIES = [
-    ["1 - Size A", "1"],
-    ["2 - Size B", "2"],
-    ["3 - Size C", "3"]
+    ["Beasts and Animals", "1", "assets/ui/index_icon/1.png", [["Flying", "assets/ui/index_icon/flying.png"], ["Beasts", "assets/ui/index_icon/beasts.png"], ["Monstrosities", "assets/ui/index_icon/monstrosities.png"]]],
+    ["Plants and Insects", "2", "assets/ui/index_icon/2.png", [["Plants", "assets/ui/index_icon/plants.png"], ["Insects", "assets/ui/index_icon/insects.png"], ["???", "assets/ui/index_icon/unkn.png"]]],
+    ["Fishes and Sea Life", "3", "assets/ui/index_icon/3.png", [["Sea Life", "assets/ui/index_icon/sea_life.png"], ["???", "assets/ui/index_icon/unkn.png"], ["???", "assets/ui/index_icon/unkn.png"]]],
+    ["Golems and Robots", "4", "assets/ui/index_icon/4.png", [["Golems", "assets/ui/index_icon/golems.png"], ["Aberrations", "assets/ui/index_icon/aberrations.png"], ["Machines", "assets/ui/index_icon/machines.png"]]],
+    ["Undeads and Otherworlders", "5", "assets/ui/index_icon/5.png", [["Otherwordly", "assets/ui/index_icon/otherwordly.png"], ["Undeads", "assets/ui/index_icon/undeads.png"], ["???", "assets/ui/index_icon/unkn.png"]]],
+    ["Humans and Humanoids", "6", "assets/ui/index_icon/6.png", [["Goblins", "assets/ui/index_icon/goblins.png"], ["People", "assets/ui/index_icon/people.png"], ["Fairies", "assets/ui/index_icon/fairies.png"]]],
+    ["Dragons and Wyverns", "7", "assets/ui/index_icon/7.png", [["Dragons", "assets/ui/index_icon/dragons.png"], ["Reptiles", "assets/ui/index_icon/reptiles.png"], ["True Dragons", "assets/ui/index_icon/true_dragons.png"]]],
+    ["Primal Beasts", "8", "assets/ui/index_icon/8.png", [["Primals", "assets/ui/index_icon/primals.png"], ["Elementals", "assets/ui/index_icon/elementals.png"], ["Angel Cores", "assets/ui/index_icon/angel_cores.png"]]],
+    ["Astrals and Others", "9", "assets/ui/index_icon/9.png", [["Others", "assets/ui/index_icon/others.png"], ["???", "assets/ui/index_icon/unkn.png"], ["???", "assets/ui/index_icon/unkn.png"]]]
 ];
 const NPCS = [
-    ["Special", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_612320.png", "05", [0, 100000]],
-    ["Year 2024 (Dragon)", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7789.png", "99", [3391, 100000]],
-    ["Year 2023 (Rabbit)", "https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7514.png", "99", [2915, 3188], [3188, 3391]],
-    ["Year 2022 (Tiger)", "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7300.png", "99", [2519, 2714], [2714, 2915]],
-    ["Year 2021 (Ox)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_7493.png", "99", [2008, 2248], [2248, 2519]],
-    ["Year 2020 (Rat)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6761.png", "99", [1637, 1814], [1814, 2008]],
-    ["Year 2019 (Pig)", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6377.png", "99", [1254, 1432], [1432, 1637]],
-    ["Year 2018 (Dog)", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6198_1.png", "99", [981, 1092], [1092, 1254]],
-    ["Year 2017 (Chicken)", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6019.png", "99", [603, 735], [735, 981]],
-    ["Year 2016 (Monkey)", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_1467.png", "99", [378, 476], [476, 603]],
-    ["Years 2014 & 2015", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6054.png", "99", [0, 239], [239, 378]],
+    ["Special", "assets/ui/index_icon/special.png", "05", [0, 100000]],
+    ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", "99", [3391, 100000]],
+    ["Year 2023 (Rabbit)", "assets/ui/index_icon/year_2023_(rabbit).png", "99", [2915, 3188], [3188, 3391]],
+    ["Year 2022 (Tiger)", "assets/ui/index_icon/year_2022_(tiger).png", "99", [2519, 2714], [2714, 2915]],
+    ["Year 2021 (Ox)", "assets/ui/index_icon/year_2021_(ox).png", "99", [2008, 2248], [2248, 2519]],
+    ["Year 2020 (Rat)", "assets/ui/index_icon/year_2020_(rat).png", "99", [1637, 1814], [1814, 2008]],
+    ["Year 2019 (Pig)", "assets/ui/index_icon/year_2019_(pig).png", "99", [1254, 1432], [1432, 1637]],
+    ["Year 2018 (Dog)", "assets/ui/index_icon/year_2018_(dog).png", "99", [981, 1092], [1092, 1254]],
+    ["Year 2017 (Chicken)", "assets/ui/index_icon/year_2017_(chicken).png", "99", [603, 735], [735, 981]],
+    ["Year 2016 (Monkey)", "assets/ui/index_icon/year_2016_(monkey).png", "99", [378, 476], [476, 603]],
+    ["Years 2014 & 2015", "assets/ui/index_icon/years_2014_&_2015.png", "99", [0, 239], [239, 378]]
 ];
 const SKILLS = [
-    ["https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/ability/m/1_4.png", [0, 250], [250, 500], [500, 750], [750, 1000]],
-    ["https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/ability/m/1008_3.png", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000]],
-    ["https://prd-game-a2-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/ability/m/2012_3.png", [2000, 2250], [2250, 2500], [2500, 2750], [2750, 3000]]
+    ["assets/ui/index_icon/skill1.png", [0, 250], [250, 500], [500, 750], [750, 1000]],
+    ["assets/ui/index_icon/skill2.png", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000]],
+    ["assets/ui/index_icon/skill3.png", [2000, 2250], [2250, 2500], [2500, 2750], [2750, 3000]]
 ];
 const BUFFS = [
-    ["Old Set", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_1.png", [0, 1000]],
-    ["Basic Set", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_1019_0_100.png", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000], [2000, 2250], [2250, 2500], [2500, 2750], [2750, 3000]],
-    ["Unique Set 1", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_3045_12.png", [3000, 3250], [3250, 3500], [3500, 3750], [3750, 4000]],
-    ["Unique Set 2", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_4031.png", [4000, 4250], [4250, 4500], [4500, 4750], [4750, 5000]],
-    ["Field Effect Set", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_5031.png", [5000, 5250], [5250, 5500], [5500, 5750], [5750, 6000]],
-    ["Buff Set", "https://prd-game-a4-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_6064.png", [6000, 6250], [6250, 6500], [6500, 6750], [6750, 7000], [7000, 7250], [7250, 7500], [7500, 7750], [7750, 8000]],
-    ["Old Stack Set", "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img_low/sp/ui/icon/status/x64/status_80275.png", [8000, 10000]]
+    ["Old Set", "assets/ui/index_icon/old_set.png", [0, 1000]],
+    ["Basic Set", "assets/ui/index_icon/basic_set.png", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000], [2000, 2250], [2250, 2500], [2500, 2750], [2750, 3000]],
+    ["Unique Set 1", "assets/ui/index_icon/unique_set_1.png", [3000, 3250], [3250, 3500], [3500, 3750], [3750, 4000]],
+    ["Unique Set 2", "assets/ui/index_icon/unique_set_2.png", [4000, 4250], [4250, 4500], [4500, 4750], [4750, 5000]],
+    ["Field Effect Set", "assets/ui/index_icon/field_effect_set.png", [5000, 5250], [5250, 5500], [5500, 5750], [5750, 6000]],
+    ["Buff Set", "assets/ui/index_icon/buff_set.png", [6000, 6250], [6250, 6500], [6500, 6750], [6750, 7000], [7000, 7250], [7250, 7500], [7500, 7750], [7750, 8000]],
+    ["Old Stack Set", "assets/ui/index_icon/old_stack_set.png", [8000, 10000]]
 ];
 const BACKGROUNDS = [
     ["Mains", "main"],
@@ -243,53 +238,53 @@ function initIndex() // build the html index. simply edit the constants above to
         let parents = null;
         let inter = null;
         let elems = null;
-        parents = makeIndexSummary(content, "Characters", true, false, "assets/ui/icon/characters.png");
+        parents = makeIndexSummary(content, "Characters", true, 0, "assets/ui/icon/characters.png");
         for(let i of CHARACTERS)
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+            elems = makeIndexSummary(parents[0], i[0], false, 1, i[1]);
             const tmp = [elems[0], i[2]];
             elems[1].onclick = function (){
                 display(tmp[0], 'characters', tmp[1], null, false, true);
                 this.onclick = null;
             };
         }
-        parents = makeIndexSummary(content, "Skins", true, false, "assets/ui/icon/skins.png");
+        parents = makeIndexSummary(content, "Skins", true, 0, "assets/ui/icon/skins.png");
         for(let i of SKINS)
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true);
+            elems = makeIndexSummary(parents[0], i[0], false, 1);
             const tmp = [elems[0], i[1]];
             elems[1].onclick = function (){
                 display(tmp[0], 'skins', tmp[1], null, false, true);
                 this.onclick = null;
             };
         }
-        parents = makeIndexSummary(content, "Partners", true, false, "assets/ui/icon/partners.png");
+        parents = makeIndexSummary(content, "Partners", true, 0, "assets/ui/icon/partners.png");
         for(let i of PARTNERS)
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true, i[2]);
+            elems = makeIndexSummary(parents[0], i[0], false, 1, i[2]);
             const tmp = [elems[0], i[1]];
             elems[1].onclick = function (){
                 display(tmp[0], 'partners', tmp[1], null, false, true);
                 this.onclick = null;
             };
         }
-        parents = makeIndexSummary(content, "Summons", true, false, "assets/ui/icon/summons.png");
+        parents = makeIndexSummary(content, "Summons", true, 0, "assets/ui/icon/summons.png");
         for(let i of SUMMONS)
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true, i[3]);
+            elems = makeIndexSummary(parents[0], i[0], false, 1, i[3]);
             const tmp = [elems[0], i[1], i[2]];
             elems[1].onclick = function (){
                 display(tmp[0], 'summons', tmp[1], tmp[2], false, true);
                 this.onclick = null;
             };
         }
-        parents = makeIndexSummary(content, "Weapons", true, false, "assets/ui/icon/weapons.png");
+        parents = makeIndexSummary(content, "Weapons", true, 0, "assets/ui/icon/weapons.png");
         for(let i of WEAPONS_RARITY)
         {
-            let inter = makeIndexSummary(parents[0], i[0], true, true, i[2]);
+            let inter = makeIndexSummary(parents[0], i[0], true, 1, i[2]);
             for(let j of WEAPONS)
             {
-                elems = makeIndexSummary(inter[0], j[0], false, true, j[2]);
+                elems = makeIndexSummary(inter[0], j[0], false, 2, j[2]);
                 const tmp = [elems[0], i[1], j[1]];
                 elems[1].onclick = function (){
                     display(tmp[0], 'weapons', tmp[1], tmp[2], false, true);
@@ -297,7 +292,7 @@ function initIndex() // build the html index. simply edit the constants above to
                 };
             }
         }
-        elems = makeIndexSummary(content, "Classes", false, false, "assets/ui/icon/classes.png");
+        elems = makeIndexSummary(content, "Classes", false, 0, "assets/ui/icon/classes.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
@@ -305,29 +300,30 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        parents = makeIndexSummary(content, "Enemies", true, false, "assets/ui/icon/enemies.png");
-        for(let i of ENEMIES_CATEGORIES)
+        parents = makeIndexSummary(content, "Enemies", true, 0, "assets/ui/icon/enemies.png");
+        for(let i of ENEMIES)
         {
-            let inter = makeIndexSummary(parents[0], i[0], true, true, i[2]);
-            for(let j of ENEMIES)
+            let inter = makeIndexSummary(parents[0], i[0], true, 1, i[2]);
+            for(let j = 0; j < 3; ++j)
             {
-                elems = makeIndexSummary(inter[0], j[0], false, true);
-                const tmp = [elems[0], i[1], j[1]];
+                let k = i[3][j];
+                elems = makeIndexSummary(inter[0], k[0], false, 2, k[1]);
+                const tmp = [elems[0], i[1], j];
                 elems[1].onclick = function (){
                     display(tmp[0], 'enemies', tmp[1], tmp[2], false, true);
                     this.onclick = null;
                 };
             }
         }
-        parents = makeIndexSummary(content, "NPCs", true, false, "assets/ui/icon/npcs.png");
+        parents = makeIndexSummary(content, "NPCs", true, 0, "assets/ui/icon/npcs.png");
         for(let i of NPCS)
         {
             if(i.length > 4)
             {
-                let inter = makeIndexSummary(parents[0], i[0], true, true, i[1]);
+                let inter = makeIndexSummary(parents[0], i[0], true, 1, i[1]);
                 for(let j = 3; j < i.length; ++j)
                 {
-                    elems = makeIndexSummary(inter[0], (j == 3 ? "First Half" : (j == 4 ? "Second Half" : "???")), false, true);
+                    elems = makeIndexSummary(inter[0], (j == 3 ? "First Half" : (j == 4 ? "Second Half" : "???")), false, 2);
                     const tmp = [elems[0], i[2], i[j]];
                     elems[1].onclick = function (){
                         display(tmp[0], 'npcs', tmp[1], tmp[2], false, false);
@@ -337,7 +333,7 @@ function initIndex() // build the html index. simply edit the constants above to
             }
             else
             {
-                elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+                elems = makeIndexSummary(parents[0], i[0], false, 1, i[1]);
                 const tmp = [elems[0], i[2], i[3]];
                 elems[1].onclick = function (){
                     display(tmp[0], 'npcs', tmp[1], tmp[2], false, false);
@@ -345,7 +341,7 @@ function initIndex() // build the html index. simply edit the constants above to
                 };
             }
         }
-        elems = makeIndexSummary(content, "Main Story", false, false, "assets/ui/icon/story.png");
+        elems = makeIndexSummary(content, "Main Story", false, 0, "assets/ui/icon/story.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
@@ -353,7 +349,7 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        elems = makeIndexSummary(content, "Events", false, false, "assets/ui/icon/events.png");
+        elems = makeIndexSummary(content, "Events", false, 0, "assets/ui/icon/events.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
@@ -361,14 +357,14 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        parents = makeIndexSummary(content, "Skills", true, false, "assets/ui/icon/skills.png");
+        parents = makeIndexSummary(content, "Skills", true, 0, "assets/ui/icon/skills.png");
         for(let i of SKILLS)
         {
             const name = "ID " + JSON.stringify(i[1][0]).padStart(4, "0") + " to " + JSON.stringify(i[i.length-1][1]-1).padStart(4, "0");
-            let inter = makeIndexSummary(parents[0], name, true, true, i[0]);
+            let inter = makeIndexSummary(parents[0], name, true, 1, i[0]);
             for(let j = 1; j < i.length; ++j)
             {
-                elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, true);
+                elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, 2);
                 const tmp = [elems[0], i[j]];
                 elems[1].onclick = function (){
                     display(tmp[0], 'skills', tmp[1],null, false, false);
@@ -376,7 +372,7 @@ function initIndex() // build the html index. simply edit the constants above to
                 };
             }
         }
-        elems = makeIndexSummary(content, "Sub Skills", false, false, "assets/ui/icon/subskills.png");
+        elems = makeIndexSummary(content, "Sub Skills", false, 0, "assets/ui/icon/subskills.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
@@ -384,15 +380,15 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        parents = makeIndexSummary(content, "Buffs", true, false, "assets/ui/icon/buffs.png");
+        parents = makeIndexSummary(content, "Buffs", true, 0, "assets/ui/icon/buffs.png");
         for(let i of BUFFS)
         {
             if(i.length > 3)
             {
-                let inter = makeIndexSummary(parents[0], i[0], true, true, i[1]);
+                let inter = makeIndexSummary(parents[0], i[0], true, 1, i[1]);
                 for(let j = 2; j < i.length; ++j)
                 {
-                    elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, true);
+                    elems = makeIndexSummary(inter[0], "ID " + JSON.stringify(i[j][0]).padStart(4, "0") + " to " + JSON.stringify(i[j][1]-1).padStart(4, "0"), false, 2);
                     const tmp = [elems[0], i[j]];
                     elems[1].onclick = function (){
                         display(tmp[0], 'buffs', tmp[1], null, false, false);
@@ -402,7 +398,7 @@ function initIndex() // build the html index. simply edit the constants above to
             }
             else
             {
-                elems = makeIndexSummary(parents[0], i[0], false, true, i[1]);
+                elems = makeIndexSummary(parents[0], i[0], false, 1, i[1]);
                 const tmp = [elems[0], i[2]];
                 elems[1].onclick = function (){
                     display(tmp[0], 'buffs', tmp[1], null, false, false);
@@ -410,17 +406,17 @@ function initIndex() // build the html index. simply edit the constants above to
                 };
             }
         }
-        parents = makeIndexSummary(content, "Backgrounds", true, false, "assets/ui/icon/backgrounds.png");
+        parents = makeIndexSummary(content, "Backgrounds", true, 0, "assets/ui/icon/backgrounds.png");
         for(let i of BACKGROUNDS)
         {
-            elems = makeIndexSummary(parents[0], i[0], false, true);
+            elems = makeIndexSummary(parents[0], i[0], false, 1);
             const tmp = [elems[0], i[1], i[2]];
             elems[1].onclick = function (){
                 display(tmp[0], 'background', tmp[1], tmp[2], true, true);
                 this.onclick = null;
             };
         }
-        elems = makeIndexSummary(content, "Title Screens", true, false, "assets/ui/icon/titles.png");
+        elems = makeIndexSummary(content, "Title Screens", true, 0, "assets/ui/icon/titles.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
@@ -428,7 +424,7 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        elems = makeIndexSummary(content, "Suprise Tickets", true, false, "assets/ui/icon/suptix.png");
+        elems = makeIndexSummary(content, "Suprise Tickets", true, 0, "assets/ui/icon/suptix.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
@@ -520,23 +516,27 @@ function swap(json)  // swap keys and values from an object
     return ret;
 }
 
-function makeIndexSummary(node, name, is_parent, is_sub_detail, icon = null) // used for the html. make the details/summary elements.
+function makeIndexSummary(node, name, is_parent, sub_level, icon = null) // used for the html. make the details/summary elements.
 {
     let details = document.createElement("details");
     let summary = document.createElement("summary");
     summary.classList.add("element-detail");
-    if(is_sub_detail) summary.classList.add("sub-detail");
+    if(sub_level > 0)
+    {
+        summary.classList.add("sub-detail");
+        if(sub_level > 1) summary.classList.add("sub-detail-child");
+    }
     if(icon != null && icon != "")
     {
         let img = document.createElement("img");
-        img.classList.add(is_sub_detail ? "sub-detail-icon" : "detail-icon");
+        img.classList.add(sub_level ? "sub-detail-icon" : "detail-icon");
         img.src = icon;
         summary.appendChild(img);
     }
     else
     {
         let div = document.createElement("span");
-        div.classList.add(is_sub_detail ? "sub-detail-icon" : "detail-icon");
+        div.classList.add(sub_level ? "sub-detail-icon" : "detail-icon");
         summary.appendChild(div);
     }
     summary.appendChild(document.createTextNode(name));
