@@ -308,7 +308,7 @@ function initIndex() // build the html index. simply edit the constants above to
             {
                 let k = i[3][j];
                 elems = makeIndexSummary(inter[0], k[0], false, 2, k[1]);
-                const tmp = [elems[0], i[1], j];
+                const tmp = [elems[0], i[1], j+1];
                 elems[1].onclick = function (){
                     display(tmp[0], 'enemies', tmp[1], tmp[2], false, true);
                     this.onclick = null;
