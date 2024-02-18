@@ -85,7 +85,7 @@ const ENEMIES_CATEGORIES = [
     ["Humans and Humanoids", "6", "https://prd-game-a1-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/6205783.png"],
     ["Dragons and Wyverns", "7", "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/7300733.png"],
     ["Primal Beasts", "8", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/8103063.png"],
-    ["Others", "9", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/9101463.png"]
+    ["Astrals and Others", "9", "https://prd-game-a3-granbluefantasy.akamaized.net/assets_en/img_low/sp/assets/enemy/s/9101463.png"]
 ]
 const ENEMIES = [
     ["1 - Size A", "1"],
