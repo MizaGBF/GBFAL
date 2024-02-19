@@ -8,7 +8,7 @@ import string
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone, timedelta
 import traceback
-from typing import Optional, Callable, Collection, AsyncIterator, Iterator, Union
+from typing import Optional, Callable, Collection, AsyncIterator, Iterator, Any, Union
 
 # progress bar class
 class Progress():
@@ -1068,50 +1068,67 @@ class Updater():
                     if tmp is not None and input("Are you sure? Press 'y' to continue:").lower() == 'y':
                         print("Importing data...")
                         try:
+                            tasks = []
                             for jid, s in tmp["lookup"].items():
                                 # add job if needed
                                 if jid not in self.data['job']:
                                     await self.search_job(0, 1, [jid], self.newShared([]))
                                 if s is not None:
-                                    # set key
-                                    sheets = []
-                                    for v in self.data['job'][jid][self.JOB_DETAIl_ALL]:
-                                        try:
-                                            sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
-                                        except:
-                                            pass
-                                    self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
-                                    self.data['job_key'][s] = jid
-                                    self.modified = True
-                                    print(len(sheets),"sprites set to job", jid)
+                                    tasks.append(self.edit_job_import_task(jid, s, 0))
                             for jid, s in tmp["weapon"].items():
                                 if s is not None:
-                                    # phit
-                                    self.data['job'][jid][self.JOB_PHIT] = []
-                                    for u in ["", "_1", "_2", "_3"]:
-                                        try:
-                                            self.data['job'][jid][self.JOB_PHIT] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
-                                        except:
-                                            pass
-                                    # ougi
-                                    sheets = []
-                                    for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
-                                        try:
-                                            sheets += await self.processManifest("sp_{}{}".format(s, u))
-                                        except:
-                                            pass
-                                    self.data['job'][jid][self.JOB_SP] = list(dict.fromkeys(sheets))
-                                    print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
-                                    self.data['job_wpn'][s] = jid
-                                    self.modified = True
+                                    tasks.append(self.edit_job_import_task(jid, s, 1))
+                            res = True
+                            for l in await asyncio.gather(*tasks):
+                                res = res and l
+                            if not res:
+                                raise Exception("Check the log for details")
                             print("Job Data Import finished with success")
                         except Exception as e:
-                            print("An error occured while processing ({}, {}), exiting to preserve data...".format(jid, s))
+                            print("An error occured during the import")
                             print(e)
                             return
                 case _:
                     break
             self.save()
+
+    async def edit_job_import_task(self, jid : str, s : Any, mode : int) -> None:
+        try:
+            match mode:
+                case 0:
+                    # set key
+                    sheets = []
+                    for v in self.data['job'][jid][self.JOB_DETAIl_ALL]:
+                        try:
+                            sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
+                        except:
+                            pass
+                    self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
+                    self.data['job_key'][s] = jid
+                    self.modified = True
+                    print(len(sheets),"sprites set to job", jid)
+                case 1:
+                    # phit
+                    self.data['job'][jid][self.JOB_PHIT] = []
+                    for u in ["", "_1", "_2", "_3"]:
+                        try:
+                            self.data['job'][jid][self.JOB_PHIT] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
+                        except:
+                            pass
+                    # ougi
+                    sheets = []
+                    for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
+                        try:
+                            sheets += await self.processManifest("sp_{}{}".format(s, u))
+                        except:
+                            pass
+                    self.data['job'][jid][self.JOB_SP] = list(dict.fromkeys(sheets))
+                    print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
+                    self.data['job_wpn'][s] = jid
+                    self.modified = True
+            return True
+        except:
+            return False
 
     ### Update ##################################################################################################################
 
