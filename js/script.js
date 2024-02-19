@@ -1885,7 +1885,7 @@ function loadAssets(id, data, target, indexed = true)
             area_name = "Main Character";
             include_link = true;
             indexed = (data[7].length != 0) && indexed;
-            last_id = "e"+id;
+            last_id = id;
             search_type = 0;
             assets = [
                 ["Job Icons", "sp/ui/icon/job/", "png", 0, false, false], // index, skycompass, side form
