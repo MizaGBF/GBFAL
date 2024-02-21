@@ -843,7 +843,7 @@ class Updater():
             shared[1] = False
 
     # Used by -job, more specific but also slower job detection system
-    async def search_job_detail(self) -> None:
+    async def search_job_detail(self, params : list) -> None:
         if self.job_list is None:
             self.job_list = await self.init_job_list()
         if self.job_list is None:
@@ -851,7 +851,7 @@ class Updater():
             return
         print("Searching additional job data...")
         to_search = []
-        full_key_search = False
+        full_key_search = len(params) > 0
         # key search
         for k, v in self.data['job'].items():
             if len(v[self.JOB_SPRITE]) == 0:
@@ -3343,7 +3343,7 @@ class Updater():
                     elif "-update" in flags:
                         await self.manualUpdate(extras)
                         await self.buildLookup()
-                    elif "-job" in flags: await self.search_job_detail()
+                    elif "-job" in flags: await self.search_job_detail(extras)
                     elif "-jobedit" in flags: await self.edit_job()
                     elif "-lookup" in flags: await self.buildLookup()
                     elif "-lookupfix" in flags: await self.manualLookup()
