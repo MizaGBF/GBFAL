@@ -1900,7 +1900,7 @@ function loadAssets(id, data, target, indexed = true)
                 ["Class Name Ultimate Texts", "sp/assets/leader/job_name_pp/", "png", 0, false, false],
                 ["Class Change Buttons", "sp/assets/leader/jlon/", "png", 2, false, false],
                 ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", 3, false, false],
-                ["Square Portraits", "sp/assets/leader/s/", "png", 3, false, false],
+                ["Square Portraits", "sp/assets/leader/s/", "jpg", 3, false, false],
                 ["Party Class Portraits", "sp/assets/leader/p/", "png", 3, false, false],
                 ["Profile Portraits", "sp/assets/leader/pm/", "png", 3, false, false],
                 ["Profile Board Portraits", "sp/assets/leader/talk/", "png", 3, false, false],
