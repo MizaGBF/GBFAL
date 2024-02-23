@@ -176,6 +176,7 @@ class Updater():
         "2020001000": "sr summon goblin earth cut-content",
         "3040114000": "ssr character cut-content",
     }
+    MALINDA = "3030093000"
     PARTNER_STEP = 10
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
     
@@ -1273,14 +1274,26 @@ class Updater():
                         for i in range(1, len(uncaps)):
                             targets.append("_" + uncaps[i])
                         attacks = []
-                        for t in targets:
-                            for u in ["", "_2", "_3", "_4"]:
-                                for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                    try:
-                                        fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
-                                        attacks += await self.processManifest(fn)
-                                    except:
-                                        pass
+                        if tid == self.MALINDA:
+                            for i in range(0, 7):
+                                mid = tid[:-1] + str(i)
+                                for t in targets:
+                                    for u in ["", "_2", "_3", "_4"]:
+                                        for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                                            try:
+                                                fn = "phit_{}{}{}{}{}".format(mid, t, style, u, form)
+                                                attacks += await self.processManifest(fn)
+                                            except:
+                                                pass
+                        else:
+                            for t in targets:
+                                for u in ["", "_2", "_3", "_4"]:
+                                    for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                                        try:
+                                            fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                                            attacks += await self.processManifest(fn)
+                                        except:
+                                            pass
                         data[self.CHARA_PHIT] += attacks
                         # ougi
                         attacks = []
@@ -1290,13 +1303,14 @@ class Updater():
                             for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
                                 for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                     for catype in ["", "_s2", "_s3"]:
-                                        for sub in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]:
-                                            try:
-                                                fn = "nsp_{}_{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub)
-                                                attacks += await self.processManifest(fn)
-                                                found = True
-                                            except:
-                                                pass
+                                        for sub in ([""] if tid == self.MALINDA else ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]):
+                                            for ex in (["", "_1", "_2", "_3", "_4", "_5", "_6"] if tid == self.MALINDA else [""]):
+                                                try:
+                                                    fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
+                                                    attacks += await self.processManifest(fn)
+                                                    found = True
+                                                except:
+                                                    pass
                                         if found: break
                         data[self.CHARA_SP] += attacks
                         # skills
