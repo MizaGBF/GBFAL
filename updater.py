@@ -1221,7 +1221,7 @@ class Updater():
                     for uncap in ["01", "02", "03", "04"]:
                         for gender in ["", "_0", "_1"]:
                             for ftype in ["", "_s2", "_0", "_1"]:
-                                for form in ["", "_f", "_f1", "_f_01"]:
+                                for form in ["", "_f", "_f1", "_f2"]:
                                     try:
                                         fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
                                         sheets += await self.processManifest(fn)
@@ -1246,7 +1246,7 @@ class Updater():
                         for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
                             for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
                                 for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
-                                    for af in (["", "_f", "_f1"] if altForm else [""]):
+                                    for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                         targets.append(base_fn + af + g + m + n)
                         # sprites
                         sd.append(base_fn)
@@ -1275,7 +1275,7 @@ class Updater():
                         attacks = []
                         for t in targets:
                             for u in ["", "_2", "_3", "_4"]:
-                                for form in (["", "_f1"] if altForm else [""]):
+                                for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                     try:
                                         fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
                                         attacks += await self.processManifest(fn)
@@ -1288,7 +1288,7 @@ class Updater():
                             uf = flags[uncap]
                             found = False
                             for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                                for form in (["", "_f1"] if altForm else [""]):
+                                for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                     for catype in ["", "_s2", "_s3"]:
                                         for sub in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]:
                                             try:
@@ -1384,14 +1384,14 @@ class Updater():
                             for g in (["_0", "_1"] if (uf[0] is True) else [""]):
                                 for m in (["_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
                                     for n in (["_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
-                                        for af in (["", "_f1"] if altForm else [""]):
+                                        for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                             targets.append(base_fn + af + g + m + n)
                         tmp[self.CHARA_GENERAL] = targets
                         # # # Main sheets
                         for uncap in (["0_01", "1_01", "0_02", "1_02"] if is_mc else ["01", "02", "03", "04"]):
                             for gender in ["", "_0", "_1"]:
                                 for ftype in ["", "_s2", "_0", "_1"]:
-                                    for form in ["", "_f1"]:
+                                    for form in ["", "_f", "_f1", "_f2"]:
                                         try:
                                             fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
                                             if fn not in lookup: sheets += await self.processManifest(fn, True)
@@ -1410,7 +1410,7 @@ class Updater():
                         attacks = []
                         for t in targets:
                             for u in ["", "_2", "_3", "_4"]:
-                                for form in (["", "_f1"] if altForm else [""]):
+                                for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                     try:
                                         fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
                                         if fn not in lookup: attacks += await self.processManifest(fn, True)
@@ -1424,7 +1424,7 @@ class Updater():
                             except: uf = [False]
                             found = False
                             for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                                for form in (["", "_f1"] if altForm else [""]):
+                                for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                     for catype in ["", "_s2", "_s3"]:
                                         for sub in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]:
                                             try:
@@ -3310,7 +3310,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.21\n")
+                print("GBFAL updater v2.22\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
