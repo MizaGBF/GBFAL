@@ -2193,9 +2193,11 @@ function prepareOuputAndHeader(name, id, include_link, indexed=true) // prepare 
     {
         let l = document.createElement('a');
         l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
-        l.appendChild(document.createTextNode("Wiki"));
+        let img = document.createElement('img');
+        img.src = "assets/ui/icon/wiki.png";
+        img.classList.add("img-link");
+        l.appendChild(img);
         div.appendChild(l);
-        div.appendChild(document.createElement('br'));
     }
     let did_lookup = false;
     // include GBFAP link if element is compatible
@@ -2203,7 +2205,10 @@ function prepareOuputAndHeader(name, id, include_link, indexed=true) // prepare 
     {
         l = document.createElement('a');
         l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
-        l.appendChild(document.createTextNode("Animation"));
+        let img = document.createElement('img');
+        img.src = "assets/ui/icon/GBFAP.png";
+        img.classList.add("img-link");
+        l.appendChild(img);
         div.appendChild(l);
         did_lookup = true;
     }

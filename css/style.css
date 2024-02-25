@@ -290,6 +290,19 @@ img {
     object-fit: contain;
 }
 
+.img-link {
+    width: 60px;
+    height: 60px;
+    border-color: #000000;
+    border-radius: 5px;
+    border-style: solid;
+    margin: 2px;
+}
+
+.img-link:hover {
+    border-color: #ffffff;
+}
+
 .asset {
     border: 2px solid #333333;
     min-width: 80px;
@@ -531,6 +544,12 @@ a:active {
         min-width : 280px;
         max-width : 280px;
         height: 160px;
+    }
+
+    .img-link {
+        width: 120px;
+        height: 120px;
+        margin: 5px;
     }
 
     .asset {
