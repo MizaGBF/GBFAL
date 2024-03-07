@@ -472,6 +472,10 @@ class Updater():
         self.newShared(errs)
         for i in range(10): # sounds
             categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  70))
+        categories.append([])
+        self.newShared(errs)
+        for i in range(10): # boss sounds
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_boss_v_1.mp3",  70))
         # special
         categories.append([])
         categories[-1].append(self.search_generic('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img_low/sp/quest/scene/character/body/", ".png",  2))
@@ -1528,7 +1532,10 @@ class Updater():
                     keys = keys[max(0, len(keys)-100):] # last 100 (or less)
                     keys = [k for k in keys if self.data['npcs'][k] != 0] # remove unvalid ones
                     keys.sort() # sort so that the highest id is further right
-                    if int(keys[-1]) <= int(id): # doesn't proceed with sound only if there is no valid npc further
+                    try:
+                        if int(keys[-1]) <= int(id): # doesn't proceed with sound only if there is no valid npc further
+                            return False
+                    except:
                         return False
                 self.modified = True
                 self.data['npcs'][id] = data
@@ -2000,7 +2007,7 @@ class Updater():
             if uncap == "01": uncap = ""
             elif uncap == "02": continue # seems unused
             elif uncap != "": uncap = "_" + uncap
-            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1)]:
+            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("_boss_v_", 1)]:
                 match mid: # opti
                     case "_":
                         suffixes = ["", "a", "b"]
@@ -3324,7 +3331,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.22\n")
+                print("GBFAL updater v2.23\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])

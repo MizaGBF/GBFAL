@@ -587,6 +587,15 @@ function customSortPair(a, b) // used to sort banter sound files
     }
 }
 
+function customSortBoss(a, b) // used to sort boss sound files
+{
+    let A = a.split('_');
+    A = parseInt(A[A.length-1].replace(/\D/g,''), 10);
+    let B = b.split('_');
+    B = parseInt(B[B.length-1].replace(/\D/g,''), 10);
+    return A-B;
+}
+
 function customSortSeasonal(a, b) // used to sort seasonal sound files
 {
     const baseA = a.replace(/\d+$/, '');
@@ -2104,6 +2113,7 @@ function loadAssets(id, data, target, indexed = true)
         let sorted_sound = {"Generic":[]}
         let checks = {
             "": "Generic",
+            "_boss_v_": "Boss",
             "_v_": "Standard",
             "birthday": "Happy Birthday",
             "year": "Happy New Year",
@@ -2153,6 +2163,7 @@ function loadAssets(id, data, target, indexed = true)
         if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
         // additional sorting
         if("Banter" in sorted_sound) sorted_sound["Banter"].sort(customSortPair);
+        if("Boss" in sorted_sound) sorted_sound["Boss"].sort(customSortBoss);
         for(const k of ["Happy Birthday","Happy New Year","Valentine","White Day","Halloween","Christmas"])
         {
             try
