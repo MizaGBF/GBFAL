@@ -2356,7 +2356,7 @@ class Updater():
                                     try:
                                         int(id) # check number
                                         if id not in self.data['lookup']:
-                                            self.data['lookup'][id] =  ("outfit skin " + element[1] + " " + element[0] + " " + id).lower()
+                                            self.data['lookup'][id] = ("outfit skin " + element[1] + " " + element[0] + " " + id).lower()
                                             self.modified = True
                                         element = [None, None]
                                     except:
