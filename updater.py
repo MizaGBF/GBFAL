@@ -2158,10 +2158,11 @@ class Updater():
     # generateNameLookup() subroutine. Read the wiki page to extract element details (element, etc...)
     async def generateNameLookup_sub(self, cid : str, wiki_lookup : str) -> bool:
         data = {}
+        itype = None
         if cid.startswith("20"):
-            data["What"] = "Summon"
+            itype = 2
         elif cid.startswith("10"):
-            data["What"] = "Weapon"
+            itype = 1
             match cid[4]:
                 case '0': data['Proficiency'] = "Sword"
                 case '1': data['Proficiency'] = "Dagger"
@@ -2174,7 +2175,7 @@ class Updater():
                 case '8': data['Proficiency'] = "Harp"
                 case '9': data['Proficiency'] = "Katana"
         elif cid.startswith("30"):
-            data["What"] = "Character"
+            itype = 3
         else:
             return False
         match cid[2]:
@@ -2220,7 +2221,7 @@ class Updater():
                                     b= str(tr).find("_", a)
                                     data[k] = str(tr)[a:b]
                                     break
-                                elif data["What"] == "Weapon" and k == "Element":
+                                elif itype == 1 and k == "Element":
                                     a += len("/Category:")
                                     while True:
                                         b= str(tr).find("Element_", a)
@@ -2245,8 +2246,8 @@ class Updater():
                     pass
             # validity check
             is_valid = True
-            match data["What"]:
-                case "Weapon":
+            match itype:
+                case 1:
                     expected = ["Rarity", "Name", "Proficiency", "JP"]
                     s = " ".join(data.get("Series", "")).lower()
                     if s == "":
@@ -2259,12 +2260,12 @@ class Updater():
                                 break
                         if not series_check:
                             expected.append("Element")
-                case "Character":
+                case 2:
+                    expected = ["Rarity", "Name", "Element"]
+                case 3:
                     expected = ["Rarity", "Name", "Gender", "JP", "Type"]
                     if data['Name'].lower() not in ["lyria", "blue poppet", "brown poppet", "young cat", "sierokarte"]:
                         expected.append("Element")
-                case "Summon":
-                    expected = ["Rarity", "Name", "Element"]
                 case _:
                     return False
             for k in expected:
@@ -2311,8 +2312,9 @@ class Updater():
             for id, data in self.data['npcs'].items():
                 if data[self.NPC_JOURNAL] and id not in self.data['lookup']:
                     try:
-                        name = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(id), get_json=True))['query']['search'][0]['title'].replace(' (NPC)', '')
-                        self.data['lookup'][id] = ("npc " + name + " " + id).lower()
+                        r = await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(id), get_json=True)
+                        title = r['query']['search'][0]['title']
+                        self.data['lookup'][id] = ("npc " + title.replace(' (NPC)', '') + " " + id).lower()
                         self.modified = True
                     except:
                         pass
@@ -2354,7 +2356,7 @@ class Updater():
                                     try:
                                         int(id) # check number
                                         if id not in self.data['lookup']:
-                                            self.data['lookup'][id] = ("outfit skin " + element[1] + " " + element[0] + " " + id).lower()
+                                            self.data['lookup'][id] =  ("outfit skin " + element[1] + " " + element[0] + " " + id).lower()
                                             self.modified = True
                                         element = [None, None]
                                     except:

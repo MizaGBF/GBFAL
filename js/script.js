@@ -1996,7 +1996,7 @@ function loadAssets(id, data, target, indexed = true)
         updateHistory(id, search_type);
         favButton(true, id, search_type);
     }
-    prepareOuputAndHeader(area_name, id, include_link, indexed);
+    prepareOuputAndHeader(area_name, id, data, include_link, indexed);
     updateRelated(id);
     if(assets != null)
     {
@@ -2186,7 +2186,7 @@ function loadAssets(id, data, target, indexed = true)
     }
 }
 
-function prepareOuputAndHeader(name, id, include_link, indexed=true) // prepare the output element by cleaning it up and create its header
+function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // prepare the output element by cleaning it up and create its header
 {
     // open tab
     openTab("view");
@@ -2204,6 +2204,7 @@ function prepareOuputAndHeader(name, id, include_link, indexed=true) // prepare 
     {
         let l = document.createElement('a');
         l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
+        l.title = "Wiki search for " + id;
         let img = document.createElement('img');
         img.src = "assets/ui/icon/wiki.png";
         img.classList.add("img-link");
@@ -2214,13 +2215,24 @@ function prepareOuputAndHeader(name, id, include_link, indexed=true) // prepare 
     // include GBFAP link if element is compatible
     if((id.length == 10 && ["302", "303", "304", "371", "101", "102", "103", "104", "201", "202", "203", "204", "290"].includes(id.slice(0, 3))) || (id.length == 6 && name == "Main Character") || (id.length == 7 && name == "Enemy"))
     {
-        l = document.createElement('a');
-        l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
-        let img = document.createElement('img');
-        img.src = "assets/ui/icon/GBFAP.png";
-        img.classList.add("img-link");
-        l.appendChild(img);
-        div.appendChild(l);
+        let uncaps = [""];
+        if(["101", "102", "103", "104"].includes(id.slice(0, 3))) // get weapon uncaps to add additional links
+        {
+            for(let e of data[0])
+                if(e != id)
+                    uncaps.push(e.replace(id, ""));
+        }
+        for(let u of uncaps)
+        {
+            l = document.createElement('a');
+            l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id + u);
+            l.title = "Animations of " + id + u;
+            let img = document.createElement('img');
+            img.src = "assets/ui/icon/GBFAP.png";
+            img.classList.add("img-link");
+            l.appendChild(img);
+            div.appendChild(l);
+        }
         did_lookup = true;
     }
     // add tags if they exist
