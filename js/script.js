@@ -1437,7 +1437,7 @@ function lookup(id) // check element validity and either load it or return searc
                         case "304": case "303": case "302": target = "characters"; break;
                         case "371": target = "skins"; break;
                         case "384": case "383": case "382": case "388": case "389": target = "partners"; break;
-                        case "204": case "203": case "202": case "201": target = "summons"; break;
+                        case "290": case "204": case "203": case "202": case "201": target = "summons"; break;
                         case "104": case "103": case "102": case "101": target = "weapons"; break;
                     };
                 }
@@ -2212,7 +2212,7 @@ function prepareOuputAndHeader(name, id, include_link, indexed=true) // prepare 
     }
     let did_lookup = false;
     // include GBFAP link if element is compatible
-    if((id.length == 10 && ["302", "303", "304", "371", "101", "102", "103", "104", "201", "202", "203", "204"].includes(id.slice(0, 3))) || (id.length == 6 && name == "Main Character") || (id.length == 7 && name == "Enemy"))
+    if((id.length == 10 && ["302", "303", "304", "371", "101", "102", "103", "104", "201", "202", "203", "204", "290"].includes(id.slice(0, 3))) || (id.length == 6 && name == "Main Character") || (id.length == 7 && name == "Enemy"))
     {
         l = document.createElement('a');
         l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id);
