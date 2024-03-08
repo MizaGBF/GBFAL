@@ -2,6 +2,11 @@
 Web page to search for GBF assets.  
 Click [Here](https://mizagbf.github.io/GBFAL) to access it.  
   
+### Updater Requirements  
+* Python 3.11.
+* Run `pip install -r requirements.txt` in a command prompt.
+* See [requirements.txt](https://github.com/MizaGBF/GBFAP/blob/master/requirements.txt) for a list of third-party modules.  
+  
 ## Front-End  
 The project consists of a single HTML, javascript and css files.  
 [Github Pages](https://pages.github.com/) are used for hosting but it can technically be hosted anywhere.  
