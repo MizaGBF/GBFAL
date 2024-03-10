@@ -359,7 +359,7 @@ class Updater():
     # test if the wiki is usable
     async def test_wiki(self) -> bool:
         try:
-            t = (await self.get("https://gbf.wiki", timeout=5)).decode('utf-8')
+            t = (await self.get("https://gbf.wiki", headers={'User-Agent':self.USER_AGENT}, timeout=5)).decode('utf-8')
             if "<p id='status'>50" in t or 'gbf.wiki unavailable' in t: return False
             return True
         except:
