@@ -2133,12 +2133,12 @@ class Updater():
             async with self.wiki_sem:
                 if not self.use_wiki or (not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30")): return
                 try:
-                    data = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(cid), get_json=True))['query']['search']
+                    data = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(cid), headers={'User-Agent':self.USER_AGENT}, get_json=True))['query']['search']
                     if len(data) > 0:
                         await self.generateNameLookup_sub(cid, data[0]['title'])
                     else: # CN wiki fallback
                         try:
-                            r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid))
+                            r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid), headers={'User-Agent':self.USER_AGENT})
                             if r is not None:
                                 try: content = r.decode('utf-8')
                                 except: content = r.decode('iso-8859-1')
@@ -2184,7 +2184,7 @@ class Updater():
             case '3': data['Rarity'] = 'SR'
             case '4': data['Rarity'] = 'SSR'
         try:
-            r = await self.get("https://gbf.wiki/{}".format(wiki_lookup.replace(' ', '_')))
+            r = await self.get("https://gbf.wiki/{}".format(wiki_lookup.replace(' ', '_')), headers={'User-Agent':self.USER_AGENT})
             try: content = r.decode('utf-8')
             except: content = r.decode('iso-8859-1')
             soup = BeautifulSoup(content, 'html.parser')
@@ -2312,7 +2312,7 @@ class Updater():
             for id, data in self.data['npcs'].items():
                 if data[self.NPC_JOURNAL] and id not in self.data['lookup']:
                     try:
-                        r = await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(id), get_json=True)
+                        r = await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(id), headers={'User-Agent':self.USER_AGENT}, get_json=True)
                         title = r['query']['search'][0]['title']
                         self.data['lookup'][id] = ("npc " + title.replace(' (NPC)', '') + " " + id).lower()
                         self.modified = True
@@ -2325,7 +2325,7 @@ class Updater():
     async def skin_lookup(self) -> None:
         try:
             print("Checking skin elements...")
-            r = await self.get("https://gbf.wiki/Character_Skins")
+            r = await self.get("https://gbf.wiki/Character_Skins", headers={'User-Agent':self.USER_AGENT})
             try: content = r.decode('utf-8')
             except: content = r.decode('iso-8859-1')
             soup = BeautifulSoup(content, 'html.parser')
@@ -2609,12 +2609,12 @@ class Updater():
             if not self.use_wiki: return None, []
             async with self.wiki_sem:
                 try:
-                    data = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(eid), get_json=True))['query']['search']
+                    data = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(eid), headers={'User-Agent':self.USER_AGENT}, get_json=True))['query']['search']
                 except:
                     return None, []
                 for entry in data:
                     try:
-                        page = await self.get("https://gbf.wiki/" + entry['title'].replace(' ', '_'))
+                        page = await self.get("https://gbf.wiki/" + entry['title'].replace(' ', '_'), headers={'User-Agent':self.USER_AGENT})
                         name = entry['title'].split('(')[0].replace('_', ' ').strip().lower()
                         if not eid.startswith('10'):
                             if name not in self.name_table:
@@ -2743,7 +2743,7 @@ class Updater():
                 err = 0
                 while True:
                     try:
-                        r = await self.get('https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}&sroffset={}&srlimit=500'.format(st[0], offset), get_json=True)
+                        r = await self.get('https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}&sroffset={}&srlimit=500'.format(st[0], offset), headers={'User-Agent':self.USER_AGENT}, get_json=True)
                     except:
                         err += 1
                         if err >= 3: break
@@ -3176,7 +3176,7 @@ class Updater():
         except:
             try:
                 # retrieve current last chapter from wiki
-                m = self.CHAPTER_REGEX.findall((await self.get("https://gbf.wiki/Main_Quest")).decode('utf-8'))
+                m = self.CHAPTER_REGEX.findall((await self.get("https://gbf.wiki/Main_Quest", headers={'User-Agent':self.USER_AGENT})).decode('utf-8'))
                 s = set()
                 for i in m:
                     for j in i:
