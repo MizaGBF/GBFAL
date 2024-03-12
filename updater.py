@@ -1138,43 +1138,51 @@ class Updater():
     ### Update ##################################################################################################################
 
     # Called by -update or other function when new content is detected
-    async def manualUpdate(self, ids : list) -> None: 
+    async def manualUpdate(self, ids : list, skip : int = 0) -> None: # skip is only used for the -partner resume feature
         if len(ids) == 0:
             return
         ids = list(set(ids)) # remove dupes
+        start_index = skip
         async with asyncio.TaskGroup() as tg:
             tasks = []
             remaining = 0
-            self.progress = Progress(self)
+            self.progress = Progress(self, current=start_index)
             for id in ids:
                 if id in self.data.get('background', {}):
-                    tasks.append(tg.create_task(self.bgUpdate(id)))
+                    if skip > 0: skip -= 1
+                    else: tasks.append(tg.create_task(self.bgUpdate(id)))
                     remaining += 1
                 elif len(id) >= 10:
                     if id.startswith('2'):
-                        tasks.append(tg.create_task(self.sumUpdate(id)))
+                        if skip > 0: skip -= 1
+                        else: tasks.append(tg.create_task(self.sumUpdate(id)))
                     elif id.startswith('10'):
-                        tasks.append(tg.create_task(self.weapUpdate(id)))
+                        if skip > 0: skip -= 1
+                        else: tasks.append(tg.create_task(self.weapUpdate(id)))
                     elif id.startswith('39') or id.startswith('305'):
-                        tasks.append(tg.create_task(self.npcUpdate(id)))
+                        if skip > 0: skip -= 1
+                        else: tasks.append(tg.create_task(self.npcUpdate(id)))
                     elif id.startswith('38'):
                         try:
                             pid = int(id)
                             for i in range(self.PARTNER_STEP):
-                               tasks.append(tg.create_task(self.partnerUpdate(str(pid+i), self.PARTNER_STEP))) # separate in multiple threads to speed up
+                                if skip > 0: skip -= 1
+                                else: tasks.append(tg.create_task(self.partnerUpdate(str(pid+i), self.PARTNER_STEP))) # separate in multiple threads to speed up
                         except:
                             continue
                     elif id.startswith('3'):
                         if id == "3040114000": continue # cut content
-                        tasks.append(tg.create_task(self.charaUpdate(id)))
+                        if skip > 0: skip -= 1
+                        else: tasks.append(tg.create_task(self.charaUpdate(id)))
                     else:
                         continue
                     remaining += 1
                 elif len(id) == 7:
-                    tasks.append(tg.create_task(self.mobUpdate(id)))
+                    if skip > 0: skip -= 1
+                    else: tasks.append(tg.create_task(self.mobUpdate(id)))
                     remaining += 1
             print("Attempting to update", remaining, "element(s)")
-            self.progress.set(total=len(tasks), silent=False)
+            self.progress.set(total=len(tasks)+start_index, silent=False)
         tsuccess = 0
         for t in tasks:
             if t.result():
@@ -3232,8 +3240,7 @@ class Updater():
         for id in self.data.get('characters', {}):
             if 'st' in id: continue
             ids.append("38" + id[2:])
-        if start_index > 0: ids = ids[start_index:]
-        await self.manualUpdate(ids)
+        await self.manualUpdate(ids, start_index)
         self.update_changelog = t
         self.force_partner = False
 
