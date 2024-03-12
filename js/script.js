@@ -1768,19 +1768,19 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 1;
             assets = [
-                ["Main Arts", "sp/assets/weapon/b/", "png", 0, false, false], // index, skycompass, side form
-                ["Gacha Arts", "sp/assets/weapon/g/", "png", 0, false, false],
-                ["Gacha Covers", "sp/gacha/cjs_cover/", "png", 0, false, false],
-                ["Gacha Headers", "sp/gacha/header/", "png", 0, false, false],
-                ["Transcendence Headers", "sp/assets/weapon/weapon_evolution/main/", "png", 0, false, false],
-                ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", 0, false, false],
-                ["Square Portraits", "sp/assets/weapon/s/", "jpg", 0, false, false],
-                ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", 0, false, false],
-                ["Forge Headers", "sp/archaic/", "", -3, false, false],
-                ["Forge Portraits", "sp/archaic/", "", -4, false, false],
-                ["Battle Sprites", "sp/cjs/", "png", 0, false, false],
-                ["Attack Effects", "sp/cjs/", "png", 1, false, false],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, false]
+                ["Main Arts", "sp/assets/weapon/b/", "png", 0, false, true], // index, skycompass, side form
+                ["Gacha Arts", "sp/assets/weapon/g/", "png", 0, false, true],
+                ["Gacha Covers", "sp/gacha/cjs_cover/", "png", 0, false, true],
+                ["Gacha Headers", "sp/gacha/header/", "png", 0, false, true],
+                ["Transcendence Headers", "sp/assets/weapon/weapon_evolution/main/", "png", 0, false, true],
+                ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", 0, false, true],
+                ["Square Portraits", "sp/assets/weapon/s/", "jpg", 0, false, true],
+                ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", 0, false, true],
+                ["Forge Headers", "sp/archaic/", "", -3, false, true],
+                ["Forge Portraits", "sp/archaic/", "", -4, false, true],
+                ["Battle Sprites", "sp/cjs/", "png", 0, false, true],
+                ["Attack Effects", "sp/cjs/", "png", 1, false, true],
+                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, true]
             ];
             melee = (id[4] == "6");
             break;
@@ -1790,20 +1790,20 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 2;
             assets = [
-                ["Main Arts", "sp/assets/summon/b/", "png", 0, true, false], // index, skycompass, side form
-                ["Home Arts", "sp/assets/summon/my/", "png", 0, false, false],
-                ["Gacha Art", "sp/assets/summon/g/", "png", 0, false, false],
-                ["Gacha Header", "sp/gacha/header/", "png", 0, false, false],
-                ["Detail Arts", "sp/assets/summon/detail/", "png", 0, false, false],
-                ["Inventory Portraits", "sp/assets/summon/m/", "jpg", 0, false, false],
-                ["Square Portraits", "sp/assets/summon/s/", "jpg", 0, false, false],
-                ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", 0, false, false],
-                ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", 0, false, false],
-                ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", 0, false, false],
-                ["Result Portraits", "sp/assets/summon/btn/", "png", 0, false, false],
-                ["Quest Portraits", "sp/assets/summon/qm/", "png", -7, false, false],
-                ["Summon Call Sheets", "sp/cjs/", "png", 1, false, false],
-                ["Summon Damage Sheets", "sp/cjs/", "png", 2, false, false]
+                ["Main Arts", "sp/assets/summon/b/", "png", 0, true, true], // index, skycompass, side form
+                ["Home Arts", "sp/assets/summon/my/", "png", 0, false, true],
+                ["Gacha Art", "sp/assets/summon/g/", "png", 0, false, true],
+                ["Gacha Header", "sp/gacha/header/", "png", 0, false, true],
+                ["Detail Arts", "sp/assets/summon/detail/", "png", 0, false, true],
+                ["Inventory Portraits", "sp/assets/summon/m/", "jpg", 0, false, true],
+                ["Square Portraits", "sp/assets/summon/s/", "jpg", 0, false, true],
+                ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", 0, false, true],
+                ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", 0, false, true],
+                ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", 0, false, true],
+                ["Result Portraits", "sp/assets/summon/btn/", "png", 0, false, true],
+                ["Quest Portraits", "sp/assets/summon/qm/", "png", -7, false, true],
+                ["Summon Call Sheets", "sp/cjs/", "png", 1, false, true],
+                ["Summon Damage Sheets", "sp/cjs/", "png", 2, false, true]
             ];
             skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
             break;
@@ -1836,11 +1836,11 @@ function loadAssets(id, data, target, indexed = true)
                 ["Twitter Arts", "sp/assets/npc/sns/", "jpg", 5, false, false],
                 ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", 5, false, false],
                 ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", 5, false, false],
-                ["Character Sheets", "sp/cjs/", "png", 0, false, false],
-                ["Attack Effect Sheets", "sp/cjs/", "png", 1, false, false],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, false],
-                ["AOE Skill Sheets", "sp/cjs/", "png", 3, false, false],
-                ["Single Target Skill Sheets", "sp/cjs/", "png", 4, false, false]
+                ["Character Sheets", "sp/cjs/", "png", 0, false, true],
+                ["Attack Effect Sheets", "sp/cjs/", "png", 1, false, true],
+                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, true],
+                ["AOE Skill Sheets", "sp/cjs/", "png", 3, false, true],
+                ["Single Target Skill Sheets", "sp/cjs/", "png", 4, false, true]
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
             npcdata = data[7];
@@ -1855,11 +1855,11 @@ function loadAssets(id, data, target, indexed = true)
                 ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", 5, false, true],
                 ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", 5, false, false],
                 ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", 5, false, false],
-                ["Character Sheets", "sp/cjs/", "png", 0, false, false],
-                ["Attack Effect Sheets", "sp/cjs/", "png", 1, false, false],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, false],
-                ["AOE Skill Sheets", "sp/cjs/", "png", 3, false, false],
-                ["Single Target Skill Sheets", "sp/cjs/", "png", 4, false, false]
+                ["Character Sheets", "sp/cjs/", "png", 0, false, true],
+                ["Attack Effect Sheets", "sp/cjs/", "png", 1, false, true],
+                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, true],
+                ["AOE Skill Sheets", "sp/cjs/", "png", 3, false, true],
+                ["Single Target Skill Sheets", "sp/cjs/", "png", 4, false, true]
             ];
             break;
         case "npcs":
@@ -1868,9 +1868,9 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 5;
             assets = [
-                ["Main Arts", "sp/assets/npc/zoom/", "png", -1, false, false], // index, skycompass, side form
-                ["Journal Arts", "sp/assets/npc/b/", "png", -1, false, false],
-                ["Inventory Portraits", "sp/assets/npc/m/", "jpg", -1, false, false]
+                ["Main Arts", "sp/assets/npc/zoom/", "png", -1, false, true], // index, skycompass, side form
+                ["Journal Arts", "sp/assets/npc/b/", "png", -1, false, true],
+                ["Inventory Portraits", "sp/assets/npc/m/", "jpg", -1, false, true]
             ];
             npcdata = data[1];
             sounds = data[2];
@@ -1881,13 +1881,13 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "e"+id;
             search_type = 4;
             assets = [
-                ["Big Icon", "sp/assets/enemy/m/", "png", 0, false, false],
-                ["Small Icon", "sp/assets/enemy/s/", "png", 0, false, false],
-                ["Sprite Sheets", "sp/cjs/", "png", 1, false, false],
-                ["Raid Appear Sheets", "sp/cjs/", "png", 2, false, false],
-                ["Attack Effect Sheets", "sp/cjs/", "png", 3, false, false],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 4, false, false],
-                ["AOE Charge Attack Sheets", "sp/cjs/", "png", 5, false, false]
+                ["Big Icon", "sp/assets/enemy/m/", "png", 0, false, true],
+                ["Small Icon", "sp/assets/enemy/s/", "png", 0, false, true],
+                ["Sprite Sheets", "sp/cjs/", "png", 1, false, true],
+                ["Raid Appear Sheets", "sp/cjs/", "png", 2, false, true],
+                ["Attack Effect Sheets", "sp/cjs/", "png", 3, false, true],
+                ["Charge Attack Sheets", "sp/cjs/", "png", 4, false, true],
+                ["AOE Charge Attack Sheets", "sp/cjs/", "png", 5, false, true]
             ];
             break;
         case "job":
@@ -1897,35 +1897,35 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 0;
             assets = [
-                ["Job Icons", "sp/ui/icon/job/", "png", 0, false, false], // index, skycompass, side form
-                ["Inventory Portraits", "sp/assets/leader/m/", "jpg", 1, false, false],
-                ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", 1, false, false],
-                ["Outfit Description Arts", "sp/assets/leader/skin/", "png", 1, false, false],
-                ["Full Arts", "sp/assets/leader/job_change/", "png", 3, true, false],
-                ["Home Arts", "sp/assets/leader/my/", "png", 3, false, false],
-                ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", 3, false, false],
-                ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", 0, false, false],
-                ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", 0, false, false],
-                ["Class Name Ultimate Texts", "sp/assets/leader/job_name_pp/", "png", 0, false, false],
-                ["Class Change Buttons", "sp/assets/leader/jlon/", "png", 2, false, false],
-                ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", 3, false, false],
-                ["Square Portraits", "sp/assets/leader/s/", "jpg", 3, false, false],
-                ["Party Class Portraits", "sp/assets/leader/p/", "png", 3, false, false],
-                ["Profile Portraits", "sp/assets/leader/pm/", "png", 3, false, false],
-                ["Profile Board Portraits", "sp/assets/leader/talk/", "png", 3, false, false],
-                ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", 3, false, false],
-                ["Tower of Babyl Portraits", "sp/assets/leader/t/", "png", 3, false, false],
-                ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", 3, false, false],
-                ["Result Portraits", "sp/assets/leader/btn/", "png", 3, false, false],
-                ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", 3, false, false],
-                ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", 3, false, false],
-                ["Mastery Portraits", "sp/assets/leader/zenith/", "png", 2, false, false],
-                ["Master Level Portraits", "sp/assets/leader/master_level/", "png", 2, false, false],
-                ["Sprites", "sp/assets/leader/sd/", "png", 4, false, false],
-                ["Custom Skill Previews", "sp/assets/leader/sd_ability/", "png", -5, false, false],
-                ["Character Sheets", "sp/cjs/", "png", 7, false, false],
-                ["Attack Effects", "sp/cjs/", "png", 8, false, false],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 9, false, false]
+                ["Job Icons", "sp/ui/icon/job/", "png", 0, false, true], // index, skycompass, side form
+                ["Inventory Portraits", "sp/assets/leader/m/", "jpg", 1, false, true],
+                ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", 1, false, true],
+                ["Outfit Description Arts", "sp/assets/leader/skin/", "png", 1, false, true],
+                ["Full Arts", "sp/assets/leader/job_change/", "png", 3, true, true],
+                ["Home Arts", "sp/assets/leader/my/", "png", 3, false, true],
+                ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", 3, false, true],
+                ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", 0, false, true],
+                ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", 0, false, true],
+                ["Class Name Ultimate Texts", "sp/assets/leader/job_name_pp/", "png", 0, false, true],
+                ["Class Change Buttons", "sp/assets/leader/jlon/", "png", 2, false, true],
+                ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", 3, false, true],
+                ["Square Portraits", "sp/assets/leader/s/", "jpg", 3, false, true],
+                ["Party Class Portraits", "sp/assets/leader/p/", "png", 3, false, true],
+                ["Profile Portraits", "sp/assets/leader/pm/", "png", 3, false, true],
+                ["Profile Board Portraits", "sp/assets/leader/talk/", "png", 3, false, true],
+                ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", 3, false, true],
+                ["Tower of Babyl Portraits", "sp/assets/leader/t/", "png", 3, false, true],
+                ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", 3, false, true],
+                ["Result Portraits", "sp/assets/leader/btn/", "png", 3, false, true],
+                ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", 3, false, true],
+                ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", 3, false, true],
+                ["Mastery Portraits", "sp/assets/leader/zenith/", "png", 2, false, true],
+                ["Master Level Portraits", "sp/assets/leader/master_level/", "png", 2, false, true],
+                ["Sprites", "sp/assets/leader/sd/", "png", 4, false, true],
+                ["Custom Skill Previews", "sp/assets/leader/sd_ability/", "png", -5, false, true],
+                ["Character Sheets", "sp/cjs/", "png", 7, false, true],
+                ["Attack Effects", "sp/cjs/", "png", 8, false, true],
+                ["Charge Attack Sheets", "sp/cjs/", "png", 9, false, true]
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
             mc_skycompass = true;
@@ -1970,7 +1970,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "sk"+id;
             search_type = 8;
             assets = [
-                ["Skill Icons", "sp/ui/icon/ability/m/", "png", -1, false, false]
+                ["Skill Icons", "sp/ui/icon/ability/m/", "png", -1, false, true]
             ];
             files = [""+parseInt(id), ""+parseInt(id)+"_1", ""+parseInt(id)+"_2", ""+parseInt(id)+"_3", ""+parseInt(id)+"_4", ""+parseInt(id)+"_5"];
             break;
@@ -1979,7 +1979,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "b"+id;
             search_type = 9;
             assets = [
-                ["Icons", "sp/ui/icon/status/x64/status_", "png", 0, false, false]
+                ["Icons", "sp/ui/icon/status/x64/status_", "png", 0, false, true]
             ];
             let tmp = getBuffSets(id, data, assets);
             data = tmp[0];
