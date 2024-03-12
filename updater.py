@@ -2855,7 +2855,7 @@ class Updater():
            "231007": "_arcarum_geisenborger",
            "231114": "_arcarum_haaselia",
            "240122": "_arcarum_alanaan",
-           "249999": "_arcarum_katzelia" # placeholder
+           "240322": "_arcarum_katzelia" # placeholder
         }
         
         print("Checking for content of", len(events), "event(s)")

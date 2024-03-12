@@ -1081,10 +1081,10 @@ function updateList(node, elems) // update a list of elements
                     res = display_buffs(e[0], index['buffs'][e[0]], [0, 10000]);
                 break;
             case 10:
-                if(e[0] in index['backgrounds'])
+                if(e[0] in index['background'])
                 {
                     let tmp = e[0].split('_')[0];
-                    res = display_backgrounds(e[0], index['backgrounds'][e[0]], (["common", "main", "event"].includes(tmp) ? tmp : ""));
+                    res = display_backgrounds(e[0], index['background'][e[0]], (["common", "main", "event"].includes(tmp) ? tmp : ""));
                 }
                 break;
             case 11:
