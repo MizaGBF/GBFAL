@@ -1935,7 +1935,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "ms"+id;
             search_type = 11;
             assets = [
-                ["Arts", "sp/quest/scene/character/body/", "png", 0, false, false]
+                ["Arts", "sp/quest/scene/character/body/", "png", 0, false, true]
             ];
             break;
         case "events":
@@ -1944,24 +1944,24 @@ function loadAssets(id, data, target, indexed = true)
             search_type = 7;
             assets = [
                 ["Sky Compass", "", "", 20, true, false],
-                ["Opening Arts", "sp/quest/scene/character/body/", "png", 2, false, false],
-                ["Chapter 1 Arts", "sp/quest/scene/character/body/", "png", 5, false, false],
-                ["Chapter 2 Arts", "sp/quest/scene/character/body/", "png", 6, false, false],
-                ["Chapter 3 Arts", "sp/quest/scene/character/body/", "png", 7, false, false],
-                ["Chapter 4 Arts", "sp/quest/scene/character/body/", "png", 8, false, false],
-                ["Chapter 5 Arts", "sp/quest/scene/character/body/", "png", 9, false, false],
-                ["Chapter 6 Arts", "sp/quest/scene/character/body/", "png", 10, false, false],
-                ["Chapter 7 Arts", "sp/quest/scene/character/body/", "png", 11, false, false],
-                ["Chapter 8 Arts", "sp/quest/scene/character/body/", "png", 12, false, false],
-                ["Chapter 9 Arts", "sp/quest/scene/character/body/", "png", 13, false, false],
-                ["Chapter 10 Arts", "sp/quest/scene/character/body/", "png", 14, false, false],
-                ["Chapter 11 Arts", "sp/quest/scene/character/body/", "png", 15, false, false],
-                ["Chapter 12 Arts", "sp/quest/scene/character/body/", "png", 16, false, false],
-                ["Chapter 13 Arts", "sp/quest/scene/character/body/", "png", 17, false, false],
-                ["Chapter 14 Arts", "sp/quest/scene/character/body/", "png", 18, false, false],
-                ["Chapter 15 Arts", "sp/quest/scene/character/body/", "png", 19, false, false],
-                ["Ending Arts", "sp/quest/scene/character/body/", "png", 3, false, false],
-                ["Other Arts", "sp/quest/scene/character/body/", "png", 4, false, false]
+                ["Opening Arts", "sp/quest/scene/character/body/", "png", 2, false, true],
+                ["Chapter 1 Arts", "sp/quest/scene/character/body/", "png", 5, false, true],
+                ["Chapter 2 Arts", "sp/quest/scene/character/body/", "png", 6, false, true],
+                ["Chapter 3 Arts", "sp/quest/scene/character/body/", "png", 7, false, true],
+                ["Chapter 4 Arts", "sp/quest/scene/character/body/", "png", 8, false, true],
+                ["Chapter 5 Arts", "sp/quest/scene/character/body/", "png", 9, false, true],
+                ["Chapter 6 Arts", "sp/quest/scene/character/body/", "png", 10, false, true],
+                ["Chapter 7 Arts", "sp/quest/scene/character/body/", "png", 11, false, true],
+                ["Chapter 8 Arts", "sp/quest/scene/character/body/", "png", 12, false, true],
+                ["Chapter 9 Arts", "sp/quest/scene/character/body/", "png", 13, false, true],
+                ["Chapter 10 Arts", "sp/quest/scene/character/body/", "png", 14, false, true],
+                ["Chapter 11 Arts", "sp/quest/scene/character/body/", "png", 15, false, true],
+                ["Chapter 12 Arts", "sp/quest/scene/character/body/", "png", 16, false, true],
+                ["Chapter 13 Arts", "sp/quest/scene/character/body/", "png", 17, false, true],
+                ["Chapter 14 Arts", "sp/quest/scene/character/body/", "png", 18, false, true],
+                ["Chapter 15 Arts", "sp/quest/scene/character/body/", "png", 19, false, true],
+                ["Ending Arts", "sp/quest/scene/character/body/", "png", 3, false, true],
+                ["Other Arts", "sp/quest/scene/character/body/", "png", 4, false, true]
             ];
             skycompass = ["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png", true];
             break;
