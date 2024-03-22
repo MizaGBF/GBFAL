@@ -69,7 +69,7 @@ class Updater():
     ### CONSTANT
     # limit
     MAX_NEW = 80
-    MAX_UPDATE = 50
+    MAX_UPDATE = 80
     MAX_HTTP = 100
     MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
@@ -163,6 +163,8 @@ class Updater():
     CHAPTER_REGEX = re.compile("Chapter (\d+)(-(\d+))?")
     # others
     SAVE_VERSION = 0
+    LOAD_EXCLUSION = ['version']
+    QUEUE_KEY = ['scene_queue', 'sound_queue']
     STRING_CHAR = string.ascii_lowercase + string.digits
     SEASONAL_EVENTS = ["201017", "211017", "221017", "231017", "241017", "200214", "210214", "220214", "230214", "240214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "200101", "210101", "220101", "230101", "240101"]
     CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
@@ -186,6 +188,8 @@ class Updater():
         self.debug_wpn = False # for testing
         self.data = { # data structure
             "version":self.SAVE_VERSION,
+            "scene_queue":[],
+            "sound_queue":[],
             "characters":{},
             "partners":{},
             "summons":{},
@@ -241,8 +245,9 @@ class Updater():
                 if not isinstance(data, dict): return
             data = self.retrocompatibility(data)
             for k in self.data:
-                if k == 'version': continue
-                self.data[k] = data.get(k, {})
+                if k in self.LOAD_EXCLUSION: continue
+                elif k in self.QUEUE_KEY: self.data[k] = data.get(k, [])
+                else: self.data[k] = data.get(k, {})
         except Exception as e:
             print(e)
 
@@ -258,6 +263,8 @@ class Updater():
             if self.modified:
                 self.modified = False
                 # data.json
+                for k in self.QUEUE_KEY:
+                    self.data[k] = list(set(self.data[k]))
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
                     # custom json indentation
                     outfile.write("{\n")
@@ -585,13 +592,18 @@ class Updater():
                 tasks.append(tg.create_task(self.run_category(c)))
         for t in tasks:
             t.result()
+        self.save()
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
             await self.check_msq()
             await self.check_new_event()
             await self.update_npc_thumb()
+        else:
+            if len(self.data['scene_queue']) > 0:
+                await self.update_all_scene(update_pending=True)
+            if len(self.data['sound_queue']) > 0:
+                await self.update_all_sound(update_pending=True)
         await self.build_relation()
-        self.save()
 
     # run subroutine, process a category batch
     async def run_category(self, coroutines : list) -> None:
@@ -1188,9 +1200,11 @@ class Updater():
             if t.result():
                 tsuccess += 1
         print(tsuccess, "positive result(s)")
-        if tsuccess > 0:
-            self.sort_all_scene()
         self.save()
+        if len(self.data['scene_queue']) > 0:
+            await self.update_all_scene(update_pending=True)
+        if len(self.data['sound_queue']) > 0:
+            await self.update_all_sound(update_pending=True)
 
     # Art check system for characters. Detect gendered arts, etc...
     async def artCheck(self, id : str, style : str, uncaps : list) -> dict:
@@ -1223,6 +1237,9 @@ class Updater():
             async with self.sem:
                 index = "skins" if id.startswith("371") else "characters"
                 data = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
+                if id in self.data[index]:
+                    data[self.CHARA_SCENE] = self.data[index][id][self.CHARA_SCENE]
+                    data[self.CHARA_SOUND] = self.data[index][id][self.CHARA_SOUND]
                 for style in ["", "_st2"]:
                     uncaps = []
                     sheets = []
@@ -1268,89 +1285,72 @@ class Updater():
                     if len(targets) == 0:
                         if style == "": return False
                         continue
-                    tasks = {'scenes':{}, 'sound':None}
-                    async with asyncio.TaskGroup() as tg:
-                        if style == "":
-                            # scene
-                            try: scenes = set(self.data[index][id][self.CHARA_SCENE])
-                            except: scenes = set()
-                            data[self.CHARA_SCENE] = scenes
-                            self.group_scene_task(tg, tasks, id, uncaps, scenes)
-                            # sound
-                            try: voices = set(self.data[index][id][self.CHARA_SOUND])
-                            except: voices = set()
-                            tasks['sound'] = tg.create_task(self.update_chara_sound_file(id, uncaps, voices))
-                        # # # Other sheets
-                        # attack
-                        targets = [""]
-                        for i in range(1, len(uncaps)):
-                            targets.append("_" + uncaps[i])
-                        attacks = []
-                        if tid == self.MALINDA:
-                            for i in range(0, 7):
-                                mid = tid[:-1] + str(i)
-                                for t in targets:
-                                    for u in ["", "_2", "_3", "_4"]:
-                                        for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                            try:
-                                                fn = "phit_{}{}{}{}{}".format(mid, t, style, u, form)
-                                                attacks += await self.processManifest(fn)
-                                            except:
-                                                pass
-                        else:
+                    # # # Other sheets
+                    # attack
+                    targets = [""]
+                    for i in range(1, len(uncaps)):
+                        targets.append("_" + uncaps[i])
+                    attacks = []
+                    if tid == self.MALINDA:
+                        for i in range(0, 7):
+                            mid = tid[:-1] + str(i)
                             for t in targets:
                                 for u in ["", "_2", "_3", "_4"]:
                                     for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                         try:
-                                            fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                                            fn = "phit_{}{}{}{}{}".format(mid, t, style, u, form)
                                             attacks += await self.processManifest(fn)
                                         except:
                                             pass
-                        data[self.CHARA_PHIT] += attacks
-                        # ougi
-                        attacks = []
-                        for uncap in uncaps:
-                            uf = flags[uncap]
-                            found = False
-                            for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                    else:
+                        for t in targets:
+                            for u in ["", "_2", "_3", "_4"]:
                                 for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                    for catype in ["", "_s2", "_s3"]:
-                                        for sub in ([""] if tid == self.MALINDA else ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]):
-                                            for ex in (["", "_1", "_2", "_3", "_4", "_5", "_6"] if tid == self.MALINDA else [""]):
-                                                try:
-                                                    fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
-                                                    attacks += await self.processManifest(fn)
-                                                    found = True
-                                                except:
-                                                    pass
-                                        if found: break
-                        data[self.CHARA_SP] += attacks
-                        # skills
-                        attacks = []
-                        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-                            try:
-                                fn = "ab_all_{}{}_{}".format(tid, style, el)
-                                attacks += await self.processManifest(fn)
-                            except:
-                                pass
-                        data[self.CHARA_AB_ALL] += attacks
-                        attacks = []
-                        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-                            try:
-                                fn = "ab_{}{}_{}".format(tid, style, el)
-                                attacks += await self.processManifest(fn)
-                            except:
-                                pass
-                        data[self.CHARA_AB] += attacks
-                    for s, t in tasks['scenes'].items():
-                        if t is True or t.result() is not None:
-                            data[self.CHARA_SCENE].add(s)
-                    data[self.CHARA_SCENE] = list(data[self.CHARA_SCENE])
-                    if tasks['sound'] is not None:
-                        data[self.CHARA_SOUND] = tasks['sound'].result()
-                    tasks = None
+                                    try:
+                                        fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                                        attacks += await self.processManifest(fn)
+                                    except:
+                                        pass
+                    data[self.CHARA_PHIT] += attacks
+                    # ougi
+                    attacks = []
+                    for uncap in uncaps:
+                        uf = flags[uncap]
+                        found = False
+                        for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                            for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                                for catype in ["", "_s2", "_s3"]:
+                                    for sub in ([""] if tid == self.MALINDA else ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]):
+                                        for ex in (["", "_1", "_2", "_3", "_4", "_5", "_6"] if tid == self.MALINDA else [""]):
+                                            try:
+                                                fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
+                                                attacks += await self.processManifest(fn)
+                                                found = True
+                                            except:
+                                                pass
+                                    if found: break
+                    data[self.CHARA_SP] += attacks
+                    # skills
+                    attacks = []
+                    for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                        try:
+                            fn = "ab_all_{}{}_{}".format(tid, style, el)
+                            attacks += await self.processManifest(fn)
+                        except:
+                            pass
+                    data[self.CHARA_AB_ALL] += attacks
+                    attacks = []
+                    for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                        try:
+                            fn = "ab_{}{}_{}".format(tid, style, el)
+                            attacks += await self.processManifest(fn)
+                        except:
+                            pass
+                    data[self.CHARA_AB] += attacks
                 self.modified = True
                 self.data[index][id] = data
+                self.data['scene_queue'].append(id)
+                self.data['sound_queue'].append(id)
                 self.addition[id] = self.ADD_CHAR
             return True
 
@@ -1509,45 +1509,40 @@ class Updater():
         with self.progress:
             async with self.sem:
                 data = [False, [], []] # journal flag, npc, voice
+                if id in self.data["npcs"]:
+                    data[self.NPC_SCENE] = self.data["npcs"][id][self.NPC_SCENE]
+                    data[self.NPC_SOUND] = self.data["npcs"][id][self.NPC_SOUND]
+                modified = False
                 try:
                     await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(id))
                     data[self.NPC_JOURNAL] = True
                 except:
                     if id.startswith("305"): return False # don't continue for special npcs
-                
-                tasks = {'scenes':{}, 'sound':None}
-                async with asyncio.TaskGroup() as tg:
-                    # scene
-                    try: scenes = set(self.data["npcs"][id][self.NPC_SCENE])
-                    except: scenes = set()
-                    data[self.NPC_SCENE] = scenes
-                    self.group_scene_task(tg, tasks, id, [""], scenes)
-                    # sound
-                    try: voices = set(self.data['npcs'][id][self.NPC_SOUND])
-                    except: voices = set()
-                    tasks['sound'] = tg.create_task(self.update_chara_sound_file(id, None, voices))
-                for s, t in tasks['scenes'].items():
-                    if t is True or t.result() is not None:
-                        data[self.NPC_SCENE].add(s)
-                data[self.NPC_SCENE] = list(data[self.NPC_SCENE])
-                if tasks['sound'] is not None:
-                    data[self.NPC_SOUND] = tasks['sound'].result()
-                tasks = None
-                if not data[self.NPC_JOURNAL] and len(data[self.NPC_SCENE]) == 0:
-                    if len(data[self.NPC_SOUND]) == 0: return False # nothing, quit
-                    # check if proceed regardless
-                    keys = list(self.data['npcs'].keys()) # get keys
-                    keys = keys[max(0, len(keys)-100):] # last 100 (or less)
-                    keys = [k for k in keys if self.data['npcs'][k] != 0] # remove unvalid ones
-                    keys.sort() # sort so that the highest id is further right
+                # base scene
+                for k in ["", "_a"]:
                     try:
-                        if int(keys[-1]) <= int(id): # doesn't proceed with sound only if there is no valid npc further
-                            return False
+                        f = "{}{}".format(id, k)
+                        if f not in data[self.NPC_SCENE]:
+                            await self.head(self.IMG + "sp/quest/scene/character/body/" + f + ".png")
+                            data[self.NPC_SCENE].append(k)
+                            modified = True
                     except:
-                        return False
-                self.modified = True
-                self.data['npcs'][id] = data
-                self.addition[id] = self.ADD_NPC
+                        pass
+                # base sound
+                for k in ["_v_001", "_boss_v_1"]:
+                    try:
+                        f = "{}{}".format(id, k)
+                        if f not in data[self.NPC_SCENE]:
+                            await self.head(self.SOUND + "voice/" + f + ".mp3")
+                            data[self.NPC_SOUND].append(k)
+                            modified = True
+                    except:
+                        pass
+                if modified:
+                    self.modified = True
+                    self.data['npcs'][id] = data
+                    self.data['sound_queue'].append(id)
+                    self.addition[id] = self.ADD_NPC
             return True
 
     # Update Summon data
@@ -1831,20 +1826,22 @@ class Updater():
         self.scene_string_cache[hashable] = scene_alts
         return scene_alts
 
-    # Function to populate the task group
-    def group_scene_task(self, task_group : asyncio.TaskGroup, tasks : dict, id : str, uncaps : list, existing : set) -> None:
-        for s in self.get_scene_string_list_for_uncaps(id, uncaps):
-            if s not in existing:
-                tmp = s.split("_")
-                no_bubble = (s != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.scene_special_suffix # don't check raid bubbles for uncaps or those special ending suffix
-                tasks['scenes'][s] = task_group.create_task(self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)]))
-
     # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
-    async def update_all_scene(self, target_index : Optional[str], targeted_strings : list = []) -> None:
-        if target_index is None:
-            target_index = ["characters", "skins", "npcs"]
-        elif not isinstance(target_index, list):
-            target_index = [target_index]
+    async def update_all_scene(self, target_index : Optional[str] = None, targeted_strings : list = [], update_pending : bool = False) -> None:
+        target_list = []
+        if update_pending:
+            target_list = list(set(self.data['scene_queue']))
+        else:
+            if target_index is None:
+                target_index = ["characters", "skins", "npcs"]
+            elif not isinstance(target_index, list):
+                target_index = [target_index]
+            for k in self.data:
+                target_list += list(self.data[k].keys())
+            target_list = set(list(target_list))
+        if len(target_list) == 0:
+            return
+        print("Updating scene data for {} element(s)".format(len(target_list)))
         start_index = 0
         if len(targeted_strings) > 0:
             try:
@@ -1854,35 +1851,37 @@ class Updater():
                 pass
             if len(targeted_strings) > 0:
                 self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
-        print("Updating scene data for: {}".format(" / ".join(target_index)))
-        if start_index > 0: print("(Skipping the first {} element(s) )".format(start_index))
         sk = start_index
         elements = []
-        for k in target_index:
-            for id in self.data[k]:
-                if not isinstance(self.data[k][id], list): continue
-                if k == "npcs":
-                    uncaps = [""]
-                    idx = self.NPC_SCENE
-                else:
-                    uncaps = []
-                    idx = self.CHARA_SCENE
-                    for u in self.data[k][id][self.CHARA_GENERAL]:
-                        uu = u.replace(id+"_", "")
-                        if "_" not in uu and uu.startswith("0"):
-                            uncaps.append(uu)
-                for u in uncaps: # split per uncap
-                    for i in range(self.MAX_SCENE_CONCURRENT): # and split by self.MAX_SCENE_CONCURRENT
-                        if sk > 0:
-                            sk -= 1
-                        else:
-                            elements.append((k, id, idx, [u], i, self.MAX_SCENE_CONCURRENT))
+        for id in target_list:
+            if id.startswith('399'):
+                uncaps = [""]
+                idx = self.NPC_SCENE
+                k = 'npcs'
+            else:
+                uncaps = []
+                idx = self.CHARA_SCENE
+                k = 'characters' if id.startswith('30') else 'skins'
+                for u in self.data[k][id][self.CHARA_GENERAL]:
+                    uu = u.replace(id+"_", "")
+                    if "_" not in uu and uu.startswith("0"):
+                        uncaps.append(uu)
+            for u in uncaps: # split per uncap
+                for i in range(self.MAX_SCENE_CONCURRENT): # and split by self.MAX_SCENE_CONCURRENT
+                    if sk > 0:
+                        sk -= 1
+                    else:
+                        elements.append((k, id, idx, [u], i, self.MAX_SCENE_CONCURRENT))
+        if start_index > 0:
+            print("(Skipping the first {} element(s) )".format(start_index))
+        # start
         if len(elements) > 0:
             self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
             async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_UPDATEALL):
                 pass
             if len(targeted_strings) > 0:
                 self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
+            if update_pending: self.data['scene_queue'] = []
             self.sort_all_scene()
             self.save()
             print("Done")
@@ -1941,45 +1940,53 @@ class Updater():
     ### Sound ###################################################################################################################
 
     # Called by -sound, update all npc and character sound datas
-    async def update_all_sound(self, parameters : list = []) -> None:
+    async def update_all_sound(self, parameters : list = [], update_pending : bool = False) -> None:
+        if update_pending:
+            target_list = list(set(self.data['sound_queue']))
+        else:
+            for k in ["characters", "skins", "npcs"]:
+                target_list += list(self.data[k].keys())
+            target_list = set(list(target_list))
+        if len(target_list) == 0:
+            return
+        print("Updating sound data for {} element(s)".format(len(target_list)))
         start_index = 0
         if len(parameters) > 0:
             try:
                 start_index = int(parameters[0])
             except:
                 pass
-        print("Updating sound data...")
         if start_index > 0: print("(Skipping the first {} element(s) )".format(start_index))
         elements = []
         shared = []
-        for k in ["characters", "skins", "npcs"]:
-            for id in self.data[k]:
-                if not isinstance(self.data[k][id], list): continue
-                if k == "npcs":
-                    uncaps = ["01"]
-                    idx = self.NPC_SOUND
+        for id in target_list:
+            if id.startswith('399'):
+                uncaps = ["01"]
+                idx = self.NPC_SOUND
+                k = "npcs"
+            else:
+                uncaps = []
+                idx = self.CHARA_SOUND
+                k = 'characters' if id.startswith('30') else 'skins'
+                for u in self.data[k][id][self.CHARA_GENERAL]:
+                    uu = u.replace(id+"_", "")
+                    if "_" not in uu and uu.startswith("0") and uu != "02":
+                        uncaps.append(uu)
+            try: voices = set(self.data[k][id][idx])
+            except: voices = set()
+            prep = self.update_chara_sound_file_prep(id, uncaps, voices)
+            self.newShared(shared)
+            shared[-1][1] = [] # change 2nd value to an array
+            for i in range(0, len(prep), self.MAX_SOUND_CONCURRENT):
+                prep_split = []
+                if i == 0: prep_split.append(None)
+                for kk in prep[i:i + self.MAX_SOUND_CONCURRENT]:
+                    prep_split.append(kk)
+                if start_index > 0:
+                    start_index -= 1
                 else:
-                    uncaps = []
-                    idx = self.CHARA_SOUND
-                    for u in self.data[k][id][self.CHARA_GENERAL]:
-                        uu = u.replace(id+"_", "")
-                        if "_" not in uu and uu.startswith("0") and uu != "02":
-                            uncaps.append(uu)
-                try: voices = set(self.data[k][id][idx])
-                except: voices = set()
-                prep = self.update_chara_sound_file_prep(id, uncaps, voices)
-                self.newShared(shared)
-                shared[-1][1] = [] # change 2nd value to an array
-                for i in range(0, len(prep), self.MAX_SOUND_CONCURRENT):
-                    prep_split = []
-                    if i == 0: prep_split.append(None)
-                    for kk in prep[i:i + self.MAX_SOUND_CONCURRENT]:
-                        prep_split.append(kk)
-                    if start_index > 0:
-                        start_index -= 1
-                    else:
-                        elements.append((k, id, idx, shared[-1], voices, prep_split))
-                        shared[-1][2] += 1
+                    elements.append((k, id, idx, shared[-1], voices, prep_split))
+                    shared[-1][2] += 1
         # memory cleaning
         prep = None
         prep_split = None
@@ -1988,6 +1995,9 @@ class Updater():
         async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_UPDATEALL):
             pass
         print("Done")
+        if update_pending and len(self.data['sound_queue']) > 0:
+            self.data['sound_queue'] = []
+            self.modified = True
         self.save()
 
     # update_all_sound() subroutine
@@ -2041,33 +2051,6 @@ class Updater():
             for s in range(1, 6):
                 elements.append((id, existing, "_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
         return elements
-
-    # search sound files for a character/skin/npc
-    async def update_chara_sound_file(self, id : str, base_uncaps : Optional[list] = None, existing : set = set()) -> list:
-        if base_uncaps is None:
-            base_uncaps = ["01"]
-        uncaps = [u for u in base_uncaps if ("_" not in u and u.startswith("0"))]
-        async with asyncio.TaskGroup() as tg:
-            tasks = []
-            for t in self.update_chara_sound_file_prep(id, uncaps, existing):
-                tasks.append(tg.create_task(self.update_chara_sound_file_sub(*t)))
-            # banter
-            tasks.append(tg.create_task(self.update_chara_sound_file_sub_banter(id, existing)))
-        result = []
-        for t in tasks:
-            result += t.result()
-        result = list(set(result))
-        # sorting
-        A = []
-        B = []
-        for k in result:
-            if k.split("_")[1] in ["02", "03", "04", "05"]:
-                B.append(k)
-            else:
-                A.append(k)
-        A.sort()
-        B.sort()
-        return A+B
 
     # generic sound subroutine
     async def update_chara_sound_file_sub(self, id : str, existing : set, suffix : str, post : list, index : Optional[int], zfill : Optional[int], max_err : Optional[int]) -> list:
@@ -3330,6 +3313,8 @@ class Updater():
         print("-thumb       : Update npc thumbnail data.")
         print("-sound       : Update sound index for characters (Very time consuming).")
         print("-partner     : Update data for partner characters (Very time consuming).")
+        print("-addpending  : Add a list of character/skin/npc ID to the pending list for scene/sound updates.")
+        print("-runpending  : Run scene/sound updates for the pending lists of character/skin/npc IDs (Time consuming).")
         print("-enemy       : Update data for enemies (Time consuming).")
         print("-story       : Update main story arts. Can add 'all' to update all or a number to specify the chapter.")
         print("-event       : Update unique event arts (Very time consuming).")
@@ -3340,7 +3325,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.23\n")
+                print("GBFAL updater v2.24\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
@@ -3388,6 +3373,18 @@ class Updater():
                     elif "-sound" in flags: await self.update_all_sound(extras)
                     elif "-partner" in flags: await self.update_all_partner(extras)
                     elif "-enemy" in flags: await self.manualUpdate(list(self.data['enemies'].keys()))
+                    elif "-addpending" in flags:
+                        for id in extras:
+                            if len(id) == 10 and id.startswith('3'):
+                                self.data['scene_queue'].append(id)
+                                self.data['sound_queue'].append(id)
+                                self.modified = True
+                        self.save()
+                    elif "-runpending" in flags:
+                        if len(self.data['scene_queue']) > 0:
+                            await self.update_all_scene(update_pending=True)
+                        if len(self.data['sound_queue']) > 0:
+                            await self.update_all_sound(update_pending=True)
                     elif "-story" in flags:
                         all = False
                         cp = None
@@ -3408,6 +3405,7 @@ class Updater():
                         self.print_help()
                         print("")
                         print("Unknown parameter:", k)
+                self.save()
         except Exception as e:
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 

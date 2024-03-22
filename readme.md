@@ -48,6 +48,8 @@ Action parameters (Only one of those can be used at a time):
 - `-sound`: Update sound datas for characters, outfits and NPCs. Very time consuming.  
 - `-partner`: Update all partner datas. Very time consuming.  
 - `-enemy`: Update all enemy datas. Time consuming.  
+- `-addpending`: Add a list of character/skin/npc ID to the pending list for scene/sound updates.  
+- `-runpending`: Run scene/sound updates for the pending lists of character/skin/npc IDs. Can be Time consuming.  
 - `-story`: Update main story datas. Can add `all` to update existing chapters and/or a number to limit set manually the last chapter number.  
 - `-event`: Update event datas. Time consuming.  
 - `-eventedit`: Open the `EVENT EDIT` CLI, allowing you to add event thumbnail, update skycompass arts and more.  
