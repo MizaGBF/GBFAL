@@ -1237,7 +1237,7 @@ class Updater():
             async with self.sem:
                 index = "skins" if id.startswith("371") else "characters"
                 data = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
-                if id in self.data[index]:
+                if id in self.data[index] and self.data[index][id] != 0:
                     data[self.CHARA_SCENE] = self.data[index][id][self.CHARA_SCENE]
                     data[self.CHARA_SOUND] = self.data[index][id][self.CHARA_SOUND]
                 for style in ["", "_st2"]:
@@ -1509,7 +1509,7 @@ class Updater():
         with self.progress:
             async with self.sem:
                 data = [False, [], []] # journal flag, npc, voice
-                if id in self.data["npcs"]:
+                if id in self.data["npcs"] and self.data["npcs"][id] != 0:
                     data[self.NPC_SCENE] = self.data["npcs"][id][self.NPC_SCENE]
                     data[self.NPC_SOUND] = self.data["npcs"][id][self.NPC_SOUND]
                 modified = False
