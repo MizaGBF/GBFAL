@@ -714,34 +714,46 @@ class Updater():
             highest = i - 1
         tmp = None
         highest = start
-        slist = ["", "_1", "_10", "_11", "_101", "_110", "_111", "_30"] + (["1"] if start >= 1000 else []) + ["_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
+        # suffix list
+        slist = ["_1", "_10", "_11", "_101", "_110", "_111", "_30"] + (["1"] if start >= 1000 else []) + ["_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
         known = set()
         while err < 10 and i < end:
             fi = str(i).zfill(4)
+            data = [[], []]
             if not full:
                 if fi in self.data["buffs"]:
                     i += step
                     err = 0
                     continue
-                data = [[], []]
             else:
                 try:
-                    data = self.data["buffs"][fi]
+                    data[0] = self.data["buffs"][fi][0].copy()
+                    data[1] = self.data["buffs"][fi][1].copy()
                     known = set(data[1])
                     if '_' not in data[0] and len(data[0]) < 5:
                         known.add("")
                 except:
-                    data = [[], []]
                     known = set()
             found = False
             modified = False
+            # check no suffix
+            try:
+                if len(data[0]) == 0 or (len(data[0]) > 0 and data[0][0] != str(i)):
+                    headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + ".png")
+                    if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
+                    data[0] = str(i)
+                    modified = True
+                found = True
+            except:
+                pass
+            # check suffixes
             for s in slist:
                 try:
                     if s not in known:
                         headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
                         if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
                         if len(data[0]) == 0:
-                            data[0].append(str(i) + s)
+                            data[0] = str(i)+s
                         if s != "":
                             data[1].append(s)
                         modified = True
@@ -3325,7 +3337,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.24\n")
+                print("GBFAL updater v2.25\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])

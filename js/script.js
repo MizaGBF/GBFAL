@@ -2608,41 +2608,16 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
             data[data.length-1].push(""+iid+"_0_"+i);
         }
     }
-    if(vu1u1 && vu1u10)
+    // elem stuff
+    let lim = 0
+    if(vu1u20) lim = 101;
+    else if(vu1u10 || vu2u10) lim = 21;
+    else if(vu1u1 || vu2u1) lim = 11;
+    for(let i = 0; i < 9; ++i)
     {
-        for(let i = 0; i < 21; ++i)
-            data[data.length-1].push(""+iid+"_1_"+i);
-    }
-    else if(vu1u1)
-    {
-        for(let i = 0; i < 11; ++i)
-            data[data.length-1].push(""+iid+"_1_"+i);
-    }
-    else if(vu1u10)
-    {
-        for(let j = 0; j < ((vu2u1 || vu2u10) ? 9 : 2); ++j)
+        for(let j = 0; j < lim; ++j)
         {
-            for(let i = 0; i < 101; ++i)
-                data[data.length-1].push(""+iid+"_"+j+"_"+i);
-        }
-    }
-    else if(vu2u1)
-    {
-        if(vu2u10)
-        {
-            for(let j = 2; j < 7; ++j)
-            {
-                for(let i = 0; i < 21; ++i)
-                    data[data.length-1].push(""+iid+"_"+j+"_"+i);
-            }
-        }
-        else
-        {
-            for(let j = 2; j < 7; ++j)
-            {
-                for(let i = 0; i < 11; ++i)
-                    data[data.length-1].push(""+iid+"_"+j+"_"+i);
-            }
+            data[data.length-1].push(""+iid+"_"+i+"_"+j);
         }
     }
     return [data, assets];
