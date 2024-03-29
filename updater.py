@@ -3117,7 +3117,12 @@ class Updater():
 
     # Attempt to automatically associate new event thumbnails to events
     async def event_thumbnail_association(self, events : list) -> None:
-        events = [ev for ev in events if ev != ""]
+        tmp = []
+        for ev in events:
+            if ev == "": continue
+            if self.data["events"][ev][self.EVENT_THUMB] is None:
+                tmp.append(ev)
+        events = tmp
         print("Checking event thumbnails...")
         in_use = set()
         for eid, ev in self.data["events"].items():
@@ -3125,7 +3130,7 @@ class Updater():
         in_use = list(in_use)
         in_use.sort()
         for eid in in_use:
-            if eid not in self.data["eventthumb"]:
+            if eid not in self.data["eventthumb"] or self.data["eventthumb"][eid] == 0:
                 self.modified = True
                 self.data["eventthumb"][eid] = 1
         tasks = []
