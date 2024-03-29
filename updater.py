@@ -3062,6 +3062,7 @@ class Updater():
                                                 self.data["events"][ev][self.EVENT_THUMB] = int(s.split('/')[-1].split('.')[0])
                                             else:
                                                 self.data["events"][ev][self.EVENT_THUMB] = int(s)
+                                            self.data["eventthumb"][str(self.data["events"][ev][self.EVENT_THUMB])] = 1
                                             self.modified = True
                                             await self.update_event_sky(ev)
                                         except:
