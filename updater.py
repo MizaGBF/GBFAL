@@ -1553,6 +1553,7 @@ class Updater():
                 if modified:
                     self.modified = True
                     self.data['npcs'][id] = data
+                    self.data['scene_queue'].append(id)
                     self.data['sound_queue'].append(id)
                     self.addition[id] = self.ADD_NPC
             return True
