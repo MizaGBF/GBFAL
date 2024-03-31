@@ -2780,7 +2780,7 @@ class Updater():
 
     # Call get_event_list() and check the current time to determine if new events have been added. If so, check if they got voice lines to determine if they got chapters, and then call update_event()
     async def check_new_event(self, init_list : Optional[list] = None) -> None:
-        now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400) - timedelta(seconds=68430)
+        now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400)
         nyear = now.year
         nmonth = now.month
         nday = now.day
@@ -2800,10 +2800,9 @@ class Updater():
             for ev in known_events:
                 if ev in self.data["events"]: # event already registered
                     if now >= int(ev) and nyear == 2000 + int(ev[:2]) and ((nday <= 10 and nmonth - int(ev[2:4]) < 2) or (nday - int(ev[4:]) < 12 and nmonth == int(ev[2:4]))): # if event is recent
-                        if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
-                            check[ev] = self.data["events"][ev][self.EVENT_CHAPTER_COUNT] # add to check list
-                            if self.data["events"][ev][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
-                                thumbnail_check.append(ev)
+                        check[ev] = self.data["events"][ev][self.EVENT_CHAPTER_COUNT] # add to check list
+                        if self.data["events"][ev][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
+                            thumbnail_check.append(ev)
                 elif now >= int(ev): # new event
                     check[ev] = -1
                     for i in range(0, self.EVENT_MAX_CHAPTER):
