@@ -250,6 +250,7 @@ class Updater():
                 else: self.data[k] = data.get(k, {})
         except Exception as e:
             print(e)
+            exit(0)
 
     # make older data.json compatible with newer versions
     def retrocompatibility(self, data : dict) -> dict:
