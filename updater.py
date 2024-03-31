@@ -1230,18 +1230,19 @@ class Updater():
             uncaps = ["01", "02", "03", "04"]
         else:
             uncaps = uncaps + ["81", "82", "83", "91", "92", "93"]
-        flags = {}
         async with asyncio.TaskGroup() as tg:
             for uncap in uncaps:
-                flags[uncap] = [False, False, False]
                 for g in ["_1", ""]:
                     for m in ["_101", ""]:
                         for n in ["_01", ""]:
                             s = "_" + uncap + style + g + m + n
                             tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(self.IMG + "sp/assets/npc/raid_normal/{}{}.jpg".format(id, s)))
+        flags = {}
         for s, t in tasks.items():
             if t.result() is not None:
                 uncap, g, m, n = s
+                if uncap not in flags:
+                    flags[uncap] = [False, False, False]
                 flags[uncap][0] = flags[uncap][0] or (g == "_1")
                 flags[uncap][1] = flags[uncap][1] or (m == "_101")
                 flags[uncap][2] = flags[uncap][2] or (n == "_01")
@@ -1331,6 +1332,10 @@ class Updater():
                     # ougi
                     attacks = []
                     for uncap in uncaps:
+                        if uncap not in flags:
+                            print("")
+                            print("Warning: Missing art for character:", id)
+                            continue
                         uf = flags[uncap]
                         found = False
                         for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
