@@ -741,7 +741,7 @@ class Updater():
                 if len(data[0]) == 0 or (len(data[0]) > 0 and data[0][0] != str(i)):
                     headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + ".png")
                     if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
-                    data[0] = str(i)
+                    data[0] = [str(i)]
                     modified = True
                 found = True
             except:
@@ -753,7 +753,7 @@ class Updater():
                         headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
                         if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
                         if len(data[0]) == 0:
-                            data[0] = str(i)+s
+                            data[0] = [str(i)+s]
                         if s != "":
                             data[1].append(s)
                         modified = True
