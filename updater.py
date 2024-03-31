@@ -5,6 +5,7 @@ import re
 import json
 import time
 import string
+import os
 from bs4 import BeautifulSoup
 from datetime import datetime, timezone, timedelta
 import traceback
@@ -249,8 +250,11 @@ class Updater():
                 elif k in self.QUEUE_KEY: self.data[k] = data.get(k, [])
                 else: self.data[k] = data.get(k, {})
         except Exception as e:
-            print(e)
-            exit(0)
+            if not str(e).startswith("[Errno 2] No such file or directory"):
+                print("The following error occured while loading data.json:")
+                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                print(e)
+                os._exit(0)
 
     # make older data.json compatible with newer versions
     def retrocompatibility(self, data : dict) -> dict:
