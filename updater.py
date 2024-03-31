@@ -1334,7 +1334,7 @@ class Updater():
                     for uncap in uncaps:
                         if uncap not in flags:
                             print("")
-                            print("Warning: Missing art for character:", id)
+                            print("Warning: Missing uncap art", uncap, "for character:", id)
                             continue
                         uf = flags[uncap]
                         found = False
