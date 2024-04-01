@@ -1741,7 +1741,7 @@ class Updater():
     # Called once at boot. Generate a list of string to check for npc data
     def build_scene_strings(self, expressions : Optional[list] = None) -> tuple: # note: the coverage isn't perfect but it's the best balance between it and speed
         if expressions is None or len(expressions) == 0:
-            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2023", "_two", "_three", "_ef", "_body", "_front", "_back", "_left", "_right", "_eyeline"]
+            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2023", "_two", "_three", "_ef", "_body", "_front", "_back", "_left", "_right", "_eyeline"]
         variationsA = ["", "_a", "_b", "_c", "_battle", "_nalhe", "_astral"]
         variationsB = ["", "_a", "_speed", "_up", "_shadow", "_shadow2", "_shadow3", "_light", "_blood", "_up_blood"]
         scene_alts = []
@@ -2963,6 +2963,13 @@ class Updater():
                             await self.head(url + k + ".png")
                             l.append(url.split("/")[-1]+k)
                         flag = True
+                        for kkk in ["a", "b", "c", "d", "e", "f"]:
+                            try:
+                                if url.split("/")[-1]+k+kkk not in known_assets:
+                                    await self.head(url + k + kkk + ".png")
+                                    l.append(url.split("/")[-1]+k+kkk)
+                            except:
+                                break
                     except:
                         break
                 if not flag or is_tuto: # check for extras
@@ -2993,6 +3000,13 @@ class Updater():
                                     if url.split("/")[-1]+"_"+k+kk not in known_assets:
                                         await self.head(url + "_" + k + kk + ".png")
                                         l.append(url.split("/")[-1]+"_"+k+kk)
+                                    for kkk in ["a", "b", "c", "d", "e", "f"]:
+                                        try:
+                                            if url.split("/")[-1]+"_"+k+kk+kkk not in known_assets:
+                                                await self.head(url + "_" + k + kk + kkk + ".png")
+                                                l.append(url.split("/")[-1]+"_"+k+kk+kkk)
+                                        except:
+                                            break
                                 except:
                                     break
                         except:
