@@ -2787,6 +2787,10 @@ class Updater():
         l.sort()
         return l
 
+    # convert event id string to day count integer
+    def ev2daycount(self, ev : str) -> int:
+        return (int(ev[:2]) * 12 + int(ev[2:4])) * 31 + int(ev[4:6])
+
     # Call get_event_list() and check the current time to determine if new events have been added. If so, check if they got voice lines to determine if they got chapters, and then call update_event()
     async def check_new_event(self, init_list : Optional[list] = None) -> None:
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400)
@@ -2794,6 +2798,7 @@ class Updater():
         nmonth = now.month
         nday = now.day
         now = int(str(nyear)[2:] + str(nmonth).zfill(2) + str(nday).zfill(2))
+        now_day = self.ev2daycount(str(now))
         if init_list is None:
             known_events = await self.get_event_list()
         else:
@@ -2808,7 +2813,7 @@ class Updater():
             self.progress = Progress(self)
             for ev in known_events:
                 if ev in self.data["events"]: # event already registered
-                    if now >= int(ev) and nyear == 2000 + int(ev[:2]) and ((nday <= 10 and nmonth - int(ev[2:4]) < 2) or (nday - int(ev[4:]) < 12 and nmonth == int(ev[2:4]))): # if event is recent
+                    if now >= int(ev) and now_day - self.ev2daycount(ev) <= 14: # if event is recent (2 weeks)
                         check[ev] = self.data["events"][ev][self.EVENT_CHAPTER_COUNT] # add to check list
                         if self.data["events"][ev][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
                             thumbnail_check.append(ev)
