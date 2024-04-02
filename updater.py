@@ -2203,7 +2203,7 @@ class Updater():
                 try:
                     body = t.findChildren("tbody", recursive=False)[0].findChildren("tr" , recursive=False) # check for tr tag
                     for tr in body:
-                        for k in ["Race", "Element", "Gender", "JP"]:
+                        for k in ["Race", "Element", "Gender", "JP", "Character Unlock"]:
                             if str(tr).find(k) != -1 and k not in data:
                                 a = str(tr).find("/Category:")
                                 if k == "Race":
@@ -2242,6 +2242,12 @@ class Updater():
                                             break
                                     if k in data:
                                         break
+                                elif itype == 1 and k == "Character Unlock":
+                                    a = str(tr).find("_30")
+                                    if a != -1:
+                                        a += 1
+                                        try: data[k] = str(tr)[a:a+10]
+                                        except: pass
                 except:
                     pass
                 # series
@@ -2440,41 +2446,30 @@ class Updater():
     # called by -lookupfix, to manually edit missing data in case of system failure
     async def manualLookup(self) -> None:
         to_delete = []
+        print("Checking character, summon and weapon lookup datas...")
         for k, v in self.data["lookup"].items():
             if v is None or 'cut-content' in v: continue
             x = v.split(" ")
-            match k[0]:
-                case '3':
-                    check = False
-                    for e in ["lyria", "blue poppet", "brown poppet", "young cat", "sierokarte"]:
-                        if e in v:
-                            check = True
-                            break
-                    if not check:
+            if len(k) == 10:
+                match k[0]:
+                    case '3':
+                        if k[:2] in ["37", "38", "39"] or k[:3] == "305": continue
                         check = False
-                        for e in ["fire", "water", "earth", "wind", "light", "dark"]:
-                            if e in x:
+                        for e in ["lyria", "blue poppet", "brown poppet", "young cat", "sierokarte"]:
+                            if e in v:
                                 check = True
                                 break
                         if not check:
-                            to_delete.append(k)
-                            print(k[0], k, x[-5], "/", v)
-                case '2':
-                    check = False
-                    for e in ["fire", "water", "earth", "wind", "light", "dark"]:
-                        if e in x:
-                            check = True
-                            break
-                    if not check:
-                        to_delete.append(k)
-                        print(k[0], k, x[-3], "/", v)
-                case '1':
-                    check = False
-                    for e in ["ultima", "superlative", "class", "champion"]:
-                        if e in v:
-                            check = True
-                            break
-                    if not check:
+                            check = False
+                            for e in ["fire", "water", "earth", "wind", "light", "dark"]:
+                                if e in x:
+                                    check = True
+                                    break
+                            if not check:
+                                to_delete.append(k)
+                                try: print(k[0], k, x[-5], "/", v)
+                                except: print(k)
+                    case '2':
                         check = False
                         for e in ["fire", "water", "earth", "wind", "light", "dark"]:
                             if e in x:
@@ -2483,6 +2478,21 @@ class Updater():
                         if not check:
                             to_delete.append(k)
                             print(k[0], k, x[-3], "/", v)
+                    case '1':
+                        check = False
+                        for e in ["ultima", "superlative", "class", "champion"]:
+                            if e in v:
+                                check = True
+                                break
+                        if not check:
+                            check = False
+                            for e in ["fire", "water", "earth", "wind", "light", "dark"]:
+                                if e in x:
+                                    check = True
+                                    break
+                            if not check:
+                                to_delete.append(k)
+                                print(k[0], k, x[-3], "/", v)
         if len(to_delete) > 0:
             print(len(to_delete), "entries with possibly incomplete lookup.")
             if input("Reset them? ('y' to confirm):").lower() == 'y':
@@ -2493,10 +2503,14 @@ class Updater():
             for k in self.data[t]:
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
                     print("##########################################")
-                    print("Input the Wiki URL string for ID", k, "(Leave blank to skip)")
+                    print("Input the Wiki URL string for ID", k, "(Leave blank to skip or cut to set cut-content)")
                     while True:
                         s = input()
                         if s == "": break
+                        elif s.lower() == "cut":
+                            self.data['lookup'][k] = "cut-content " + k
+                            self.modified = True
+                            break
                         s = s.replace("https://gbf.wiki/", "")
                         if not await self.generateNameLookup_sub(k, s):
                             print("Page not found, try again")
