@@ -1022,7 +1022,7 @@ function addTextImage(node, className, id, string, unusedA, unusedB) // like add
 }
 
 // =================================================================================================
-// bookmark, history, relation
+// bookmark, history
 function updateList(node, elems) // update a list of elements
 {
     node.innerHTML = "";
@@ -1371,34 +1371,6 @@ function updateHistory(id = null, search_type = null) // update the history list
     btn.onclick = clearHistory;
     div.appendChild(btn);
     node.appendChild(div);
-}
-
-function updateRelated(id) // update the related list
-{
-    let node = document.getElementById('related');
-    let idlist = [];
-    if("relations" in index && id in index["relations"])
-    {
-        for(let e of index["relations"][id])
-        {
-            let indice = -1;
-            if(e[0] == 'e') indice = 4;
-            else if(e.startsWith('39')) indice = 5;
-            else if(e.includes('_') && !e.includes('_st')) indice = 0;
-            else indice = parseInt(e[0]);
-            if(indice != -1) idlist.push([e, indice]);
-        }
-        if(idlist.length > 0)
-        {
-            node.parentNode.style.display = null;
-            updateList(node, idlist);
-        }
-        else
-        {
-            node.style.display = "none";
-        }
-    }
-    else node.style.display = "none";
 }
 
 // =================================================================================================
@@ -1997,7 +1969,6 @@ function loadAssets(id, data, target, indexed = true)
         favButton(true, id, search_type);
     }
     prepareOuputAndHeader(area_name, id, data, include_link, indexed);
-    updateRelated(id);
     if(assets != null)
     {
         for(let asset of assets)
@@ -2314,19 +2285,6 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
             div.appendChild(img);
         }
     }
-    // add related elements
-    let details = document.createElement("details");
-    details.style.display = "none";
-    let summary = document.createElement("summary");
-    summary.classList.add("element-detail");
-    summary.classList.add("sub-detail");
-    summary.appendChild(document.createTextNode("Related elements"));
-    details.appendChild(summary);
-    let related = document.createElement('div');;
-    related.id = "related";
-    related.classList.add("container");
-    details.appendChild(related);
-    div.appendChild(details);
     // scroll to output
     div.scrollIntoView();
 }

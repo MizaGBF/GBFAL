@@ -209,7 +209,6 @@ class Updater():
             "skills":{},
             "subskills":{},
             "buffs":{},
-            "relations":{},
             "eventthumb":{},
             "story":{}
         }
@@ -218,8 +217,6 @@ class Updater():
         self.new_elements = [] # new indexed element
         self.addition = {} # new elements for changelog.json
         self.job_list = None
-        self.name_table = {} # relation table
-        self.name_table_modified = False # and its modified flag
         self.scene_string_cache = {} # contains list of suffix
         self.force_partner = False # set to True by -partner
         
@@ -608,7 +605,6 @@ class Updater():
                 await self.update_all_scene(update_pending=True)
             if len(self.data['sound_queue']) > 0:
                 await self.update_all_sound(update_pending=True)
-        await self.build_relation()
 
     # run subroutine, process a category batch
     async def run_category(self, coroutines : list) -> None:
@@ -2536,214 +2532,6 @@ class Updater():
             except:
                 pass
 
-    ### Relation ################################################################################################################
-
-    # Make a list of elements to check on the wiki and update them
-    async def build_relation(self, to_update : list = []) -> None:
-        print("Checking for new relationships...")
-        try:
-            with open("json/relation_name.json", "r") as f:
-                self.name_table = json.load(f)
-        except:
-            self.name_table = {}
-        self.name_table_modified = False
-        relation = self.data.get("relations", {})
-        new = []
-        tasks = []
-        async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(self)
-            if len(to_update) == 0:
-                for eid in self.data['characters']:
-                    if eid not in relation or len(relation[eid]) == 0:
-                        tasks.append(tg.create_task(self.get_relation(eid)))
-                for eid in self.data['summons']:
-                    if eid not in relation:
-                        tasks.append(tg.create_task(self.get_relation(eid)))
-                for eid in self.data['weapons']:
-                    if eid not in relation:
-                        tasks.append(tg.create_task(self.get_relation(eid)))
-            else:
-                for eid in to_update:
-                    tasks.append(tg.create_task(self.get_relation(eid)))
-            self.progress.set(total=len(tasks), silent=False)
-        for t in tasks:
-            r = t.result()
-            try:
-                if r[0] is None or (r[0] not in self.data['characters'] and r[0] not in self.data['summons'] and r[0] not in self.data['weapons'] and r[0] not in self.data['skins']) or (r[0] in relation and len(r[1]) == len(relation[r[0]])): raise Exception()
-                relation[r[0]] = r[1]
-                new.append(r[0])
-            except:
-                pass
-        for n in new:
-            for eid in relation[n]:
-                if eid not in relation:
-                    relation[eid] = []
-                    self.modified = True
-                if n not in relation[eid]:
-                    relation[eid].append(n)
-                    relation[eid].sort()
-                    self.modified = True
-            relation[n].sort()
-        if len(new) > 0:
-            print("Comparing with the name table...")
-            for k in self.name_table:
-                ks = k.replace(',', '').split(' ')
-                for l in self.name_table:
-                    ls = l.replace(',', '').split(' ')
-                    if l != k and k in ls or l in ks and self.name_table[k] != self.name_table[l]:
-                        for e in self.name_table[l]:
-                            if e not in self.name_table[k]:
-                                self.name_table[k].append(e)
-                        self.name_table[l] = self.name_table[k]
-            for k in self.name_table:
-                for eid in self.name_table[k]:
-                    if eid not in relation:
-                        relation[eid] = []
-                        self.modified = True
-                    for oid in self.name_table[k]:
-                        if oid == eid or oid in relation[eid]: continue
-                        relation[eid].append(oid)
-                        relation[eid].sort()
-                        self.modified = True
-            self.data['relations'] = relation
-            self.save()
-        if self.name_table_modified:
-            try:
-                with open("json/relation_name.json", "w") as f:
-                    json.dump(self.name_table, f, sort_keys=True, indent='\t', separators=(',', ':'))
-                print("Name table updated")
-            except:
-                pass
-        print("Done")
-
-    # build_relation() subroutine. Check an element wiki page for alternate version or corresponding weapons
-    async def get_relation(self, eid : str) -> tuple:
-        with self.progress:
-            if not self.use_wiki: return None, []
-            async with self.wiki_sem:
-                try:
-                    data = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(eid), headers={'User-Agent':self.USER_AGENT}, get_json=True))['query']['search']
-                except:
-                    return None, []
-                for entry in data:
-                    try:
-                        page = await self.get("https://gbf.wiki/" + entry['title'].replace(' ', '_'), headers={'User-Agent':self.USER_AGENT})
-                        name = entry['title'].split('(')[0].replace('_', ' ').strip().lower()
-                        if not eid.startswith('10'):
-                            if name not in self.name_table:
-                                self.name_table[name] = []
-                            if eid not in self.name_table[name] and not eid.startswith('399') and not eid.startswith('305'):
-                                self.name_table[name].append(eid)
-                                self.name_table_modified = True
-                        try: page = page.decode('utf-8')
-                        except: page = page.decode('iso-8859-1')
-                        ids = set()
-                        for sequence in [('multiple versions', '_details'), ('Recruitment Weapon', '</td>'), ('Outfits', 'References')]:
-                            a = page.find(sequence[0])
-                            if a == -1: continue
-                            a += len(sequence[0])
-                            b = page.find(sequence[1], a)
-                            for sid in self.ID_REGEX.findall(page[a:b]):
-                                if sid != eid:
-                                    ids.add(sid)
-                        b = 0
-                        while True:
-                            a = page.find("wikitable", b)
-                            if a == -1: break
-                            a += len("wikitable")
-                            b = page.find("</table>", a)
-                            for sid in self.ID_REGEX.findall(page[a:b]):
-                                if sid != eid:
-                                    ids.add(sid)
-                        return eid, list(ids)
-                    except:
-                        return eid, []
-
-    # Used to manually connect elements in A to B
-    def connect_relation(self, As : list, B : str) -> None:
-        try:
-            with open("json/relation_name.json", "r") as f:
-                self.name_table = json.load(f)
-            print("Element name table loaded")
-        except:
-            self.name_table = {}
-        self.name_table_modified = False
-        relation = self.data.get("relations", {})
-        print("Trying to add relation...")
-        for A in As:
-            if A not in self.data['characters'] and A not in self.data['summons'] and A not in self.data['weapons']:
-                print("Unknown element:", A)
-                continue
-            if B not in self.data['characters'] and B not in self.data['summons'] and B not in self.data['weapons'] and B not in self.data['skins']:
-                print("Unknown element:", B)
-                continue
-            if A not in relation:
-                relation[A] = []
-            if B in relation[A]:
-                print("Relation already exists")
-                continue
-            relation[A].append(B)
-            self.modified = True
-            for eid in relation[A]:
-                if eid not in relation:
-                    relation[eid] = []
-                if A not in relation[eid]:
-                    relation[eid].append(A)
-                    relation[eid].sort()
-            relation[A].sort()
-        if self.modified:
-            for k in self.name_table:
-                ks = k.replace(',', '').split(' ')
-                for l in self.name_table:
-                    ls = l.replace(',', '').split(' ')
-                    if l != k and k in ls or l in ks and self.name_table[k] != self.name_table[l]:
-                        for e in self.name_table[l]:
-                            if e not in self.name_table[k]:
-                                self.name_table[k].append(e)
-                        self.name_table[l] = self.name_table[k]
-            for k in self.name_table:
-                for eid in self.name_table[k]:
-                    if eid not in relation:
-                        relation[eid] = []
-                    for oid in self.name_table[k]:
-                        if oid == eid or oid in relation[eid]: continue
-                        relation[eid].append(oid)
-                        relation[eid].sort()
-            self.save()
-
-    # CLI
-    async def relation_edit(self) -> None:
-        while True:
-            print("[0] Redo Relationship")
-            print("[1] Add Relationship")
-            print("[Any] Quit")
-            match input():
-                case '0':
-                    while True:
-                        s = input("List of ID(s) to redo:")
-                        if s == "":
-                            break
-                        else:
-                            await self.build_relation([x for x in s.split(' ') if x != ''])
-                            break
-                case '1':
-                    while True:
-                        s = input("List of ID(s) to edit:")
-                        if s == "":
-                            break
-                        else:
-                            sid = [x for x in s.split(' ') if x != '']
-                            while True:
-                                s = input("Connect to which ID:")
-                                if s == "":
-                                    break
-                                else:
-                                    self.connect_relation(sid, s)
-                                    break
-                            break
-                case _:
-                    break
-
     ### Events ##################################################################################################################
 
     # Ask the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
@@ -3349,8 +3137,6 @@ class Updater():
         print("-jobedit     : Job CLI.")
         print("-lookup      : Force update the lookup table (Time Consuming).")
         print("-lookupfix   : Lookup CLI.")
-        print("-relation    : Update the relationship index.")
-        print("-relationedit: Relation CLI.")
         print("-scenenpc    : Update scene index for every npcs (Time consuming).")
         print("-scenechara  : Update scene index for every characters (Time consuming).")
         print("-sceneskin   : Update scene index for every skins (Time consuming).")
@@ -3371,7 +3157,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.25\n")
+                print("GBFAL updater v2.26\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
@@ -3408,8 +3194,6 @@ class Updater():
                     elif "-jobedit" in flags: await self.edit_job()
                     elif "-lookup" in flags: await self.buildLookup()
                     elif "-lookupfix" in flags: await self.manualLookup()
-                    elif "-relation" in flags: await self.build_relation()
-                    elif "-relationedit" in flags: await self.relation_edit()
                     elif "-scenenpc" in flags: await self.update_all_scene("npcs", extras)
                     elif "-scenechara" in flags: await self.update_all_scene("characters", extras)
                     elif "-sceneskin" in flags: await self.update_all_scene("skins", extras)
