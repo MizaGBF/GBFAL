@@ -1,4 +1,5 @@
 # GBF Asset Lookup  
+[![pages-build-deployment](https://github.com/MizaGBF/GBFAL/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/MizaGBF/GBFAL/actions/workflows/pages/pages-build-deployment)  
 Web page to search for GBF assets.  
 Click [Here](https://mizagbf.github.io/GBFAL) to access it.  
   
