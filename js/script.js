@@ -345,7 +345,7 @@ function initIndex() // build the html index. simply edit the constants above to
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
-                display(tmp, 'valentines', null, null, false, false, disable_text=true);
+                display(tmp, 'valentines', null, null, false, false, override_text="This list accuracy isn't guaranted");
                 this.onclick = null;
             };
         }
@@ -620,7 +620,7 @@ function customSortSeasonal(a, b) // used to sort seasonal sound files
 
 // =================================================================================================
 // visual elements management
-function display(node, key, argA, argB, pad, reverse, disable_text = false) // generic function to display the index lists
+function display(node, key, argA, argB, pad, reverse, override_text = null) // generic function to display the index lists
 {
     let callback = null;
     let image_callback = addIndexImage;
@@ -694,8 +694,8 @@ function display(node, key, argA, argB, pad, reverse, disable_text = false) // g
         const keys = reverse ? Object.keys(slist).sort().reverse() : Object.keys(slist).sort();
         if(keys.length > 0)
         {
-            if(!disable_text)
-                node.innerHTML = reverse ? "<div>Newest first</div>" : "<div>Oldest first</div>";
+            if(override_text != null) node.innerHTML = "<div>"+override_text+"</div>";
+            else node.innerHTML = reverse ? "<div>Newest first</div>" : "<div>Oldest first</div>";
         }
         else node.innerHTML = '<div>Empty</div><img src="assets/ui/sorry.png">'
         for(const k of keys)
