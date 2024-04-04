@@ -163,7 +163,7 @@ class Updater():
     VERSION_REGEX = re.compile("Game\.version = \"(\d+)\";")
     CHAPTER_REGEX = re.compile("Chapter (\d+)(-(\d+))?")
     # others
-    SAVE_VERSION = 0
+    SAVE_VERSION = 1
     LOAD_EXCLUSION = ['version']
     QUEUE_KEY = ['scene_queue', 'sound_queue']
     STRING_CHAR = string.ascii_lowercase + string.digits
@@ -191,6 +191,7 @@ class Updater():
             "version":self.SAVE_VERSION,
             "scene_queue":[],
             "sound_queue":[],
+            "valentines":[],
             "characters":{},
             "partners":{},
             "summons":{},
@@ -244,8 +245,7 @@ class Updater():
             data = self.retrocompatibility(data)
             for k in self.data:
                 if k in self.LOAD_EXCLUSION: continue
-                elif k in self.QUEUE_KEY: self.data[k] = data.get(k, [])
-                else: self.data[k] = data.get(k, {})
+                elif k in data: self.data[k] = data[k]
         except Exception as e:
             if not str(e).startswith("[Errno 2] No such file or directory"):
                 print("The following error occured while loading data.json:")
@@ -1923,12 +1923,12 @@ class Updater():
     # Sort scene data by string suffix order, to keep some sort of coherency on the web page
     def sort_all_scene(self) -> None:
         dummy_data = {s : False for s in self.scene_strings}
+        valentines = {}
         for t in ["characters", "skins", "npcs"]:
             if t == "npcs": idx = self.NPC_SCENE
             else: idx = self.CHARA_SCENE
             for k, v in self.data[t].items():
                 if not isinstance(v, list): continue
-                v[idx] = list(set(v[idx]))
                 before = str(v[idx])
                 data = {"01":dummy_data.copy()}
                 for s in v[idx]:
@@ -1949,10 +1949,16 @@ class Updater():
                                 new.append(ds)
                             else:
                                 new.append("_"+dk+ds)
-                if str(new) != before:
+                snew = str(new)
+                if snew != before:
                     self.modified = True
                     self.data[t][k][idx] = new
-        print("Scene data sorted")
+                if "_white" in snew or "_valentine" in snew:
+                    valentines[k] = 0
+        if str(valentines) != str(self.data['valentines']):
+            self.data['valentines'] = valentines
+            self.modified = True
+        if self.modified: print("Scene data sorted")
         self.save()
 
     ### Sound ###################################################################################################################
@@ -3171,7 +3177,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.26\n")
+                print("GBFAL updater v2.27\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])

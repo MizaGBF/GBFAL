@@ -341,6 +341,14 @@ function initIndex() // build the html index. simply edit the constants above to
                 };
             }
         }
+        elems = makeIndexSummary(content, "Valentine / White Day", false, 0, "assets/ui/index_icon/special.png");
+        {
+            const tmp = elems[0];
+            elems[1].onclick = function (){
+                display(tmp, 'valentines', null, null, false, false, disable_text=true);
+                this.onclick = null;
+            };
+        }
         elems = makeIndexSummary(content, "Main Story", false, 0, "assets/ui/icon/story.png");
         {
             const tmp = elems[0];
@@ -612,7 +620,7 @@ function customSortSeasonal(a, b) // used to sort seasonal sound files
 
 // =================================================================================================
 // visual elements management
-function display(node, key, argA, argB, pad, reverse) // generic function to display the index lists
+function display(node, key, argA, argB, pad, reverse, disable_text = false) // generic function to display the index lists
 {
     let callback = null;
     let image_callback = addIndexImage;
@@ -641,6 +649,9 @@ function display(node, key, argA, argB, pad, reverse) // generic function to dis
             break;
         case "npcs":
             callback = display_npcs;
+            break;
+        case "valentines":
+            callback = display_valentines;
             break;
         case "story":
             callback = display_story;
@@ -681,7 +692,11 @@ function display(node, key, argA, argB, pad, reverse) // generic function to dis
             }
         }
         const keys = reverse ? Object.keys(slist).sort().reverse() : Object.keys(slist).sort();
-        if(keys.length > 0) node.innerHTML = reverse ? "<div>Newest first</div>" : "<div>Oldest first</div>";
+        if(keys.length > 0)
+        {
+            if(!disable_text)
+                node.innerHTML = reverse ? "<div>Newest first</div>" : "<div>Oldest first</div>";
+        }
         else node.innerHTML = '<div>Empty</div><img src="assets/ui/sorry.png">'
         for(const k of keys)
         {
@@ -848,6 +863,16 @@ function display_npcs(id, data, prefix, range)
     }
     else return null;
     return [[id, path, null, className, false]];
+}
+
+function display_valentines(id, data = null, unusedA = null, unusedB = null)
+{
+    switch(id.slice(0, 3)) // we hook up to existing functions
+    {
+        case "304":case "302":case "303": return display_characters(id, index["characters"][id], parseInt(id[2]), null);
+        case "399":case "305": return display_npcs(id, index["npcs"][id], parseInt(id.slice(1,3)), [0, 10000]);
+        default: return null;
+    }
 }
 
 function display_story(id, data, unusedA = null, unusedB = null)
