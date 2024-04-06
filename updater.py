@@ -1619,8 +1619,11 @@ class Updater():
                         await self.head(self.IMG + "sp/assets/weapon/m/{}{}.jpg".format(id, s))
                         data[self.WEAP_GENERAL].append("{}{}".format(id, s))
                     except:
-                        if self.debug_wpn: data[self.WEAP_GENERAL].append("{}{}".format(id, s))
-                        elif s == "": return False
+                        if s == "":
+                            if self.debug_wpn: data[self.WEAP_GENERAL].append("{}{}".format(id, s))
+                            else: return False
+                        else:
+                            break
                     # attack
                     for u in ["", "_2", "_3", "_4"]:
                         try:
