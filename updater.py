@@ -74,7 +74,7 @@ class Updater():
     MAX_HTTP = 100
     MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
-    MAX_SCENE_CONCURRENT = 20
+    MAX_SCENE_CONCURRENT = 25
     MAX_SOUND_CONCURRENT = 10
     LOOKUP_TYPES = ['characters', 'summons', 'weapons']
     # addition type
@@ -182,7 +182,11 @@ class Updater():
     MALINDA = "3030093000"
     PARTNER_STEP = 10
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
-    
+    # scene string
+    SCENE_BASE = ["", "_a", "_b", "_c", "_nalhe", "_school", "_astral", "_battle", "_muffler", "_face", "_mask", "_halfmask", "_girl", "_town", "_2022", "_2023", "_2024"]
+    SCENE_EXPRESSIONS = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_weapon", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2023", "_2024", "_two", "_three", "_ef", "_body", "_front", "_back", "_left", "_right", "_eyeline"]
+    SCENE_VARIATIONS = ["", "_a", "_b", "_speed", "_up", "_up2", "_up3", "_up4", "_shadow", "_shadow2", "_shadow3", "_light", "_up_light", "_blood"]
+    SCENE_SPECIAL = ["_light_heart", "_jewel", "_jewel2", "_thug", "_narrator", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3"]
     def __init__(self) -> None:
         # main variables
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
@@ -218,7 +222,8 @@ class Updater():
         self.new_elements = [] # new indexed element
         self.addition = {} # new elements for changelog.json
         self.job_list = None
-        self.scene_string_cache = {} # contains list of suffix
+        self.scene_strings = None # contains list of suffix
+        self.scene_strings_special = None # contains list of suffix
         self.force_partner = False # set to True by -partner
         
         # asyncio semaphores
@@ -228,7 +233,6 @@ class Updater():
         
         # others
         self.run_count = 0
-        self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings()
         self.progress = Progress(self) # initialized with a silent progress bar
         self.use_wiki = True # if True, use wiki features
         
@@ -1529,39 +1533,47 @@ class Updater():
                 if id in self.data["npcs"] and self.data["npcs"][id] != 0:
                     data[self.NPC_SCENE] = self.data["npcs"][id][self.NPC_SCENE]
                     data[self.NPC_SOUND] = self.data["npcs"][id][self.NPC_SOUND]
-                modified = False
+                exist = False
                 try:
                     await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(id))
                     data[self.NPC_JOURNAL] = True
+                    exist = True
                 except:
                     if id.startswith("305"): return False # don't continue for special npcs
-                # base scene
-                for k in ["", "_a"]:
-                    try:
-                        f = "{}{}".format(id, k)
-                        if f not in data[self.NPC_SCENE]:
-                            await self.head(self.IMG + "sp/quest/scene/character/body/" + f + ".png")
-                            data[self.NPC_SCENE].append(k)
-                            modified = True
-                    except:
-                        pass
-                # base sound
-                for k in ["_v_001", "_boss_v_1"]:
-                    try:
-                        f = "{}{}".format(id, k)
-                        if f not in data[self.NPC_SCENE]:
-                            await self.head(self.SOUND + "voice/" + f + ".mp3")
-                            data[self.NPC_SOUND].append(k)
-                            modified = True
-                    except:
-                        pass
-                if modified:
+                if not exist:
+                    # base scene
+                    for f in self.SCENE_BASE:
+                        try:
+                            if f not in data[self.NPC_SCENE]:
+                                if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, f), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, f)])) is not None:
+                                    data[self.NPC_SCENE].append(f)
+                                    exist = True
+                                    break
+                            else:
+                                exist = True
+                                break
+                        except:
+                            pass
+                    # base sound
+                    if not exist:
+                        for k in ["_v_001", "_boss_v_1"]:
+                            try:
+                                f = "{}{}".format(id, k)
+                                if f not in data[self.NPC_SCENE]:
+                                    await self.head(self.SOUND + "voice/" + f + ".mp3")
+                                    data[self.NPC_SOUND].append(k)
+                                    exist = True
+                                else:
+                                    exist = True
+                            except:
+                                pass
+                if exist:
                     self.modified = True
                     self.data['npcs'][id] = data
                     self.data['scene_queue'].append(id)
                     self.data['sound_queue'].append(id)
                     self.addition[id] = self.ADD_NPC
-            return True
+                return exist
 
     # Update Summon data
     async def sumUpdate(self, id : str) -> bool:
@@ -1737,29 +1749,6 @@ class Updater():
 
     ### Scene ###################################################################################################################
 
-    # Called once at boot. Generate a list of string to check for npc data
-    def build_scene_strings(self, expressions : Optional[list] = None) -> tuple: # note: the coverage isn't perfect but it's the best balance between it and speed
-        if expressions is None or len(expressions) == 0:
-            expressions = ["", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_school", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2023", "_two", "_three", "_ef", "_body", "_front", "_back", "_left", "_right", "_eyeline"]
-        variationsA = ["", "_a", "_b", "_c", "_battle", "_nalhe", "_astral"]
-        variationsB = ["", "_a", "_speed", "_up", "_shadow", "_shadow2", "_shadow3", "_light", "_blood", "_up_blood"]
-        scene_alts = []
-        added = set()
-        for A in variationsA:
-            for ex in expressions:
-                for B in variationsB:
-                    if (A in ["_battle", "_nalhe", "_astral"] and B not in ["", "_speed", "_up", "_shadow"]) or (B != "" and (B == ex or (ex == "_speed2" and B == "_speed") or (ex.startswith("_shadow") and B.startswith("_shadow")))) or (B == "_up_blood" and (ex == "_up" or ex == "")) or (B in ["_a", "_b", "_c"] and (A in ["_a", "_b", "_c"] or ex == "")): continue
-                    f = A+ex+B
-                    if f not in added:
-                        added.add(f)
-                        scene_alts.append(f)
-        specials = ["_light_heart", "_jewel", "_jewel2", "_girl_laugh", "_girl_sad", "_girl_serious", "_girl_angry", "_girl_surprise", "_girl_think", "_town_thug", "_narrator", "_valentine", "_valentine_a", "_a_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3"]
-        special_suffix = []
-        for B in variationsB:
-            if B not in ["", "_a"]:
-                special_suffix.append(B.split("_")[-1])
-        return scene_alts, specials, set(special_suffix)
-
     # list known scene strings along with errors encountered along the way
     def list_known_scene_strings(self) -> tuple:
         keys = set()
@@ -1809,57 +1798,43 @@ class Updater():
                     json.dump(keys, f)
                 print("Data exported to 'json/debug_scene_strings.json'")
 
-    # Get suffix list for given uncap values
-    def get_scene_string_list_for_uncaps(self, id : str, uncaps : list) -> list:
-        uncap_list = []
-        for uncap in uncaps:
-            if uncap == "01":
-                uncap = ""
-            elif uncap[:1] in ['8', '9']:
-                continue
-            elif uncap != "":
-                uncap = "_" + uncap
-            uncap_list.append(uncap)
-        hashable = str(uncap_list)+":"+str(id.startswith("305"))
-        if hashable in self.scene_string_cache:
-            return self.scene_string_cache[hashable]
-        scene_alts = []
-        for uncap in uncap_list:
-            for s in self.scene_strings:
-                scene_alts.append(uncap+s)
-        scene_alts += self.scene_special_strings
-        if id.startswith("305"):
-            i = 0
-            appended = [] # for lyria muffler so far
-            while i < len(scene_alts):
-                c = 0
-                if "_up" in scene_alts[i]: c += 1
-                if "_speed" in scene_alts[i]: c += 1
-                l = len(scene_alts[i].split("_"))
-                if l == 2 or l == c+2:
-                    appended.append("_muffler" + scene_alts[i])
-                if scene_alts[i].endswith("_up"):
-                    scene_alts = scene_alts[:i+1] + [scene_alts[i]+"2", scene_alts[i]+"3", scene_alts[i]+"4"] + scene_alts[i+1:]
-                    i += 3
-                i += 1
-            scene_alts += appended + ["_birthday", "_birthday2", "_birthday3", "_birthday3_a", "_birthday3_b"]
-            scene_alts = list(set(scene_alts))
-        self.scene_string_cache[hashable] = scene_alts
-        return scene_alts
+    # set self.scene_strings and self.scene_strings_special if needed and return them
+    def generate_scene_file_list(self) -> tuple:
+        if self.scene_strings is None:
+            self.scene_strings = []
+            self.scene_strings_special = []
+            added = set()
+            for ex in self.SCENE_EXPRESSIONS:
+                for v in self.SCENE_VARIATIONS:
+                    if ex == v: continue
+                    f = ex+v
+                    if f not in added:
+                        added.add(f)
+                        self.scene_strings.append(f)
+                        self.scene_strings_special.append(f)
+            for ex in self.SCENE_SPECIAL:
+                for v in self.SCENE_VARIATIONS:
+                    if ex == v: continue
+                    f = ex+v
+                    if f not in added:
+                        added.add(f)
+                        self.scene_strings_special.append(f)
+        return self.scene_strings, self.scene_strings_special
 
     # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
     async def update_all_scene(self, target_index : Optional[str] = None, targeted_strings : list = [], update_pending : bool = False) -> None:
         target_list = []
         if update_pending:
-            target_list = list(set(self.data['scene_queue']))
+            for k in self.data['scene_queue']:
+                if k not in target_list:
+                    target_list.append(k)
         else:
             if target_index is None:
                 target_index = ["characters", "skins", "npcs"]
             elif not isinstance(target_index, list):
                 target_index = [target_index]
-            for k in self.data:
+            for k in target_index:
                 target_list += list(self.data[k].keys())
-            target_list = set(list(target_list))
         if len(target_list) == 0:
             return
         print("Updating scene data for {} element(s)".format(len(target_list)))
@@ -1870,12 +1845,10 @@ class Updater():
                 targeted_strings = targeted_strings[1:]
             except:
                 pass
-            if len(targeted_strings) > 0:
-                self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings(targeted_strings) # override
         sk = start_index
         elements = []
         for id in target_list:
-            if id.startswith('399'):
+            if id[:3] in ['399', '305']:
                 uncaps = [""]
                 idx = self.NPC_SCENE
                 k = 'npcs'
@@ -1888,20 +1861,17 @@ class Updater():
                     if "_" not in uu and uu.startswith("0"):
                         uncaps.append(uu)
             for u in uncaps: # split per uncap
-                for i in range(self.MAX_SCENE_CONCURRENT): # and split by self.MAX_SCENE_CONCURRENT
-                    if sk > 0:
-                        sk -= 1
-                    else:
-                        elements.append((k, id, idx, [u], i, self.MAX_SCENE_CONCURRENT))
+                if sk > 0:
+                    sk -= 1
+                    continue
+                elements.append((k, id, idx, u))
         if start_index > 0:
             print("(Skipping the first {} element(s) )".format(start_index))
         # start
         if len(elements) > 0:
             self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
-            async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_UPDATEALL):
+            async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_SCENE_CONCURRENT):
                 pass
-            if len(targeted_strings) > 0:
-                self.scene_strings, self.scene_special_strings, self.scene_special_suffix = self.build_scene_strings() # reset
             if update_pending: self.data['scene_queue'] = []
             self.sort_all_scene()
             self.save()
@@ -1910,58 +1880,68 @@ class Updater():
     # update_all_scene() subroutine
     async def update_all_scene_sub(self, tup : tuple) -> None:
         with self.progress:
-            k, id, idx, uncaps, off, maxt = tup
+            k, id, idx, uncap = tup
             try: existing = set(self.data[k][id][idx])
             except: existing = set()
-            suffixes = self.get_scene_string_list_for_uncaps(id, uncaps)
-            for i, s in enumerate(suffixes):
-                if i % maxt != off: continue # used to split the processing among multiple tasks, for speedup
-                if s not in existing:
-                    tmp = s.split("_")
-                    no_bubble = (s != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.scene_special_suffix # don't check raid bubbles for uncaps or those special ending suffix
-                    if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, s), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, s)])) is not None:
-                        self.data[k][id][idx].append(s)
-                        self.modified = True
+            us = "" if uncap in ["", "01"] else "_"+uncap
+            for s in self.SCENE_BASE:
+                f = us+s
+                check = False
+                if f in existing:
+                    check = True
+                elif (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, f), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, f)])) is not None:
+                    check = True
+                    self.data[k][id][idx].append(f)
+                    self.modified = True
+                elif s == "":
+                    check = True
+                if check:
+                    tasks = []
+                    for ss in self.generate_scene_file_list()[1 if us == "" else 0]:
+                        g = us + s + ss
+                        if g == f: continue
+                        tasks.append(self.update_all_scene_sub_req(k, id, idx, g))
+                    await asyncio.gather(*tasks)
+
+    # request used just above
+    async def update_all_scene_sub_req(self, k : str, id : str, idx : int, g : str) -> None:
+        if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, g), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, g)])) is not None:
+            self.data[k][id][idx].append(g)
+            self.modified = True
 
     # Sort scene data by string suffix order, to keep some sort of coherency on the web page
     def sort_all_scene(self) -> None:
-        dummy_data = {s : False for s in self.scene_strings}
+        print("Sorting scene data...")
         valentines = {}
+        dummies = {}
+        for u in ["", "_02", "_03", "_04"]:
+            for s in self.SCENE_BASE:
+                for ss in self.generate_scene_file_list()[1 if u == "" else 0]:
+                    dummies[u+s+ss] = False
+        
         for t in ["characters", "skins", "npcs"]:
             if t == "npcs": idx = self.NPC_SCENE
             else: idx = self.CHARA_SCENE
-            for k, v in self.data[t].items():
+            for id, v in self.data[t].items():
                 if not isinstance(v, list): continue
-                before = str(v[idx])
-                data = {"01":dummy_data.copy()}
-                for s in v[idx]:
-                    tmp = s.split("_")
-                    if s != "" and tmp[1].isdigit() and len(tmp[1]) == 2:
-                        if tmp[1] not in data:
-                            data[tmp[1]] = dummy_data.copy()
-                        data[tmp[1]][s[3:]] = True
-                    else:
-                        data["01"][s] = True
                 new = []
-                keys = list(data.keys())
-                keys.sort()
-                for dk in keys:
-                    for ds, db in data[dk].items():
-                        if db:
-                            if dk == "01":
-                                new.append(ds)
-                            else:
-                                new.append("_"+dk+ds)
+                before = str(v[idx])
+                d = dummies.copy()
+                for s in v[idx]:
+                    d[s] = True
+                for s, b in d.items():
+                    if b:
+                        new.append(s)
                 snew = str(new)
                 if snew != before:
                     self.modified = True
-                    self.data[t][k][idx] = new
+                    self.data[t][id][idx] = new
                 if "_white" in snew or "_valentine" in snew:
-                    valentines[k] = 0
+                    valentines[id] = 0
         if str(valentines) != str(self.data['valentines']):
             self.data['valentines'] = valentines
             self.modified = True
-        if self.modified: print("Scene data sorted")
+        print("Done")
         self.save()
 
     ### Sound ###################################################################################################################
@@ -3180,7 +3160,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.27\n")
+                print("GBFAL updater v2.28\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
