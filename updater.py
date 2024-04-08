@@ -1873,37 +1873,37 @@ class Updater():
             async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_SCENE_CONCURRENT):
                 pass
             if update_pending: self.data['scene_queue'] = []
+            print("Done")
             self.sort_all_scene()
             self.save()
-            print("Done")
 
     # update_all_scene() subroutine
     async def update_all_scene_sub(self, tup : tuple) -> None:
         with self.progress:
             k, id, idx, uncap = tup
             try: existing = set(self.data[k][id][idx])
-            except: existing = set()
+            except: return
             us = "" if uncap in ["", "01"] else "_"+uncap
+            # search bases
+            tasks = []
             for s in self.SCENE_BASE:
                 f = us+s
-                check = False
-                if f in existing:
-                    check = True
-                elif (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, f), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, f)])) is not None:
-                    check = True
-                    self.data[k][id][idx].append(f)
-                    self.modified = True
-                elif s == "":
-                    check = True
-                if check:
-                    tasks = []
-                    for ss in self.generate_scene_file_list()[1 if us == "" else 0]:
-                        g = us + s + ss
-                        if g == f or g in existing: continue
-                        tmp = g.split("_")
-                        no_bubble = (g != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.SCENE_VARIATIONS_SET
-                        tasks.append(self.update_all_scene_sub_req(k, id, idx, g, no_bubble))
-                    await asyncio.gather(*tasks)
+                if f in existing: continue
+                tasks.append(self.update_all_scene_sub_req(k, id, idx, f, False))
+            if len(tasks) > 0: await asyncio.gather(*tasks)
+            existing = set(self.data[k][id][idx])
+            # search variations
+            tasks = []
+            for s in self.SCENE_BASE:
+                f = us+s
+                if s != "" and f not in existing: continue
+                for ss in self.generate_scene_file_list()[1 if us == "" else 0]:
+                    g = us + s + ss
+                    if g == f or g in existing: continue
+                    tmp = g.split("_")
+                    no_bubble = (g != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.SCENE_VARIATIONS_SET
+                    tasks.append(self.update_all_scene_sub_req(k, id, idx, g, no_bubble))
+            if len(tasks) > 0: await asyncio.gather(*tasks)
 
     # request used just above
     async def update_all_scene_sub_req(self, k : str, id : str, idx : int, g : str, no_bubble : bool) -> None:
