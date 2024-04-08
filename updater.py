@@ -1899,7 +1899,7 @@ class Updater():
                     tasks = []
                     for ss in self.generate_scene_file_list()[1 if us == "" else 0]:
                         g = us + s + ss
-                        if g == f: continue
+                        if g == f or g in existing: continue
                         tmp = g.split("_")
                         no_bubble = (g != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.SCENE_VARIATIONS_SET
                         tasks.append(self.update_all_scene_sub_req(k, id, idx, g, no_bubble))
