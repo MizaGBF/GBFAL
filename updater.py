@@ -1823,7 +1823,7 @@ class Updater():
         return self.scene_strings, self.scene_strings_special
 
     # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
-    async def update_all_scene(self, target_index : Optional[str] = None, targeted_strings : list = [], update_pending : bool = False) -> None:
+    async def update_all_scene(self, target_index : Optional[str] = None, params : list = [], update_pending : bool = False) -> None:
         target_list = []
         if update_pending:
             for k in self.data['scene_queue']:
@@ -1840,10 +1840,9 @@ class Updater():
             return
         print("Updating scene data for {} element(s)".format(len(target_list)))
         start_index = 0
-        if len(targeted_strings) > 0:
+        if len(params) > 0:
             try:
-                start_index = int(targeted_strings[0])
-                targeted_strings = targeted_strings[1:]
+                start_index = int(params[0])
             except:
                 pass
         sk = start_index
