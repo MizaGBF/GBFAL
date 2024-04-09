@@ -1926,7 +1926,6 @@ class Updater():
             else: idx = self.CHARA_SCENE
             for id, v in self.data[t].items():
                 if not isinstance(v, list): continue
-                if id != "3040004000": continue
                 new = []
                 before = str(v[idx])
                 d = set(v[idx])
@@ -1935,8 +1934,13 @@ class Updater():
                         new.append(s)
                 snew = str(new)
                 if snew != before:
-                    self.modified = True
-                    self.data[t][id][idx] = new
+                    if len(new) > len(v[idx]):
+                        self.modified = True
+                        self.data[t][id][idx] = new
+                    else:
+                        print("Error sorting scene for ID:", id)
+                        print("Interrupting...")
+                        break
                 if "_white" in snew or "_valentine" in snew:
                     valentines[id] = 0
         if str(valentines) != str(self.data['valentines']):
