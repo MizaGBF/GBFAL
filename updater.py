@@ -1934,10 +1934,10 @@ class Updater():
                         new.append(s)
                 snew = str(new)
                 if snew != before:
-                    if len(new) == len(v[idx]):
+                    if len(new) == len(v[idx]): # should be the same length
                         self.modified = True
                         self.data[t][id][idx] = new
-                    else:
+                    else: # just in case...
                         print("Error sorting scene for ID:", id)
                         print("Interrupting...")
                         break
