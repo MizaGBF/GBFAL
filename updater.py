@@ -1916,10 +1916,15 @@ class Updater():
         print("Sorting scene data...")
         valentines = {}
         suffixes = []
+        tmp = set()
         for u in ["", "_02", "_03", "_04"]:
             for s in self.SCENE_BASE:
                 for ss in self.generate_scene_file_list()[1 if u == "" else 0]:
-                    suffixes.append(u+s+ss)
+                    f = u+s+ss
+                    if f not in tmp:
+                        suffixes.append(f)
+                        tmp.add(f)
+        tmp = None
         
         for t in ["characters", "skins", "npcs"]:
             if t == "npcs": idx = self.NPC_SCENE
@@ -1934,13 +1939,13 @@ class Updater():
                         new.append(s)
                 snew = str(new)
                 if snew != before:
-                    if len(new) == len(v[idx]): # should be the same length
+                    if len(new) == len(d): # should be the same length
                         self.modified = True
                         self.data[t][id][idx] = new
                     else: # just in case...
                         print("Error sorting scene for ID:", id)
                         print("Interrupting...")
-                        break
+                        return
                 if "_white" in snew or "_valentine" in snew:
                     valentines[id] = 0
         if str(valentines) != str(self.data['valentines']):
