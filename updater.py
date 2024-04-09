@@ -1926,13 +1926,14 @@ class Updater():
             else: idx = self.CHARA_SCENE
             for id, v in self.data[t].items():
                 if not isinstance(v, list): continue
+                if id != "3040004000": continue
                 new = []
                 before = str(v[idx])
-                d = {}
+                d = set()
                 for s in v[idx]:
-                    d[s] = True
+                    d.add(s)
                 for s in suffixes:
-                    if d.get(s, False):
+                    if s in d:
                         new.append(s)
                 snew = str(new)
                 if snew != before:
