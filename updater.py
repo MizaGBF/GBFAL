@@ -1934,7 +1934,7 @@ class Updater():
                         new.append(s)
                 snew = str(new)
                 if snew != before:
-                    if len(new) > len(v[idx]):
+                    if len(new) == len(v[idx]):
                         self.modified = True
                         self.data[t][id][idx] = new
                     else:
