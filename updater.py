@@ -1929,9 +1929,7 @@ class Updater():
                 if id != "3040004000": continue
                 new = []
                 before = str(v[idx])
-                d = set()
-                for s in v[idx]:
-                    d.add(s)
+                d = set(v[idx])
                 for s in suffixes:
                     if s in d:
                         new.append(s)
