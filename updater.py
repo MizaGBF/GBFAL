@@ -477,7 +477,11 @@ class Updater():
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/quest/scene/character/body/", "_a.png",  70))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/raid/navi_face/", ".png",  50))
+        categories.append([])
+        self.newShared(errs)
+        for i in range(10): # assets
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/quest/scene/character/body/", "_a.png",  50))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
@@ -485,11 +489,11 @@ class Updater():
         categories.append([])
         self.newShared(errs)
         for i in range(10): # sounds
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  70))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  50))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # boss sounds
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_boss_v_1.mp3",  70))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_boss_v_1.mp3",  50))
         # special
         categories.append([])
         categories[-1].append(self.search_generic('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img/sp/quest/scene/character/body/", ".png",  2))
@@ -3161,6 +3165,7 @@ class Updater():
         print("-addpending  : Add a list of character/skin/npc ID to the pending list for scene/sound updates.")
         print("-runpending  : Run scene/sound updates for the pending lists of character/skin/npc IDs (Time consuming).")
         print("-enemy       : Update data for enemies (Time consuming).")
+        print("-missingnpc  : Update all missing npcs (Time consuming).")
         print("-story       : Update main story arts. Can add 'all' to update all or a number to specify the chapter.")
         print("-event       : Update unique event arts (Very time consuming).")
         print("-eventedit   : Edit event data")
@@ -3170,7 +3175,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.28\n")
+                print("GBFAL updater v2.29\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
@@ -3216,6 +3221,19 @@ class Updater():
                     elif "-sound" in flags: await self.update_all_sound(extras)
                     elif "-partner" in flags: await self.update_all_partner(extras)
                     elif "-enemy" in flags: await self.manualUpdate(list(self.data['enemies'].keys()))
+                    elif "-missingnpc" in flags:
+                        try:
+                            keys = list(self.data['npcs'].keys())
+                            keys.sort()
+                            max_id = int(keys[-1][3:7])
+                            ids = []
+                            for i in range(0, max_id):
+                                id = "399" + str(i).zfill(4) + "000"
+                                if id not in self.data['npcs']:
+                                    ids.append(id)
+                            await self.manualUpdate(ids)
+                        except:
+                            pass
                     elif "-addpending" in flags:
                         for id in extras:
                             if len(id) == 10 and id.startswith('3'):

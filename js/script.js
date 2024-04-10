@@ -862,7 +862,14 @@ function display_npcs(id, data, prefix, range)
         }
     }
     else return null;
-    return [[id, path, null, className, false]];
+    let onerr = function()
+    {
+        this.src=this.src.replace("sp/quest/scene/character/body", "sp/raid/navi_face");
+        this.onerror = function() {
+            this.src =  idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
+        };
+    };
+    return [[id, path, onerr, className, false]];
 }
 
 function display_valentines(id, data = null, unusedA = null, unusedB = null)
