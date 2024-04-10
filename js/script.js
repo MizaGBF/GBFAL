@@ -709,6 +709,13 @@ function display(node, key, argA, argB, pad, reverse, override_text = null) // g
     else node.innerHTML = '<div>Empty</div><img src="assets/ui/sorry.png">';
 }
 
+function default_onerror()
+{
+    this.src=idToEndpoint(id) + "assets_en/img/sp/assets/npc/m/3999999999.jpg";
+    this.classList.remove("preview");
+    this.classList.remove("preview-noborder");
+}
+
 function display_characters(id, data, range, unused = null)
 {
     let val = parseInt(id.slice(4, 7));
@@ -734,9 +741,9 @@ function display_characters(id, data, range, unused = null)
     }
     let onerr = null;
     if(uncap != "_01")
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"};
+        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"; this.onerror=default_onerror;};
     else
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img/sp/assets/npc/m/3999999999.jpg"};
+        onerr = default_onerror;
     let path = "GBF/assets_en/img_low/sp/assets/npc/m/" + id + uncap + ".jpg";
     return [[id, path, onerr, "", false]];
 }
@@ -753,9 +760,9 @@ function display_skins(id, data, range, unused = null)
     }
     let onerr = null;
     if(uncap != "_01")
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"};
+        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"; this.onerror=default_onerror;};
     else
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img/sp/assets/npc/m/3999999999.jpg"};
+        onerr = default_onerror;
     let path = "GBF/assets_en/img_low/sp/assets/npc/m/" + id + uncap + ".jpg";
     return [[id, path, onerr, "", false]];
 }
@@ -801,9 +808,9 @@ function display_summons(id, data, rarity, range)
     }
     let onerr = null;
     if(uncap != "")
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/summon/m/"+id+".jpg"};
+        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/summon/m/"+id+".jpg"; this.onerror=default_onerror;};
     else
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img/sp/assets/summon/m/2999999999.jpg"};
+        onerr = default_onerror;
     let path = "GBF/assets_en/img_low/sp/assets/summon/m/" + id + uncap + ".jpg";
     return [[id, path, onerr, "", false]];
 }
@@ -819,22 +826,22 @@ function display_weapons(id, data, rarity, proficiency)
     }
     let onerr = null;
     if(uncap != "")
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/weapon/m/"+id+".jpg"};
+        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/weapon/m/"+id+".jpg"; this.onerror=default_onerror;};
     else
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img/sp/assets/summon/m/2999999999.jpg"};
+        onerr = default_onerror;
     let path = "GBF/assets_en/img_low/sp/assets/weapon/m/" + id + uncap + ".jpg";
     return [[id, path, onerr, "", false]];
 }
 
 function display_mc(id, data, unusedA = null, unusedB = null)
 {
-    return [[id, "GBF/assets_en/img_low/sp/assets/leader/m/" + id + "_01.jpg", null, "", false]];
+    return [[id, "GBF/assets_en/img_low/sp/assets/leader/m/" + id + "_01.jpg", default_onerror, "", false]];
 }
 
 function display_enemies(id, data, type, size)
 {
     if(id[0] != type || id[1] != size) return null;
-    return [["e"+id, "GBF/assets_en/img/sp/assets/enemy/s/" + id + ".png", null, "preview", false]];
+    return [["e"+id, "GBF/assets_en/img/sp/assets/enemy/s/" + id + ".png", default_onerror, "preview", false]];
 }
 
 function display_npcs(id, data, prefix, range)
@@ -865,9 +872,7 @@ function display_npcs(id, data, prefix, range)
     let onerr = function()
     {
         this.src=this.src.replace("sp/quest/scene/character/body", "sp/raid/navi_face");
-        this.onerror = function() {
-            this.src =  idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
-        };
+        this.onerror = default_onerror;
     };
     return [[id, path, onerr, className, false]];
 }
