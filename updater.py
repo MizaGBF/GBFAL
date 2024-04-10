@@ -1866,7 +1866,7 @@ class Updater():
                     continue
                 elements.append((k, id, idx, u))
         if start_index > 0:
-            print("(Skipping the first {} element(s) )".format(start_index))
+            print("(Skipping the first {} tasks(s) )".format(start_index))
         # start
         if len(elements) > 0:
             self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
@@ -1973,7 +1973,7 @@ class Updater():
                 start_index = int(parameters[0])
             except:
                 pass
-        if start_index > 0: print("(Skipping the first {} element(s) )".format(start_index))
+        if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
         elements = []
         shared = []
         for id in target_list:
@@ -3063,7 +3063,7 @@ class Updater():
                 start_index = int(parameters[0])
             except:
                 pass
-        if start_index > 0: print("(Skipping the first {} element(s) )".format(start_index))
+        if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
         t = self.update_changelog
         self.update_changelog = False
         ids = list(self.data.get('partners', {}).keys())
