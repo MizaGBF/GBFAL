@@ -711,7 +711,7 @@ function display(node, key, argA, argB, pad, reverse, override_text = null) // g
 
 function default_onerror()
 {
-    this.src=idToEndpoint(id) + "assets_en/img/sp/assets/npc/m/3999999999.jpg";
+    this.src=idToEndpoint("0") + "assets_en/img/sp/assets/npc/m/3999999999.jpg";
     this.classList.remove("preview");
     this.classList.remove("preview-noborder");
 }
