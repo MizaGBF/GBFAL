@@ -2301,36 +2301,11 @@ class Updater():
         try:
             l = self.SEASONAL_EVENTS
             if not self.use_wiki: raise Exception()
-            for st in [("%22Initial+Release%22", 0), ("%22Event+duration%22", 1)]:
-                offset = 0
-                err = 0
-                while True:
-                    try:
-                        r = await self.get('https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}&sroffset={}&srlimit=500'.format(st[0], offset), headers={'User-Agent':self.USER_AGENT}, get_json=True)
-                    except:
-                        err += 1
-                        if err >= 3: break
-                        await asyncio.sleep(3)
-                        continue
-                    for entry in r['query']['search']:
-                        try:
-                            match st[1]:
-                                case 0:
-                                    x = entry['snippet'].split('<span class="searchmatch">', 1)[1].split(": ")[1].split(" Rerun")[0].split(" Added")[0].replace(",", "").split(" ")
-                                case 1:
-                                    x = entry['snippet'].split("JST, ")[1].split(" - ")[0].split(" //")[0].replace(",", "").split(" ")
-                            if len(x) != 3: raise Exception()
-                            x[0] = {"January":"01", "February":"02", "March":"03", "April":"04", "May":"05", "June":"06", "July":"07", "August":"08", "September":"09", "October":"10", "November":"11", "December":"12"}[x[0]]
-                            x[1] = str(x[1]).zfill(2)
-                            x[2] = x[2][2:]
-                            l.append(x[2]+x[0]+x[1])
-                        except:
-                            continue
-                    if 'continue' in r:
-                        offset = r['continue']['sroffset']
-                        print(offset)
-                    else:
-                        break
+            data = await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables=event_history&fields=time_start,name&format=json&limit=20000", headers={'User-Agent':self.USER_AGENT}, get_json=True)
+            for e in data:
+                t = e['time start'].split(' ', 1)[0].split('-')
+                t = t[0][2:] + t[1] + t[2]
+                l.append(t)
         except:
             pass
         l = list(set(l))
