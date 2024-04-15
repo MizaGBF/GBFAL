@@ -6,7 +6,6 @@ import json
 import time
 import string
 import os
-from bs4 import BeautifulSoup
 from datetime import datetime, timezone, timedelta
 import traceback
 from typing import Optional, Callable, Collection, AsyncIterator, Iterator, Any, Union
@@ -76,7 +75,7 @@ class Updater():
     MAX_HTTP_WIKI = 20
     MAX_SCENE_CONCURRENT = 10
     MAX_SOUND_CONCURRENT = 10
-    LOOKUP_TYPES = ['characters', 'summons', 'weapons']
+    LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins']
     # addition type
     ADD_JOB = 0
     ADD_WEAP = 1
@@ -171,13 +170,14 @@ class Updater():
     CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
     SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
     SPECIAL_LOOKUP = { # special elements
-        "3020065000": "r character brown poppet trial",
-        "3030158000": "sr character blue poppet trial",
-        "3040097000": "ssr character sierokarte trial",
-        "2030004000": "sr summon fire cut-content",
-        "2030014000": "sr summon dark cut-content",
-        "2020001000": "sr summon goblin earth cut-content",
-        "3040114000": "ssr character cut-content",
+        "3020065000": "r character brown poppet trial 3020065000",
+        "3030158000": "sr character blue poppet trial 3030158000",
+        "3040097000": "ssr character sierokarte trial 3040097000",
+        "2030004000": "sr summon fire cut-content 2030004000",
+        "2030014000": "sr summon dark cut-content 2030014000",
+        "2020001000": "sr summon goblin earth cut-content 2020001000",
+        "3040114000": "ssr character cut-content 3040114000",
+        "3710015000": "character outfit skin lina 3710015000"
     }
     MALINDA = "3030093000"
     PARTNER_STEP = 10
@@ -2152,386 +2152,118 @@ class Updater():
 
     ### Lookup ##################################################################################################################
 
-    # Check the given id on the wiki to retrieve element details. Only for summons, weapons and characters.
-    async def generateNameLookup(self, cid : str) -> None:
-        with self.progress:
-            async with self.wiki_sem:
-                if not self.use_wiki or (not cid.startswith("20") and not cid.startswith("10") and not cid.startswith("30")): return
-                try:
-                    data = (await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(cid), headers={'User-Agent':self.USER_AGENT}, get_json=True))['query']['search']
-                    if len(data) > 0:
-                        await self.generateNameLookup_sub(cid, data[0]['title'])
-                    else: # CN wiki fallback
-                        try:
-                            r = await self.get("https://gbf.huijiwiki.com/wiki/{}/{}".format({"3":"Char","2":"Summon","1":"Weapon"}[cid[0]], cid), headers={'User-Agent':self.USER_AGENT})
-                            if r is not None:
-                                try: content = r.decode('utf-8')
-                                except: content = r.decode('iso-8859-1')
-                                soup = BeautifulSoup(content, 'html.parser')
-                                res = soup.find_all("div", class_="gbf-infobox-section")
-                                for r in res:
-                                    a = str(r).find("https://gbf.wiki/")
-                                    if a != -1:
-                                        a+=len("https://gbf.wiki/")
-                                        b = str(r).find('"', a)
-                                        await self.generateNameLookup_sub(cid, str(r)[a:b])
-                        except:
-                            pass
-                except:
-                    pass
-
-    # generateNameLookup() subroutine. Read the wiki page to extract element details (element, etc...)
-    async def generateNameLookup_sub(self, cid : str, wiki_lookup : str) -> bool:
-        data = {}
-        itype = None
-        if cid.startswith("20"):
-            itype = 2
-        elif cid.startswith("10"):
-            itype = 1
-            match cid[4]:
-                case '0': data['Proficiency'] = "Sword"
-                case '1': data['Proficiency'] = "Dagger"
-                case '2': data['Proficiency'] = "Spear"
-                case '3': data['Proficiency'] = "Axe"
-                case '4': data['Proficiency'] = "Staff"
-                case '5': data['Proficiency'] = "Gun"
-                case '6': data['Proficiency'] = "Melee"
-                case '7': data['Proficiency'] = "Bow"
-                case '8': data['Proficiency'] = "Harp"
-                case '9': data['Proficiency'] = "Katana"
-        elif cid.startswith("30"):
-            itype = 3
-        else:
-            return False
-        match cid[2]:
-            case '1': data['Rarity'] = 'N'
-            case '2': data['Rarity'] = 'R'
-            case '3': data['Rarity'] = 'SR'
-            case '4': data['Rarity'] = 'SSR'
-        try:
-            r = await self.get("https://gbf.wiki/{}".format(wiki_lookup.replace(' ', '_')), headers={'User-Agent':self.USER_AGENT})
-            try: content = r.decode('utf-8')
-            except: content = r.decode('iso-8859-1')
-            soup = BeautifulSoup(content, 'html.parser')
-            tables = soup.find_all("table", class_='wikitable') # iterate all wikitable
-            data['Name'] = self.cleanName(wiki_lookup)
-            for t in tables:
-                try:
-                    body = t.findChildren("tbody", recursive=False)[0].findChildren("tr" , recursive=False) # check for tr tag
-                    for tr in body:
-                        for k in ["Race", "Element", "Gender", "JP", "Character Unlock"]:
-                            if str(tr).find(k) != -1 and k not in data:
-                                a = str(tr).find("/Category:")
-                                if k == "Race":
-                                    while a != -1:
-                                        a += len("/Category:")
-                                        b= str(tr).find("_", a)
-                                        s = str(tr)[a:b]
-                                        if s == "Other": s = "Unknown"
-                                        if "Type" not in data: data["Type"] = []
-                                        if s not in data["Type"]:
-                                            data["Type"].append(s)
-                                        a = str(tr).find("/Category:", b)
-                                elif k == "Gender":
-                                    if "Male" in str(tr): data[k] = "Male"
-                                    elif "Female" in str(tr): data[k] = "Female"
-                                    elif "Other" in str(tr): data[k] = "Other"
-                                    break
-                                elif k == "JP":
-                                    try: data['JP'] = tr.findChildren("td" , recursive=False)[0].text
-                                    except: pass
-                                    break
-                                elif a != -1:
-                                    a += len("/Category:")
-                                    b= str(tr).find("_", a)
-                                    data[k] = str(tr)[a:b]
-                                    break
-                                elif itype == 1 and k == "Element":
-                                    a += len("/Category:")
-                                    while True:
-                                        b= str(tr).find("Element_", a)
-                                        if b == -1: break
-                                        a = str(tr).find(".", b)
-                                        if a == -1: break;
-                                        if str(tr)[b+len("Element_"):a] in ["Fire", "Water", "Earth", "Wind", "Dark", "Light", "Special"]:
-                                            data[k] = str(tr)[b+len("Element_"):a]
-                                            break
-                                    if k in data:
-                                        break
-                                elif itype == 1 and k == "Character Unlock":
-                                    a = str(tr).find("_30")
-                                    if a != -1:
-                                        a += 1
-                                        try: data[k] = str(tr)[a:a+10]
-                                        except: pass
-                except:
-                    pass
-                # series
-                try:
-                    imgs = t.findChildren("img", recursive=True)
-                    for img in imgs:
-                        if img.has_attr('alt') and 'Series' in img.attrs['alt']:
-                            if 'Series' not in data: data['Series'] = []
-                            data['Series'].append(' '.join(img.attrs['alt'].split(' icon')[0].split(' ')[1:]))
-                except:
-                    pass
-            # validity check
-            is_valid = True
-            match itype:
-                case 1:
-                    expected = ["Rarity", "Name", "Proficiency", "JP"]
-                    s = " ".join(data.get("Series", "")).lower()
-                    if s == "":
-                        expected.append("Element")
-                    else:
-                        series_check = False
-                        for k in ["ultima", "superlative", "class", "champion"]:
-                            if k in s:
-                                series_check = True
-                                break
-                        if not series_check:
-                            expected.append("Element")
-                case 2:
-                    expected = ["Rarity", "Name", "Element"]
-                case 3:
-                    expected = ["Rarity", "Name", "Gender", "JP", "Type"]
-                    if data['Name'].lower() not in ["lyria", "blue poppet", "brown poppet", "young cat", "sierokarte"]:
-                        expected.append("Element")
-                case _:
-                    return False
-            for k in expected:
-                if k not in data:
-                    is_valid = False
-                    break
-            if cid in self.CUT_CONTENT: data["Cut-Content"] = "cut-content"
-            elif not is_valid: return False
-            data["ID"] = cid
-            tmp = []
-            for v in data.values():
-                if isinstance(v, list): tmp += v
-                else: tmp.append(v)
-            self.data["lookup"][cid] = " ".join(tmp).lower().replace('   ', ' ').replace('  ', ' ')
-            self.modified = True
-            return True
-        except:
-            pass
-        return False
-
-    # build lookup for classes
-    async def mc_lookup(self) -> None:
-        try:
-            job_list = (await self.get(self.JS + "constant/job.js")).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
-        except:
-            return
-        print("Checking class elements...")
-        a = job_list.find("var a={")
-        if a == -1: return
-        a+=len("var a={")
-        b = job_list.find("};", a)
-        if b == -b: return
-        job_list = job_list[a:b].split(',')
-        for j in job_list:
-            e = j.split(':')
-            if e[1] not in self.data['lookup']:
-                self.data['lookup'][e[1]] = ("main character gran djeeta job class " + e[0].replace('_', ' ') + " " + e[1]).lower()
-                self.modified = True
-
-    # build lookup for skins
-    async def npc_lookup(self) -> None:
-        try:
-            print("Checking npc elements...")
-            for id, data in self.data['npcs'].items():
-                if data[self.NPC_JOURNAL] and id not in self.data['lookup']:
-                    try:
-                        r = await self.get("https://gbf.wiki/api.php?action=query&format=json&list=search&srsearch={}".format(id), headers={'User-Agent':self.USER_AGENT}, get_json=True)
-                        title = r['query']['search'][0]['title']
-                        self.data['lookup'][id] = ("npc " + title.replace(' (NPC)', '') + " " + id).lower()
-                        self.modified = True
-                    except:
-                        pass
-        except:
-            pass
-
-    # build lookup for skins
-    async def skin_lookup(self) -> None:
-        try:
-            print("Checking skin elements...")
-            r = await self.get("https://gbf.wiki/Character_Skins", headers={'User-Agent':self.USER_AGENT})
-            try: content = r.decode('utf-8')
-            except: content = r.decode('iso-8859-1')
-            soup = BeautifulSoup(content, 'html.parser')
-            res = soup.find_all("tbody")
-            for r in res:
-                element = [None, None]
-                leader_id = None
-                try:
-                    for i in r.parent.parent.findChildren('img', recursive=True):
-                        if i.has_attr('alt') and 'leader' in i.attrs['alt'].lower():
-                            id = i.attrs['alt'].split(' ')[2]
-                            if id.isdigit() and len(id) == 6:
-                                leader_id = id
-                                break
-                except:
-                    pass
-                for tr in r.findChildren("tr"):
-                    c = tr.findChildren()
-                    try:
-                        match c[0].text.strip():
-                            case "Outfit Name":
-                                element[0] = c[1].text.strip()
-                            case "Base Character":
-                                element[1] = c[1].text.strip()
-                            case "ID":
-                                if None not in element:
-                                    id = c[1].text.strip()
-                                    try:
-                                        int(id) # check number
-                                        if id not in self.data['lookup']:
-                                            self.data['lookup'][id] = ("outfit skin " + element[1] + " " + element[0] + " " + id).lower()
-                                            self.modified = True
-                                        element = [None, None]
-                                    except:
-                                        pass
-                                break
-                    except:
-                        pass
-                if leader_id is not None and element[0] is not None:
-                    if leader_id not in self.data['lookup']:
-                        if 'gran / djeeta' in element[0].lower():
-                            if '(' in element[0]:
-                                element[0] = element[0].split('(')[1].split(')')[0]
-                            else:
-                                element[0] = element[0].lower().replace('gran / djeeta', '').strip()
-                        self.data['lookup'][leader_id] = ("main character gran djeeta job class outfit skin " + element[0] + " " + leader_id).lower()
-                        self.modified = True
-        except:
-            pass
-
     # Check for new elements to lookup on the wiki, to update the lookup list
     async def buildLookup(self) -> None:
         if not self.use_wiki: return
-        tasks = []
-        async with asyncio.TaskGroup() as tg:
-            print("Checking elements in need of update...")
-            self.progress = Progress(self)
-            # first pass
+        tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits']}
+        fields = {'characters':'id,rarity,name,series,element,race,gender,type,weapon,jpname,va,jpva', 'weapons':'id,type,rarity,name,series,element,jpname', 'summons':'id,rarity,name,series,element,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name'}
+        modified = set()
+        for t in self.LOOKUP_TYPES:
+            print("Checking", t.capitalize(), "lookup table...")
+            for table in tables.get(t, [t]):
+                try:
+                    data = (await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables={}&fields={}&format=json&limit=20000".format(table, fields.get(table)), headers={'User-Agent':self.USER_AGENT}, get_json=True))
+                    for item in data:
+                        match table:
+                            case "classes":
+                                looks = ["main", "character", "job", "class", "gran", "djeeta"]
+                            case "mc_outfits":
+                                looks = ["main", "character", "job", "class", "gran", "djeeta", "outfit", "skin"]
+                            case "character_outfits":
+                                looks = ["character", "outfit", "skin"]
+                            case _:
+                                looks = [t.lower()[:-1]]
+                        if item.get('element', '') == 'any':
+                            continue
+                        for k, v in item.items():
+                            match v:
+                                case str():
+                                    match k:
+                                        case "outfit id":
+                                            continue
+                                        case "gender":
+                                            looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
+                                        case "link": # PLACEHOLDER, UNUSED
+                                            looks.append("@@" + v.replace(' ', '_')) 
+                                        case "rarity":
+                                            looks.append(v)
+                                        case _:
+                                            looks.append(v.lower())
+                                case list():
+                                    for e in v:
+                                        if e == "Other":
+                                            looks.append("unknown")
+                                        else:
+                                            looks.append(e.lower())
+                                case _:
+                                    pass
+                        try:
+                            id = str(item['id']).split('_', 1)[0]
+                        except:
+                            id = str(item['outfit id']).split('_', 1)[0]
+                        looks.append(id)
+                        looks = " ".join(looks)
+                        if id not in self.data['lookup'] or self.data['lookup'][id] != looks:
+                            self.data['lookup'][id] = looks
+                            modified.add(id)
+                except Exception as e:
+                    print(e)
+                    pass
+
+        # second pass
+        if len(modified) > 0:
+            print(len(modified), "element lookup(s) added/updated")
+            self.modified = True
+            count = 0
+            # second pass
             for t in self.LOOKUP_TYPES:
                 for k in self.data[t]:
+                    check_shared = False
                     if k not in self.data['lookup'] or self.data['lookup'][k] is None:
                         if k in self.SPECIAL_LOOKUP:
                             self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
-                            self.modified = True
                         else:
-                            tasks.append(tg.create_task(self.generateNameLookup(k)))
-            self.progress.set(total=len(tasks), silent=False)
-        for t in tasks:
-            t.result()
-        # second pass
-        for t in self.LOOKUP_TYPES:
-            for k in self.data[t]:
-                if k not in self.data['lookup'] or self.data['lookup'][k] is None:
-                    for l in self.SHARED_NAMES:
-                        if k not in l: continue
-                        for m in l:
-                            if m != k and m in self.data['lookup'] and m is not None and self.data['lookup'][m] is not None:
-                                self.data['lookup'][k] = self.data['lookup'][m].replace(m, k)
-                                self.modified = True
-                                print(k,"and",m,"matched up")
+                            check_shared = True
+                    else:
+                        if k in self.SPECIAL_LOOKUP and self.data['lookup'][k] != self.SPECIAL_LOOKUP[k]:
+                            self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
+                        check_shared = True
+                    if check_shared:
+                        for l in self.SHARED_NAMES:
+                            if k not in l: continue
+                            for m in l:
+                                if m != k and m in self.data['lookup'] and m is not None and self.data['lookup'][m] is not None:
+                                    self.data['lookup'][k] = self.data['lookup'][m].replace(m, k)
+                                    break
                                 break
-                            break
-                else:
-                    if k not in self.data['lookup'][k]:
-                        self.data['lookup'][k] = self.data['lookup'][k].strip() + " " + k
-                        self.modified = True
-        # print remaining
-        count = 0
-        for t in self.LOOKUP_TYPES:
-            for k in self.data[t]:
-                if k not in self.data['lookup'] or self.data['lookup'][k] is None:
-                    count += 1
-        print(count, "element(s) remaining without data")
-        # skin
-        await self.skin_lookup()
-        # npc
-        await self.npc_lookup()
-        # npc
-        await self.mc_lookup()
+                    if not check_shared:
+                        count += 1
+            print(count, "element(s) remaining without lookup data")
         self.save()
         print("Done")
 
     # called by -lookupfix, to manually edit missing data in case of system failure
     async def manualLookup(self) -> None:
-        to_delete = []
-        print("Checking character, summon and weapon lookup datas...")
-        for k, v in self.data["lookup"].items():
-            if v is None or 'cut-content' in v: continue
-            x = v.split(" ")
-            if len(k) == 10:
-                match k[0]:
-                    case '3':
-                        if k[:2] in ["37", "38", "39"] or k[:3] == "305": continue
-                        check = False
-                        for e in ["lyria", "blue poppet", "brown poppet", "young cat", "sierokarte"]:
-                            if e in v:
-                                check = True
-                                break
-                        if not check:
-                            check = False
-                            for e in ["fire", "water", "earth", "wind", "light", "dark"]:
-                                if e in x:
-                                    check = True
-                                    break
-                            if not check:
-                                to_delete.append(k)
-                                try: print(k[0], k, x[-5], "/", v)
-                                except: print(k)
-                    case '2':
-                        check = False
-                        for e in ["fire", "water", "earth", "wind", "light", "dark"]:
-                            if e in x:
-                                check = True
-                                break
-                        if not check:
-                            to_delete.append(k)
-                            print(k[0], k, x[-3], "/", v)
-                    case '1':
-                        check = False
-                        for e in ["ultima", "superlative", "class", "champion"]:
-                            if e in v:
-                                check = True
-                                break
-                        if not check:
-                            check = False
-                            for e in ["fire", "water", "earth", "wind", "light", "dark"]:
-                                if e in x:
-                                    check = True
-                                    break
-                            if not check:
-                                to_delete.append(k)
-                                print(k[0], k, x[-3], "/", v)
-        if len(to_delete) > 0:
-            print(len(to_delete), "entries with possibly incomplete lookup.")
-            if input("Reset them? ('y' to confirm):").lower() == 'y':
-                for k in to_delete:
-                    self.data["lookup"].pop(k)
-                self.modified = True
+        print("Checking the lookup...")
+        count = 0
         for t in self.LOOKUP_TYPES:
             for k in self.data[t]:
                 if k not in self.data['lookup'] or self.data['lookup'][k] is None:
-                    print("##########################################")
-                    print("Input the Wiki URL string for ID", k, "(Leave blank to skip or cut to set cut-content)")
-                    while True:
+                    if k in self.SPECIAL_LOOKUP:
+                        self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
+                        self.modified = True
+                    else:
+                        print("Input the lookup string for", k, "(leave blank to skip")
                         s = input()
-                        if s == "": break
-                        elif s.lower() == "cut":
-                            self.data['lookup'][k] = "cut-content " + k
-                            self.modified = True
-                            break
-                        s = s.replace("https://gbf.wiki/", "")
-                        if not await self.generateNameLookup_sub(k, s):
-                            print("Page not found, try again")
+                        if s == "":
+                            count += 1
                         else:
-                            break
+                            self.data['lookup'][k] = s
+                            self.modified = True
+                elif k in self.SPECIAL_LOOKUP and self.data['lookup'][k] != self.SPECIAL_LOOKUP[k]:
+                    self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
+                    self.modified = True
+        print(count, "element(s) remaining without lookup data")
         self.save()
         print("Done")
 
@@ -3188,7 +2920,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.29\n")
+                print("GBFAL updater v2.30\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
