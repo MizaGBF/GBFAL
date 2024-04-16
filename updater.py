@@ -188,6 +188,7 @@ class Updater():
     SCENE_VARIATIONS = ["", "_a", "_b", "_speed", "_up", "_up2", "_up3", "_up4", "_shadow", "_shadow2", "_shadow3", "_light", "_up_light", "_blood", "_up_blood"]
     SCENE_VARIATIONS_SET = set(SCENE_VARIATIONS)
     SCENE_SPECIAL = ["_light_heart", "_jewel", "_jewel2", "_thug", "_narrator", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3"]
+    SCENE_BUBBLE_FILTER = set(["speed", "up", "up2", "u3", "up4", "shadow", "shadow2", "shadow3", "light", "blood"])
     def __init__(self) -> None:
         # main variables
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
@@ -1917,8 +1918,7 @@ class Updater():
                 for ss in self.generate_scene_file_list()[1 if us == "" else 0]:
                     g = f + ss
                     if ss == "" or g in existing or (filter is not None and not self.scene_suffix_is_matching(g, filter)): continue
-                    tmp = g.split("_")
-                    no_bubble = (g != "" and (tmp[1].isdigit() and len(tmp[1]) == 2)) or tmp[-1] in self.SCENE_VARIATIONS_SET
+                    no_bubble = (g != "" and g.split("_")[-1] in self.SCENE_BUBBLE_FILTER)
                     tasks.append(self.update_all_scene_sub_req(k, id, idx, g, no_bubble))
             if len(tasks) > 0: await asyncio.gather(*tasks)
 

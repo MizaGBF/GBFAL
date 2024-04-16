@@ -14,7 +14,7 @@ const ENDPOINTS = [
 ];
 var endpoint_count = -1;
 // list of known scene strings for unindexed characters
-const NO_BUBBLE_FILTER = ["speed", "up", "shadow", "shadow2", "shadow3", "light", "blood"];
+const NO_BUBBLE_FILTER = ["speed", "up", "up2", "u3", "up4", "shadow", "shadow2", "shadow3", "light", "blood"];
 // HTML UI indexes
 const CHARACTERS = [
     ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", [0, -1, 0, -1, 504, 999]],
