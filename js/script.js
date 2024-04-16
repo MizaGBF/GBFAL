@@ -1,12 +1,3 @@
-/* sky compass notes (for posterity)
-
-Leader: https://media.skycompass.io/assets/customizes/jobs/1138x1138/ID_GENDER.png
-Character: https://media.skycompass.io/assets/customizes/characters/1138x1138/ID_UNCAP.png
-Summon: https://media.skycompass.io/assets/archives/summons/ID/detail_l.png
-Event: https://media.skycompass.io/assets/archives/events/ID/image/NUM_free.png
-
-*/
-
 // =================================================================================================
 // constant
 const DISPLAY_MINI = 4; // number of file to display at the minimum if a lot of files are present
