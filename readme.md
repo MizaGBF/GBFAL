@@ -60,4 +60,4 @@ Action parameters (Only one of those can be used at a time):
 - On Windows, [local_server.bat](https://github.com/MizaGBF/GBFAL/blob/main/local_server.bat) can be used to test the project locally, in a web browser.  
 - On other OS, just run `python-m http.server` in a terminal, in the project folder.  
 - [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations.  
-- Alternatively, you can just request for `https://raw.githubusercontent.com/MizaGBF/GBFAL/main/json/changelog.json` to check if the timestamp changed and then download `https://github.com/MizaGBF/GBFAL/blob/main/json/data.json` for your project.  
+- For developpers, I documented some things in this [file](https://github.com/MizaGBF/GBFAL/blob/main/docs.md).  
