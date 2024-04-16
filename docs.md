@@ -1,6 +1,6 @@
 # General Informations  
 - GBFAL is a static web page. No API is available.  
-- If you want to put a link towards GBFAL for a specific element on your website, use https://mizagbf.github.io/GBFAL/?id=`ID` where `ID` is the element ID on GBFAL.  
+- If you want to put a link towards GBFAL for a specific element on your website, use `https://mizagbf.github.io/GBFAL/?id=ID` where `ID` is the element ID on GBFAL.  
 - If you want to reuse GBFAL data for your own purpose, you can download the `json/data.json` file from `https://raw.githubusercontent.com/MizaGBF/GBFAL/main/json/data.json`.  
 - Sorry if you find typos or mistakes in this file. Reminder I do this as a hobby, on my spare time.
   
