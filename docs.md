@@ -21,7 +21,7 @@ where:
 - `version`: Integer, the file version. Currently **1**.
 - `scene_queue`: Array, the list of elements to be updated with new scene files (Note: A scene file refers to an image used during fate episodes/cutscenes/etc...). For internal use only.  
 - `sound_queue`: Array, the list of elements to be updated with new sound files. For internal use only.  
-- `valentines`: Array, the list of IDs of elements with (possibly) white day or valentine scene files. Elements are always from the `characters`, `skins` or `npcs` indexes.  
+- `valentines`: Object of ID, integer pairs, for elements with (possibly) white day or valentine scene files. The integer is unused. Elements are always from the `characters`, `skins` or `npcs` indexes.  
 - `characters`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of nine lists, each containing file names. (`[[], [], [], [], [], [], [], [], []]`).
     - Index 0: Spritesheets. Path: `sp/cjs/FILE.png`.  
@@ -31,8 +31,8 @@ where:
     - Index 4: Single target skill sheets (played during one foe skills or targeted buff/heal skills). Path: `sp/cjs/FILE.png`.  
     - Index 5: General files. This will be used for most files used in the inventory for example and one will exist for all uncaps and more (for example, if the character has differents arts based on the MC gender).  
     - Index 6: SD files (as seen on the outfit selection screen). Path: `sp/assets/npc/sd/FILE.png`. This is the array to use if you want to generate a list of uncaps without being parazited by bonus poses and such.  
-    - Index 7: Scene files. Possible paths: `sp/quest/scene/character/body/FILE.png` (used in cutscenes) or  `sp/raid/navi_face/FILE.png` (portrait used in battles, when characters talk). A file being in this list means either or both of those paths are valid.  
-    - Index 8: Voice files. Path: `voice/FILE.mp3`.  
+    - Index 7: Scene file suffixes. Possible paths: `sp/quest/scene/character/body/ID_SUFFIX.png` (used in cutscenes) or  `sp/raid/navi_face/ID_SUFFIX.png` (portrait used in battles, when characters talk). A file being in this list means either or both of those paths are valid.  
+    - Index 8: Voice file suffixes. Path: `voice/ID_SUFFIX.mp3`.  
 - `partners`: Nearly the same as `characters`, up to Index 5 **included**. What I call partners are characters lended to you during script battles.  
 - `summons`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of three lists, each containing file names. (`[[], [], []]`).
