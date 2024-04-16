@@ -75,7 +75,7 @@ class Updater():
     MAX_HTTP_WIKI = 20
     MAX_SCENE_CONCURRENT = 10
     MAX_SOUND_CONCURRENT = 10
-    LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins']
+    LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
     # addition type
     ADD_JOB = 0
     ADD_WEAP = 1
@@ -2155,14 +2155,14 @@ class Updater():
     # Check for new elements to lookup on the wiki, to update the lookup list
     async def buildLookup(self) -> None:
         if not self.use_wiki: return
-        tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits']}
-        fields = {'characters':'id,rarity,name,series,element,race,gender,type,weapon,jpname,va,jpva', 'weapons':'id,type,rarity,name,series,element,jpname', 'summons':'id,rarity,name,series,element,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name'}
+        tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
+        fields = {'characters':'id,rarity,name,series,element,race,gender,type,weapon,jpname,va,jpva', 'weapons':'id,type,rarity,name,series,element,jpname', 'summons':'id,rarity,name,series,element,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva'}
         modified = set()
         for t in self.LOOKUP_TYPES:
             print("Checking", t.capitalize(), "lookup table...")
             for table in tables.get(t, [t]):
                 try:
-                    data = (await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables={}&fields={}&format=json&limit=20000".format(table, fields.get(table)), headers={'User-Agent':self.USER_AGENT}, get_json=True))
+                    data = (await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables={}&fields=_pageName,{}&format=json&limit=20000".format(table, fields.get(table)), headers={'User-Agent':self.USER_AGENT}, get_json=True))
                     for item in data:
                         match table:
                             case "classes":
@@ -2183,15 +2183,20 @@ class Updater():
                                             continue
                                         case "gender":
                                             looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
-                                        case "link": # PLACEHOLDER, UNUSED
+                                        case "_pageName":
                                             looks.append("@@" + v.replace(' ', '_')) 
                                         case "rarity":
                                             looks.append(v)
+                                        case "race":
+                                            if v == "Other":
+                                                looks.append("unknown")
+                                            else:
+                                                looks.append(v)
                                         case _:
                                             looks.append(v.lower())
                                 case list():
                                     for e in v:
-                                        if e == "Other":
+                                        if k == "race" and e == "Other":
                                             looks.append("unknown")
                                         else:
                                             looks.append(e.lower())

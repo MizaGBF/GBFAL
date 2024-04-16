@@ -2211,7 +2211,15 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
     if(include_link)
     {
         let l = document.createElement('a');
-        l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
+        try
+        {
+            if(id in index["lookup"] && index["lookup"][id].includes("@@"))
+                l.setAttribute('href', "https://gbf.wiki/" + index["lookup"][id].split("@@")[1].split(" ")[0]);
+            else
+                l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
+        } catch(err) {
+            l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
+        }
         l.title = "Wiki search for " + id;
         let img = document.createElement('img');
         img.src = "assets/ui/icon/wiki.png";
@@ -2252,6 +2260,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         div.appendChild(i);
         for(let t of index["lookup"][id].split(' '))
         {
+            if(t.substr(0, 2) == "@@") continue;
             i = document.createElement('i');
             i.classList.add("tag");
             switch(t)
