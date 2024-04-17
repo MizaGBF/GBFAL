@@ -37,7 +37,7 @@ class Progress():
                 if self.silent:
                     sys.stdout.write("\r")
                 else:
-                    print("\rState: {}/{} - Autosave".format(self.current, self.total))
+                    print("\rState: {}/{} - Autosaving...".format(self.current, self.total))
                 self.elapsed = time.time()
                 self.parent.save()
             if not self.silent:
@@ -246,7 +246,7 @@ class Updater():
         except: # windows
             signal.signal(signal.SIGINT, self.interrupt)
 
-    def interrupt(self, signum, frame) -> None:
+    def interrupt(self, signum : int, frame) -> None:
         print("")
         print("Process PAUSED")
         if self.progress is not None and self.progress.total != 9999999999999:

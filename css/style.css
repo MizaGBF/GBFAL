@@ -160,7 +160,7 @@ details[open] > .element-detail {
     left: -10px;
 }
 
-footer, #header {
+#footer, #header {
     font-family: sans-serif;
     font-size: 17px;
     text-align:center;
@@ -170,6 +170,13 @@ footer, #header {
     border-style: solid;
     width:300px;
     margin:auto;
+}
+
+#copyright {
+    font-family: sans-serif;
+    font-size: 12px;
+    color: #666666;
+    margin: 10px;
 }
 
 #issues {
@@ -494,10 +501,15 @@ a:active {
         left: -20px;
     }
 
-    footer, #header {
+    #footer, #header {
         font-size: 30px;
         width:600px;
         line-height: 1.5;
+    }
+
+    #copyright {
+        font-size: 24px;
+        margin: 20px;
     }
 
     #issues {
