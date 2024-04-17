@@ -2573,7 +2573,7 @@ class Updater():
                                     if url.split("/")[-1]+"_"+k+kk not in known_assets:
                                         await self.head(url + "_" + k + kk + ".png")
                                         l.append(url.split("/")[-1]+"_"+k+kk)
-                                        found = True
+                                    found = True
                                 except:
                                     pass
                                 for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
@@ -2582,7 +2582,7 @@ class Updater():
                                             if url.split("/")[-1]+"_"+k+kk+kkk not in known_assets:
                                                 await self.head(url + "_" + k + kk + kkk + ".png")
                                                 l.append(url.split("/")[-1]+"_"+k+kk+kkk)
-                                                found = True
+                                            found = True
                                         except:
                                             break
                                 if not found:
@@ -2590,6 +2590,7 @@ class Updater():
                         except:
                             err += 1
                         i += 1
+        if len(l) > 0: print(l)
         return ev, l
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
