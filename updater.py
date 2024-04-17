@@ -2590,7 +2590,6 @@ class Updater():
                         except:
                             err += 1
                         i += 1
-        if len(l) > 0: print(l)
         return ev, l
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
