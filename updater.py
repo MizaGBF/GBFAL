@@ -167,7 +167,7 @@ class Updater():
     LOAD_EXCLUSION = ['version']
     QUEUE_KEY = ['scene_queue', 'sound_queue']
     STRING_CHAR = string.ascii_lowercase + string.digits
-    SEASONAL_EVENTS = ["201017", "211017", "221017", "231017", "241017", "200214", "210214", "220214", "230214", "240214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "200101", "210101", "220101", "230101", "240101"]
+    MISSING_EVENTS = ["201017", "211017", "221017", "231017", "241017", "200214", "210214", "220214", "230214", "240214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "200101", "210101", "220101", "230101", "240101"] + ["131201", "140330", "160430", "161031", "161227", "170501", "170801", "171129", "180301", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181214", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304"]
     CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
     SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
     SPECIAL_LOOKUP = { # special elements
@@ -2331,7 +2331,7 @@ class Updater():
     # Ask the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
     async def get_event_list(self) -> list:
         try:
-            l = self.SEASONAL_EVENTS
+            l = self.MISSING_EVENTS
             if not self.use_wiki: raise Exception()
             data = await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables=event_history&fields=time_start,name&format=json&limit=20000", headers={'User-Agent':self.USER_AGENT}, get_json=True)
             for e in data:
@@ -2453,6 +2453,9 @@ class Updater():
                         for i in range(1, ch_count+1):
                             fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
                             tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                            if i < 10:
+                                fn = "scene_evt{}_cp{}".format(ev, i)
+                                tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
                         for ch in ["op", "ed"]:
                             fn = "scene_evt{}_{}".format(ev, ch)
                             tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
@@ -2484,6 +2487,7 @@ class Updater():
                         except:
                             self.data["events"][ev][self.EVENT_INT].append(e)
                     modified.add(ev)
+                    self.modified = True
         for ev in modified:
             if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
             for i in range(self.EVENT_OP , len(self.data["events"][ev])):
@@ -2504,77 +2508,66 @@ class Updater():
             for j in range(step, step+self.SCENE_UPDATE_STEP):
                 url = base_url + "_" + str(j).zfill(Z)
                 flag = False
-                try: # base check
-                    if url.split("/")[-1] not in known_assets:
-                        await self.head(url + ".png")
-                        l.append(url.split("/")[-1])
-                    flag = True
-                except:
-                    pass
-                for k in ["_up", "_shadow"]:
-                    try:
-                        if url.split("/")[-1]+k not in known_assets:
-                            await self.head(url + k + ".png")
-                            l.append(url.split("/")[-1]+k)
+                tasks = []
+                for k in ["", "_up", "_shadow"]:
+                    if url.split("/")[-1]+k not in known_assets:
+                        tasks.append(self.check_scene_art_list_sub(url+k))
+                    else:
                         flag = True
-                    except:
-                        pass
+                for u in await asyncio.gather(*tasks):
+                    if u is not None:
+                        l.append(u)
+                        flag = True
                 for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                    try:
-                        if url.split("/")[-1]+k not in known_assets:
-                            await self.head(url + k + ".png")
-                            l.append(url.split("/")[-1]+k)
-                        flag = True
-                        for kkk in ["a", "b", "c", "d", "e", "f"]:
-                            try:
-                                if url.split("/")[-1]+k+kkk not in known_assets:
-                                    await self.head(url + k + kkk + ".png")
-                                    l.append(url.split("/")[-1]+k+kkk)
-                            except:
-                                break
-                    except:
+                    tasks = []
+                    for kk in ["", "1", "2", "3", "4", "5", "a", "b", "c", "d", "e", "f"]:
+                        if url.split("/")[-1]+k+kk not in known_assets:
+                            tasks.append(self.check_scene_art_list_sub(url+k+kk))
+                        else:
+                            flag = True
+                    found = False
+                    for u in await asyncio.gather(*tasks):
+                        if u is not None:
+                            l.append(u)
+                            found = True
+                            flag = True
+                    if not found:
                         break
-                if not flag or is_tuto: # check for extras
-                    try: # alternative filename format
-                        if url.split("/")[-1]+"_00" not in known_assets:
-                            await self.head(url + "_00.png")
-                            l.append(url.split("/")[-1]+"_00")
-                    except:
-                        pass
-                    for k in ["_up", "_shadow"]:
-                        try:
-                            if url.split("/")[-1]+"_00"+k not in known_assets:
-                                await self.head(url + "_00" + k + ".png")
-                                l.append(url.split("/")[-1]+"_00"+k)
-                        except:
-                            pass
+                if not flag or is_tuto:
+                    # alternative filename format
                     err = 0
-                    i = 1
+                    i = 0
                     while i < 100 and err < 10:
                         k = str(i).zfill(Z)
-                        try:
-                            if url.split("/")[-1]+"_"+k not in known_assets:
-                                await self.head(url + "_" + k + ".png")
-                                l.append(url.split("/")[-1]+"_"+k)
-                            err = 0
-                            for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                                try:
-                                    if url.split("/")[-1]+"_"+k+kk not in known_assets:
-                                        await self.head(url + "_" + k + kk + ".png")
-                                        l.append(url.split("/")[-1]+"_"+k+kk)
-                                    for kkk in ["a", "b", "c", "d", "e", "f"]:
-                                        try:
-                                            if url.split("/")[-1]+"_"+k+kk+kkk not in known_assets:
-                                                await self.head(url + "_" + k + kk + kkk + ".png")
-                                                l.append(url.split("/")[-1]+"_"+k+kk+kkk)
-                                        except:
-                                            break
-                                except:
-                                    break
-                        except:
+                        flag = False
+                        for kk in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                            if i == 0 and kk != "": break
+                            tasks = []
+                            for kkk in ["", "1", "2", "3", "4", "5", "a", "b", "c", "d", "e", "f", "_up", "_shadow"]:
+                                if url.split("/")[-1]+"_"+k+kk+kkk not in known_assets:
+                                    tasks.append(self.check_scene_art_list_sub(url+"_"+k+kk+kkk))
+                                else:
+                                    flag = True
+                            found = False
+                            for u in await asyncio.gather(*tasks):
+                                if u is not None:
+                                    l.append(u)
+                                    found = True
+                                    flag = True
+                            if not found and kk != "":
+                                break
+                        if not flag:
                             err += 1
                         i += 1
         return ev, l
+
+    # check_scene_art_list() subroutine
+    async def check_scene_art_list_sub(self, url : str) -> Optional[str]:
+        try:
+            await self.head(url + ".png")
+            return url.split("/")[-1]
+        except:
+            return None
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
     async def update_event_sky(self, ev : str) -> None:
@@ -2927,7 +2920,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.31\n")
+                print("GBFAL updater v2.32\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
