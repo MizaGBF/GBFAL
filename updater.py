@@ -2513,66 +2513,84 @@ class Updater():
             for j in range(step, step+self.SCENE_UPDATE_STEP):
                 url = base_url + "_" + str(j).zfill(Z)
                 flag = False
-                tasks = []
+                # base check
                 for k in ["", "_up", "_shadow"]:
-                    if url.split("/")[-1]+k not in known_assets:
-                        tasks.append(self.check_scene_art_list_sub(url+k))
-                    else:
+                    try:
+                        if url.split("/")[-1]+k not in known_assets:
+                            await self.head(url + k + ".png")
+                            l.append(url.split("/")[-1]+k)
                         flag = True
-                for u in await asyncio.gather(*tasks):
-                    if u is not None:
-                        l.append(u)
-                        flag = True
+                    except:
+                        pass
                 for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                    tasks = []
-                    for kk in ["", "1", "2", "3", "4", "5", "a", "b", "c", "d", "e", "f"]:
-                        if url.split("/")[-1]+k+kk not in known_assets:
-                            tasks.append(self.check_scene_art_list_sub(url+k+kk))
-                        else:
-                            flag = True
                     found = False
-                    for u in await asyncio.gather(*tasks):
-                        if u is not None:
-                            l.append(u)
-                            found = True
-                            flag = True
+                    try:
+                        if url.split("/")[-1]+k not in known_assets:
+                            await self.head(url + k + ".png")
+                            l.append(url.split("/")[-1]+k)
+                        flag = True
+                        found = True
+                    except:
+                        pass
+                    for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
+                        for kkk in ss:
+                            try:
+                                if url.split("/")[-1]+k+kkk not in known_assets:
+                                    await self.head(url + k + kkk + ".png")
+                                    l.append(url.split("/")[-1]+k+kkk)
+                                flag = True
+                                found = True
+                            except:
+                                break
                     if not found:
                         break
-                if not flag or is_tuto:
-                    # alternative filename format
+                if not flag or is_tuto: # check for extras
+                    try: # alternative filename format
+                        if url.split("/")[-1]+"_00" not in known_assets:
+                            await self.head(url + "_00.png")
+                            l.append(url.split("/")[-1]+"_00")
+                    except:
+                        pass
+                    for k in ["_up", "_shadow"]:
+                        try:
+                            if url.split("/")[-1]+"_00"+k not in known_assets:
+                                await self.head(url + "_00" + k + ".png")
+                                l.append(url.split("/")[-1]+"_00"+k)
+                        except:
+                            pass
                     err = 0
-                    i = 0
+                    i = 1
                     while i < 100 and err < 10:
                         k = str(i).zfill(Z)
-                        flag = False
-                        for kk in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                            if i == 0 and kk != "": break
-                            tasks = []
-                            for kkk in ["", "1", "2", "3", "4", "5", "a", "b", "c", "d", "e", "f", "_up", "_shadow"]:
-                                if url.split("/")[-1]+"_"+k+kk+kkk not in known_assets:
-                                    tasks.append(self.check_scene_art_list_sub(url+"_"+k+kk+kkk))
-                                else:
-                                    flag = True
-                            found = False
-                            for u in await asyncio.gather(*tasks):
-                                if u is not None:
-                                    l.append(u)
-                                    found = True
-                                    flag = True
-                            if not found and kk != "":
-                                break
-                        if not flag:
+                        try:
+                            if url.split("/")[-1]+"_"+k not in known_assets:
+                                await self.head(url + "_" + k + ".png")
+                                l.append(url.split("/")[-1]+"_"+k)
+                            err = 0
+                            for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                                found = False
+                                try:
+                                    if url.split("/")[-1]+"_"+k+kk not in known_assets:
+                                        await self.head(url + "_" + k + kk + ".png")
+                                        l.append(url.split("/")[-1]+"_"+k+kk)
+                                        found = True
+                                except:
+                                    pass
+                                for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
+                                    for kkk in ss:
+                                        try:
+                                            if url.split("/")[-1]+"_"+k+kk+kkk not in known_assets:
+                                                await self.head(url + "_" + k + kk + kkk + ".png")
+                                                l.append(url.split("/")[-1]+"_"+k+kk+kkk)
+                                                found = True
+                                        except:
+                                            break
+                                if not found:
+                                    break
+                        except:
                             err += 1
                         i += 1
         return ev, l
-
-    # check_scene_art_list() subroutine
-    async def check_scene_art_list_sub(self, url : str) -> Optional[str]:
-        try:
-            await self.head(url + ".png")
-            return url.split("/")[-1]
-        except:
-            return None
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
     async def update_event_sky(self, ev : str) -> None:
