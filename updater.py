@@ -71,7 +71,7 @@ class Updater():
     # limit
     MAX_NEW = 80
     MAX_UPDATE = 80
-    MAX_HTTP = 100
+    MAX_HTTP = 90
     MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
     MAX_SCENE_CONCURRENT = 10
