@@ -2417,7 +2417,7 @@ class Updater():
             return ev, None
 
     # Check the given event list for potential art pieces
-    async def update_event(self, events : list, full : bool = False) -> None:
+    async def update_event(self, events : list, full : bool = False, skip : int = 0) -> None:
         # dig
         special_events = {
            "221121": "_arcarum_maria",
@@ -2433,6 +2433,8 @@ class Updater():
         }
         
         print("Checking for content of", len(events), "event(s)")
+        if skip > 0:
+            print("(Skipping the first {} tasks(s) )".format(skip))
         tasks = []
         modified = set()
         ec = 0
@@ -2463,31 +2465,34 @@ class Updater():
                         tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
                     fn = "scene_evt{}".format(ev) + special_events.get(ev, '')
                     tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-        self.progress = Progress(self, total=len(tasks), silent=False)
-        async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
-            r = task.result()
-            if r is not None:
-                ev = r[0]
-                if len(r[1])  > 0:
-                    for e in r[1]:
-                        try:
-                            x = e.split("_")[2]
-                            match x:
-                                case "op":
-                                    self.data["events"][ev][self.EVENT_OP].append(e)
-                                case "ed":
-                                    self.data["events"][ev][self.EVENT_ED].append(e)
-                                case "osarai":
-                                    self.data["events"][ev][self.EVENT_INT].append(e)
-                                case _:
-                                    if "_cp" in e:
-                                        self.data["events"][ev][self.EVENT_CHAPTER_START-1+int(x[2:])].append(e)
-                                    else:
+        self.progress = Progress(self, total=len(tasks), silent=False, current=skip)
+        if skip > 0:
+            tasks = tasks[skip:]
+        if len(tasks) > 0:
+            async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
+                r = task.result()
+                if r is not None:
+                    ev = r[0]
+                    if len(r[1])  > 0:
+                        for e in r[1]:
+                            try:
+                                x = e.split("_")[2]
+                                match x:
+                                    case "op":
+                                        self.data["events"][ev][self.EVENT_OP].append(e)
+                                    case "ed":
+                                        self.data["events"][ev][self.EVENT_ED].append(e)
+                                    case "osarai":
                                         self.data["events"][ev][self.EVENT_INT].append(e)
-                        except:
-                            self.data["events"][ev][self.EVENT_INT].append(e)
-                    modified.add(ev)
-                    self.modified = True
+                                    case _:
+                                        if "_cp" in e:
+                                            self.data["events"][ev][self.EVENT_CHAPTER_START-1+int(x[2:])].append(e)
+                                        else:
+                                            self.data["events"][ev][self.EVENT_INT].append(e)
+                            except:
+                                self.data["events"][ev][self.EVENT_INT].append(e)
+                        modified.add(ev)
+                        self.modified = True
         for ev in modified:
             if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
             for i in range(self.EVENT_OP , len(self.data["events"][ev])):
@@ -2654,7 +2659,11 @@ class Updater():
                     for ev in self.data["events"]:
                         if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
                             l.append(ev)
-                    await self.update_event(l)
+                    try:
+                        skip = int(input("Input a number to resume a previous update (Leave blank to ignore):"))
+                    except:
+                        skip = 0
+                    await self.update_event(l, skip=skip)
                 case "4":
                     tasks = []
                     async with asyncio.TaskGroup() as tg:
