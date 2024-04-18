@@ -725,7 +725,7 @@ function display_characters(id, data, range, unused = null)
             return null;
     }
     let uncap = "_01";
-    if(data != 0)
+    if(data)
     {
         for(const f of data[6])
             if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
@@ -744,7 +744,7 @@ function display_skins(id, data, range, unused = null)
     let val = parseInt(id.slice(4, 7));
     if(val < range[0] || val >= range[1]) return null;
     let uncap = "_01";
-    if(data != 0)
+    if(data)
     {
         for(const f of data[6])
             if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
@@ -765,7 +765,7 @@ function display_partners(id, data, prefix, unused = null)
         this.src = idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/raid_normal/3999999999.jpg";
     };
     let path = null;
-    if(data != 0 && data[5].length > 0)
+    if(data && data[5].length > 0)
     {
         let onerr;
         if(data[5].length > 1)
@@ -792,7 +792,7 @@ function display_summons(id, data, rarity, range)
     let val = parseInt(id.slice(4, 7));
     if(val < range[0] || val >= range[1]) return null;
     let uncap = "";
-    if(data != 0)
+    if(data)
     {
         for(const f of data[0])
             if(f.includes("_")) uncap = f.slice(10);
@@ -810,7 +810,7 @@ function display_weapons(id, data, rarity, proficiency)
 {
     if(id[2] != rarity || id[4] != proficiency) return null;
     let uncap = "";
-    if(data != 0)
+    if(data)
     {
         for(const f of data[0])
             if(f.includes("_")) uncap = f.slice(10);
@@ -842,7 +842,7 @@ function display_npcs(id, data, prefix, range)
     if(val < range[0] || val >= range[1]) return null;
     let path = ""
     let className = "";
-    if(data != 0)
+    if(data)
     {
         if(data[0])
         {
@@ -886,6 +886,7 @@ function display_story(id, data, unusedA = null, unusedB = null)
 
 function display_events(id, data, unusedA = null, unusedB = null)
 {
+    if(!data) return null;
     let has_file = false;
     let path = "";
     let className = ""
@@ -916,6 +917,7 @@ function display_events(id, data, unusedA = null, unusedB = null)
 
 function display_skills(id, data, range, unused = null)
 {
+    if(!data) return null;
     let val = parseInt(id);
     if(val < range[0] || val >= range[1]) return null;
     return [["sk"+id, "GBF/assets_en/img_low/sp/ui/icon/ability/m/" + data[0][0] + ".png", null, "preview", false]];
@@ -932,6 +934,7 @@ function display_subskills(id, data, unusedA = null, unusedB = null)
 
 function display_buffs(id, data, range, unused = null)
 {
+    if(!data) return null;
     let val = parseInt(id);
     if(val < range[0] || val >= range[1]) return null;
     return [["b"+id, "GBF/assets_en/img_low/sp/ui/icon/status/x64/status_" + data[0][0] + ".png", null, "preview" + (data[1].length > 0 ? " more" : ""), false]];
@@ -939,6 +942,7 @@ function display_buffs(id, data, range, unused = null)
 
 function display_backgrounds(id, data, key, unused = null)
 {
+    if(!data) return null;
     let path = null;
     switch(id.split('_')[0])
     {
@@ -1063,50 +1067,39 @@ function updateList(node, elems) // update a list of elements
             case 3:
                 if(e[0].slice(1, 3) == "71")
                 {
-                    if(e[0] in index['skins'])
-                        res = display_skins(e[0], index['skins'][e[0]], [0, 1000]);
+                    res = display_skins(e[0], (e[0] in index['skins']) ? index['skins'][e[0]] : null, [0, 1000]);
                 }
                 else
                 {
-                    if(e[0] in index['characters'])
-                        res = display_characters(e[0], index['characters'][e[0]], [0, 1000, 0, 1000, 0, 1000]);
+                    res = display_characters(e[0], (e[0] in index['characters']) ? index['characters'][e[0]] : null, [0, 1000, 0, 1000, 0, 1000]);
                 }
                 break;
             case 2:
-                if(e[0] in index['summons'])
-                    res = display_summons(e[0], index['summons'][e[0]], e[0][2], [0, 1000]);
+                res = display_summons(e[0], (e[0] in index['summons']) ? index['summons'][e[0]] : null, e[0][2], [0, 1000]);
                 break;
             case 1:
-                if(e[0] in index['weapons'])
-                    res = display_weapons(e[0], index['weapons'][e[0]], e[0][2], e[0][4]);
+                res = display_weapons(e[0], (e[0] in index['weapons']) ? index['weapons'][e[0]] : null, e[0][2], e[0][4]);
                 break;
             case 0:
-                if(e[0] in index['job'])
-                    res = display_mc(e[0], index['job'][e[0]]);
+                res = display_mc(e[0], (e[0] in index['job']) ? index['job'][e[0]] : null);
                 break;
             case 4:
-                if(e[0] in index['enemies'])
-                    res = display_enemies(e[0], index['enemies'][e[0]], e[0][0], e[0][1]);
+                res = display_enemies(e[0], (e[0] in index['enemies']) ? index['enemies'][e[0]] : null, e[0][0], e[0][1]);
                 break;
             case 5:
-                if(e[0] in index['npcs'])
-                    res = display_npcs(e[0], index['npcs'][e[0]], e[0].slice(1, 3), [0, 10000]);
+                res = display_npcs(e[0], (e[0] in index['npcs']) ? index['npcs'][e[0]] : null, e[0].slice(1, 3), [0, 10000]);
                 break;
             case 6:
-                if(e[0] in index['partners'])
-                    res = display_partners(e[0], index['partners'][e[0]], e[0].slice(1, 3));
+                res = display_partners(e[0], (e[0] in index['partners']) ? index['partners'][e[0]] : null, e[0].slice(1, 3));
                 break;
             case 7:
-                if(e[0] in index['events'])
-                    res = display_events(e[0], index['events'][e[0]]);
+                res = display_events(e[0], (e[0] in index['events']) ? index['events'][e[0]] : null);
                 break;
             case 8:
-                if(e[0] in index['skills'])
-                    res = display_skills(e[0], index['skills'][e[0]], [0, 10000]);
+                res = display_skills(e[0], (e[0] in index['skills']) ? index['skills'][e[0]] : null, [0, 10000]);
                 break;
             case 9:
-                if(e[0] in index['buffs'])
-                    res = display_buffs(e[0], index['buffs'][e[0]], [0, 10000]);
+                res = display_buffs(e[0], (e[0] in index['buffs']) ? index['buffs'][e[0]] : null, [0, 10000]);
                 break;
             case 10:
                 if(e[0] in index['background'])
@@ -1116,8 +1109,7 @@ function updateList(node, elems) // update a list of elements
                 }
                 break;
             case 11:
-                if(e[0] in index['story'])
-                    res = display_story(e[0], index['story'][e[0]]);
+                res = display_story(e[0], (e[0] in index['story']) ? index['story'][e[0]] : null);
                 image_callback = addTextImage;
                 break;
             case "subskills":
