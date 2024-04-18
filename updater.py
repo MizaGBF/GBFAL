@@ -2436,7 +2436,6 @@ class Updater():
         if skip > 0:
             print("(Skipping the first {} tasks(s) )".format(skip))
         tasks = []
-        modified = set()
         ec = 0
         self.progress = Progress(self)
         for ev in events:
@@ -2468,6 +2467,7 @@ class Updater():
         self.progress = Progress(self, total=len(tasks), silent=False, current=skip)
         if skip > 0:
             tasks = tasks[skip:]
+        modified = False
         if len(tasks) > 0:
             async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
                 r = task.result()
@@ -2491,15 +2491,19 @@ class Updater():
                                             self.data["events"][ev][self.EVENT_INT].append(e)
                             except:
                                 self.data["events"][ev][self.EVENT_INT].append(e)
-                        modified.add(ev)
+                        if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
+                        modified = True
                         self.modified = True
-        for ev in modified:
-            if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
-            for i in range(self.EVENT_OP , len(self.data["events"][ev])):
-                self.data["events"][ev][i] = list(set(self.data["events"][ev][i]))
-                self.data["events"][ev][i].sort()
-                self.modified = True
-            self.addition[ev] = self.ADD_EVENT
+                        self.addition[ev] = self.ADD_EVENT
+        if modified:
+            print("Sorting event scene data...")
+            for ev in self.data["events"]:
+                for i in range(self.EVENT_OP , len(self.data["events"][ev])):
+                    tmp = list(set(self.data["events"][ev][i]))
+                    tmp.sort()
+                    if str(tmp) != str(self.data["events"][ev][i]):
+                        self.data["events"][ev][i] = tmp
+                        self.modified = True
         print("Done")
         self.save()
 
