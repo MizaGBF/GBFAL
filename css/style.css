@@ -72,6 +72,10 @@ details[open] > .element-detail {
     text-align: center;
     position: relative;
 }
+.container > .container:not(.container-header) {
+    border: solid 2px #00000000;
+    border-top-color: #444444;
+}
 
 .container-header {
     font-size: 24px;
@@ -543,6 +547,7 @@ a:active {
     }
 
     .index-image {
+        min-height: 160px;
         max-height: 160px;
     }
 
