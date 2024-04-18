@@ -339,6 +339,11 @@ img {
     z-index: 1;
 }
 
+.mypage-btn:hover
+{
+    filter: hue-rotate(170deg);;
+}
+
 .homepage-ui {
     width: 400px;
     height: 588.430px;
