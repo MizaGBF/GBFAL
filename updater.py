@@ -2479,18 +2479,20 @@ class Updater():
                                 x = e.split("_")[2]
                                 match x:
                                     case "op":
-                                        self.data["events"][ev][self.EVENT_OP].append(e)
+                                        target = self.EVENT_OP
                                     case "ed":
-                                        self.data["events"][ev][self.EVENT_ED].append(e)
+                                        target = self.EVENT_ED
                                     case "osarai":
-                                        self.data["events"][ev][self.EVENT_INT].append(e)
+                                        target = self.EVENT_INT
                                     case _:
                                         if "_cp" in e:
-                                            self.data["events"][ev][self.EVENT_CHAPTER_START-1+int(x[2:])].append(e)
+                                            target = self.EVENT_CHAPTER_START-1+int(x[2:])
                                         else:
-                                            self.data["events"][ev][self.EVENT_INT].append(e)
+                                            target = self.EVENT_INT
                             except:
-                                self.data["events"][ev][self.EVENT_INT].append(e)
+                                target = self.EVENT_INT
+                            if e not in self.data["events"][ev][target]:
+                                self.data["events"][ev][target].append(e)
                         if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
                         modified = True
                         self.modified = True
@@ -2499,10 +2501,9 @@ class Updater():
             print("Sorting event scene data...")
             for ev in self.data["events"]:
                 for i in range(self.EVENT_OP , len(self.data["events"][ev])):
-                    tmp = list(set(self.data["events"][ev][i]))
-                    tmp.sort()
-                    if str(tmp) != str(self.data["events"][ev][i]):
-                        self.data["events"][ev][i] = tmp
+                    before = str(self.data["events"][ev][i])
+                    self.data["events"][ev][i].sort()
+                    if str(before) != str(self.data["events"][ev][i]):
                         self.modified = True
                         self.addition[ev] = self.ADD_EVENT
         print("Done")
