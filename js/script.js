@@ -283,7 +283,7 @@ function initIndex() // build the html index. simply edit the constants above to
                 };
             }
         }
-        elems = makeIndexSummary(content, "Classes", false, 0, "assets/ui/icon/classes.png");
+        elems = makeIndexSummary(content, "Main Character", false, 0, "assets/ui/icon/classes.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
