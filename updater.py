@@ -2504,6 +2504,7 @@ class Updater():
                     if str(tmp) != str(self.data["events"][ev][i]):
                         self.data["events"][ev][i] = tmp
                         self.modified = True
+                        self.addition[ev] = self.ADD_EVENT
         print("Done")
         self.save()
 
