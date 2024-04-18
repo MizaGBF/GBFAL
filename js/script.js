@@ -1961,7 +1961,7 @@ function loadAssets(id, data, target, indexed = true)
                 ["Chapter 14 Arts", "sp/quest/scene/character/body/", "png", 18, false, true],
                 ["Chapter 15 Arts", "sp/quest/scene/character/body/", "png", 19, false, true],
                 ["Ending Arts", "sp/quest/scene/character/body/", "png", 3, false, true],
-                ["Other Arts", "sp/quest/scene/character/body/", "png", 4, false, true]
+                ["Arts", "sp/quest/scene/character/body/", "png", 4, false, true]
             ];
             skycompass = ["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png", true];
             break;
