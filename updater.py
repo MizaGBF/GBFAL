@@ -188,7 +188,7 @@ class Updater():
     SCENE_EXPRESSIONS = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_weapon", "_foot", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2023", "_2024", "_two", "_three", "_ef", "_ef_left", "_ef_right", "_body", "_front", "_back", "_left", "_right", "_eyeline"]
     SCENE_VARIATIONS = ["", "_a", "_b", "_speed", "_up", "_up2", "_up3", "_up4", "_shadow", "_shadow2", "_shadow3", "_light", "_up_light", "_blood", "_up_blood"]
     SCENE_VARIATIONS_SET = set(SCENE_VARIATIONS)
-    SCENE_SPECIAL = ["_light_heart", "_jewel", "_jewel2", "_thug", "_narrator", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3"]
+    SCENE_SPECIAL = ["_light_heart", "_jewel", "_jewel2", "_thug", "_narrator", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5", "_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3"]
     SCENE_BUBBLE_FILTER = set(["speed", "up", "up2", "u3", "up4", "shadow", "shadow2", "shadow3", "light", "blood"])
     def __init__(self) -> None:
         # main variables
@@ -1916,8 +1916,8 @@ class Updater():
             self.save()
 
     # used in update_all_scene_sub
-    def scene_suffix_is_matching(self, name : str, filter : list) -> bool:
-        for f in filter:
+    def scene_suffix_is_matching(self, name : str, filters : list) -> bool:
+        for f in filters:
             if f in name:
                 return True
         return False
