@@ -2197,7 +2197,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         output.removeChild(child);
     }
     // create header
-    let div = addResult("Result Header", name + ": " + id);
+    let div = (name == "Event") ? addResult("Result Header", name + ": " + id + " (20"+id.substr(0,2)+"/"+id.substr(2,2)+"/"+id.substr(4,2)+")") : addResult("Result Header", name + ": " + id);
     // include wiki link
     if(include_link)
     {
