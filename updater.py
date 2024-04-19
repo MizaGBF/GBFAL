@@ -2186,9 +2186,9 @@ class Updater():
         fields = {'characters':'id,rarity,name,series,element,race,gender,type,weapon,jpname,va,jpva', 'weapons':'id,type,rarity,name,series,element,jpname', 'summons':'id,rarity,name,series,element,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva'}
         modified = set()
         for t in self.LOOKUP_TYPES:
-            print("Checking", t.capitalize(), "lookup table...")
             for table in tables.get(t, [t]):
                 try:
+                    print("Checking", table, "wiki cargo table for", t, "lookup...")
                     data = (await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables={}&fields=_pageName,{}&format=json&limit=20000".format(table, fields.get(table)), headers={'User-Agent':self.USER_AGENT}, get_json=True))
                     for item in data:
                         match table:
@@ -2207,6 +2207,8 @@ class Updater():
                                 case str():
                                     match k:
                                         case "outfit id":
+                                            continue
+                                        case "id":
                                             continue
                                         case "gender":
                                             looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
