@@ -1520,7 +1520,7 @@ function search(id) // generate search results
 {
     if(id == "" || id == searchID) return;
     // search
-    let words = id.toLowerCase().split(' ');
+    let words = id.toLowerCase().replace("@@", "").split(' ');
     let positives = [];
     for(const [key, value] of Object.entries(index['lookup_reverse']))
     {
