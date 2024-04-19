@@ -5,6 +5,7 @@ import re
 import json
 import time
 import string
+import html
 import os
 import signal
 from datetime import datetime, timezone, timedelta
@@ -2236,7 +2237,7 @@ class Updater():
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
                         looks.append(id)
-                        looks = " ".join(looks)
+                        looks = html.unescape(" ".join(looks))
                         if id not in self.data['lookup'] or self.data['lookup'][id] != looks:
                             self.data['lookup'][id] = looks
                             modified.add(id)
