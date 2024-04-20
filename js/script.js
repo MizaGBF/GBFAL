@@ -141,6 +141,7 @@ var previewhome = false; // boolean to keep track of mypage preview
 // initialization
 function init() // entry point, called by body onload
 {
+    loadPreviewSetting();
     openTab('index'); // set to this tab by default
     output = document.getElementById('output'); // set output
     getJSON("json/changelog.json?" + timestamp, initChangelog); // load changelog
@@ -481,17 +482,22 @@ function togglePreview() // toggle mypage preview
 
     homepageElements.forEach(e => {
         if (!previewhome) {
+            e.classList.remove("asset");
             e.classList.remove("homepage");
             e.classList.add("homepage-bg");
+            e.src = e.src.replace('/img_low/', '/img/');
             e.parentNode.classList.add("homepage-ui");
         } else {
             e.classList.remove("homepage-bg");
             e.parentNode.classList.remove("homepage-ui");
+            e.src = e.src.replace('/img/', '/img_low/');
+            e.classList.add("asset");
             e.classList.add("homepage");
         }
     });
 
     previewhome = !previewhome;
+    storePreviewSetting();
 }
 
 // =================================================================================================
@@ -1065,7 +1071,7 @@ function addTextImage(node, className, id, string, unusedA, unusedB) // like add
 }
 
 // =================================================================================================
-// bookmark, history
+// bookmark, history, settings...
 function updateList(node, elems) // update a list of elements
 {
     node.innerHTML = "";
@@ -1153,6 +1159,17 @@ function updateList(node, elems) // update a list of elements
             }
         }
     }
+}
+
+function loadPreviewSetting() // load home page preview button setting
+{
+    let tmp = localStorage.getItem("gbfal-previewhome");
+    if(tmp != null) previewhome = !!JSON.parse(tmp);
+}
+
+function storePreviewSetting() // set home page preview button setting
+{
+    localStorage.setItem("gbfal-previewhome", JSON.stringify(previewhome));
 }
 
 function favButton(state, id = null, search_type = null) // favorite button control
@@ -2404,13 +2421,15 @@ function addImage(div, file, asset, is_home) // add an asset
     };
     img.onload = function() {
         this.classList.remove("loading");
-        this.classList.add("asset");
         if(this.classList.contains("homepage") && previewhome) // toggle state of previewhome is true
         {
             this.classList.remove("homepage");
             this.classList.add("homepage-bg");
+            this.src = this.src.replace('/img_low/', '/img/');
             this.parentNode.classList.add("homepage-ui");
         }
+        else this.classList.add("asset");
+        this.onload = null;
     };
     div.appendChild(ref);
     ref.appendChild(img);

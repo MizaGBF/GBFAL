@@ -345,8 +345,8 @@ img {
 }
 
 .homepage-ui {
-    width: 400px;
-    height: 588.430px;
+    width: 640px;
+    height: 940px;
     white-space: nowrap;
 }
 
@@ -355,17 +355,20 @@ img {
     content: '';
     background: url(../assets/ui/home_ui.png) no-repeat;
     background-size: 100% 100%;
-    width: 400px;
-    height: 588.430px;
+    max-width: 640px;
+    max-height: 940px;
+    width: 640px;
+    width: 640px;
+    height: 940px;
 }
 
 .homepage-bg {
     background: url(../assets/ui/home_bg.jpg) no-repeat;
-    background-size: 400px 588.430px;
-    max-width: 400px;
-    max-height: 588.430px;
-    width: 400px;
-    height: 588.430px;
+    background-size: 640px 940px;
+    max-width: 640px;
+    max-height: 940px;
+    width: 640px;
+    height: 940px;
 }
 
 .link {
@@ -589,25 +592,6 @@ a:active {
     .mypage-btn
     {
         width: 100px;
-    }
-
-    .homepage-ui {
-        width: 605px;
-        height: 890px;
-    }
-
-    .homepage-ui:before {
-        background-size: 100% 100%;
-        width: 605px;
-        height: 890px;
-    }
-
-    .homepage-bg {
-        background-size: 605px 890px;
-        max-width: 605px;
-        max-height: 890px;
-        width: 605px;
-        height: 890px;
     }
 
     .story {
