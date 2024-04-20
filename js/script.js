@@ -598,16 +598,16 @@ function customSortPair(a, b) // used to sort banter sound files
 function customSortBoss(a, b) // used to sort boss sound files
 {
     let A = a.split('_');
-    A = parseInt(A[A.length-1].replace(/\D/g,''), 10);
+    A = parseInt(A[A.length-1].replaceAll(/\D/g,''), 10);
     let B = b.split('_');
-    B = parseInt(B[B.length-1].replace(/\D/g,''), 10);
+    B = parseInt(B[B.length-1].replaceAll(/\D/g,''), 10);
     return A-B;
 }
 
 function customSortSeasonal(a, b) // used to sort seasonal sound files
 {
-    const baseA = a.replace(/\d+$/, '');
-    const baseB = b.replace(/\d+$/, '');
+    const baseA = a.replaceAll(/\d+$/, '');
+    const baseB = b.replaceAll(/\d+$/, '');
 
     if (baseA < baseB) return -1;
     if (baseA > baseB) return 1;
@@ -1250,7 +1250,7 @@ function importBookmark() // import the bookmark list from the clipboard. need l
             if(typeof tmp != 'object') return;
             let val = false;
             let i = 0;
-            let last_id_f = (last_id == null) ? null : (isNaN(last_id) ? last_id : last_id.replace(/\D/g,'')); // strip letters
+            let last_id_f = (last_id == null) ? null : (isNaN(last_id) ? last_id : last_id.replaceAll(/\D/g,'')); // strip letters
             while(i < tmp.length)
             {
                 let e = tmp[i];
@@ -2415,7 +2415,8 @@ function addImageScene(div, file, id, asset) // add a npc/scene asset
     let img = document.createElement("img");
     let ref = document.createElement('a');
     img.src = cycleEndpoint() + "assets_en/img_low/" + asset[1] + id + file + "." + asset[2];
-    ref.setAttribute('href', img.src.replace("img_low", "img"));
+    if(file != "") img.title = file.replaceAll('_', ' ').trim();
+    ref.setAttribute('href', img.src.replaceAll("img_low", "img"));
     img.classList.add("loading");
     img.setAttribute('loading', 'lazy');
     img.onerror = function() {
