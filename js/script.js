@@ -569,6 +569,15 @@ function updateQuery(id) // update url parameters
     }
 }
 
+window.addEventListener("popstate", (event) => { // load the appropriate element when user does back or forward
+    let params = new URLSearchParams(window.location.search);
+    let id = params.get("id");
+    if(id)
+    {
+        lookup(id);
+    }
+});
+
 function customSortPair(a, b) // used to sort banter sound files
 {
     const [empty1, string1, a1, b1] = a.split('_');
