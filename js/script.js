@@ -1851,6 +1851,7 @@ function loadAssets(id, data, target, indexed = true)
                 ["Popup Portraits", "sp/assets/npc/qm/", "png", 5, false, false],
                 ["Result Popup Portraits", "sp/result/popup_char/", "png", -2, false, false],
                 ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", 6, false, false],
+                ["Fate Episode Reward", "sp/assets/npc/reward/", "png", -8, false, false],
                 ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", 5, false, false],
                 ["Tower of Babyl Portraits", "sp/assets/npc/t/", "png", 5, false, false],
                 ["EMP Up Portraits", "sp/assets/npc/result_lvup/", "png", 5, false, false],
@@ -2054,6 +2055,9 @@ function loadAssets(id, data, target, indexed = true)
                     break;
                 case -7: // custom summon quest portraits
                     files = [id, id+"_hard", id+"_hard_plus", id+"_ex", id+"_ex_plus", id+"_high", id+"_high_plus"]; 
+                    break;
+                case -8: // fate episode rewards
+                    files = [id]; 
                     break;
                 default:
                     files = data[asset[3]];

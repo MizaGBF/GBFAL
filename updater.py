@@ -2020,7 +2020,6 @@ class Updater():
                 pass
         if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
         elements = []
-        shared = []
         for id in target_list:
             if id.startswith('399'):
                 uncaps = ["01"]
@@ -2037,18 +2036,15 @@ class Updater():
             try: voices = set(self.data[k][id][idx])
             except: voices = set()
             prep = self.update_chara_sound_file_prep(id, uncaps, voices)
-            self.newShared(shared)
-            shared[-1][1] = [] # change 2nd value to an array
             for i in range(0, len(prep), self.MAX_SOUND_CONCURRENT):
                 prep_split = []
-                if i == 0: prep_split.append(None)
+                if i == 0: prep_split.append(None) # banter
                 for kk in prep[i:i + self.MAX_SOUND_CONCURRENT]:
                     prep_split.append(kk)
                 if start_index > 0:
                     start_index -= 1
                 else:
-                    elements.append((k, id, idx, shared[-1], voices, prep_split))
-                    shared[-1][2] += 1
+                    elements.append((k, id, idx, voices, prep_split))
         # memory cleaning
         prep = None
         prep_split = None
@@ -2065,19 +2061,22 @@ class Updater():
     # update_all_sound() subroutine
     async def update_all_sound_sub(self, tup : tuple) -> None:
         with self.progress:
-            index, id, idx, shared, existing, elements = tup
+            index, id, idx, existing, elements = tup
             for t in elements:
                 if t is None:
-                    shared[1] += await self.update_chara_sound_file_sub_banter(id, existing)
+                    res = await self.update_chara_sound_file_sub_banter(id, existing)
                 else:
-                    shared[1] += await self.update_chara_sound_file_sub(*t)
-            shared[0] += 1
-        if shared[0] >= shared[2]:
-            if len(shared[1]) != len(self.data[index][id][idx]):
-                self.data[index][id][idx] = shared[1]
-                self.data[index][id][idx].sort()
-                self.modified = True
-                shared[1] = None
+                    res =  await self.update_chara_sound_file_sub(*t)
+                if len(res) > 0:
+                    m = False
+                    for r in res:
+                        if r not in existing:
+                            self.data[index][id][idx].append(r)
+                            m = True
+                    if m:
+                        self.data[index][id][idx] = list(set(self.data[index][id][idx]))
+                        self.data[index][id][idx].sort()
+                        self.modified = True
 
     # prep work for update_chara_sound_file
     def update_chara_sound_file_prep(self, id : str, uncaps : Optional[list] = None, existing : set = set()) -> list:
