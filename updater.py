@@ -76,7 +76,7 @@ class Updater():
     MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
     MAX_SCENE_CONCURRENT = 10
-    MAX_SOUND_CONCURRENT = 10
+    MAX_SOUND_CONCURRENT = 20
     LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
     # addition type
     ADD_JOB = 0
