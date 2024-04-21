@@ -76,7 +76,7 @@ class Updater():
     MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
     MAX_SCENE_CONCURRENT = 10
-    MAX_SOUND_CONCURRENT = 20
+    SOUND_CONCURRENT_PER_STEP = 5
     LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
     # addition type
     ADD_JOB = 0
@@ -186,7 +186,7 @@ class Updater():
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
     # scene string
     SCENE_BASE = ["", "_a", "_b", "_c", "_nalhe", "_school", "_astral", "_battle", "_muffler", "_face", "_mask", "_halfmask", "_girl", "_town", "_2022", "_2023", "_2024"]
-    SCENE_EXPRESSIONS = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_weapon", "_foot", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2023", "_2024", "_two", "_three", "_ef", "_ef_left", "_ef_right", "_body", "_front", "_back", "_left", "_right", "_eyeline"]
+    SCENE_EXPRESSIONS = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_sad", "_sad2", "_angry", "_angry2", "_angry3", "_cry", "_cry2", "_painful", "_painful2", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_motivation", "_melancholy", "_concentration", "_weapon", "_letter", "_child1", "_child2", "_eternals", "_eternals2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_2022", "_2023", "_2024", "_two", "_three", "_ef", "_ef_left", "_ef_right", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_left", "_right", "_eyeline"]
     SCENE_VARIATIONS = ["", "_a", "_b", "_speed", "_up", "_up2", "_up3", "_up4", "_shadow", "_shadow2", "_shadow3", "_light", "_up_light", "_blood", "_up_blood"]
     SCENE_VARIATIONS_SET = set(SCENE_VARIATIONS)
     SCENE_SPECIAL = ["_light_heart", "_jewel", "_jewel2", "_thug", "_narrator", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5", "_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3"]
@@ -2036,10 +2036,10 @@ class Updater():
             try: voices = set(self.data[k][id][idx])
             except: voices = set()
             prep = self.update_chara_sound_file_prep(id, uncaps, voices)
-            for i in range(0, len(prep), self.MAX_SOUND_CONCURRENT):
+            for i in range(0, len(prep), self.SOUND_CONCURRENT_PER_STEP):
                 prep_split = []
                 if i == 0: prep_split.append(None) # banter
-                for kk in prep[i:i + self.MAX_SOUND_CONCURRENT]:
+                for kk in prep[i:i + self.SOUND_CONCURRENT_PER_STEP]:
                     prep_split.append(kk)
                 if start_index > 0:
                     start_index -= 1
