@@ -14,9 +14,9 @@ const ENDPOINTS = [
 ];
 var endpoint_count = -1;
 // list of known scene strings for unindexed characters
-const DUMMY_SCENE = ["", "_a", "_b", "_up", "_laugh", "_wink", "_shout", "_sad", "_angry", "_cry", "_painful", "_shadow", "_light", "_close", "_serious", "_surprise", "_think", "_serious", "_mood", "_ecstasy", "_suddenly", "_speed", "_shy", "_weak", "_sleepy", "_open", "_bad", "_amaze", "_joy", "_pride", "_intrigue", "_motivation", "_melancholy", "_concentration", "_weapon", "_foot"];
+const DUMMY_SCENE = ["", "_a", "_b", "_up", "_down", "_laugh", "_wink", "_shout", "_sad", "_angry", "_cry", "_painful", "_shadow", "_light", "_close", "_serious", "_surprise", "_think", "_serious", "_mood", "_ecstasy", "_suddenly", "_speed", "_shy", "_weak", "_sleepy", "_open", "_bad", "_amaze", "_joy", "_pride", "_intrigue", "_motivation", "_melancholy", "_concentration", "_weapon", "_foot", "_head"];
 // list of scene suffixes to ignore for raid bubbles
-const NO_BUBBLE_FILTER = ["speed", "up", "up2", "u3", "up4", "shadow", "shadow2", "shadow3", "light", "blood"];
+const NO_BUBBLE_FILTER = ["speed", "up", "up2", "up3", "up4", "down", "shadow", "shadow2", "shadow3", "light", "blood"];
 // HTML UI indexes
 const CHARACTERS = [
     ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", [0, -1, 0, -1, 504, 999]],
@@ -1797,7 +1797,7 @@ function loadAssets(id, data, target, indexed = true)
                 ["Gacha Arts", "sp/assets/weapon/g/", "png", 0, false, true],
                 ["Gacha Covers", "sp/gacha/cjs_cover/", "png", 0, false, true],
                 ["Gacha Headers", "sp/gacha/header/", "png", 0, false, true],
-                ["Transcendence Headers", "sp/assets/weapon/weapon_evolution/main/", "png", 0, false, true],
+                ["Evolution Arts", "sp/assets/weapon/weapon_evolution/main/", "png", 0, false, true],
                 ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", 0, false, true],
                 ["Square Portraits", "sp/assets/weapon/s/", "jpg", 0, false, true],
                 ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", 0, false, true],
@@ -1817,6 +1817,7 @@ function loadAssets(id, data, target, indexed = true)
             assets = [
                 ["Main Arts", "sp/assets/summon/b/", "png", 0, true, true], // index, skycompass, side form
                 ["Home Arts", "sp/assets/summon/my/", "png", 0, false, true],
+                ["Evolution Arts", "sp/assets/summon/summon_evolution/main/", "png", 0, false, true],
                 ["Gacha Art", "sp/assets/summon/g/", "png", 0, false, true],
                 ["Gacha Header", "sp/gacha/header/", "png", 0, false, true],
                 ["Detail Arts", "sp/assets/summon/detail/", "png", 0, false, true],
@@ -1842,7 +1843,9 @@ function loadAssets(id, data, target, indexed = true)
                 ["Main Arts", "sp/assets/npc/zoom/", "png", 5, true, false], // index, skycompass, side form
                 ["Home Arts", "sp/assets/npc/my/", "png", 5, false, false],
                 ["Journal Arts", "sp/assets/npc/b/", "png", 5, false, false],
+                ["Evolution Arts", "sp/assets/npc/npc_evolution/main/", "png", 6, false, false],
                 ["Gacha Arts", "sp/assets/npc/gacha/", "png", 6, false, false],
+                ["Unlock Arts", "sp/cjs/npc_get_master_", "png", -9, false, false],
                 ["News Art", "sp/banner/notice/update_char_", "png", 6, false, false],
                 ["Pose News Arts", "sp/assets/npc/add_pose/", "png", 6, false, false],
                 ["Inventory Portraits", "sp/assets/npc/m/", "jpg", 5, false, false],
@@ -2056,8 +2059,11 @@ function loadAssets(id, data, target, indexed = true)
                 case -7: // custom summon quest portraits
                     files = [id, id+"_hard", id+"_hard_plus", id+"_ex", id+"_ex_plus", id+"_high", id+"_high_plus"]; 
                     break;
-                case -8: // fate episode rewards
+                case -8: // character fate episode rewards
                     files = [id]; 
+                    break;
+                case -9: // character unlock
+                    files = [id + "_char", id + "_char_w"]; 
                     break;
                 default:
                     files = data[asset[3]];
