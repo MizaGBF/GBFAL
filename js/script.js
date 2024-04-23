@@ -1,8 +1,8 @@
+/*jshint esversion: 11 */
+
 // =================================================================================================
 // constant
-const DISPLAY_MINI = 4; // number of file to display at the minimum if a lot of files are present
-const HIDE_DISPLAY = 21; // number of file to trigger the "load more" button
-const HISTORY_LENGTH = 20; // size limit of the history
+const HISTORY_LENGTH = 50; // size limit of the history
 // endpoints
 const ENDPOINTS = [
     "https://prd-game-a-granbluefantasy.akamaized.net/",
@@ -177,9 +177,9 @@ function initChangelog() // load content of changelog.json
             if(issues.length > 0)
             {
                 let el = document.getElementById("issues");
-                el.innerHTML += "<ul>"
+                el.innerHTML += "<ul>";
                 for(let i = 0; i < issues.length; ++i) el.innerHTML += "<li>"+issues[i]+"</li>\n";
-                el.innerHTML += "</ul>"
+                el.innerHTML += "</ul>";
                 el.style.display = null;
             }
         }
@@ -209,7 +209,7 @@ function initData() // load data.json
         console.error("Exception thrown", err.stack);
         // put a message if GBFAL is broken
         let el = document.getElementById("issues");
-        el.innerHTML = '<p>A critical error occured, please report the issue if it persists.<br>You can also try to clear your cache or do a CTRL+F5.<br><a href="https://mizagbf.github.io/">Home Page</a><br><a href="https://github.com/MizaGBF/GBFAL/issues">Github</a></p>'
+        el.innerHTML = '<p>A critical error occured, please report the issue if it persists.<br>You can also try to clear your cache or do a CTRL+F5.<br><a href="https://mizagbf.github.io/">Home Page</a><br><a href="https://github.com/MizaGBF/GBFAL/issues">Github</a></p>';
         el.style.display = null;
     }
     // init index
@@ -230,7 +230,6 @@ function initIndex() // build the html index. simply edit the constants above to
     {
         content.innerHTML = "";
         let parents = null;
-        let inter = null;
         let elems = null;
         parents = makeIndexSummary(content, "Characters", true, 0, "assets/ui/icon/characters.png");
         for(let i of CHARACTERS)
@@ -339,7 +338,7 @@ function initIndex() // build the html index. simply edit the constants above to
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
-                display(tmp, 'valentines', null, null, false, false, override_text="This list accuracy isn't guaranted");
+                display(tmp, 'valentines', null, null, false, false, "This list accuracy isn't guaranted");
                 this.onclick = null;
             };
         }
@@ -418,7 +417,7 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        elems = makeIndexSummary(content, "Title Screens", true, 0, "assets/ui/icon/titles.png");
+        elems = makeIndexSummary(content, "Title Screens", false, 0, "assets/ui/icon/titles.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
@@ -426,7 +425,7 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        elems = makeIndexSummary(content, "Suprise Tickets", true, 0, "assets/ui/icon/suptix.png");
+        elems = makeIndexSummary(content, "Suprise Tickets", false, 0, "assets/ui/icon/suptix.png");
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
@@ -448,7 +447,7 @@ function clock() // update the "last updated" clock
 {
     let now = new Date();
     let elapsed = (now - (new Date(timestamp))) / 1000;
-    let msg = ""
+    let msg = "";
     if(elapsed < 120) msg = Math.trunc(elapsed) + " seconds ago.";
     else if(elapsed < 7200) msg = Math.trunc(elapsed / 60) + " minutes ago.";
     else if(elapsed < 172800) msg = Math.trunc(elapsed / 3600) + " hours ago.";
@@ -462,7 +461,7 @@ function clock() // update the "last updated" clock
 function resetTabs() // reset the tab state
 {
     let tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++)
+    for(let i = 0; i < tabcontent.length; i++)
         tabcontent[i].style.display = "none";
     let tabbuttons = document.getElementsByClassName("tabbutton");
     for (let i = 0; i < tabbuttons.length; i++)
@@ -705,7 +704,7 @@ function display(node, key, argA, argB, pad, reverse, override_text = null) // g
             if(override_text != null) node.innerHTML = "<div>"+override_text+"</div>";
             else node.innerHTML = reverse ? "<div>Newest first</div>" : "<div>Oldest first</div>";
         }
-        else node.innerHTML = '<div>Empty</div><img src="assets/ui/sorry.png">'
+        else node.innerHTML = '<div>Empty</div><img src="assets/ui/sorry.png">';
         for(const k of keys)
         {
             for(let r of slist[k])
@@ -857,7 +856,7 @@ function display_npcs(id, data, prefix, range)
     if(id.slice(1, 3) != prefix) return null;
     let val = parseInt(id.slice(3, 7));
     if(val < range[0] || val >= range[1]) return null;
-    let path = ""
+    let path = "";
     let className = "";
     if(data)
     {
@@ -906,7 +905,7 @@ function display_events(id, data, unusedA = null, unusedB = null)
     if(!data) return null;
     let has_file = false;
     let path = "";
-    let className = ""
+    let className = "";
     for(let i = 2; i < data.length; ++i)
     {
         if(data[i].length > 0)
@@ -919,12 +918,12 @@ function display_events(id, data, unusedA = null, unusedB = null)
     {
         if(index["events"][id][1] == null)
         {
-            path = "assets/ui/event.png"
+            path = "assets/ui/event.png";
             className = "preview-noborder";
         }
         else
         {
-            path = "GBF/assets_en/img_low/sp/archive/assets/island_m2/" + index["events"][id][1] + ".png"
+            path = "GBF/assets_en/img_low/sp/archive/assets/island_m2/" + index["events"][id][1] + ".png";
             className = (data[data.length-1].length > 0 ? "preview sky-event":"preview");
         }
     }
@@ -946,7 +945,7 @@ function display_subskills(id, data, unusedA = null, unusedB = null)
         [id+"_1", "GBF/assets_en/img_low/sp/assets/item/ability/s/" + id + "_1.jpg", null, "preview", true],
         [id+"_2", "GBF/assets_en/img_low/sp/assets/item/ability/s/" + id + "_2.jpg", null, "preview", true],
         [id+"_3", "GBF/assets_en/img_low/sp/assets/item/ability/s/" + id + "_3.jpg", null, "preview", true]
-    ]
+    ];
 }
 
 function display_buffs(id, data, range, unused = null)
@@ -979,7 +978,7 @@ function display_backgrounds(id, data, key, unused = null)
             if(key != "") return null;
             path = ["sp/raid/bg/", ".jpg"];
             break;
-    };
+    }
     let ret = [];
     for(let i of data[0])
     {
@@ -1132,21 +1131,18 @@ function updateList(node, elems) // update a list of elements
             case "subskills":
                 if(e[0] in index['subskills'])
                 {
-                    let tmp = e[0].split('_')[0];
                     res = display_subskills(e[0], index['subskills'][e[0]]);
                 }
                 break;
             case "title":
                 if(e[0] in index['title'])
                 {
-                    let tmp = e[0].split('_')[0];
                     res = display_titles(e[0], index['title'][e[0]]);
                 }
                 break;
             case "suptix":
                 if(e[0] in index['suptix'])
                 {
-                    let tmp = e[0].split('_')[0];
                     res = display_suptix(e[0], index['suptix'][e[0]]);
                 }
                 break;
@@ -1459,7 +1455,7 @@ function lookup(id) // check element validity and either load it or return searc
                         case "384": case "383": case "382": case "388": case "389": target = "partners"; break;
                         case "290": case "204": case "203": case "202": case "201": target = "summons"; break;
                         case "104": case "103": case "102": case "101": target = "weapons"; break;
-                    };
+                    }
                 }
                 break;
             case 8:
@@ -1499,7 +1495,7 @@ function lookup(id) // check element validity and either load it or return searc
                     id = id.slice(2);
                 }
                 break;
-        };
+        }
         if(target != null && BANNED.includes(id)) return;
         // cleanup search results if not relevant to current id
         let found = false;
@@ -1644,8 +1640,8 @@ function updateSearchResuls()
                     results.push(e);
                 break;
             default:
-                continue
-        };
+                continue;
+        }
         if(results.length >= 50)
             break;
     }
@@ -1729,7 +1725,7 @@ function toggleSearchFilter(indice)
 
 function loadDummy(id, target)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder
 {
-    data = null;
+    let data = null;
     switch(target)
     {
         case "weapons":
@@ -1763,7 +1759,7 @@ function loadDummy(id, target)// minimal load of an element not indexed or not f
             data = [[JSON.stringify(parseInt(id))],["_1","_10"]];
             break;
         default:
-            break
+            break;
     }
     if(data != null)
     {
@@ -1775,7 +1771,7 @@ function loadAssets(id, data, target, indexed = true)
 {
     endpoint_count = -1;
     let tmp_last_id = last_id;
-    let area_name = ""
+    let area_name = "";
     let include_link = false;
     let search_type = null;
     let assets = null;
@@ -1785,6 +1781,7 @@ function loadAssets(id, data, target, indexed = true)
     let files = null;
     let sounds = null;
     let melee = false;
+    let openscene = false;
     switch(target)
     {
         case "weapons":
@@ -1793,20 +1790,16 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 1;
             assets = [
-                ["Main Arts", "sp/assets/weapon/b/", "png", 0, false, true], // index, skycompass, side form
-                ["Gacha Arts", "sp/assets/weapon/g/", "png", 0, false, true],
-                ["Gacha Covers", "sp/gacha/cjs_cover/", "png", 0, false, true],
-                ["Gacha Headers", "sp/gacha/header/", "png", 0, false, true],
-                ["Evolution Arts", "sp/assets/weapon/weapon_evolution/main/", "png", 0, false, true],
-                ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", 0, false, true],
-                ["Square Portraits", "sp/assets/weapon/s/", "jpg", 0, false, true],
-                ["Siero's Training Reward", "sp/coaching/reward_npc/assets/", "png", -8, false, false],
-                ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", 0, false, true],
-                ["Forge Headers", "sp/archaic/", "", -3, false, true],
-                ["Forge Portraits", "sp/archaic/", "", -4, false, true],
-                ["Battle Sprites", "sp/cjs/", "png", 0, false, true],
-                ["Attack Effects", "sp/cjs/", "png", 1, false, true],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, true]
+                {name:"Journal Arts", paths:[["sp/assets/weapon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:true},
+                {name:"Miscellaneous Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"assets/ui/result_icon/other.png"},
+                {name:"Various Portraits", paths:[["sp/assets/weapon/m/", "jpg"], ["sp/assets/weapon/s/", "jpg"], ["sp/assets/weapon/ls/", "jpg"]], icon:"assets/ui/result_icon/portrait.png", index:0},
+                {name:"Sprites", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0},
+                {name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/auto.png"},
+                {name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/ca.png"},
+                {name:"Recruit Header", paths:[["sp/gacha/cjs_cover/", "png"]], index:0, icon:"assets/ui/result_icon/recruit.png"},
+                {name:"Reforge Arts", paths:[["sp/archaic/", ""]], index:-3, icon:"assets/ui/result_icon/forge.png"},
+                {name:"Reforge Portraits", paths:[["sp/archaic/", ""]], index:-4, icon:"assets/ui/result_icon/forge.png"},
+                {name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", "png"]], index:-8, icon:"assets/ui/result_icon/siero.png"}
             ];
             melee = (id[4] == "6");
             break;
@@ -1816,21 +1809,14 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 2;
             assets = [
-                ["Main Arts", "sp/assets/summon/b/", "png", 0, true, true], // index, skycompass, side form
-                ["Home Arts", "sp/assets/summon/my/", "png", 0, false, true],
-                ["Evolution Arts", "sp/assets/summon/summon_evolution/main/", "png", 0, false, true],
-                ["Gacha Art", "sp/assets/summon/g/", "png", 0, false, true],
-                ["Gacha Header", "sp/gacha/header/", "png", 0, false, true],
-                ["Detail Arts", "sp/assets/summon/detail/", "png", 0, false, true],
-                ["Inventory Portraits", "sp/assets/summon/m/", "jpg", 0, false, true],
-                ["Square Portraits", "sp/assets/summon/s/", "jpg", 0, false, true],
-                ["Main Summon Portraits", "sp/assets/summon/party_main/", "jpg", 0, false, true],
-                ["Sub Summon Portraits", "sp/assets/summon/party_sub/", "jpg", 0, false, true],
-                ["Raid Portraits", "sp/assets/summon/raid_normal/", "jpg", 0, false, true],
-                ["Result Portraits", "sp/assets/summon/btn/", "png", 0, false, true],
-                ["Quest Portraits", "sp/assets/summon/qm/", "png", -7, false, true],
-                ["Summon Call Sheets", "sp/cjs/", "png", 1, false, true],
-                ["Summon Damage Sheets", "sp/cjs/", "png", 2, false, true]
+                {name:"Journal Arts", paths:[["sp/assets/summon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:true},
+                {name:"Home Page", paths:[["sp/assets/summon/my/", "png"]], index:0, icon:"assets/ui/result_icon/home.png", home:true},
+                {name:"Miscellaneous Arts", paths:[["sp/assets/summon/summon_evolution/main/", "png"], ["sp/assets/summon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"assets/ui/result_icon/other.png"},
+                {name:"Various Portraits", paths:[["sp/assets/summon/m/", "jpg"], ["sp/assets/summon/s/", "jpg"], ["sp/assets/summon/party_main/", "jpg"], ["sp/assets/summon/party_sub/", "jpg"], ["sp/assets/summon/detail/", "png"]], index:0, icon:"assets/ui/result_icon/portrait.png"},
+                {name:"Battle Portraits", paths:[["sp/assets/summon/raid_normal/", "jpg"], ["sp/assets/summon/btn/", "png"]], index:0, icon:"assets/ui/result_icon/battle.png"},
+                {name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/summon_call.png"},
+                {name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/summon_call.png"},
+                {name:"Quest Portraits", paths:[["sp/assets/summon/qm/", "png"]], index:-7, icon:"assets/ui/result_icon/quest.png"}
             ];
             skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
             break;
@@ -1841,37 +1827,25 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 3;
             assets = [
-                ["Main Arts", "sp/assets/npc/zoom/", "png", 5, true, false], // index, skycompass, side form
-                ["Home Arts", "sp/assets/npc/my/", "png", 5, false, false],
-                ["Journal Arts", "sp/assets/npc/b/", "png", 5, false, false],
-                ["Evolution Arts", "sp/assets/npc/npc_evolution/main/", "png", 6, false, false],
-                ["Gacha Arts", "sp/assets/npc/gacha/", "png", 6, false, false],
-                ["Unlock Arts", "sp/cjs/npc_get_master_", "png", -9, false, false],
-                ["News Art", "sp/banner/notice/update_char_", "png", 6, false, false],
-                ["Pose News Arts", "sp/assets/npc/add_pose/", "png", 6, false, false],
-                ["Inventory Portraits", "sp/assets/npc/m/", "jpg", 5, false, false],
-                ["Square Portraits", "sp/assets/npc/s/", "jpg", 5, false, false],
-                ["Party Portraits", "sp/assets/npc/f/", "jpg", 5, false, false],
-                ["Popup Portraits", "sp/assets/npc/qm/", "png", 5, false, false],
-                ["Result Popup Portraits", "sp/result/popup_char/", "png", -2, false, false],
-                ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", 6, false, false],
-                ["Fate Episode Reward", "sp/assets/npc/reward/", "png", -8, false, false],
-                ["Siero's Training Reward", "sp/coaching/reward_npc/assets/", "", -10, false, false],
-                ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", 5, false, false],
-                ["Tower of Babyl Portraits", "sp/assets/npc/t/", "png", 5, false, false],
-                ["EMP Up Portraits", "sp/assets/npc/result_lvup/", "png", 5, false, false],
-                ["Detail Banners", "sp/assets/npc/detail/", "png", 5, false, false],
-                ["Sprites", "sp/assets/npc/sd/", "png", 6, false, false],
-                ["Custom Skill Previews", "sp/assets/npc/sd_ability/", "png", -6, false, false],
-                ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", 5, false, true],
-                ["Twitter Arts", "sp/assets/npc/sns/", "jpg", 5, false, false],
-                ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", 5, false, false],
-                ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", 5, false, false],
-                ["Character Sheets", "sp/cjs/", "png", 0, false, true],
-                ["Attack Effect Sheets", "sp/cjs/", "png", 1, false, true],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, true],
-                ["AOE Skill Sheets", "sp/cjs/", "png", 3, false, true],
-                ["Single Target Skill Sheets", "sp/cjs/", "png", 4, false, true]
+                {name:"Main Arts", paths:[["sp/assets/npc/zoom/", "png"]], index:5, icon:"assets/ui/result_icon/art.png", skycompass:true, form:false, open:true},
+                {name:"Home Page", paths:[["sp/assets/npc/my/", "png"]], index:5, icon:"assets/ui/result_icon/home.png", form:false, home:true},
+                {name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:5, icon:"assets/ui/result_icon/journal.png", form:false},
+                {name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:6, icon:"assets/ui/result_icon/other.png", form:false},
+                {name:"Various Portraits", paths:[["sp/assets/npc/m/", "jpg"], ["sp/assets/npc/s/", "jpg"], ["sp/assets/npc/f/", "jpg"], ["sp/assets/npc/qm/", "png"], ["sp/assets/npc/quest/", "jpg"], ["sp/assets/npc/t/", "png"], ["sp/assets/npc/result_lvup/", "png"], ["sp/assets/npc/detail/", "png"], ["sp/assets/npc/sns/", "jpg"]], index:5, icon:"assets/ui/result_icon/portrait.png", form:false},
+                {name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"assets/ui/result_icon/battle.png"},
+                {name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"assets/ui/result_icon/cb.png", form:false},
+                {name:"Sprites", paths:[["sp/gacha/assets/balloon_s/", "png"], ["sp/assets/npc/sd/", "png"]], index:6, icon:"assets/ui/result_icon/sprite.png", form:false},
+                {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/spritesheet.png", index:0},
+                {name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/auto.png"},
+                {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/ca.png"},
+                {name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/skill.png"},
+                {name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"assets/ui/result_icon/skill.png"},
+                {name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], index:-8, icon:"assets/ui/result_icon/fate_reward.png", form:false},
+                {name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], index:-9, icon:"assets/ui/result_icon/recruit.png", form:false},
+                {name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"assets/ui/result_icon/news.png", form:false},
+                {name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], index:-2, icon:"assets/ui/result_icon/appear.png", form:false},
+                {name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], index:-6, icon:"assets/ui/result_icon/custom.png", form:false},
+                {name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", ""]], index:-10, icon:"assets/ui/result_icon/siero.png", form:false}
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
             npcdata = data[7];
@@ -1882,15 +1856,14 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 6;
             assets = [
-                ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", 5, false, false],
-                ["Raid Portraits", "sp/assets/npc/raid_normal/", "jpg", 5, false, true],
-                ["Charge Attack Cutins", "sp/assets/npc/cutin_special/", "jpg", 5, false, false],
-                ["Chain Cutins", "sp/assets/npc/raid_chain/", "jpg", 5, false, false],
-                ["Character Sheets", "sp/cjs/", "png", 0, false, true],
-                ["Attack Effect Sheets", "sp/cjs/", "png", 1, false, true],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 2, false, true],
-                ["AOE Skill Sheets", "sp/cjs/", "png", 3, false, true],
-                ["Single Target Skill Sheets", "sp/cjs/", "png", 4, false, true]
+                {name:"Party Portraits", paths:[["sp/assets/npc/quest/", "jpg"]], index:5, icon:"assets/ui/result_icon/portrait.png", form:false, open:true},
+                {name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"assets/ui/result_icon/battle.png"},
+                {name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"assets/ui/result_icon/cb.png", form:false},
+                {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/spritesheet.png", index:0},
+                {name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/auto.png"},
+                {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/ca.png"},
+                {name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/skill.png"},
+                {name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"assets/ui/result_icon/skill.png"}
             ];
             break;
         case "npcs":
@@ -1899,10 +1872,10 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 5;
             assets = [
-                ["Main Arts", "sp/assets/npc/zoom/", "png", -1, false, true], // index, skycompass, side form
-                ["Journal Arts", "sp/assets/npc/b/", "png", -1, false, true],
-                ["Inventory Portraits", "sp/assets/npc/m/", "jpg", -1, false, true]
+                {name:"Portrait", paths:[["sp/assets/npc/m/", "jpg"]], index:-1, icon:"assets/ui/result_icon/portrait.png", open:true},
+                {name:"Arts", paths:[["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], icon:"assets/ui/result_icon/art.png", index:-1, open:true}
             ];
+            openscene = true;
             npcdata = data[1];
             sounds = data[2];
             files = [id, id + "_01"];
@@ -1912,13 +1885,12 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "e"+id;
             search_type = 4;
             assets = [
-                ["Big Icon", "sp/assets/enemy/m/", "png", 0, false, true],
-                ["Small Icon", "sp/assets/enemy/s/", "png", 0, false, true],
-                ["Sprite Sheets", "sp/cjs/", "png", 1, false, true],
-                ["Raid Appear Sheets", "sp/cjs/", "png", 2, false, true],
-                ["Attack Effect Sheets", "sp/cjs/", "png", 3, false, true],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 4, false, true],
-                ["AOE Charge Attack Sheets", "sp/cjs/", "png", 5, false, true]
+                {name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:0, icon:"assets/ui/result_icon/eicon.png", open:true},
+                {name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/appear.png", open:true},
+                {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/spritesheet.png"},
+                {name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/auto.png"},
+                {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"assets/ui/result_icon/ca.png"},
+                {name:"AOE Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:5, icon:"assets/ui/result_icon/ca.png"}
             ];
             break;
         case "job":
@@ -1928,35 +1900,20 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 0;
             assets = [
-                ["Job Icons", "sp/ui/icon/job/", "png", 0, false, true], // index, skycompass, side form
-                ["Inventory Portraits", "sp/assets/leader/m/", "jpg", 1, false, true],
-                ["Outfit Portraits", "sp/assets/leader/sd/m/", "jpg", 1, false, true],
-                ["Outfit Description Arts", "sp/assets/leader/skin/", "png", 1, false, true],
-                ["Full Arts", "sp/assets/leader/job_change/", "png", 3, true, true],
-                ["Home Arts", "sp/assets/leader/my/", "png", 3, false, true],
-                ["Outfit Preview Arts", "sp/assets/leader/skin/", "png", 3, false, true],
-                ["Class Name Party Texts", "sp/ui/job_name/job_list/", "png", 0, false, true],
-                ["Class Name Master Texts", "sp/assets/leader/job_name_ml/", "png", 0, false, true],
-                ["Class Name Ultimate Texts", "sp/assets/leader/job_name_pp/", "png", 0, false, true],
-                ["Class Change Buttons", "sp/assets/leader/jlon/", "png", 2, false, true],
-                ["Party Class Big Portraits", "sp/assets/leader/jobon_z/", "png", 3, false, true],
-                ["Square Portraits", "sp/assets/leader/s/", "jpg", 3, false, true],
-                ["Party Class Portraits", "sp/assets/leader/p/", "png", 3, false, true],
-                ["Profile Portraits", "sp/assets/leader/pm/", "png", 3, false, true],
-                ["Profile Board Portraits", "sp/assets/leader/talk/", "png", 3, false, true],
-                ["Party Select Portraits", "sp/assets/leader/quest/", "jpg", 3, false, true],
-                ["Tower of Babyl Portraits", "sp/assets/leader/t/", "png", 3, false, true],
-                ["Raid Portraits", "sp/assets/leader/raid_normal/", "jpg", 3, false, true],
-                ["Result Portraits", "sp/assets/leader/btn/", "png", 3, false, true],
-                ["Raid Log Portraits", "sp/assets/leader/raid_log/", "png", 3, false, true],
-                ["Raid Result Portraits", "sp/assets/leader/result_ml/", "jpg", 3, false, true],
-                ["Mastery Portraits", "sp/assets/leader/zenith/", "png", 2, false, true],
-                ["Master Level Portraits", "sp/assets/leader/master_level/", "png", 2, false, true],
-                ["Sprites", "sp/assets/leader/sd/", "png", 4, false, true],
-                ["Custom Skill Previews", "sp/assets/leader/sd_ability/", "png", -5, false, true],
-                ["Character Sheets", "sp/cjs/", "png", 7, false, true],
-                ["Attack Effects", "sp/cjs/", "png", 8, false, true],
-                ["Charge Attack Sheets", "sp/cjs/", "png", 9, false, true]
+                {name:"Icon", paths:[["sp/ui/icon/job/", "png"]], index:0, icon:"assets/ui/result_icon/jicon.png", open:true},
+                {name:"Portraits", paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:1, icon:"assets/ui/result_icon/portrait.png", open:true},
+                {name:"Full Arts", paths:[["sp/assets/leader/job_change/", "png"]], index:3, icon:"assets/ui/result_icon/art.png", skycompass:true, open:true},
+                {name:"Home Page", paths:[["sp/assets/leader/my/", "png"]], index:3, icon:"assets/ui/result_icon/home.png", home:true},
+                {name:"Class Texts", paths:[["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"]], icon:"assets/ui/result_icon/text.png", index:0},
+                {name:"Various Big Portraits", paths:[["sp/assets/leader/p/", "png"], ["sp/assets/leader/pm/", "png"], ["sp/assets/leader/jobon_z/", "png"]], index:3, icon:"assets/ui/result_icon/big_portrait.png"},
+                {name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"]], icon:"assets/ui/result_icon/portrait.png", index:3},
+                {name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"assets/ui/result_icon/battle.png", index:3},
+                {name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:2, icon:"assets/ui/result_icon/other.png"},
+                {name:"Sprites", paths:[["sp/assets/leader/sd/", "png"]], icon:"assets/ui/result_icon/sprite.png", index:4},
+                {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/spritesheet.png", index:7},
+                {name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:8, icon:"assets/ui/result_icon/auto.png"},
+                {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"assets/ui/result_icon/ca.png"},
+                {name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], index:-5, icon:"assets/ui/result_icon/custom.png"}
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
             mc_skycompass = true;
@@ -1966,7 +1923,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "ms"+id;
             search_type = 11;
             assets = [
-                ["Arts", "sp/quest/scene/character/body/", "png", 0, false, true]
+                {name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"assets/ui/result_icon/art.png", open:true}
             ];
             break;
         case "events":
@@ -1974,25 +1931,25 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "q"+id;
             search_type = 7;
             assets = [
-                ["Sky Compass", "", "", 20, true, false],
-                ["Opening Arts", "sp/quest/scene/character/body/", "png", 2, false, true],
-                ["Chapter 1 Arts", "sp/quest/scene/character/body/", "png", 5, false, true],
-                ["Chapter 2 Arts", "sp/quest/scene/character/body/", "png", 6, false, true],
-                ["Chapter 3 Arts", "sp/quest/scene/character/body/", "png", 7, false, true],
-                ["Chapter 4 Arts", "sp/quest/scene/character/body/", "png", 8, false, true],
-                ["Chapter 5 Arts", "sp/quest/scene/character/body/", "png", 9, false, true],
-                ["Chapter 6 Arts", "sp/quest/scene/character/body/", "png", 10, false, true],
-                ["Chapter 7 Arts", "sp/quest/scene/character/body/", "png", 11, false, true],
-                ["Chapter 8 Arts", "sp/quest/scene/character/body/", "png", 12, false, true],
-                ["Chapter 9 Arts", "sp/quest/scene/character/body/", "png", 13, false, true],
-                ["Chapter 10 Arts", "sp/quest/scene/character/body/", "png", 14, false, true],
-                ["Chapter 11 Arts", "sp/quest/scene/character/body/", "png", 15, false, true],
-                ["Chapter 12 Arts", "sp/quest/scene/character/body/", "png", 16, false, true],
-                ["Chapter 13 Arts", "sp/quest/scene/character/body/", "png", 17, false, true],
-                ["Chapter 14 Arts", "sp/quest/scene/character/body/", "png", 18, false, true],
-                ["Chapter 15 Arts", "sp/quest/scene/character/body/", "png", 19, false, true],
-                ["Ending Arts", "sp/quest/scene/character/body/", "png", 3, false, true],
-                ["Arts", "sp/quest/scene/character/body/", "png", 4, false, true]
+                {name:"Sky Compass", paths:[["", ""]], index:20, icon:"assets/ui/result_icon/skycompass.png", skycompass:true},
+                {name:"Opening", paths:[["sp/quest/scene/character/body/", "png"]], index:2, icon:"assets/ui/result_icon/scene.png", open:true},
+                {name:"Chapter 1", paths:[["sp/quest/scene/character/body/", "png"]], index:5, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 2", paths:[["sp/quest/scene/character/body/", "png"]], index:6, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 3", paths:[["sp/quest/scene/character/body/", "png"]], index:7, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 4", paths:[["sp/quest/scene/character/body/", "png"]], index:8, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 5", paths:[["sp/quest/scene/character/body/", "png"]], index:9, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 6", paths:[["sp/quest/scene/character/body/", "png"]], index:10, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 7", paths:[["sp/quest/scene/character/body/", "png"]], index:11, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 8", paths:[["sp/quest/scene/character/body/", "png"]], index:12, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 9", paths:[["sp/quest/scene/character/body/", "png"]], index:13, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 10", paths:[["sp/quest/scene/character/body/", "png"]], index:14, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 11", paths:[["sp/quest/scene/character/body/", "png"]], index:15, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 12", paths:[["sp/quest/scene/character/body/", "png"]], index:16, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 13", paths:[["sp/quest/scene/character/body/", "png"]], index:17, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 14", paths:[["sp/quest/scene/character/body/", "png"]], index:18, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 15", paths:[["sp/quest/scene/character/body/", "png"]], index:19, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Ending", paths:[["sp/quest/scene/character/body/", "png"]], index:3, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:4, icon:"assets/ui/result_icon/art.png", open:true}
             ];
             skycompass = ["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png", true];
             break;
@@ -2001,7 +1958,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "sk"+id;
             search_type = 8;
             assets = [
-                ["Skill Icons", "sp/ui/icon/ability/m/", "png", -1, false, true]
+                {name:"Skill Icons", paths:[["sp/ui/icon/ability/m/", "png"]], index:-1, icon:"assets/ui/result_icon/ability.png", open:true},
             ];
             files = [""+parseInt(id), ""+parseInt(id)+"_1", ""+parseInt(id)+"_2", ""+parseInt(id)+"_3", ""+parseInt(id)+"_4", ""+parseInt(id)+"_5"];
             break;
@@ -2010,7 +1967,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "b"+id;
             search_type = 9;
             assets = [
-                ["Icons", "sp/ui/icon/status/x64/status_", "png", 0, false, true]
+                {name:"Icons", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:0, icon:"assets/ui/result_icon/buff.png", open:true}
             ];
             let tmp = getBuffSets(id, data, assets);
             data = tmp[0];
@@ -2018,7 +1975,7 @@ function loadAssets(id, data, target, indexed = true)
             break;
         default:
             return;
-    };
+    }
     updateQuery(last_id);
     if(id == tmp_last_id && last_type == search_type) return; // quit if already loaded
     last_type = search_type;
@@ -2028,201 +1985,219 @@ function loadAssets(id, data, target, indexed = true)
         favButton(true, id, search_type);
     }
     prepareOuputAndHeader(area_name, id, data, include_link, indexed);
-    if(assets != null)
+    for(let i = 0; i < assets.length; ++i)
     {
-        for(let asset of assets)
-        {
+        loadAssets_main(id, data, target, indexed, assets[i], loadAssets_getFiles(id, data, assets[i], files, melee), mc_skycompass, skycompass);
+    }
+    if(npcdata && npcdata.length > 0)
+    {
+        loadAssets_scene(id, npcdata, indexed, openscene);
+    }
+    if(sounds && sounds.length > 0)
+    {
+        loadAssets_sound(id, sounds, indexed);
+    }
+}
+
+function loadAssets_getFiles(id, data, asset, files, melee)
+{
+    // special exceptions
+    switch(asset.index)
+    {
+        case -1: // for npc / skills
+            files = files;
+            break;
+        case -2: // for chara popup portraits
+            files = [id, id+"_001"];
+            break;
+        case -3: // for weapon forge headers
+            files = ["job/header/"+id+".png", "number/header/"+id+".png", "seraphic/header/"+id+".png", "xeno/header/"+id+".png", "bahamut/header/"+id+".png", "omega/header/"+id+".png", "draconic/header/"+id+".png", "revans/header/"+id+".png"];
+            break;
+        case -4: // for weapon forge portraits
+            files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
+            break;
+        case -5: // custom MC skin skills
+            files = [id+"_0_attack", id+"_1_attack"];
+            for(let i = 1; i < 5; ++i)
+                for(let j = 0; j < 2; ++j)
+                    files.push(id+"_"+j+"_vs_motion_"+i);
+            break;
+        case -6: // custom character skin skills
+            files = [id+"_01_attack"];
+            for(let i = 1; i < 5; ++i)
+                files.push(id+"_01_vs_motion_"+i);
+            break;
+        case -7: // custom summon quest portraits
+            files = [id, id+"_hard", id+"_hard_plus", id+"_ex", id+"_ex_plus", id+"_high", id+"_high_plus"]; 
+            break;
+        case -8: // character fate episode rewards & chara weapon siero training reward
+            files = [id]; 
+            break;
+        case -9: // character unlock
+            files = [id + "_char", id + "_char_w"]; 
+            break;
+        case -10: // character siero training reward
+            files = [id + ".jpg", "name_" + id + ".png"]; 
+            break;
+        default:
+            files = data[asset.index];
             // special exceptions
-            switch(asset[3])
+            switch(asset.name)
             {
-                case -1: // for npc
-                    files = files;
-                    break;
-                case -2: // for chara popup portraits
-                    files = [id, id+"_001"];
-                    break;
-                case -3: // for weapon forge headers
-                    files = ["job/header/"+id+".png", "number/header/"+id+".png", "seraphic/header/"+id+".png", "xeno/header/"+id+".png", "bahamut/header/"+id+".png", "omega/header/"+id+".png", "draconic/header/"+id+".png", "revans/header/"+id+".png"];
-                    break;
-                case -4: // for weapon forge portraits
-                    files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
-                    break;
-                case -5: // custom MC skin skills
-                    files = [id+"_0_attack", id+"_1_attack"];
-                    for(let i = 1; i < 5; ++i)
-                        for(let j = 0; j < 2; ++j)
-                            files.push(id+"_"+j+"_vs_motion_"+i);
-                    break;
-                case -6: // custom character skin skills
-                    files = [id+"_01_attack"];
-                    for(let i = 1; i < 5; ++i)
-                        files.push(id+"_01_vs_motion_"+i);
-                    break;
-                case -7: // custom summon quest portraits
-                    files = [id, id+"_hard", id+"_hard_plus", id+"_ex", id+"_ex_plus", id+"_high", id+"_high_plus"]; 
-                    break;
-                case -8: // character fate episode rewards & chara weapon siero training reward
-                    files = [id]; 
-                    break;
-                case -9: // character unlock
-                    files = [id + "_char", id + "_char_w"]; 
-                    break;
-                case -10: // character siero training reward
-                    files = [id + ".jpg", "name_" + id + ".png"]; 
-                    break;
-                default:
-                    files = data[asset[3]];
-                    break;
-            }
-            if(files.length == 0) continue; // empty list
-            let is_home = false;
-            // exceptions
-            switch(asset[0])
-            {
-                case "Gacha Cover": // gacha cover
+                case "Recruit Header": // gacha cover
                     files = [files[0]+"_1", files[0]+"_3"];
                     break;
                 case "News Art": // character news art
                     files = [id];
                     break;
-                case "Battle Sprites":
+                case "Sprites":
                     if(melee) // melee weapon sprites
                         files = [files[0]+"_1", files[0]+"_2"];
                     break;
-                case "Home Arts":
-                    is_home = true;
-                    break;
-            };
-            // add section
-            let div = addResult(asset[0], asset[0]);
-            // get file count
-            let file_count = indexed ? files.length : 0;
-            // add mypage preview
-            if(is_home)
-            {
-                let img = document.createElement("img");
-                img.src = "assets/ui/mypage.png";
-                img.classList.add("clickable");
-                img.classList.add("mypage-btn");
-                img.onclick = togglePreview;
-                div.appendChild(img);
             }
-            // for each file
-            for(let i = 0; i < files.length; ++i)
+            break;
+    }
+    return files;
+}
+
+function loadAssets_main(id, data, target, indexed, asset, files, mc_skycompass, skycompass)
+{
+    if(files.length == 0) return null;
+    // add section
+    let div = addResult(asset.name, asset.name, (asset.icon ?? null), asset.open);
+    // add mypage preview
+    if(asset.home ?? false)
+    {
+        let img = document.createElement("img");
+        img.src = "assets/ui/mypage.png";
+        img.classList.add("clickable");
+        img.classList.add("mypage-btn");
+        img.onclick = togglePreview;
+        div.appendChild(img);
+    }
+    // for each path and file
+    for(const path of asset.paths)
+    {
+        for(let i = 0; i < files.length; ++i)
+        {
+            let file = files[i];
+            if(asset.name != "Sky Compass") // event sky compass exception
             {
-                let file = files[i];
-                // hide files if too many
-                if(file_count > HIDE_DISPLAY && i == DISPLAY_MINI)
-                    div = hideNextFiles(div, file_count - DISPLAY_MINI);
-                if(asset[0] != "Sky Compass") // event sky compass exception
-                {
-                    if(!addImage(div, file, asset, is_home))
-                        continue;
-                }
-                if(skycompass != null && asset[4]) // skycompass
-                {
-                    addImageSkycompass(div, file, id, data, asset, skycompass, mc_skycompass);
-                }
+                if(!addImage(div, file, asset, path))
+                    continue;
+            }
+            if(skycompass != null && (asset.skycompass ?? false) && path == asset.paths[0]) // skycompass
+            {
+                addImageSkycompass(div, file, id, data, asset, skycompass, mc_skycompass);
             }
         }
     }
-    if(npcdata != null) // indexed npc data
+    return div;
+}
+
+function loadAssets_scene(id, npcdata, indexed, openscene)
+{
+    let assets = [
+        {name:"Raid Bubble Arts", path:["sp/raid/navi_face/", "png"], icon:"assets/ui/result_icon/bubble.png"},
+        {name:"Scene Arts", path:["sp/quest/scene/character/body/", "png"], icon:"assets/ui/result_icon/scene.png"}
+    ];
+    let first = null;
+    for(let asset of assets)
     {
-        assets = [
-            ["Raid Bubble Arts", "sp/raid/navi_face/", "png"],
-            ["Scene Arts", "sp/quest/scene/character/body/", "png"]
-        ];
-        let file_count = indexed ? npcdata.length : 0;
-        for(let asset of assets)
+        if(npcdata.length == 0) continue;
+        let div = addResult(asset.name, asset.name, asset.icon, openscene);
+        if(!first) first = div;
+        let count = 0;
+        for(let i = 0; i < npcdata.length; ++i)
         {
-            if(npcdata.length == 0) continue;
-            let div = addResult(asset[0], asset[0], ((indexed && asset[0] == "Scene Arts") ? npcdata.length : 0));
-            for(let i = 0; i < npcdata.length; ++i)
-            {
-                let file = npcdata[i];
-                if(asset[0] == "Scene Arts" && file_count > HIDE_DISPLAY && i == 8)
-                    div = hideNextFiles(div, file_count - 8);
-                if(asset[0] == "Raid Bubble Arts" && NO_BUBBLE_FILTER.includes(file.split("_").slice(-1)[0])) continue; // ignore those
-                addImageScene(div, file, id, asset);
-            }
+            let file = npcdata[i];
+            if(asset[0] == "Raid Bubble Arts" && NO_BUBBLE_FILTER.includes(file.split("_").slice(-1)[0])) continue; // ignore those
+            addImageScene(div, file, id, asset);
+            ++count;
         }
+        if(count == 0) div.parentNode.remove();
     }
-    if(sounds != null && sounds.length > 0) // indexed sounds data for characters
+    return first;
+}
+
+function loadAssets_sound(id, sounds)
+{
+    let sorted_sound = {"Generic":[]};
+    let checks = {
+        "": ["Generic", "assets/ui/result_icon/voice.png"],
+        "_boss_v_": ["Boss", "assets/ui/result_icon/v_boss.png"],
+        "_v_": ["Standard", "assets/ui/result_icon/voice.png"],
+        "birthday": ["Happy Birthday", "assets/ui/result_icon/v_birthday.png"],
+        "year": ["Happy New Year", "assets/ui/result_icon/art.png"],
+        "alentine": ["Valentine", "assets/ui/result_icon/v_valentine.png"],
+        "hite": ["White Day", "assets/ui/result_icon/v_valentine.png"],
+        "alloween": ["Halloween", "assets/ui/result_icon/v_halloween.png"],
+        "mas": ["Christmas", "assets/ui/result_icon/v_christmas.png"],
+        "mypage": ["My Page", "assets/ui/result_icon/home.png"],
+        "introduce": ["Recruit", "assets/ui/result_icon/v_recruit.png"],
+        "formation": ["Add to Party", "assets/ui/result_icon/v_party.png"],
+        "evolution": ["Evolution", "assets/ui/result_icon/v_uncap.png"],
+        "zenith_up": ["Extended Mastery", "assets/ui/result_icon/v_emp.png"],
+        "archive": ["Journal", "assets/ui/result_icon/journal.png"],
+        "cutin": ["Battle", "assets/ui/result_icon/v_battle.png"],
+        "attack": ["Attack", "assets/ui/result_icon/auto.png"],
+        "kill": ["Enemy Defeated", "assets/ui/result_icon/v_kill.png"],
+        "ability_them": ["Offensive Skill", "assets/ui/result_icon/skill.png"],
+        "ability_us": ["Buff Skill", "assets/ui/result_icon/buff.png"],
+        "ready": ["CA Ready", "assets/ui/result_icon/ca.png"],
+        "mortal": ["Charge Attack", "assets/ui/result_icon/ca.png"],
+        "chain": ["Chain Burst Banter", "assets/ui/result_icon/v_banter.png"],
+        "damage": ["Damaged", "assets/ui/result_icon/v_damaged.png"],
+        "healed": ["Healed", "assets/ui/result_icon/ability.png"],
+        "power_down": ["Debuffed", "assets/ui/result_icon/v_debuffed.png"],
+        "dying": ["Dying", "assets/ui/result_icon/v_dying.png"],
+        "lose": ["K.O.", "assets/ui/result_icon/v_death.png"],
+        "win": ["Win", "assets/ui/result_icon/v_win.png"],
+        "player": ["To Player", "assets/ui/result_icon/home.png"],
+        "pair": ["Banter", "assets/ui/result_icon/v_banter.png"]
+    };
+    for(let sound of sounds) // sorting
     {
-        let sorted_sound = {"Generic":[]}
-        let checks = {
-            "": "Generic",
-            "_boss_v_": "Boss",
-            "_v_": "Standard",
-            "birthday": "Happy Birthday",
-            "year": "Happy New Year",
-            "alentine": "Valentine",
-            "hite": "White Day",
-            "alloween": "Halloween",
-            "mas": "Christmas",
-            "mypage": "My Page",
-            "introduce": "Recruit",
-            "formation": "Add to Party",
-            "evolution": "Evolution",
-            "zenith_up": "Extended Mastery",
-            "archive": "Journal",
-            "cutin": "Battle",
-            "attack": "Attack",
-            "kill": "Enemy Defeated",
-            "ability_them": "Offensive Skill",
-            "ability_us": "Buff Skill",
-            "ready": "CA Ready",
-            "mortal": "Charge Attack",
-            "chain": "Chain Burst Banter",
-            "damage": "Damaged",
-            "healed": "Healed",
-            "power_down": "Debuffed",
-            "dying": "Dying",
-            "lose": "K.O.",
-            "win": "Win",
-            "player": "To Player",
-            "pair": "Banter"
-        }
-        for(let sound of sounds) // sorting
-        {
-            let found = false;
-            for(const [k, v] of Object.entries(checks))
-            {
-                if(k == "") continue;
-                if(sound.includes(k))
-                {
-                    found = true;
-                    if(!(v in sorted_sound)) sorted_sound[v] = [];
-                    sorted_sound[v].push(sound)
-                    break;
-                }
-            }
-            if(!found) sorted_sound["Generic"].push(sound);
-        }
-        if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
-        // additional sorting
-        if("Banter" in sorted_sound) sorted_sound["Banter"].sort(customSortPair);
-        if("Boss" in sorted_sound) sorted_sound["Boss"].sort(customSortBoss);
-        for(const k of ["Happy Birthday","Happy New Year","Valentine","White Day","Halloween","Christmas"])
-        {
-            try
-            {
-                if(k in sorted_sound) sorted_sound[k].sort(customSortSeasonal);
-            } catch(errrr) {};
-        }
-        // loop over categories
+        let found = false;
         for(const [k, v] of Object.entries(checks))
         {
-            if(v in sorted_sound)
+            if(k == "") continue;
+            if(sound.includes(k))
             {
-                let div = sorted_sound[v].length > 15 ? addVoiceResult(v, v + " Voices", sorted_sound[v].length) : addResult(v, v + " Voices");
-                for(let sound of sorted_sound[v])
-                {
-                    addSound(div, id, sound);
-                }
+                found = true;
+                if(!(v[0] in sorted_sound)) sorted_sound[v[0]] = [];
+                sorted_sound[v[0]].push(sound);
+                break;
+            }
+        }
+        if(!found) sorted_sound["Generic"].push(sound);
+    }
+    if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
+    // additional sorting
+    if("Banter" in sorted_sound) sorted_sound["Banter"].sort(customSortPair);
+    if("Boss" in sorted_sound) sorted_sound["Boss"].sort(customSortBoss);
+    for(const k of ["Happy Birthday","Happy New Year","Valentine","White Day","Halloween","Christmas"])
+    {
+        try
+        {
+            if(k in sorted_sound) sorted_sound[k].sort(customSortSeasonal);
+        } catch(errrr) {}
+    }
+    // loop over categories
+    let first = null;
+    for(const [k, v] of Object.entries(checks))
+    {
+        if(v[0] in sorted_sound)
+        {
+            let div = addResult(v[0], v[0] + " Voices", v[1]);
+            if(!first) first = div;
+            for(let sound of sorted_sound[v[0]])
+            {
+                addSound(div, id, sound);
             }
         }
     }
+    return first;
 }
 
 function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // prepare the output element by cleaning it up and create its header
@@ -2237,7 +2212,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         output.removeChild(child);
     }
     // create header
-    let div = (name == "Event") ? addResult("Result Header", name + ": " + id + " (20"+id.substr(0,2)+"/"+id.substr(2,2)+"/"+id.substr(4,2)+")") : addResult("Result Header", name + ": " + id);
+    let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + " (20"+id.substr(0,2)+"/"+id.substr(2,2)+"/"+id.substr(4,2)+")") : addResultHeader("Result Header", name + ": " + id);
     // include wiki link
     if(include_link)
     {
@@ -2271,7 +2246,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         }
         for(let u of uncaps)
         {
-            l = document.createElement('a');
+            let l = document.createElement('a');
             l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id + u);
             l.title = "Animations of " + id + u;
             let img = document.createElement('img');
@@ -2357,8 +2332,8 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
     {
         if("events" in index && id in index["events"] && index["events"][id][1] != null)
         {
-            let img = document.createElement("img")
-            img.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/archive/assets/island_m2/"+index["events"][id][1]+".png"
+            let img = document.createElement("img");
+            img.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/archive/assets/island_m2/"+index["events"][id][1]+".png";
             div.appendChild(img);
         }
     }
@@ -2366,11 +2341,37 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
     div.scrollIntoView();
 }
 
-function addResult(identifier, name) // add an asset category
+function addResult(identifier, name, icon, open=false) // add an asset category
+{
+    let details = document.createElement("details");
+    details.open = open;
+    
+    let summary = document.createElement("summary");
+    summary.classList.add("element-detail");
+    if(icon != null && icon != "")
+    {
+        let img = document.createElement("img");
+        img.classList.add("result-icon");
+        img.src = icon;
+        summary.appendChild(img);
+    }
+    summary.appendChild(document.createTextNode(name));
+    
+    let div = document.createElement("div");
+    div.classList.add("container");
+    div.setAttribute("data-id", identifier);
+    
+    details.appendChild(summary);
+    details.appendChild(div);
+    output.appendChild(details);
+    return div;
+}
+
+function addResultHeader(identifier, name) // add an asset category
 {
     let div = document.createElement("div");
     div.classList.add("container");
-    if(identifier == "Result Header") div.classList.add("container-header");
+    div.classList.add("container-header");
     div.setAttribute("data-id", identifier);
     div.appendChild(document.createTextNode(name));
     div.appendChild(document.createElement("br"));
@@ -2378,61 +2379,26 @@ function addResult(identifier, name) // add an asset category
     return div;
 }
 
-function addVoiceResult(identifier, name, file_count) // add a voice category
+function addImage(div, file, asset, path) // add an asset
 {
-    let div = document.createElement("div");
-    div.classList.add("result");
-    div.setAttribute("data-id", identifier);
-    div.appendChild(document.createTextNode(name));
-    div.appendChild(document.createElement("br"));
-    let details = document.createElement("details");
-    let summary = document.createElement("summary");
-    summary.classList.add("element-detail");
-    summary.classList.add("sub-detail");
-    summary.innerHTML = file_count + " Files";
-    details.appendChild(summary);
-    div.appendChild(details);
-    output.appendChild(div);
-    return details;
-}
-
-function hideNextFiles(div, file_count) // used to hide files when too many of them are present
-{
-    let details = document.createElement("details");
-    let summary = document.createElement("summary");
-    summary.classList.add("element-detail");
-    summary.classList.add("sub-detail");
-    summary.innerHTML = "Try to load " + file_count + " more files";
-    details.appendChild(summary);
-    div.appendChild(details);
-    output.appendChild(div);
-    return details;
-}
-
-function addImage(div, file, asset, is_home) // add an asset
-{
-    if(!asset[5] && (file.endsWith('_f') || file.endsWith('_f1'))) return false;
+    if(!(asset.form ?? true) && (file.endsWith('_f') || file.endsWith('_f1'))) return false;
     let img = document.createElement("img");
     let ref = document.createElement('a');
     if(file.endsWith(".png") || file.endsWith(".jpg")) // if extension is already set
-        img.src = cycleEndpoint() + "assets_en/img_low/" + asset[1] + file;
+        img.src = cycleEndpoint() + "assets_en/img_low/" + path[0] + file;
     else
-        img.src = cycleEndpoint() + "assets_en/img_low/" + asset[1] + file + "." + asset[2];
+        img.src = cycleEndpoint() + "assets_en/img_low/" + path[0] + file + "." + path[1];
     ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img")); // set link
     img.classList.add("loading");
-    if(is_home) img.classList.add("homepage"); // use this for mypage previews
+    if(asset.home ?? false) img.classList.add("homepage"); // use this for mypage previews
     img.setAttribute('loading', 'lazy');
     img.onerror = function() {
-        let result = this.parentNode.parentNode;
+        let details = this.parentNode.parentNode.parentNode;
+        let result = this.parentNode.parentNode; // parent div
         this.parentNode.remove();
-        let n = (this.classList.contains("homepage") ? 3 : 2);
-        if(result.tagName.toLowerCase() == "details")
-        {
-            n -= 1;
-            result = result.parentNode;
-        }
+        let n = (this.classList.contains("homepage") ? 1 : 0);
         this.remove();
-        if(result.childNodes.length <= n) result.remove();
+        if(result.childNodes.length <= n) details.remove();
     };
     img.onload = function() {
         this.classList.remove("loading");
@@ -2455,16 +2421,17 @@ function addImageScene(div, file, id, asset) // add a npc/scene asset
 {
     let img = document.createElement("img");
     let ref = document.createElement('a');
-    img.src = cycleEndpoint() + "assets_en/img_low/" + asset[1] + id + file + "." + asset[2];
+    img.src = cycleEndpoint() + "assets_en/img_low/" + asset.path[0] + id + file + "." + asset.path[1];
     if(file != "") img.title = file.replaceAll('_', ' ').trim();
     ref.setAttribute('href', img.src.replaceAll("img_low", "img"));
     img.classList.add("loading");
     img.setAttribute('loading', 'lazy');
     img.onerror = function() {
+        let details = this.parentNode.parentNode.parentNode;
         let result = this.parentNode.parentNode;
         this.parentNode.remove();
         this.remove();
-        if(result.childNodes.length <= 2) result.remove();
+        if(result.childNodes.length <= 2) details.remove();
     };
     img.onload = function() {
         this.classList.remove("loading");
@@ -2481,7 +2448,7 @@ function addImageSkycompass(div, file, id, data, asset, skycompass, mc_skycompas
     let ref = document.createElement('a');
     if(!skycompass[2]) // if false, use first file string and no uncap suffix
     {
-        if(file != data[asset[3]][0]) return false;
+        if(file != data[asset.index][0]) return false;
         ref.setAttribute('href', skycompass[0] + file.split('_')[0] + skycompass[1]);
         img.src = skycompass[0] + file.split('_')[0] + skycompass[1];
     }
@@ -2500,7 +2467,7 @@ function addImageSkycompass(div, file, id, data, asset, skycompass, mc_skycompas
         let result = this.parentNode.parentNode;
         this.parentNode.remove();
         this.remove();
-        if(result.childNodes.length <= 2) result.remove();
+        if(result.childNodes.length <= 0) result.remove();
     };
     img.onload = function() {
         this.classList.remove("loading");
@@ -2569,6 +2536,7 @@ function addSound(div, id, sound) // add a sound asset
     a.title = "Click to open the link";
     elem.appendChild(a);
     div.appendChild(elem);
+    return elem;
 }
 
 function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to deal with, this is the best I can do for now
@@ -2595,23 +2563,31 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
     let vu2u10 = variations.includes("_2_10");
     if(vu1 && vu10)
     {
+        data.push([]);
         for(let i = 0; i < 31; ++i)
             data[data.length-1].push(""+iid+"_"+i);
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_1.png", open:true});
     }
     else if(vu1)
     {
+        data.push([]);
         for(let i = 0; i < 10; ++i)
             data[data.length-1].push(""+iid+"_"+i);
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_2.png", open:true});
     }
     if(v1) // weird exception for satyr and siete (among maybe others)
     {
+        data.push([]);
         for(let i = 0; i < 21; ++i)
             data[data.length-1].push(""+iid+""+i);
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_3.png", open:true});
     }
     if(vu10 && vu30)
     {
+        data.push([]);
         for(let i = 10; i < 100; ++i)
             data[data.length-1].push(""+iid+"_"+i);
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_4.png"});
     }
     else if(!vu10)
     {
@@ -2619,44 +2595,56 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
         {
             if(vu111)
             {
+                data.push([]);
                 for(let i = 0; i < 200; ++i)
                     data[data.length-1].push(""+iid+"_"+i);
+                assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_5.png"});
             }
             else if(vu110)
             {
+                data.push([]);
                 for(let i = 0; i < 21; ++i)
                     data[data.length-1].push(""+iid+"_1"+i);
+                assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_6.png"});
             }
             else
             {
+                data.push([]);
                 for(let i = 10; i < 111; ++i)
                     data[data.length-1].push(""+iid+"_"+i);
+                assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_7.png"});
             }
         }
         else if(vu101)
         {
+            data.push([]);
             for(let i = 1; i < 21; ++i)
                 data[data.length-1].push(""+iid+"_1"+JSON.stringify(i).padStart(2, '0'));
+            assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_8.png", open:true});
         }
     }
     if(vu0u10 && !vu1u10)
     {
+        data.push([]);
         for(let i = 10; i < 101; ++i)
         {
             data[data.length-1].push(""+iid+"_0_"+i);
         }
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_9.png"});
     }
     // elem stuff
-    let lim = 0
+    let lim = 0;
     if(vu1u20) lim = 101;
     else if(vu1u10 || vu2u10) lim = 21;
     else if(vu1u1 || vu2u1) lim = 11;
     for(let i = 0; i < 9; ++i)
     {
+        data.push([]);
         for(let j = 0; j < lim; ++j)
         {
             data[data.length-1].push(""+iid+"_"+i+"_"+j);
         }
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_9.png"});
     }
     return [data, assets];
 }
