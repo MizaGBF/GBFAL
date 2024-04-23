@@ -1800,6 +1800,7 @@ function loadAssets(id, data, target, indexed = true)
                 ["Evolution Arts", "sp/assets/weapon/weapon_evolution/main/", "png", 0, false, true],
                 ["Inventory Portraits", "sp/assets/weapon/m/", "jpg", 0, false, true],
                 ["Square Portraits", "sp/assets/weapon/s/", "jpg", 0, false, true],
+                ["Siero's Training Reward", "sp/coaching/reward_npc/assets/", "png", -8, false, false],
                 ["Main Hand Portraits", "sp/assets/weapon/ls/", "jpg", 0, false, true],
                 ["Forge Headers", "sp/archaic/", "", -3, false, true],
                 ["Forge Portraits", "sp/archaic/", "", -4, false, true],
@@ -1855,6 +1856,7 @@ function loadAssets(id, data, target, indexed = true)
                 ["Result Popup Portraits", "sp/result/popup_char/", "png", -2, false, false],
                 ["Balloon Portraits", "sp/gacha/assets/balloon_s/", "png", 6, false, false],
                 ["Fate Episode Reward", "sp/assets/npc/reward/", "png", -8, false, false],
+                ["Siero's Training Reward", "sp/coaching/reward_npc/assets/", "", -10, false, false],
                 ["Party Select Portraits", "sp/assets/npc/quest/", "jpg", 5, false, false],
                 ["Tower of Babyl Portraits", "sp/assets/npc/t/", "png", 5, false, false],
                 ["EMP Up Portraits", "sp/assets/npc/result_lvup/", "png", 5, false, false],
@@ -2059,11 +2061,14 @@ function loadAssets(id, data, target, indexed = true)
                 case -7: // custom summon quest portraits
                     files = [id, id+"_hard", id+"_hard_plus", id+"_ex", id+"_ex_plus", id+"_high", id+"_high_plus"]; 
                     break;
-                case -8: // character fate episode rewards
+                case -8: // character fate episode rewards & chara weapon siero training reward
                     files = [id]; 
                     break;
                 case -9: // character unlock
                     files = [id + "_char", id + "_char_w"]; 
+                    break;
+                case -10: // character siero training reward
+                    files = [id + ".jpg", "name_" + id + ".png"]; 
                     break;
                 default:
                     files = data[asset[3]];
