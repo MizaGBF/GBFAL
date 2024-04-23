@@ -2153,7 +2153,7 @@ function loadAssets_sound(id, sounds)
         "dying": ["Dying", "assets/ui/result_icon/v_dying.png"],
         "lose": ["K.O.", "assets/ui/result_icon/v_death.png"],
         "win": ["Win", "assets/ui/result_icon/v_win.png"],
-        "player": ["To Player", "assets/ui/result_icon/home.png"],
+        "player": ["To Player", "assets/ui/result_icon/v_player.png"],
         "pair": ["Banter", "assets/ui/result_icon/v_banter.png"]
     };
     for(let sound of sounds) // sorting
