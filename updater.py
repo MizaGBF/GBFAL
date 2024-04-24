@@ -1672,18 +1672,23 @@ class Updater():
                             break
                     # attack
                     for u in ["", "_2", "_3", "_4"]:
-                        try:
-                            fn = "phit_{}{}{}".format(id, s, u)
-                            data[self.WEAP_PHIT] += await self.processManifest(fn)
-                        except:
-                            pass
+                        for g in ["", "_0", "_1"]:
+                            try:
+                                fn = "phit_{}{}{}{}".format(id, s, g, u)
+                                data[self.WEAP_PHIT] += await self.processManifest(fn)
+                            except:
+                                if g == '_0':
+                                    break
                     # ougi
-                    for u in ["", "_0", "_1", "_2", "_3", "_0_s2", "_1_s2", "_2_s2", "_3_s2", "_0_s3", "_1_s3", "_2_s3", "_3_s3"]:
-                        try:
-                            fn = "sp_{}{}{}".format(id, s, u)
-                            data[self.WEAP_SP] += await self.processManifest(fn)
-                        except:
-                            pass
+                    for u in ["", "_0", "_1", "_2", "_3"]:
+                        for t in ["", "_s2", "_s3"]:
+                            for g in ["", "_0", "_1"]:
+                                try:
+                                    fn = "sp_{}{}{}{}{}".format(id, s, g, u, t)
+                                    data[self.WEAP_SP] += await self.processManifest(fn)
+                                except:
+                                    if g == '_0':
+                                        break
                 if self.debug_wpn and len(data[self.WEAP_PHIT]) == 0 and len(data[self.WEAP_SP]) == 0:
                     return False
                 self.modified = True
@@ -2955,7 +2960,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.32\n")
+                print("GBFAL updater v2.33\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
@@ -2979,6 +2984,7 @@ class Updater():
                 if "-debug_wpn" in flags: self.debug_wpn = True
                 if "-wait" in flags: forced_stop = not (await self.wait())
                 if "-nochange" in flags: self.update_changelog = False
+                
                 if not forced_stop:
                     if len(flags) == 0:
                         self.print_help()
