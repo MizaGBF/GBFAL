@@ -1691,6 +1691,10 @@ class Updater():
                                         break
                 if self.debug_wpn and len(data[self.WEAP_PHIT]) == 0 and len(data[self.WEAP_SP]) == 0:
                     return False
+                data[self.WEAP_PHIT] = list(set(data[self.WEAP_PHIT]))
+                data[self.WEAP_PHIT].sort()
+                data[self.WEAP_SP] = list(set(data[self.WEAP_SP]))
+                data[self.WEAP_SP].sort()
                 self.modified = True
                 self.data['weapons'][id] = data
                 self.addition[id] = self.ADD_WEAP
