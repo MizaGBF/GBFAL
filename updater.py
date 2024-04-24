@@ -991,15 +991,16 @@ class Updater():
                 return
             except:
                 pass
-            for k in [["phit_", ""], ["phit_", "_2"], ["phit_", "_3"], ["sp_", "_1_s2"]]:
-                try:
-                    await self.head(self.MANIFEST + k[0] + wid + k[1] + ".js")
-                    self.data["job_wpn"][wid] = None
-                    self.modified = True
-                    print("\nPossible job skin related weapon:", wid)
-                    break
-                except:
-                    pass
+            for k in [["phit_", ""], ["phit_", "_2"], ["phit_", "_3"], ["sp_", "_s2"], ["sp_", ""]]:
+                for g in ["", "_0"]:
+                    try:
+                        await self.head(self.MANIFEST + k[0] + wid + g + k[1] + ".js")
+                        self.data["job_wpn"][wid] = None
+                        self.modified = True
+                        print("\nPossible job skin related weapon:", wid)
+                        return
+                    except:
+                        pass
 
     # search_job_detail() subroutine
     async def detail_job_search_single(self, key : str) -> None:
@@ -1058,12 +1059,17 @@ class Updater():
                                     print(len(sheets),"sprites set to job", jid)
                                 elif s in self.data['job_wpn']:
                                     # phit
-                                    self.data['job'][jid][self.JOB_PHIT] = []
+                                    sheets = []
                                     for u in ["", "_1", "_2", "_3"]:
-                                        try:
-                                            self.data['job'][jid][self.JOB_PHIT] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
-                                        except:
-                                            pass
+                                        for g in ["", "_0", "_1"]:
+                                            try:
+                                                sheets += await self.processManifest("phit_{}{}{}".format(s, u, g))
+                                            except:
+                                                if g == "_0":
+                                                    break
+                                    sheets = list(set(sheets))
+                                    sheets.sort()
+                                    self.data['job'][jid][self.JOB_PHIT] = sheets
                                     # ougi
                                     sheets = []
                                     for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
@@ -1071,7 +1077,9 @@ class Updater():
                                             sheets += await self.processManifest("sp_{}{}".format(s, u))
                                         except:
                                             pass
-                                    self.data['job'][jid][self.JOB_SP] = list(dict.fromkeys(sheets))
+                                    sheets = list(set(sheets))
+                                    sheets.sort()
+                                    self.data['job'][jid][self.JOB_SP] = sheets
                                     print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
                                     self.data['job_wpn'][s] = jid
                                     self.modified = True
@@ -1177,12 +1185,17 @@ class Updater():
                     print(len(sheets),"sprites set to job", jid)
                 case 1:
                     # phit
-                    self.data['job'][jid][self.JOB_PHIT] = []
+                    sheets = []
                     for u in ["", "_1", "_2", "_3"]:
-                        try:
-                            self.data['job'][jid][self.JOB_PHIT] += list(dict.fromkeys(await self.processManifest("phit_{}{}".format(s, u))))
-                        except:
-                            pass
+                        for g in ["", "_0", "_1"]:
+                            try:
+                                sheets += await self.processManifest("phit_{}{}{}".format(s, u, g))
+                            except:
+                                if g == "_0":
+                                    break
+                    sheets = list(set(sheets))
+                    sheets.sort()
+                    self.data['job'][jid][self.JOB_PHIT] = sheets
                     # ougi
                     sheets = []
                     for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
@@ -1190,7 +1203,9 @@ class Updater():
                             sheets += await self.processManifest("sp_{}{}".format(s, u))
                         except:
                             pass
-                    self.data['job'][jid][self.JOB_SP] = list(dict.fromkeys(sheets))
+                    sheets = list(set(sheets))
+                    sheets.sort()
+                    self.data['job'][jid][self.JOB_SP] = sheets
                     print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
                     self.data['job_wpn'][s] = jid
                     self.modified = True
