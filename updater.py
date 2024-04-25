@@ -2235,7 +2235,8 @@ class Updater():
                                         case "id":
                                             continue
                                         case "gender":
-                                            looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
+                                            for c in v:
+                                                looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
                                         case "_pageName":
                                             looks.append("@@" + v.replace(' ', '_')) 
                                         case "rarity":
