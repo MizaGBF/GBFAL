@@ -2431,7 +2431,7 @@ function addImageScene(div, file, id, asset) // add a npc/scene asset
         let result = this.parentNode.parentNode;
         this.parentNode.remove();
         this.remove();
-        if(result.childNodes.length <= 2) details.remove();
+        if(result.childNodes.length <= 0) details.remove();
     };
     img.onload = function() {
         this.classList.remove("loading");
@@ -2464,10 +2464,11 @@ function addImageSkycompass(div, file, id, data, asset, skycompass, mc_skycompas
     }
     img.classList.add("loading");
     img.onerror = function() {
+        let details = this.parentNode.parentNode.parentNode;
         let result = this.parentNode.parentNode;
         this.parentNode.remove();
         this.remove();
-        if(result.childNodes.length <= 0) result.remove();
+        if(result.childNodes.length <= 0) details.remove();
     };
     img.onload = function() {
         this.classList.remove("loading");
