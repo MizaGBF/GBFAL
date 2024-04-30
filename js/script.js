@@ -1796,7 +1796,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Sprites", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0},
                 {name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/auto.png"},
                 {name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/ca.png"},
-                {name:"Recruit Header", paths:[["sp/gacha/cjs_cover/", "png"]], index:0, icon:"assets/ui/result_icon/recruit.png"},
+                {name:"Recruit Header", paths:[["sp/gacha/cjs_cover/", "png"]], index:0, icon:"assets/ui/result_icon/recruit.png", break:true},
                 {name:"Reforge Arts", paths:[["sp/archaic/", ""]], index:-3, icon:"assets/ui/result_icon/forge.png"},
                 {name:"Reforge Portraits", paths:[["sp/archaic/", ""]], index:-4, icon:"assets/ui/result_icon/forge.png"},
                 {name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", "png"]], index:-8, icon:"assets/ui/result_icon/siero.png"}
@@ -1816,7 +1816,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Battle Portraits", paths:[["sp/assets/summon/raid_normal/", "jpg"], ["sp/assets/summon/btn/", "png"]], index:0, icon:"assets/ui/result_icon/battle.png"},
                 {name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/summon_call.png"},
                 {name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/summon_call.png"},
-                {name:"Quest Portraits", paths:[["sp/assets/summon/qm/", "png"]], index:-7, icon:"assets/ui/result_icon/quest.png"}
+                {name:"Quest Portraits", paths:[["sp/assets/summon/qm/", "png"]], index:-7, icon:"assets/ui/result_icon/quest.png", break:true}
             ];
             skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
             break;
@@ -1840,7 +1840,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/ca.png"},
                 {name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/skill.png"},
                 {name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"assets/ui/result_icon/skill.png"},
-                {name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], index:-8, icon:"assets/ui/result_icon/fate_reward.png", form:false},
+                {name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], index:-8, icon:"assets/ui/result_icon/fate_reward.png", break:true, form:false},
                 {name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], index:-9, icon:"assets/ui/result_icon/recruit.png", form:false},
                 {name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"assets/ui/result_icon/news.png", form:false},
                 {name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], index:-2, icon:"assets/ui/result_icon/result.png", form:false},
@@ -1913,7 +1913,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/spritesheet.png", index:7},
                 {name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:8, icon:"assets/ui/result_icon/auto.png"},
                 {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"assets/ui/result_icon/ca.png"},
-                {name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], index:-5, icon:"assets/ui/result_icon/custom.png"}
+                {name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], index:-5, icon:"assets/ui/result_icon/custom.png", break:true}
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
             mc_skycompass = true;
@@ -1987,14 +1987,17 @@ function loadAssets(id, data, target, indexed = true)
     prepareOuputAndHeader(area_name, id, data, include_link, indexed);
     for(let i = 0; i < assets.length; ++i)
     {
+        if(assets[i].break ?? false) output.appendChild(document.createElement('br'));
         loadAssets_main(id, data, target, indexed, assets[i], loadAssets_getFiles(id, data, assets[i], files, melee), mc_skycompass, skycompass);
     }
     if(npcdata && npcdata.length > 0)
     {
+        output.appendChild(document.createElement('br'));
         loadAssets_scene(id, npcdata, indexed, openscene);
     }
     if(sounds && sounds.length > 0)
     {
+        output.appendChild(document.createElement('br'));
         loadAssets_sound(id, sounds, indexed);
     }
 }
