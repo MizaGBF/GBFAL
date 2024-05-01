@@ -2593,6 +2593,13 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
             data[data.length-1].push(""+iid+"_"+i);
         assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_4.png"});
     }
+    else if(vu10 && vu11)
+    {
+        data.push([]);
+        for(let i = 10; i < 21; ++i)
+            data[data.length-1].push(""+iid+"_"+i);
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_4.png"});
+    }
     else if(!vu10)
     {
         if(vu11)
