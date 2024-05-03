@@ -1129,22 +1129,13 @@ function updateList(node, elems) // update a list of elements
                 image_callback = addTextImage;
                 break;
             case "subskills":
-                if(e[0] in index['subskills'])
-                {
-                    res = display_subskills(e[0], index['subskills'][e[0]]);
-                }
+                res = display_subskills(e[0].split(':')[1], index['subskills'][e[0].split(':')[1]]);
                 break;
             case "title":
-                if(e[0] in index['title'])
-                {
-                    res = display_titles(e[0], index['title'][e[0]]);
-                }
+                res = display_titles(e[0].split(':')[1], index['title'][e[0].split(':')[1]]);
                 break;
             case "suptix":
-                if(e[0] in index['suptix'])
-                {
-                    res = display_suptix(e[0], index['suptix'][e[0]]);
-                }
+                res = display_suptix(e[0].split(':')[1], index['suptix'][e[0].split(':')[1]]);
                 break;
         }
         if(res != null)
