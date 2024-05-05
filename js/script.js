@@ -1859,7 +1859,7 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "npcs":
             area_name = "NPC";
-            include_link = data[0] && indexed;
+            include_link = data[0];
             last_id = id;
             search_type = 5;
             assets = [
@@ -2214,13 +2214,16 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         try
         {
             if(id in index["lookup"] && index["lookup"][id].includes("@@"))
-                l.setAttribute('href', "https://gbf.wiki/" + index["lookup"][id].split("@@")[1].split(" ")[0]);
-            else
-                l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
+            {
+                const idn = index["lookup"][id].split("@@")[1].split(" ")[0];
+                l.setAttribute('href', "https://gbf.wiki/" + idn);
+                l.title = "Wiki page for " + idn.replaceAll("_", " ");
+            }
+            else throw new Error('Element not indexed');
         } catch(err) {
             l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
+            l.title = "Wiki search for " + id;
         }
-        l.title = "Wiki search for " + id;
         let img = document.createElement('img');
         img.src = "assets/ui/icon/wiki.png";
         img.classList.add("img-link");
@@ -2242,7 +2245,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         {
             let l = document.createElement('a');
             l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id + u);
-            l.title = "Animations of " + id + u;
+            l.title = "Animations for " + id + u;
             let img = document.createElement('img');
             img.src = "assets/ui/icon/GBFAP.png";
             img.classList.add("img-link");
