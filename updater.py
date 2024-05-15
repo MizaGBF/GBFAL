@@ -76,7 +76,7 @@ class Updater():
     MAX_UPDATEALL = MAX_HTTP+10
     MAX_HTTP_WIKI = 20
     MAX_SCENE_CONCURRENT = 10
-    SOUND_CONCURRENT_PER_STEP = 5
+    SOUND_CONCURRENT_PER_STEP = 4
     LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
     # addition type
     ADD_JOB = 0
@@ -2030,6 +2030,7 @@ class Updater():
         if update_pending:
             target_list = list(set(self.data['sound_queue']))
         else:
+            target_list = []
             for k in ["characters", "skins", "npcs"]:
                 target_list += list(self.data[k].keys())
             target_list = set(list(target_list))
@@ -2045,7 +2046,7 @@ class Updater():
         if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
         elements = []
         for id in target_list:
-            if id.startswith('399'):
+            if id[:3] in ['399', '305']:
                 uncaps = ["01"]
                 idx = self.NPC_SOUND
                 k = "npcs"
@@ -2110,21 +2111,19 @@ class Updater():
             if uncap == "01": uncap = ""
             elif uncap == "02": continue # seems unused
             elif uncap != "": uncap = "_" + uncap
-            for mid, Z in [("_", 3), ("_v_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("_boss_v_", 1)]:
+            for mid, Z in [("_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("_boss_v_", 1)]:
                 match mid: # opti
                     case "_":
                         suffixes = ["", "a", "b"]
                         A = 1
                         max_err = 1
-                    case "_v_":
-                        suffixes = ["", "a", "_a", "_1", "b", "_b", "_2"]
-                        A = 1
-                        max_err = 6
                     case _:
                         suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
                         A = 0 if mid == "_cutin" else 1
                         max_err = 1
                 elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
+            for i in range(0, 65): # break down _v_ for speed, up to 650
+                elements.append((id, existing, uncap + "_v_" + str(i) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2"], 1, 1, 6))
         # chain burst
         elements.append((id, existing, "_chain_start", [], None, None, None))
         for A in range(2, 5):
@@ -2149,28 +2148,39 @@ class Updater():
         else:
             err = 0
             run = True
-            while run:
-                exists = False
-                for p in post:
+            while len(str(index)) <= zfill:
+                found = False
+                for p in post: # check if already processed in the past
                     f = suffix.format(str(index).zfill(zfill)) + p
                     if f in existing:
-                        exists = True
-                        result.append(f)
+                        found = True
                         err = 0
-                if not exists:
-                    found = False
+                if not found: # if not
+                    tasks = []
                     for p in post:
                         f = suffix.format(str(index).zfill(zfill)) + p
-                        if f in existing or (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
-                            result.append(f)
-                            err = 0
+                        if f not in existing:
+                            tasks.append(self.update_chara_sound_file_sub_req(id, f))
+                        else:
                             found = True
-                        elif p == post[-1] and not found:
-                            err += 1
-                            if err >= max_err and index > 0:
-                                run = False
+                    if len(tasks) > 0:
+                        for r in await asyncio.gather(*tasks):
+                            if r is not None:
+                                result.append(f)
+                                found = True
+                    if not found:
+                        err += 1
+                        if err >= max_err and index > 0:
+                            break
+                    else:
+                        err = 0
                 index += 1
         return result
+
+    async def update_chara_sound_file_sub_req(self, id : str, f : str) -> Optional[str]: # used above for asyncio gather
+        if (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
+            return f
+        return None
 
     # banter sound subroutine
     async def update_chara_sound_file_sub_banter(self, id : str, existing : set) -> list:
@@ -2980,7 +2990,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.33\n")
+                print("GBFAL updater v2.34\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
