@@ -2123,7 +2123,7 @@ class Updater():
                         max_err = 1
                 elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
             for i in range(0, 65): # break down _v_ for speed, up to 650
-                elements.append((id, existing, uncap + "_v_" + str(i) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2"], 1, 1, 6))
+                elements.append((id, existing, uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2"], 1, 1, 6))
         # chain burst
         elements.append((id, existing, "_chain_start", [], None, None, None))
         for A in range(2, 5):
@@ -2155,6 +2155,7 @@ class Updater():
                     if f in existing:
                         found = True
                         err = 0
+                        break
                 if not found: # if not
                     tasks = []
                     for p in post:
@@ -2166,7 +2167,7 @@ class Updater():
                     if len(tasks) > 0:
                         for r in await asyncio.gather(*tasks):
                             if r is not None:
-                                result.append(f)
+                                result.append(r)
                                 found = True
                     if not found:
                         err += 1
