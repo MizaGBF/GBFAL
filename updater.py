@@ -2272,7 +2272,7 @@ class Updater():
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
                         looks.append(id)
-                        looks = html.unescape(" ".join(looks)).replace(',<br />', ' ').replace('<br />', ' ')
+                        looks = html.unescape(html.unescape(" ".join(looks))).replace(',<br />', ' ').replace('<br />', ' ')
                         if id not in self.data['lookup'] or self.data['lookup'][id] != looks:
                             self.data['lookup'][id] = looks
                             modified.add(id)

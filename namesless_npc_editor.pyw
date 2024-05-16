@@ -26,12 +26,18 @@ class Editor(Tk.Tk):
                         if not d[0]:
                             self.npcs[k] = None
                 for k, d in self.data.get("lookup",{}).items():
-                    nt = d.split(" ")
-                    # to finish
-                    #
-                    #
-                    #
-                    n = " ".join(nt[1:-1])
+                    if "@@" in d:
+                        n = d.split("@@", 1)[1].split(" ", 1)[1]
+                    else: n = d
+                    nt = n.split(" ")
+                    i = 0
+                    while i < len(nt):
+                        if nt[i] in ["N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger"]:
+                            i += 1
+                        else:
+                            break
+                    n = " ".join(nt[i:-1])
+                    if n == "": continue
                     self.names.add(n)
                     if k in self.npcs:
                         self.npcs[k] = n
