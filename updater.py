@@ -2256,7 +2256,7 @@ class Updater():
                                             if v == "Other":
                                                 looks.append("unknown")
                                             else:
-                                                looks.append(v)
+                                                looks.append(v.lower())
                                         case _:
                                             looks.append(v.lower())
                                 case list():
