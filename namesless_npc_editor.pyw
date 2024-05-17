@@ -60,6 +60,12 @@ class Editor(Tk.Tk):
             if "No such file" not in str(e):
                 messagebox.showerror("Error", "Failed to open 'json/name_data.json'.\nClose this app and fix it.")
 
+        knpcs = list(self.npcs.keys())
+        knpcs.sort()
+        tmp = {}
+        for k in knpcs:
+            tmp[k] = self.npcs[k]
+        self.npcs = tmp
         for k, v in data["table"].items():
             if k in self.npcs and v is not None:
                 self.npcs[k] = v
