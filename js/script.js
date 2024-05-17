@@ -1844,6 +1844,7 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "partners":
             area_name = "Partner";
+            include_link = true;
             last_id = id;
             search_type = 6;
             assets = [
@@ -2207,15 +2208,23 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
     }
     // create header
     let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + " (20"+id.substr(0,2)+"/"+id.substr(2,2)+"/"+id.substr(4,2)+")") : addResultHeader("Result Header", name + ": " + id);
+    // get chara id if partner
+    let lid = id;
+    if(name == "Partner")
+    {
+        let cid = "30" + id.slice(2);
+        if("characters" in index && cid in index["characters"])
+            lid = cid;
+    }
     // include wiki link
     if(include_link)
     {
         let l = document.createElement('a');
         try
         {
-            if(id in index["lookup"] && index["lookup"][id].includes("@@"))
+            if(lid in index["lookup"] && index["lookup"][lid].includes("@@"))
             {
-                const idn = index["lookup"][id].split("@@")[1].split(" ")[0];
+                const idn = index["lookup"][lid].split("@@")[1].split(" ")[0];
                 l.setAttribute('href', "https://gbf.wiki/" + idn);
                 l.title = "Wiki page for " + idn.replaceAll("_", " ");
             }
@@ -2255,25 +2264,65 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         did_lookup = true;
     }
     // add tags if they exist
-    if(id in index["lookup"] && index["lookup"][id].split(' ').length > 1)
+    if(lid in index["lookup"] && index["lookup"][lid].split(' ').length > 1)
     {
         div.appendChild(document.createElement('br'));
-        let i = document.createElement('i');
-        i.appendChild(document.createTextNode("Search Tags: "));
-        div.appendChild(i);
-        for(let t of index["lookup"][id].split(' '))
+        for(let t of index["lookup"][lid].split(' '))
         {
             if(t.substr(0, 2) == "@@") continue;
-            i = document.createElement('i');
+            let i = document.createElement('i');
             i.classList.add("tag");
+            i.classList.add("clickable");
             switch(t)
             {
-                case "ssr": i.appendChild(document.createTextNode("SSR ")); break;
-                case "sr": i.appendChild(document.createTextNode("SR ")); break;
+                case "ssr": i.appendChild(document.createTextNode("SSR")); break;
+                case "sr": i.appendChild(document.createTextNode("SR")); break;
                 default:
-                    if(t.length == 1) i.appendChild(document.createTextNode(t.toUpperCase() + " "));
-                    else i.appendChild(document.createTextNode(t.charAt(0).toUpperCase() + t.slice(1) + " "));
+                    if(t == lid && lid != id) i.appendChild(document.createTextNode(id));
+                    else if(t.length == 1) i.appendChild(document.createTextNode(t.toUpperCase()));
+                    else i.appendChild(document.createTextNode(t.charAt(0).toUpperCase() + t.slice(1)));
                     break;
+            }
+            switch(t.toLowerCase())
+            {
+                case "ssr": case "character": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": i.classList.add("tag-gold"); break;
+                case "sr": case "outfit": case "skin": case "summon": i.classList.add("tag-silver"); break;
+                case "r": case "weapon": i.classList.add("tag-bronze"); break;
+                case "n": case "npc": case "gran": case "djeeta": case "main": case "job": case "class": i.classList.add("tag-normal"); break;
+                case "fire": i.classList.add("tag-fire"); break;
+                case "water": i.classList.add("tag-water"); break;
+                case "earth": i.classList.add("tag-earth"); break;
+                case "wind": i.classList.add("tag-wind"); break;
+                case "light": i.classList.add("tag-light"); break;
+                case "dark": i.classList.add("tag-dark"); break;
+                case "cut-content": case "trial": i.classList.add("tag-cut-content"); break;
+                case "sabre": case "sword": case "spear": case "dagger": case "axe": case "staff": case "melee": case "gun": case "bow": case "harp": case "katana": i.classList.add("tag-weaptype"); break;
+                case "summer": i.classList.add("tag-series-summer"); break;
+                case "yukata": i.classList.add("tag-series-yukata"); break;
+                case "valentine": i.classList.add("tag-series-valentine"); break;
+                case "halloween": i.classList.add("tag-series-halloween"); break;
+                case "holiday": i.classList.add("tag-series-holiday"); break;
+                case "12generals": i.classList.add("tag-series-zodiac"); break;
+                case "fantasy": i.classList.add("tag-series-fantasy"); break;
+                case "tie-in": i.classList.add("tag-series-tiein"); break;
+                case "eternals": i.classList.add("tag-series-eternal"); break;
+                case "evokers": i.classList.add("tag-series-evoker"); break;
+                case "4saints": i.classList.add("tag-series-saint"); break;
+                case "male": i.classList.add("tag-gender0"); break;
+                case "female": i.classList.add("tag-gender1"); break;
+                case "other": i.classList.add("tag-gender2"); break;
+                case "human": i.classList.add("tag-race0"); break;
+                case "draph": i.classList.add("tag-race1"); break;
+                case "erune": i.classList.add("tag-race2"); break;
+                case "harvin": i.classList.add("tag-race3"); break;
+                case "primal": i.classList.add("tag-race4"); break;
+                case "unknown": i.classList.add("tag-race5"); break;
+                case "balanced": i.classList.add("tag-type0"); break;
+                case "attack": i.classList.add("tag-type1"); break;
+                case "defense": i.classList.add("tag-type2"); break;
+                case "heal": i.classList.add("tag-type3"); break;
+                case "special": i.classList.add("tag-type4"); break;
+                default: break;
             }
             i.onclick = function() {
                 lookup(t);
@@ -2298,7 +2347,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
             div.appendChild(document.createTextNode("Associated Partner:"));
             div.appendChild(document.createElement('br'));
             let i = document.createElement('i');
-            i.classList.add("tag");
+            i.classList.add("clickable");
             i.onclick = function() {
                 lookup(cid);
             };
@@ -2316,7 +2365,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
             div.appendChild(document.createTextNode("Associated Character:"));
             div.appendChild(document.createElement('br'));
             let i = document.createElement('i');
-            i.classList.add("tag");
+            i.classList.add("clickable");
             i.onclick = function() {
                 lookup(cid);
             };

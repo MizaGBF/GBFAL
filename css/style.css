@@ -85,7 +85,7 @@ details[open] > .element-detail {
 
 .tag {
     color: #ccccff;
-    cursor: pointer;
+    
 }
 
 .std-button-container {
@@ -265,6 +265,202 @@ details[open] > .element-detail {
     height: 78px;
     border: 2px solid #808080;
     border-radius: 10px;
+}
+
+.tag {
+    border: 2px solid #808080;
+    border-radius: 10px;
+    border-style: solid;
+    white-space: nowrap;
+    font-size: 20px;
+    margin: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.tag-gold {
+    background-color: #e8b83c;
+    color: #000000;
+}
+
+.tag-silver {
+    background-color: #ccdcf3;
+    color: #000000;
+}
+
+.tag-bronze {
+    background-color: #ab6b45;
+    color: #000000;
+}
+
+.tag-normal {
+    background-color: #dddddd;
+    color: #000000;
+}
+
+.tag-fire {
+    background-color: #d8532a;
+    color: #000000;
+}
+
+.tag-water {
+    background-color: #478bec;
+    color: #000000;
+}
+
+.tag-earth {
+    background-color: #7f5130;
+    color: #000000;
+}
+
+.tag-wind {
+    background-color: #67c843;
+    color: #000000;
+}
+
+.tag-light {
+    background-color: #e3c33c;
+    color: #000000;
+}
+
+.tag-dark {
+    background-color: #65489a;
+    color: #ffffff;
+}
+
+.tag-cut-content {
+    background-color: #c24470;
+    color: #000000;
+}
+
+.tag-weaptype {
+    background-color: #db9856;
+    color: #000000;
+}
+
+.tag-series-summer {
+    background-color: #a9ed7b;
+    color: #000000;
+}
+
+.tag-series-yukata {
+    background-color: #a091cf;
+    color: #000000;
+}
+
+.tag-series-valentine {
+    background-color: #db84bb;
+    color: #000000;
+}
+
+.tag-series-halloween {
+    background-color: #eb7b0c;
+    color: #000000;
+}
+
+.tag-series-holiday {
+    background-color: #17cf57;
+    color: #000000;
+}
+
+.tag-series-zodiac {
+    background-color: #ff887a;
+    color: #000000;
+}
+
+.tag-series-fantasy {
+    background-color: #c2fff5;
+    color: #000000;
+}
+
+.tag-series-tiein {
+    background-color: #ffff00;
+    color: #000000;
+}
+
+.tag-series-eternal {
+    background-color: #00b5f7;
+    color: #000000;
+}
+
+.tag-series-evoker {
+    background-color: #6e0000;
+    color: #cccccc;
+}
+
+.tag-series-saint {
+    background-color: #00e88f;
+    color: #000000;
+}
+
+.tag-gender0 {
+    background-color: #6675df;
+    color: #000000;
+}
+
+.tag-gender1 {
+    background-color: #ff93ac;
+    color: #000000;
+}
+
+.tag-gender2 {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.tag-race0 {
+    background-color: #6dd7e4;
+    color: #000000;
+}
+
+.tag-race1 {
+    background-color: #c72827;
+    color: #000000;
+}
+
+.tag-race2 {
+    background-color: #92e56d;
+    color: #000000;
+}
+
+.tag-race3 {
+    background-color: #f28e00;
+    color: #000000;
+}
+
+.tag-race4 {
+    background-color: #ab6fd4;
+    color: #000000;
+}
+
+.tag-race5 {
+    background-color: #b5b4b1;
+    color: #000000;
+}
+
+.tag-type0 {
+    background-color: #bb963a;
+    color: #000000;
+}
+
+.tag-type1 {
+    background-color: #e26629;
+    color: #000000;
+}
+
+.tag-type2 {
+    background-color: #1a9ab9;
+    color: #000000;
+}
+
+.tag-type3 {
+    background-color: #f59895;
+    color: #000000;
+}
+
+.tag-type4 {
+    background-color: #8f53b7;
+    color: #000000;
 }
 
 .clickable {
@@ -580,6 +776,16 @@ a:active {
         min-width : 138px;
         max-width : 138px;
         height: 78px;
+    }
+
+    .tag {
+        border: 3px solid #808080;
+        border-radius: 10px;
+        border-style: solid;
+        font-size: 30px;
+        margin: 5px;
+        padding-left: 5px;
+        padding-right: 5px;
     }
 
     #filter {
