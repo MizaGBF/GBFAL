@@ -116,7 +116,7 @@ class Editor(Tk.Tk):
         self.destroy()
 
     def filter(self, event = None) -> None:
-        sstr = self.search_str.get().strip()
+        sstr = self.search_str.get().strip().lower()
         a = self.nlist.curselection()
         if len(a) == 0: a = None
         else: a = a[0]
@@ -131,7 +131,7 @@ class Editor(Tk.Tk):
             tmp = []
             for n in self.names:
                 for s in sstr:
-                    if s in n:
+                    if s in n.lower():
                         tmp.append(n)
                         break
             try:
@@ -175,6 +175,7 @@ class Editor(Tk.Tk):
     def add_name(self) -> None:
         n = askstring('Add a name', 'Input a NPC tag')
         if n in ["", None]: return
+        n = n.lower()
         if n in self.names:
             messagebox.showerror("Error", "The name is already in the list")
         else:
@@ -212,36 +213,30 @@ class Editor(Tk.Tk):
         a = self.slist.curselection()
         if len(a) == 0: return
         a = a[0]
-        i = a
         keys = list(self.npcs.keys())
-        while True:
-            i -= 1
-            if i < 0: i = len(self.npcs) - 1
-            if self.npcs[keys[i]] is None:
+        for i in range(len(self.npcs)):
+            a -= 1
+            if a < 0: a = len(self.npcs) - 1
+            if self.npcs[keys[a]] is None:
                 break
-            if a == i:
-                return
         self.slist.selection_clear(0, Tk.END)
-        self.slist.select_set(i)
-        self.slist.yview(i)
+        self.slist.select_set(a)
+        self.slist.yview(a)
         self.npc_selected()
 
     def next_npc(self) -> None:
         a = self.slist.curselection()
         if len(a) == 0: return
         a = a[0]
-        i = a
         keys = list(self.npcs.keys())
-        while True:
-            i += 1
-            if i >= len(self.npcs): i = 0
-            if self.npcs[keys[i]] is None:
+        for i in range(len(self.npcs)):
+            a += 1
+            if a >= len(self.npcs): a = 0
+            if self.npcs[keys[a]] is None:
                 break
-            if a == i:
-                return
         self.slist.selection_clear(0, Tk.END)
-        self.slist.select_set(i)
-        self.slist.yview(i)
+        self.slist.select_set(a)
+        self.slist.yview(a)
         self.npc_selected()
 
     def update_npc(self) -> None:
