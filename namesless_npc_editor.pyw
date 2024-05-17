@@ -32,7 +32,7 @@ class Editor(Tk.Tk):
                     nt = n.split(" ")
                     i = 0
                     while i < len(nt):
-                        if nt[i] in ["npc", "summon", "weapon", "enemy", "main", "character", "job", "outfit", "skin", "gran / djeeta", "class", "N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger"]:
+                        if nt[i] in ["npc", "summon", "weapon", "enemy", "main", "character", "job", "outfit", "skin", "/", "class", "N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger"]:
                             i += 1
                         else:
                             break
@@ -131,10 +131,13 @@ class Editor(Tk.Tk):
             sstr = sstr.split(" ")
             tmp = []
             for n in self.names:
+                f = True
                 for s in sstr:
-                    if s in n.lower():
-                        tmp.append(n)
+                    if s not in n.lower():
+                        f = False
                         break
+                if f:
+                    tmp.append(n)
             try:
                 a = tmp.index(self.filtered[a])
             except:
