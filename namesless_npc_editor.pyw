@@ -108,6 +108,7 @@ class Editor(Tk.Tk):
         self.npc_selected()
         
         Tk.Button(self, text="Update name", command=self.update_npc).grid(row=3, column=6, sticky="wesn")
+        Tk.Button(self, text="New name", command=self.new_npc).grid(row=4, column=6, sticky="wesn")
         
         Tk.Button(self, text="Save", command=self.save).grid(row=0, column=20, sticky="wesn")
 
@@ -135,7 +136,7 @@ class Editor(Tk.Tk):
                         tmp.append(n)
                         break
             try:
-                a = test.index(self.filtered[a])
+                a = tmp.index(self.filtered[a])
             except:
                 a = None
             self.filtered = tmp
@@ -172,12 +173,13 @@ class Editor(Tk.Tk):
         else: s = self.npcs[k]
         self.currentvalue.config(text=s)
 
-    def add_name(self) -> None:
+    def add_name(self, silent : bool = False) -> None:
         n = askstring('Add a name', 'Input a NPC tag')
-        if n in ["", None]: return
+        if n in ["", None]: return None
         n = n.lower()
         if n in self.names:
-            messagebox.showerror("Error", "The name is already in the list")
+            if not silent:
+                messagebox.showerror("Error", "The name is already in the list")
         else:
             self.names.append(n)
             self.names.sort()
@@ -190,6 +192,7 @@ class Editor(Tk.Tk):
                 self.nlist.yview(a)
             except:
                 pass
+        return n
 
     def del_name(self) -> None:
         a = self.nlist.curselection()
@@ -254,6 +257,20 @@ class Editor(Tk.Tk):
             return
         self.modified = True
         self.npcs[b] = a
+        self.bell()
+        self.npc_selected()
+
+    def new_npc(self) -> None:
+        b = self.slist.curselection()
+        b = b[0] if len(b) > 0 else 0
+        try:
+            b = list(self.npcs.keys())[b]
+        except:
+            return
+        a = self.add_name(silent=True)
+        if a is None: return
+        self.npcs[b] = a
+        self.modified = True
         self.bell()
         self.npc_selected()
 

@@ -2273,6 +2273,8 @@ class Updater():
                                                 looks.append("unknown")
                                             else:
                                                 looks.append(v.lower())
+                                        case "series":
+                                            looks.append(v.lower().replace(';', ' '))
                                         case _:
                                             looks.append(v.lower())
                                 case list():
