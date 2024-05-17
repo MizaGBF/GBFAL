@@ -33,7 +33,7 @@ class Editor(Tk.Tk):
                     nt = n.split(" ")
                     i = 0
                     while i < len(nt):
-                        if nt[i] in ["npc", "summon", "weapon", "enemy", "main", "character", "job", "outfit", "skin", "/", "class", "N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger"]:
+                        if nt[i] in ["npc", "summon", "weapon", "enemy", "main", "character", "job", "outfit", "skin", "/", "class", "N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
                             i += 1
                         else:
                             break
@@ -117,6 +117,7 @@ class Editor(Tk.Tk):
         
         Tk.Button(self, text="Update name", command=self.update_npc).grid(row=3, column=6, sticky="wesn")
         Tk.Button(self, text="New name", command=self.new_npc).grid(row=4, column=6, sticky="wesn")
+        Tk.Button(self, text="Clear", command=self.clear_npc).grid(row=5, column=6, sticky="wesn")
         
         Tk.Button(self, text="Save", command=self.save).grid(row=0, column=20, sticky="wesn")
 
@@ -282,6 +283,18 @@ class Editor(Tk.Tk):
         if a is None: return
         self.npcs[b] = a
         self.modified = True
+        self.bell()
+        self.npc_selected()
+
+    def clear_npc(self) -> None:
+        try: b = self.slist.curselection()[0]
+        except: return
+        try:
+            b = list(self.npcs.keys())[b]
+        except:
+            return
+        self.modified = True
+        self.npcs[b] = None
         self.bell()
         self.npc_selected()
 

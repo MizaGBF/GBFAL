@@ -433,12 +433,6 @@ class Updater():
             raise Exception("Invalid Spritesheets")
         return res
 
-    # Remove extra from wiki name
-    def cleanName(self, name : str) -> str:
-        for k in ['(Grand)', '(Yukata)', '(Summer)', '(Valentine)', '(Holiday)', '(Halloween)', '(SSR)', '(Fire)', '(Water)', '(Earth)', '(Wind)', '(Light)', '(Dark)', '(Grand)', '(Event SSR)', '(Event)', '(Promo)', '(Summon)', '(Weapon)']:
-            name = name.replace(k, '')
-        return name.strip().strip('_').replace('_', ' ')
-
     # for limited queued asyncio concurrency
     async def map_unordered(self, func : Callable, iterable : Union[Iterator,Collection,AsyncIterator], limit : int) -> asyncio.Task:
         aws = iter(map(func, iterable))
