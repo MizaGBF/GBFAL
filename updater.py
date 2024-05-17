@@ -2210,6 +2210,7 @@ class Updater():
     # Check for new elements to lookup on the wiki, to update the lookup list
     async def buildLookup(self) -> None:
         if not self.use_wiki: return
+        modified = set()
         # manual npcs
         try:
             with open("json/name_data.json", mode="r", encoding="utf-8") as f:
@@ -2217,10 +2218,10 @@ class Updater():
                 for k, v in data["table"].items():
                     try:
                         if v is not None and not self.data["npcs"].get(k, [False])[self.NPC_JOURNAL]:
-                            l = "npc " + v + " " + k
+                            l = v + " " + k
                             if l != self.data["lookup"].get(k, ""):
                                 self.data["lookup"][k] = l
-                                self.modified = True
+                                modified.add(k)
                     except Exception as e:
                         print(e)
                         print(k, v)
@@ -2229,7 +2230,6 @@ class Updater():
         # first pass
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
         fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva', 'weapons':'id,element,type,rarity,name,series,jpname', 'summons':'id,element,rarity,name,series,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva'}
-        modified = set()
         for t in self.LOOKUP_TYPES:
             for table in tables.get(t, [t]):
                 try:
@@ -2237,14 +2237,10 @@ class Updater():
                     data = (await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables={}&fields=_pageName,{}&format=json&limit=20000".format(table, fields.get(table)), headers={'User-Agent':self.USER_AGENT}, get_json=True))
                     for item in data:
                         match table:
-                            case "classes":
-                                looks = ["main", "character", "job", "class", "gran", "djeeta"]
-                            case "mc_outfits":
-                                looks = ["main", "character", "job", "class", "gran", "djeeta", "outfit", "skin"]
-                            case "character_outfits":
-                                looks = ["character", "outfit", "skin"]
+                            case "classes"|"mc_outfits":
+                                looks = ["gran", "djeeta"]
                             case _:
-                                looks = [t.lower()[:-1]]
+                                looks = []
                         if item.get('element', '') == 'any':
                             continue
                         for k, v in item.items():
@@ -2261,7 +2257,7 @@ class Updater():
                                         case "_pageName":
                                             looks.append("@@" + v.replace(' ', '_')) 
                                         case "rarity":
-                                            looks.append(v)
+                                            looks.append(v.lower())
                                         case "race":
                                             if v == "Other":
                                                 looks.append("unknown")

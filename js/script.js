@@ -1654,7 +1654,7 @@ function updateSearchResuls()
     let div = document.createElement("div");
     div.classList.add("std-button-container");
     node.appendChild(div);
-    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"], [3, "Skins"], [4, "NPCs"], [5, "Classes"]])
+    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"], [3, "Skins"], [4, "NPCs"], [5, "MCs"]])
     {
         let input = document.createElement("input");
         input.type = "checkbox";
@@ -2275,8 +2275,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
             i.classList.add("clickable");
             switch(t)
             {
-                case "ssr": i.appendChild(document.createTextNode("SSR")); break;
-                case "sr": i.appendChild(document.createTextNode("SR")); break;
+                case "ssr": case "sr": case "r": case "n": i.appendChild(document.createTextNode(t.toUpperCase())); break;
                 default:
                     if(t == lid && lid != id) i.appendChild(document.createTextNode(id));
                     else if(t.length == 1) i.appendChild(document.createTextNode(t.toUpperCase()));
@@ -2285,10 +2284,10 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
             }
             switch(t.toLowerCase())
             {
-                case "ssr": case "character": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": i.classList.add("tag-gold"); break;
-                case "sr": case "outfit": case "skin": case "summon": i.classList.add("tag-silver"); break;
-                case "r": case "weapon": i.classList.add("tag-bronze"); break;
-                case "n": case "npc": case "gran": case "djeeta": case "main": case "job": case "class": i.classList.add("tag-normal"); break;
+                case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": i.classList.add("tag-gold"); break;
+                case "sr": i.classList.add("tag-silver"); break;
+                case "r": i.classList.add("tag-bronze"); break;
+                case "n": case "gran": case "djeeta": i.classList.add("tag-normal"); break;
                 case "fire": i.classList.add("tag-fire"); break;
                 case "water": i.classList.add("tag-water"); break;
                 case "earth": i.classList.add("tag-earth"); break;

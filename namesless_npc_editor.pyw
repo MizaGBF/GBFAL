@@ -33,7 +33,7 @@ class Editor(Tk.Tk):
                     nt = n.split(" ")
                     i = 0
                     while i < len(nt):
-                        if nt[i] in ["npc", "summon", "weapon", "enemy", "main", "character", "job", "outfit", "skin", "/", "class", "N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
+                        if nt[i] in ["/", "N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
                             i += 1
                         else:
                             break
