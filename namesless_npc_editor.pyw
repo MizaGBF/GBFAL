@@ -13,26 +13,26 @@ class Editor(Tk.Tk):
         self.minsize(200, 200)
         self.protocol("WM_DELETE_WINDOW", self.close) # call close() if we close the window
         
-        self.data = {}
         self.npcs = {}
         self.names = set()
+        self.filtered = []
         self.modified = False
         
         try:
             with open("json/data.json", mode="r", encoding="utf-8") as f:
-                self.data = json.load(f)
-                for k, d in self.data.get("npcs",{}).items():
+                data = json.load(f)
+                for k, d in data.get("npcs",{}).items():
                     if isinstance(d, list):
                         if not d[0]:
                             self.npcs[k] = None
-                for k, d in self.data.get("lookup",{}).items():
+                for k, d in data.get("lookup",{}).items():
                     if "@@" in d:
                         n = d.split("@@", 1)[1].split(" ", 1)[1]
                     else: n = d
                     nt = n.split(" ")
                     i = 0
                     while i < len(nt):
-                        if nt[i] in ["N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger"]:
+                        if nt[i] in ["npc", "summon", "weapon", "enemy", "main", "character", "job", "outfit", "skin", "gran / djeeta", "class", "N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger"]:
                             i += 1
                         else:
                             break
@@ -42,18 +42,37 @@ class Editor(Tk.Tk):
                     if k in self.npcs:
                         self.npcs[k] = n
         except Exception as e:
+            messagebox.showerror("Error", "Failed to open 'json/data.json'.\nExiting...")
             print(e)
             print("Failed to open GBFAL data.json")
             print("Exiting...")
             exit(0)
 
-        self.names = list(self.names)
+        try:
+            with open("json/name_data.json", mode="r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            print(e)
+            data = {"table":{}, "names":[]}
+            if "No such file" not in str(e):
+                messagebox.showerror("Error", "Failed to open 'json/name_data.json'.\nClose this app and fix it.")
+
+        self.names = list(set(data["names"] + list(self.names)))
         self.names.sort()
+        self.filtered = self.names
+        for k, v in data["table"].items():
+            if k in self.npcs and v is not None:
+                self.npcs[k] = v
         
         # ui
         Tk.Label(self, text="Names").grid(row=0, column=0, sticky="w")
-        self.nvar = Tk.Variable(value=self.names)
-        self.nlist = Tk.Listbox(self, listvariable=self.nvar, height=self.LISTSIZE, selectmode=Tk.SINGLE, width=self.NWIDTH)
+        self.search_str = Tk.StringVar()
+        self.search = Tk.Entry(self, textvariable=self.search_str)
+        self.search.grid(row=0, column=1, sticky="wesn")
+        self.search.bind('<Return>', self.filter)
+        
+        self.nvar = Tk.Variable(value=self.filtered)
+        self.nlist = Tk.Listbox(self, listvariable=self.nvar, height=self.LISTSIZE, selectmode=Tk.SINGLE, exportselection=False, width=self.NWIDTH)
         self.nlist.grid(row=1, column=0, rowspan=self.LISTSIZE, columnspan=2, sticky="wesn")
         
         Tk.Button(self, text="Add", command=self.add_name).grid(row=self.LISTSIZE+1, column=0, sticky="wesn")
@@ -65,9 +84,8 @@ class Editor(Tk.Tk):
         
         Tk.Label(self, text="NPCs").grid(row=0, column=3, sticky="w")
         knpc = list(self.npcs.keys())
-        knpc.sort()
         self.svar = Tk.Variable(value=knpc)
-        self.slist = Tk.Listbox(self, listvariable=self.svar, height=self.LISTSIZE, selectmode=Tk.SINGLE)
+        self.slist = Tk.Listbox(self, listvariable=self.svar, height=self.LISTSIZE, selectmode=Tk.SINGLE, exportselection=False)
         self.slist.grid(row=1, column=3, rowspan=self.LISTSIZE, columnspan=2, sticky="wesn")
         self.slist.bind('<<ListboxSelect>>', self.npc_selected)
         try: self.slist.select_set(0)
@@ -87,27 +105,70 @@ class Editor(Tk.Tk):
         self.current.grid(row=1, column=6, columnspan=5, sticky="w")
         self.currentvalue = Tk.Label(self, text="")
         self.currentvalue.grid(row=2, column=6, columnspan=5, sticky="w")
-        self.slist.event_generate("<<ListboxSelect>>")
+        self.npc_selected()
         
         Tk.Button(self, text="Update name", command=self.update_npc).grid(row=3, column=6, sticky="wesn")
         
         Tk.Button(self, text="Save", command=self.save).grid(row=0, column=20, sticky="wesn")
 
     def close(self) -> None:
+        self.save()
         self.destroy()
 
-    def save(self) -> None:
-        self.remaining.config(text="{} nameless NPCs".format(list(self.npcs.values()).count(None)))
+    def filter(self, event = None) -> None:
+        sstr = self.search_str.get().strip()
+        a = self.nlist.curselection()
+        if len(a) == 0: a = None
+        else: a = a[0]
+        if sstr == "":
+            try: 
+                a = self.names.index(self.filtered[a])
+            except:
+                a = None
+            self.filtered = self.names
+        else:
+            sstr = sstr.split(" ")
+            tmp = []
+            for n in self.names:
+                for s in sstr:
+                    if s in n:
+                        tmp.append(n)
+                        break
+            try:
+                a = test.index(self.filtered[a])
+            except:
+                a = None
+            self.filtered = tmp
+        self.nvar.set(self.filtered)
+        if a is not None:
+            try:
+                self.nlist.selection_clear(0, Tk.END)
+                self.nlist.select_set(a)
+                self.nlist.yview(a)
+            except:
+                pass
 
-    def npc_selected(self, event) -> None:
+    def save(self) -> None:
+        if self.modified:
+            if messagebox.askquestion(title="Save", message="Save the changes?") == "yes":
+                try:
+                    with open('json/name_data.json', mode='w', encoding='utf-8') as outfile:
+                        json.dump({"table":self.npcs, "names":self.names}, outfile)
+                    self.modified = False
+                    self.remaining.config(text="{} nameless NPCs".format(list(self.npcs.values()).count(None)))
+                except Exception as e:
+                    messagebox.showerror("Error", "An error occured: '{}'".format(e))
+
+    def npc_selected(self, event = None) -> None:
         a = self.slist.curselection()
         if len(a) == 0:
-            self.current.config(text="")
+            self.current.config(text="NPC NOT SELECTED")
+            self.currentvalue.config(text="---------------------------- Not Set ----------------------------")
             return
         a = a[0]
         k = list(self.npcs.keys())[a]
         self.current.config(text="ID: {}".format(k))
-        if self.npcs[k] is None: s = "Not Set"
+        if self.npcs[k] is None: s = "---------------------------- Not Set ----------------------------"
         else: s = self.npcs[k]
         self.currentvalue.config(text=s)
 
@@ -119,22 +180,33 @@ class Editor(Tk.Tk):
         else:
             self.names.append(n)
             self.names.sort()
-            i = self.names.index(n)
-            self.nvar.set(self.names)
-            self.nlist.selection_clear(0, Tk.END)
-            self.nlist.select_set(i)
-            self.nlist.yview(i)
+            self.modified = True
+            self.filter()
+            try:
+                a = self.filtered.index(n)
+                self.nlist.selection_clear(0, Tk.END)
+                self.nlist.select_set(a)
+                self.nlist.yview(a)
+            except:
+                pass
 
     def del_name(self) -> None:
         a = self.nlist.curselection()
         if len(a) == 0: return
         a = a[0]
-        if a < 0 or a >= len(self.names): return
+        if a < 0 or a >= len(self.filtered): return
+        a = self.names.index(self.filtered[a])
         if messagebox.askquestion(title="Confirm", message="Delete the entry: '{}' ?".format(self.names[a])) == "yes":
-            self.names = self.names[:a] + self.names[a+1:]
-            self.nvar.set(self.names)
-            self.nlist.selection_clear(0, Tk.END)
-            self.nlist.select_set(max(0, a-1))
+            del self.names[a]
+            self.modified = True
+            self.filter()
+            try:
+                a = max(0, a-1)
+                self.nlist.selection_clear(0, Tk.END)
+                self.nlist.select_set(a)
+                self.nlist.yview(a)
+            except:
+                pass
 
     def previous_npc(self) -> None:
         a = self.slist.curselection()
@@ -152,7 +224,7 @@ class Editor(Tk.Tk):
         self.slist.selection_clear(0, Tk.END)
         self.slist.select_set(i)
         self.slist.yview(i)
-        self.slist.event_generate("<<ListboxSelect>>")
+        self.npc_selected()
 
     def next_npc(self) -> None:
         a = self.slist.curselection()
@@ -170,7 +242,7 @@ class Editor(Tk.Tk):
         self.slist.selection_clear(0, Tk.END)
         self.slist.select_set(i)
         self.slist.yview(i)
-        self.slist.event_generate("<<ListboxSelect>>")
+        self.npc_selected()
 
     def update_npc(self) -> None:
         a = self.nlist.curselection()
@@ -178,15 +250,17 @@ class Editor(Tk.Tk):
         a = a[0] if len(a) > 0 else 0
         b = b[0] if len(b) > 0 else 0
         try:
-            a = self.names[a]
+            a = self.filtered[a]
         except:
             return
         try:
             b = list(self.npcs.keys())[b]
         except:
             return
-        
-        print(a, b)
+        self.modified = True
+        self.npcs[b] = a
+        self.bell()
+        self.npc_selected()
 
 if __name__ == "__main__": # entry point
     Editor().mainloop()

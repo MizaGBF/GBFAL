@@ -172,13 +172,13 @@ class Updater():
     CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
     SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
     SPECIAL_LOOKUP = { # special elements
-        "3020065000": "r character brown poppet trial 3020065000",
-        "3030158000": "sr character blue poppet trial 3030158000",
-        "3040097000": "ssr character sierokarte trial 3040097000",
-        "2030004000": "sr summon fire cut-content 2030004000",
-        "2030014000": "sr summon dark cut-content 2030014000",
-        "2020001000": "sr summon goblin earth cut-content 2020001000",
-        "3040114000": "ssr character cut-content 3040114000",
+        "3020065000": "R character brown poppet trial 3020065000",
+        "3030158000": "SR character blue poppet trial 3030158000",
+        "3040097000": "SSR character sierokarte trial 3040097000",
+        "2030004000": "SR summon fire cut-content 2030004000",
+        "2030014000": "SR summon dark cut-content 2030014000",
+        "2020001000": "SR summon goblin earth cut-content 2020001000",
+        "3040114000": "SSR character cut-content 3040114000",
         "3710015000": "character outfit skin lina 3710015000"
     }
     MALINDA = "3030093000"
@@ -2147,7 +2147,6 @@ class Updater():
                     result.append(f)
         else:
             err = 0
-            run = True
             while len(str(index)) <= zfill:
                 found = False
                 for p in post: # check if already processed in the past
@@ -2217,6 +2216,23 @@ class Updater():
     # Check for new elements to lookup on the wiki, to update the lookup list
     async def buildLookup(self) -> None:
         if not self.use_wiki: return
+        # manual npcs
+        try:
+            with open("json/name_data.json", mode="r", encoding="utf-8") as f:
+                data = json.load(f)
+                for k, v in data["table"].items():
+                    try:
+                        if v is not None and not self.data["npcs"].get(k, [False])[self.NPC_JOURNAL]:
+                            l = "npc " + v + " " + k
+                            if l != self.data["lookup"].get(k, ""):
+                                self.data["lookup"][k] = l
+                                self.modified = True
+                    except Exception as e:
+                        print(e)
+                        print(k, v)
+        except:
+            pass
+        # first pass
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
         fields = {'characters':'id,rarity,name,series,element,race,gender,type,weapon,jpname,va,jpva', 'weapons':'id,type,rarity,name,series,element,jpname', 'summons':'id,rarity,name,series,element,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva'}
         modified = set()
