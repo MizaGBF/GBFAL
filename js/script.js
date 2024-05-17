@@ -2269,7 +2269,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         div.appendChild(document.createElement('br'));
         for(let t of index["lookup"][lid].split(' '))
         {
-            if(t.substr(0, 2) == "@@") continue;
+            if(t.substr(0, 2) == "@@" || t == "") continue;
             let i = document.createElement('i');
             i.classList.add("tag");
             i.classList.add("clickable");
