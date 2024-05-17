@@ -1,6 +1,7 @@
 import tkinter as Tk
 from tkinter.simpledialog import askstring, messagebox
 import json
+import sys
 
 class Editor(Tk.Tk):
     LISTSIZE = 40
@@ -51,18 +52,25 @@ class Editor(Tk.Tk):
         try:
             with open("json/name_data.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
+                if not isinstance(data["names"], list) or not isinstance(data["table"], dict):
+                    raise Exception("Invalid JSON structure")
         except Exception as e:
             print(e)
             data = {"table":{}, "names":[]}
             if "No such file" not in str(e):
                 messagebox.showerror("Error", "Failed to open 'json/name_data.json'.\nClose this app and fix it.")
 
-        self.names = list(set(data["names"] + list(self.names)))
-        self.names.sort()
-        self.filtered = self.names
         for k, v in data["table"].items():
             if k in self.npcs and v is not None:
                 self.npcs[k] = v
+        self.names = list(self.names)
+        vnpcs = set(self.npcs.values())
+        for n in data["names"]:
+            if n in vnpcs:
+                self.names.append(n)
+        self.names = list(set(self.names))
+        self.names.sort()
+        self.filtered = self.names
         
         # ui
         Tk.Label(self, text="Names").grid(row=0, column=0, sticky="w")
