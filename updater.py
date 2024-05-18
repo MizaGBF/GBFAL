@@ -2219,7 +2219,9 @@ class Updater():
                 for k, v in data["table"].items():
                     try:
                         if v is not None and not self.data["npcs"].get(k, [False])[self.NPC_JOURNAL]:
-                            l = v + " " + k
+                            if v == "": continue
+                            if v.split(" ")[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: l = " ".join(v.split(" ")[1:]) + " " + k
+                            else: l = v + " " + k
                             if l != self.data["lookup"].get(k, ""):
                                 self.data["lookup"][k] = l
                                 modified.add(k)
