@@ -1562,7 +1562,14 @@ function search(id) // generate search results
         }
         if(matching)
         {
-            positives.push([value, (value.length == 6 ? 0 : (["305", "399"].includes(value.slice(0, 3)) ? 5 : parseInt(value[0])))]);
+            let et = 0;
+            switch(value.length)
+            {
+                case 6: et = 0; break; // mc
+                case 7: et = 4; break; // boss
+                default: et = (["305", "399"].includes(value.slice(0, 3)) ? 5 : parseInt(value[0])); break;
+            }
+            positives.push([value, et]);
         }
     }
     // sort (per type (npcs > character > summon > weapon > classes) and per id)
@@ -1591,25 +1598,30 @@ function search(id) // generate search results
     updateSearchResuls();
 }
 
-function updateSearchResuls()
+function get_search_filter_states()
 {
-    if(searchResults.length == 0) return;
-    // read
     let searchFilters = localStorage.getItem("gbfal-search");
     if(searchFilters != null)
     {
         try
         {
             searchFilters = JSON.parse(searchFilters);
-            while(searchFilters.length < 6) searchFilters.push(true); // retrocompability
+            while(searchFilters.length < 7) searchFilters.push(true); // retrocompability
         }
         catch(err)
         {
             console.error("Exception thrown", err.stack);
-            searchFilters = [true, true, true, true, true, true];
+            searchFilters = [true, true, true, true, true, true, true];
         }
     }
-    else searchFilters = [true, true, true, true, true, true];
+    else searchFilters = [true, true, true, true, true, true, true];
+    return searchFilters;
+}
+
+function updateSearchResuls()
+{
+    if(searchResults.length == 0) return;
+    const searchFilters = get_search_filter_states();
     // filter results
     let results = [];
     for(let e of searchResults)
@@ -1628,6 +1640,10 @@ function updateSearchResuls()
                 break;
             case 5:
                 if(searchFilters[4]) // npcs
+                    results.push(e);
+                break;
+            case 4:
+                if(searchFilters[6]) // enemies
                     results.push(e);
                 break;
             default:
@@ -1654,7 +1670,7 @@ function updateSearchResuls()
     let div = document.createElement("div");
     div.classList.add("std-button-container");
     node.appendChild(div);
-    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"], [3, "Skins"], [4, "NPCs"], [5, "MCs"]])
+    for(const e of [[0, "Weapons"], [1, "Summons"], [2, "Characters"], [3, "Skins"], [4, "NPCs"], [5, "MCs"], [6, "Enemies"]])
     {
         let input = document.createElement("input");
         input.type = "checkbox";
@@ -1683,22 +1699,7 @@ function updateSearchResuls()
 
 function toggleSearchFilter(indice)
 {
-    // read
-    let searchFilters = localStorage.getItem("gbfal-search");
-    if(searchFilters != null)
-    {
-        try
-        {
-            searchFilters = JSON.parse(searchFilters);
-            while(searchFilters.length < 6) searchFilters.push(true); // retrocompability
-        }
-        catch(err)
-        {
-            console.error("Exception thrown", err.stack);
-            searchFilters = [true, true, true, true, true, true];
-        }
-    }
-    else searchFilters = [true, true, true, true, true, true];
+    let searchFilters = get_search_filter_states();
     // toggle
     searchFilters[indice] = !searchFilters[indice];
     // write

@@ -2228,18 +2228,26 @@ class Updater():
                 data = json.load(f)
                 for k, v in data.items():
                     try:
-                        if v is not None and not self.data["npcs"].get(k, [False])[self.NPC_JOURNAL]:
-                            if v == "": continue
-                            if v.split(" ")[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: l = " ".join(v.split(" ")[1:]) + " " + k
-                            else: l = v + " " + k
-                            if l != self.data["lookup"].get(k, ""):
-                                self.data["lookup"][k] = l
-                                modified.add(k)
-                    except Exception as e:
-                        print(e)
-                        print(k, v)
-        except:
-            pass
+                        if v is None or v == "": continue
+                        match len(k):
+                            case 10: # npc
+                                if self.data["npcs"].get(k, [False])[self.NPC_JOURNAL]: continue
+                                if "$$" in v:
+                                    v = " ".join(v.split("$$")[0])
+                            case 7: # enemy
+                                if "$$" in v:
+                                    vs = v.split("$$")
+                                    v = vs[1] + " " + vs[0]
+                        vs = v.split(" ")
+                        if vs[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: vs = vs[1:]
+                        l = (" ".join(vs) + " " + k).strip().replace('  ', ' ')
+                        if l != self.data["lookup"].get(k, ""):
+                            self.data["lookup"][k] = l
+                            modified.add(k)
+                    except:
+                        pass
+        except Exception as e:
+            print("An error occured while reading name_data.json:", e)
         # first pass
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
         fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva', 'weapons':'id,element,type,rarity,name,series,jpname', 'summons':'id,element,rarity,name,series,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva'}
@@ -2293,7 +2301,7 @@ class Updater():
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
                         looks.append(id)
-                        looks = html.unescape(html.unescape(" ".join(looks))).replace(',<br />', ' ').replace('<br />', ' ')
+                        looks = html.unescape(html.unescape(" ".join(looks))).replace(',<br />', ' ').replace('<br />', ' ').replace('  ', ' ')
                         if id not in self.data['lookup'] or self.data['lookup'][id] != looks:
                             self.data['lookup'][id] = looks
                             modified.add(id)

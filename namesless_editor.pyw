@@ -8,12 +8,12 @@ class Editor(Tk.Tk):
 
     def __init__(self) -> None: # set the directory to tracker.pyw directory if imported as an external module
         Tk.Tk.__init__(self,None)
-        self.title("GBFAL Nameless NPC Editor")
+        self.title("GBFAL Lookup Editor")
         self.resizable(width=False, height=False) # not resizable
         self.minsize(200, 200)
         self.protocol("WM_DELETE_WINDOW", self.close) # call close() if we close the window
         
-        self.npcs = {}
+        self.entries = {}
         self.names = set()
         self.filtered = []
         self.modified = False
@@ -24,7 +24,10 @@ class Editor(Tk.Tk):
                 for k, d in data.get("npcs",{}).items():
                     if isinstance(d, list):
                         if not d[0]:
-                            self.npcs[k] = None
+                            self.entries[k] = None
+                for k, d in data.get("enemies",{}).items():
+                    if isinstance(d, list):
+                        self.entries[k] = None
                 for k, d in data.get("lookup",{}).items():
                     if "@@" in d:
                         n = d.split("@@", 1)[1].split(" ", 1)[1]
@@ -39,8 +42,8 @@ class Editor(Tk.Tk):
                     n = " ".join(nt[i:-1])
                     if n == "": continue
                     self.names.add(n)
-                    if k in self.npcs:
-                        self.npcs[k] = n
+                    if k in self.entries:
+                        self.entries[k] = n
         except Exception as e:
             messagebox.showerror("Error", "Failed to open 'json/data.json'.\nExiting...")
             print(e)
@@ -59,16 +62,22 @@ class Editor(Tk.Tk):
             if "No such file" not in str(e):
                 messagebox.showerror("Error", "Failed to open 'json/name_data.json'.\nClose this app and fix it.")
 
-        knpcs = list(self.npcs.keys())
-        knpcs.sort()
+        k_sort = {}
+        for k in self.entries:
+            if len(k) < 9:
+                k_sort["9" + k.zfill(9)] = k
+            else:
+                k_sort[k] = k
+        keys = list(k_sort.keys())
+        keys.sort()
         tmp = {}
-        for k in knpcs:
-            tmp[k] = self.npcs[k]
-        self.npcs = tmp
+        for k in keys:
+            tmp[k_sort[k]] = self.entries[k_sort[k]]
+        self.entries = tmp
         for k, v in data.items():
-            if k in self.npcs and v is not None:
-                self.npcs[k] = v
-        self.names = set(list(self.names) + list(self.npcs.values()))
+            if k in self.entries and v is not None:
+                self.entries[k] = v
+        self.names = set(list(self.names) + list(self.entries.values()))
         if None in self.names: self.names.remove(None)
         self.names = list(self.names)
         self.names.sort()
@@ -93,35 +102,35 @@ class Editor(Tk.Tk):
         bar.grid(row=1, column=2, rowspan=self.LISTSIZE, sticky="sn")
         self.nlist.config(yscrollcommand=bar.set)
         
-        Tk.Label(self, text="NPCs").grid(row=0, column=3, sticky="w")
-        knpc = list(self.npcs.keys())
-        self.svar = Tk.Variable(value=knpc)
+        Tk.Label(self, text="IDs").grid(row=0, column=3, sticky="w")
+        keys = list(self.entries.keys())
+        self.svar = Tk.Variable(value=keys)
         self.slist = Tk.Listbox(self, listvariable=self.svar, height=self.LISTSIZE, selectmode=Tk.SINGLE, exportselection=False)
         self.slist.grid(row=1, column=3, rowspan=self.LISTSIZE, columnspan=2, sticky="wesn")
-        self.slist.bind('<<ListboxSelect>>', self.npc_selected)
+        self.slist.bind('<<ListboxSelect>>', self.selected)
         try: self.slist.select_set(0)
         except: pass
         
-        Tk.Button(self, text="<<", command=self.previous_npc).grid(row=self.LISTSIZE+1, column=3, sticky="wesn")
-        Tk.Button(self, text=">>", command=self.next_npc).grid(row=self.LISTSIZE+1, column=4, sticky="wesn")
+        Tk.Button(self, text="<<", command=self.previous).grid(row=self.LISTSIZE+1, column=3, sticky="wesn")
+        Tk.Button(self, text=">>", command=self.next).grid(row=self.LISTSIZE+1, column=4, sticky="wesn")
         
         bar = Tk.Scrollbar(self, orient="vertical")
         bar.config(command=self.slist.yview)
         bar.grid(row=1, column=5, rowspan=self.LISTSIZE, sticky="sn")
         self.slist.config(yscrollcommand=bar.set)
         
-        self.remaining = Tk.Label(self, text="{} nameless NPCs".format(list(self.npcs.values()).count(None)))
+        self.remaining = Tk.Label(self, text="{} nameless Entries".format(list(self.entries.values()).count(None)))
         self.remaining.grid(row=0, column=6, columnspan=5, sticky="w")
         
         self.current = Tk.Label(self, text="")
         self.current.grid(row=1, column=6, columnspan=5, sticky="w")
         self.currentvalue = Tk.Label(self, text="")
         self.currentvalue.grid(row=2, column=6, columnspan=5, sticky="w")
-        self.npc_selected()
+        self.selected()
         
-        Tk.Button(self, text="Update name", command=self.update_npc).grid(row=3, column=6, sticky="wesn")
-        Tk.Button(self, text="New name", command=self.new_npc).grid(row=4, column=6, sticky="wesn")
-        Tk.Button(self, text="Clear", command=self.clear_npc).grid(row=5, column=6, sticky="wesn")
+        Tk.Button(self, text="Update name", command=self.update).grid(row=3, column=6, sticky="wesn")
+        Tk.Button(self, text="New name", command=self.new_name).grid(row=4, column=6, sticky="wesn")
+        Tk.Button(self, text="Clear", command=self.clear_name).grid(row=5, column=6, sticky="wesn")
         
         Tk.Button(self, text="Save", command=self.save).grid(row=0, column=20, sticky="wesn")
 
@@ -170,27 +179,27 @@ class Editor(Tk.Tk):
             if messagebox.askquestion(title="Save", message="Save the changes?") == "yes":
                 try:
                     with open('json/name_data.json', mode='w', encoding='utf-8') as outfile:
-                        json.dump(self.npcs, outfile)
+                        json.dump(self.entries, outfile)
                     self.modified = False
-                    self.remaining.config(text="{} nameless NPCs".format(list(self.npcs.values()).count(None)))
+                    self.remaining.config(text="{} nameless NPCs".format(list(self.entries.values()).count(None)))
                 except Exception as e:
                     messagebox.showerror("Error", "An error occured: '{}'".format(e))
 
-    def npc_selected(self, event = None) -> None:
+    def selected(self, event = None) -> None:
         a = self.slist.curselection()
         if len(a) == 0:
-            self.current.config(text="NPC NOT SELECTED")
+            self.current.config(text="NO ENTRY SELECTED")
             self.currentvalue.config(text="---------------------------- Not Set ----------------------------")
             return
         a = a[0]
-        k = list(self.npcs.keys())[a]
+        k = list(self.entries.keys())[a]
         self.current.config(text="ID: {}".format(k))
-        if self.npcs[k] is None: s = "---------------------------- Not Set ----------------------------"
-        else: s = self.npcs[k]
+        if self.entries[k] is None: s = "---------------------------- Not Set ----------------------------"
+        else: s = self.entries[k]
         self.currentvalue.config(text=s)
 
     def add_name(self, silent : bool = False) -> None:
-        n = askstring('Add a name', 'Input a NPC tag')
+        n = askstring('Add a name', 'Input the lookup string')
         if n in ["", None]: return None
         n = n.lower()
         if n in self.names:
@@ -216,7 +225,7 @@ class Editor(Tk.Tk):
         a = a[0]
         if a < 0 or a >= len(self.filtered): return
         a = self.names.index(self.filtered[a])
-        if messagebox.askquestion(title="Confirm", message="Delete the entry: '{}' ?".format(self.names[a])) == "yes":
+        if messagebox.askquestion(title="Confirm", message="Delete the name: '{}' ?".format(self.names[a])) == "yes":
             del self.names[a]
             self.modified = True
             self.filter()
@@ -228,37 +237,37 @@ class Editor(Tk.Tk):
             except:
                 pass
 
-    def previous_npc(self) -> None:
+    def previous(self) -> None:
         a = self.slist.curselection()
         if len(a) == 0: return
         a = a[0]
-        keys = list(self.npcs.keys())
-        for i in range(len(self.npcs)):
+        keys = list(self.entries.keys())
+        for i in range(len(self.entries)):
             a -= 1
-            if a < 0: a = len(self.npcs) - 1
-            if self.npcs[keys[a]] is None:
+            if a < 0: a = len(self.entries) - 1
+            if self.entries[keys[a]] is None:
                 break
         self.slist.selection_clear(0, Tk.END)
         self.slist.select_set(a)
         self.slist.yview(a)
-        self.npc_selected()
+        self.selected()
 
-    def next_npc(self) -> None:
+    def next(self) -> None:
         a = self.slist.curselection()
         if len(a) == 0: return
         a = a[0]
-        keys = list(self.npcs.keys())
-        for i in range(len(self.npcs)):
+        keys = list(self.entries.keys())
+        for i in range(len(self.entries)):
             a += 1
-            if a >= len(self.npcs): a = 0
-            if self.npcs[keys[a]] is None:
+            if a >= len(self.entries): a = 0
+            if self.entries[keys[a]] is None:
                 break
         self.slist.selection_clear(0, Tk.END)
         self.slist.select_set(a)
         self.slist.yview(a)
-        self.npc_selected()
+        self.selected()
 
-    def update_npc(self) -> None:
+    def update(self) -> None:
         a = self.nlist.curselection()
         b = self.slist.curselection()
         a = a[0] if len(a) > 0 else 0
@@ -268,39 +277,39 @@ class Editor(Tk.Tk):
         except:
             return
         try:
-            b = list(self.npcs.keys())[b]
+            b = list(self.entries.keys())[b]
         except:
             return
         self.modified = True
-        self.npcs[b] = a
+        self.entries[b] = a
         self.bell()
-        self.npc_selected()
+        self.selected()
 
-    def new_npc(self) -> None:
+    def new_name(self) -> None:
         b = self.slist.curselection()
         b = b[0] if len(b) > 0 else 0
         try:
-            b = list(self.npcs.keys())[b]
+            b = list(self.entries.keys())[b]
         except:
             return
         a = self.add_name(silent=True)
         if a is None: return
-        self.npcs[b] = a
+        self.entries[b] = a
         self.modified = True
         self.bell()
-        self.npc_selected()
+        self.selected()
 
-    def clear_npc(self) -> None:
+    def clear_name(self) -> None:
         try: b = self.slist.curselection()[0]
         except: return
         try:
-            b = list(self.npcs.keys())[b]
+            b = list(self.entries.keys())[b]
         except:
             return
         self.modified = True
-        self.npcs[b] = None
+        self.entries[b] = None
         self.bell()
-        self.npc_selected()
+        self.selected()
 
 if __name__ == "__main__": # entry point
     Editor().mainloop()
