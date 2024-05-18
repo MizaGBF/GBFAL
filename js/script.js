@@ -197,7 +197,12 @@ function initData() // load data.json
     try
     {
         index = JSON.parse(this.response); // read
-        index["lookup_reverse"] = swap(index["lookup"]); // create reversed lookup
+        index["lookup_reverse"] = {} // create reversed lookup for search
+        for(const [key, value] of Object.entries(index['lookup']))
+        {
+            if(!(value in index["lookup_reverse"])) index["lookup_reverse"][value] = [];
+            index["lookup_reverse"][value].push(key);
+        }
         if(updated.length > 0) // init Updated list
         {
             updateList(document.getElementById('new'), updated);
@@ -1579,16 +1584,19 @@ function search(id) // generate search results
         }
         if(matching)
         {
-            let et = 0;
-            switch(value.length)
+            for(const v of value)
             {
-                case 6: et = 0; break; // mc
-                case 7: et = 4; break; // boss
-                default: et = (["305", "399"].includes(value.slice(0, 3)) ? 5 : parseInt(value[0])); break;
+                let et = 0;
+                switch(v.length)
+                {
+                    case 6: et = 0; break; // mc
+                    case 7: et = 4; break; // boss
+                    default: et = (["305", "399"].includes(v.slice(0, 3)) ? 5 : parseInt(v[0])); break;
+                }
+                if(counters[et] >= SEARCH_LIMIT) break;
+                counters[et]++;
+                positives.push([v, et]);
             }
-            if(counters[et] >= SEARCH_LIMIT) continue;
-            counters[et]++;
-            positives.push([value, et]);
         }
     }
     // sort (per type (npcs > character > summon > weapon > classes) and per id)
