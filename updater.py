@@ -2234,7 +2234,7 @@ class Updater():
                 for k, v in data.items():
                     try:
                         if v is None or v == "": continue
-                        if "$$" not in v and "$" in v: print("Please double check", k, "in name_data.json")
+                        if "$$" not in v and "$" in v: print("Missing $ Warning for", k, "in name_data.json")
                         match len(k):
                             case 10: # npc
                                 if self.data["npcs"].get(k, [False])[self.NPC_JOURNAL]: continue
@@ -2244,6 +2244,7 @@ class Updater():
                             case 7: # enemy
                                 if "$$" in v:
                                     vs = v.split("$$")
+                                    if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null"]: print("Element Warning for", k, "in name_data.json")
                                     v = vs[1] + " " + vs[0]
                                 append = ""
                         vs = v.split(" ")

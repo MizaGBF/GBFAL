@@ -2272,7 +2272,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
         did_lookup = true;
     }
     // add tags if they exist
-    if(lid in index["lookup"] && index["lookup"][lid].split(' ').length > 1)
+    if(lid in index["lookup"] && index["lookup"][lid].split(' ').length > 0)
     {
         div.appendChild(document.createElement('br'));
         for(let t of index["lookup"][lid].split(' '))
