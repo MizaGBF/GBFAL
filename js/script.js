@@ -2288,7 +2288,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
                 case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": i.classList.add("tag-gold"); break;
                 case "sr": i.classList.add("tag-silver"); break;
                 case "r": i.classList.add("tag-bronze"); break;
-                case "n": case "gran": case "djeeta": i.classList.add("tag-normal"); break;
+                case "n": case "gran": case "djeeta": case "null": i.classList.add("tag-normal"); break;
                 case "fire": i.classList.add("tag-fire"); break;
                 case "water": i.classList.add("tag-water"); break;
                 case "earth": i.classList.add("tag-earth"); break;

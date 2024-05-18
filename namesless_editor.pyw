@@ -1,10 +1,14 @@
 import tkinter as Tk
 from tkinter.simpledialog import askstring, messagebox
 import json
+import asyncio
+import aiohttp
+import html
 
 class Editor(Tk.Tk):
     LISTSIZE = 40
     NWIDTH = 150
+    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
 
     def __init__(self) -> None: # set the directory to tracker.pyw directory if imported as an external module
         Tk.Tk.__init__(self,None)
@@ -83,6 +87,8 @@ class Editor(Tk.Tk):
         self.names.sort()
         self.filtered = self.names
         
+        asyncio.run(self.init_enemies())
+        
         # ui
         Tk.Label(self, text="Names").grid(row=0, column=0, sticky="w")
         self.search_str = Tk.StringVar()
@@ -130,9 +136,36 @@ class Editor(Tk.Tk):
         
         Tk.Button(self, text="Update name", command=self.update).grid(row=3, column=6, sticky="wesn")
         Tk.Button(self, text="New name", command=self.new_name).grid(row=4, column=6, sticky="wesn")
-        Tk.Button(self, text="Clear", command=self.clear_name).grid(row=5, column=6, sticky="wesn")
+        Tk.Button(self, text="Edit name", command=self.edit_name).grid(row=5, column=6, sticky="wesn")
+        Tk.Button(self, text="Clear", command=self.clear_name).grid(row=6, column=6, sticky="wesn")
         
         Tk.Button(self, text="Save", command=self.save).grid(row=0, column=20, sticky="wesn")
+
+    async def init_enemies(self) -> None:
+        try:
+            m_count = 0
+            async with aiohttp.ClientSession("https://gbf.wiki") as session:
+                async with session.get("/index.php?title=Special:CargoExport&tables=enemies&fields=_pageName,icon_s,icon_m,name,element&format=json&limit=30000", headers={'User-Agent':self.USER_AGENT}, timeout=5) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        for e in data:
+                            if (e["icon s"] is None and e["icon m"] is None) or e["name"] is None or e["element"] is None: continue
+                            if e["icon s"] is not None:
+                                id = e["icon s"].split(' ')[2]
+                            else:
+                                id = e["icon m"].split(' ')[2]
+                            if self.entries.get(id, "") is not None: continue
+                            element = e["element"].lower()
+                            if element == "none": element = "null"
+                            l = html.unescape(html.unescape(e["name"].lower().strip())) + " $$" + element
+                            if l != self.entries[id]:
+                                self.entries[id] = l
+                                m_count += 1
+            if m_count > 0:
+                self.modified = True
+                print(m_count, "enemies have been auto-initialized using the wiki")
+        except Exception as e:
+            print("Failed to access the wiki to retrieve the enemy list:", e)
 
     def close(self) -> None:
         self.save()
@@ -179,7 +212,7 @@ class Editor(Tk.Tk):
             if messagebox.askquestion(title="Save", message="Save the changes?") == "yes":
                 try:
                     with open('json/name_data.json', mode='w', encoding='utf-8') as outfile:
-                        json.dump(self.entries, outfile)
+                        json.dump(self.entries, outfile, separators=(',', ':'), ensure_ascii=False, indent=0)
                     self.modified = False
                     self.remaining.config(text="{} nameless NPCs".format(list(self.entries.values()).count(None)))
                 except Exception as e:
@@ -198,8 +231,8 @@ class Editor(Tk.Tk):
         else: s = self.entries[k]
         self.currentvalue.config(text=s)
 
-    def add_name(self, silent : bool = False) -> None:
-        n = askstring('Add a name', 'Input the lookup string')
+    def add_name(self, silent : bool = False, init : str = "") -> None:
+        n = askstring('Add a name', 'Input the lookup string', initialvalue=init)
         if n in ["", None]: return None
         n = n.lower()
         if n in self.names:
@@ -285,19 +318,22 @@ class Editor(Tk.Tk):
         self.bell()
         self.selected()
 
-    def new_name(self) -> None:
+    def new_name(self, init : bool = False) -> None:
         b = self.slist.curselection()
         b = b[0] if len(b) > 0 else 0
         try:
             b = list(self.entries.keys())[b]
         except:
             return
-        a = self.add_name(silent=True)
+        a = self.add_name(silent=True, init=(self.entries[b] if init else ""))
         if a is None: return
         self.entries[b] = a
         self.modified = True
         self.bell()
         self.selected()
+
+    def edit_name(self) -> None:
+        self.new_name(init=True)
 
     def clear_name(self) -> None:
         try: b = self.slist.curselection()[0]

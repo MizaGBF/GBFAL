@@ -1730,7 +1730,11 @@ class Updater():
                     await self.head(self.IMG + "sp/assets/enemy/s/{}.png".format(id))
                     data[self.BOSS_GENERAL].append("{}".format(id))
                 except:
-                    return False
+                    try:
+                        await self.head(self.IMG + "sp/assets/enemy/m/{}.png".format(id))
+                        data[self.BOSS_GENERAL].append("{}".format(id))
+                    except:
+                        return False
                 # sprite
                 try:
                     fn = "enemy_{}".format(id)
@@ -2224,23 +2228,27 @@ class Updater():
         modified = set()
         # manual npcs
         try:
+            print("Importing name_data.json ...")
             with open("json/name_data.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
                 for k, v in data.items():
                     try:
                         if v is None or v == "": continue
+                        if "$$" not in v and "$" in v: print("Please double check", k, "in name_data.json")
                         match len(k):
                             case 10: # npc
                                 if self.data["npcs"].get(k, [False])[self.NPC_JOURNAL]: continue
                                 if "$$" in v:
                                     v = " ".join(v.split("$$")[0])
+                                append = k
                             case 7: # enemy
                                 if "$$" in v:
                                     vs = v.split("$$")
                                     v = vs[1] + " " + vs[0]
+                                append = ""
                         vs = v.split(" ")
                         if vs[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: vs = vs[1:]
-                        l = (" ".join(vs) + " " + k).strip().replace('  ', ' ')
+                        l = (" ".join(vs) + " " + append).lower().strip().replace('  ', ' ')
                         if l != self.data["lookup"].get(k, ""):
                             self.data["lookup"][k] = l
                             modified.add(k)
