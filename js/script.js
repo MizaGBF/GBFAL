@@ -1045,8 +1045,15 @@ function addIndexImage(node, path, id, onerr, className, is_link) // add an imag
             this.classList.add("index-image");
             this.onclick = function()
             {
-                window.scrollTo(0, 0);
-                lookup(id);
+                if(window.event.ctrlKey) // open new window
+                {
+                    window.open("?id="+id, '_blank').focus();
+                }
+                else
+                {
+                    window.scrollTo(0, 0);
+                    lookup(id);
+                }
             };
         };
         img.src = path.replace("GBF/", idToEndpoint(id));
