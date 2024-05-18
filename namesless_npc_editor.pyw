@@ -95,6 +95,7 @@ class Editor(Tk.Tk):
         bar = Tk.Scrollbar(self, orient="vertical")
         bar.config(command=self.nlist.yview)
         bar.grid(row=1, column=2, rowspan=self.LISTSIZE, sticky="sn")
+        self.nlist.config(yscrollcommand=bar.set)
         
         Tk.Label(self, text="NPCs").grid(row=0, column=3, sticky="w")
         knpc = list(self.npcs.keys())
@@ -111,6 +112,7 @@ class Editor(Tk.Tk):
         bar = Tk.Scrollbar(self, orient="vertical")
         bar.config(command=self.slist.yview)
         bar.grid(row=1, column=5, rowspan=self.LISTSIZE, sticky="sn")
+        self.slist.config(yscrollcommand=bar.set)
         
         self.remaining = Tk.Label(self, text="{} nameless NPCs".format(list(self.npcs.values()).count(None)))
         self.remaining.grid(row=0, column=6, columnspan=5, sticky="w")
