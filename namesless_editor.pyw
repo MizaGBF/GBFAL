@@ -43,7 +43,7 @@ class Editor(Tk.Tk):
                             i += 1
                         else:
                             break
-                    n = " ".join(nt[i:-1])
+                    n = " ".join(nt[i:])
                     if n == "": continue
                     self.names.add(n)
                     if k in self.entries:
