@@ -1,7 +1,6 @@
 import tkinter as Tk
 from tkinter.simpledialog import askstring, messagebox
 import json
-import sys
 
 class Editor(Tk.Tk):
     LISTSIZE = 40
@@ -33,7 +32,7 @@ class Editor(Tk.Tk):
                     nt = n.split(" ")
                     i = 0
                     while i < len(nt):
-                        if nt[i] in ["/", "N", "R", "SR", "SSR", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
+                        if nt[i] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
                             i += 1
                         else:
                             break
@@ -52,11 +51,11 @@ class Editor(Tk.Tk):
         try:
             with open("json/name_data.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
-                if not isinstance(data["names"], list) or not isinstance(data["table"], dict):
+                if not isinstance(data, dict):
                     raise Exception("Invalid JSON structure")
         except Exception as e:
             print(e)
-            data = {"table":{}, "names":[]}
+            data = {}
             if "No such file" not in str(e):
                 messagebox.showerror("Error", "Failed to open 'json/name_data.json'.\nClose this app and fix it.")
 
@@ -66,15 +65,12 @@ class Editor(Tk.Tk):
         for k in knpcs:
             tmp[k] = self.npcs[k]
         self.npcs = tmp
-        for k, v in data["table"].items():
+        for k, v in data.items():
             if k in self.npcs and v is not None:
                 self.npcs[k] = v
+        self.names = set(list(self.names) + list(self.npcs.values()))
+        if None in self.names: self.names.remove(None)
         self.names = list(self.names)
-        vnpcs = set(self.npcs.values())
-        for n in data["names"]:
-            if n in vnpcs:
-                self.names.append(n)
-        self.names = list(set(self.names))
         self.names.sort()
         self.filtered = self.names
         
@@ -174,7 +170,7 @@ class Editor(Tk.Tk):
             if messagebox.askquestion(title="Save", message="Save the changes?") == "yes":
                 try:
                     with open('json/name_data.json', mode='w', encoding='utf-8') as outfile:
-                        json.dump({"table":self.npcs, "names":self.names}, outfile)
+                        json.dump(self.npcs, outfile)
                     self.modified = False
                     self.remaining.config(text="{} nameless NPCs".format(list(self.npcs.values()).count(None)))
                 except Exception as e:

@@ -2220,7 +2220,7 @@ class Updater():
         try:
             with open("json/name_data.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
-                for k, v in data["table"].items():
+                for k, v in data.items():
                     try:
                         if v is not None and not self.data["npcs"].get(k, [False])[self.NPC_JOURNAL]:
                             if v == "": continue
