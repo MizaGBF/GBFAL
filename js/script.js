@@ -1069,8 +1069,15 @@ function addTextImage(node, className, id, string, unusedA, unusedB) // like add
     elem.classList.add("clickable");
     elem.onclick = function()
     {
-        window.scrollTo(0, 0);
-        lookup(id);
+        if(window.event.ctrlKey) // open new window
+        {
+            window.open("?id="+id, '_blank').focus();
+        }
+        else
+        {
+            window.scrollTo(0, 0);
+            lookup(id);
+        }
     };
     elem.title = id;
     elem.appendChild(document.createTextNode(string));
