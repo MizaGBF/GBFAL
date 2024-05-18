@@ -2246,7 +2246,47 @@ class Updater():
                                     vs = v.split("$$")
                                     if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null"]: print("Element Warning for", k, "in name_data.json")
                                     v = vs[1] + " " + vs[0]
-                                append = ""
+                                else:
+                                    print("Element Warning for", k, "in name_data.json")
+                                match k[:2]:
+                                    case "11":
+                                        append = " flying-boss"
+                                    case "12"|"13":
+                                        append = " beast-boss"
+                                    case "21":
+                                        append = " plant-boss"
+                                    case "22":
+                                        append = " insect-boss"
+                                    case "31":
+                                        append = " fish-boss"
+                                    case "41"|"42":
+                                        append = " golem-boss"
+                                    case "43":
+                                        append = " machine-boss"
+                                    case "51":
+                                        append = " otherworld-boss"
+                                    case "52":
+                                        append = " undead-boss"
+                                    case "61":
+                                        append = " goblin-boss"
+                                    case "62":
+                                        append = " people-boss"
+                                    case "63":
+                                        append = " fairy-boss"
+                                    case "71"|"73":
+                                        append = " dragon-boss"
+                                    case "72":
+                                        append = " reptile-boss"
+                                    case "81":
+                                        append = " primal-boss"
+                                    case "82":
+                                        append = " elemental-boss"
+                                    case "83":
+                                        append = " core-boss"
+                                    case "91":
+                                        append = " other-boss"
+                                    case _:
+                                        append =" unknown-boss"
                         vs = v.split(" ")
                         if vs[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: vs = vs[1:]
                         l = (" ".join(vs) + append).lower().strip().replace('  ', ' ')
