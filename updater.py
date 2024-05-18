@@ -630,6 +630,10 @@ class Updater():
         self.save()
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
+            today = datetime.now()
+            tomorrow = today + timedelta(days=1)
+            if today.month != tomorrow.month: # check missing npcs monthly
+                await self.missing_npcs()
             await self.check_msq()
             await self.check_new_event()
             await self.update_npc_thumb()
@@ -2928,6 +2932,22 @@ class Updater():
 
     ### Others ##################################################################################################################
 
+    async def missing_npcs(self) -> None: # check for missing npc
+        try:
+            keys = list(self.data['npcs'].keys())
+            keys.sort()
+            max_id = int(keys[-1][3:7])
+            ids = []
+            for i in range(0, max_id):
+                id = "399" + str(i).zfill(4) + "000"
+                if id not in self.data['npcs']:
+                    ids.append(id)
+            if len(ids) > 0:
+                print("Checking for", len(ids), "missing NPCs...")
+                await self.manualUpdate(ids)
+        except:
+            pass
+
     # Request the current GBF version or possible maintenance state
     async def gbfversion(self) -> Optional[int]:
         try:
@@ -3050,18 +3070,7 @@ class Updater():
                     elif "-partner" in flags: await self.update_all_partner(extras)
                     elif "-enemy" in flags: await self.manualUpdate(list(self.data['enemies'].keys()))
                     elif "-missingnpc" in flags:
-                        try:
-                            keys = list(self.data['npcs'].keys())
-                            keys.sort()
-                            max_id = int(keys[-1][3:7])
-                            ids = []
-                            for i in range(0, max_id):
-                                id = "399" + str(i).zfill(4) + "000"
-                                if id not in self.data['npcs']:
-                                    ids.append(id)
-                            await self.manualUpdate(ids)
-                        except:
-                            pass
+                        await self.missing_npcs()
                     elif "-addpending" in flags:
                         for id in extras:
                             if len(id) == 10 and id.startswith('3'):
