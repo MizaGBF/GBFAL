@@ -113,7 +113,8 @@ const BACKGROUNDS = [
     ["Events", "event"],
     ["Others", ""]
 ];
-
+// search
+const SEARCH_LIMIT = 50;
 
 // add id here to disable some elements
 const BANNED = [
@@ -1544,6 +1545,8 @@ function search(id) // generate search results
     // search
     let words = id.toLowerCase().replace("@@", "").split(' ');
     let positives = [];
+    let counters = [];
+    while(counters.length < 10) counters.push(0);
     for(const [key, value] of Object.entries(index['lookup_reverse']))
     {
         let matching = true;
@@ -1576,6 +1579,8 @@ function search(id) // generate search results
                 case 7: et = 4; break; // boss
                 default: et = (["305", "399"].includes(value.slice(0, 3)) ? 5 : parseInt(value[0])); break;
             }
+            if(counters[et] >= SEARCH_LIMIT) continue;
+            counters[et]++;
             positives.push([value, et]);
         }
     }
@@ -1656,7 +1661,7 @@ function updateSearchResuls()
             default:
                 continue;
         }
-        if(results.length >= 50)
+        if(results.length >= SEARCH_LIMIT)
             break;
     }
     let node = document.getElementById('results');
@@ -1669,7 +1674,7 @@ function updateSearchResuls()
     {
         updateList(node, results);
         node.insertBefore(document.createElement("br"), node.firstChild);
-        node.insertBefore(document.createTextNode((results.length >= 50) ? "First 50 Results for \"" + searchID + "\"" : "Results for \"" + searchID + "\""), node.firstChild);
+        node.insertBefore(document.createTextNode((results.length >= SEARCH_LIMIT) ? "First " + SEARCH_LIMIT + " Results for \"" + searchID + "\"" : "Results for \"" + searchID + "\""), node.firstChild);
     }
     // add checkboxes
     node.appendChild(document.createElement("br"));
