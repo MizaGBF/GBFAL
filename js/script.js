@@ -2363,7 +2363,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
         for(let t of index["lookup"][lid].split(' '))
         {
             if(t.substr(0, 2) == "@@" || t == "") continue;
-            if(t == prev) continue; // avoid reptitions
+            if(t == prev) continue; // avoid repetitions
             prev = t;
             let i = document.createElement('i');
             i.classList.add("tag");
