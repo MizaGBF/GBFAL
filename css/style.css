@@ -496,7 +496,7 @@ details[open] > .element-detail {
 
 .navigate-element {
     border: 2px solid #808080;
-    border-radius: 10px;
+    border-radius: 40px;
     max-width: 70px;
     max-height: 60px;
     overflow: hidden;
