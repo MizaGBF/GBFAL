@@ -854,7 +854,7 @@ function display_mc(id, data, unusedA = null, unusedB = null)
 function display_enemies(id, data, type, size)
 {
     if(id[0] != type || id[1] != size) return null;
-    return [["e"+id, "GBF/assets_en/img/sp/assets/enemy/s/" + id + ".png", default_onerror, "preview", false]];
+    return [["e"+id, "GBF/assets_en/img/sp/assets/enemy/s/" + id + ".png", function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/enemy/m/"+id+".png"; this.onerror=default_onerror;}, "preview", false]];
 }
 
 function display_npcs(id, data, prefix, range)
