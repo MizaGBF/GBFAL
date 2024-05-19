@@ -502,6 +502,10 @@ details[open] > .element-detail {
     overflow: hidden;
 }
 
+.navigate-element:hover {
+    outline: solid #007acc;
+}
+
 .navigate-element-left {
     position: absolute;
     right: calc(100% - 75px);
