@@ -2359,9 +2359,12 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     if(lid in index["lookup"] && index["lookup"][lid].split(' ').length > 0)
     {
         div.appendChild(document.createElement('br'));
+        let prev = "";
         for(let t of index["lookup"][lid].split(' '))
         {
             if(t.substr(0, 2) == "@@" || t == "") continue;
+            if(t == prev) continue; // avoid reptitions
+            prev = t;
             let i = document.createElement('i');
             i.classList.add("tag");
             i.classList.add("clickable");
