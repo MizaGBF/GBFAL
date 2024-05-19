@@ -65,7 +65,7 @@ class Editor(Tk.Tk):
             print(e)
             data = {}
             if "No such file" not in str(e):
-                messagebox.showerror("Error", "Failed to open 'json/name_data.json'.\nClose this app and fix it.")
+                messagebox.showerror("Error", "Failed to open 'json/name_data.json'.\nClose this app and fix it.\nException: {}".format(e))
 
         k_sort = {}
         for k in self.entries:
