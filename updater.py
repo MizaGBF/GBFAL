@@ -2342,7 +2342,7 @@ class Updater():
                                     for e in v:
                                         if k == "race" and e == "Other":
                                             looks.append("unknown")
-                                        else:
+                                        elif e != "-":
                                             looks.append(e.lower())
                                 case _:
                                     pass
