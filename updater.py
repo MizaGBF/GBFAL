@@ -202,6 +202,7 @@ class Updater():
         # main variables
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
         self.debug_wpn = False # for testing
+        self.debug_npc_detail = False # set to true for better detection
         self.data = { # data structure
             "version":self.SAVE_VERSION,
             "scene_queue":[],
@@ -1596,7 +1597,7 @@ class Updater():
                     if id.startswith("305"): return False # don't continue for special npcs
                 if not exist:
                     # base scene
-                    for f in self.SCENE_CHECK:
+                    for f in (self.SCENE_CHECK if self.debug_npc_detail else self.SCENE_BASE):
                         try:
                             if f not in data[self.NPC_SCENE]:
                                 if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, f), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, f)])) is not None:
@@ -3006,7 +3007,9 @@ class Updater():
                     ids.append(id)
             if len(ids) > 0:
                 print("Checking for", len(ids), "missing NPCs...")
+                self.debug_npc_detail = True
                 await self.manualUpdate(ids)
+                self.debug_npc_detail = False
         except:
             pass
 
