@@ -2236,7 +2236,7 @@ class Updater():
                     try:
                         if v is None:
                             if k not in self.data["lookup"]:
-                                self.data["lookup"][k] = "help-wanted"
+                                self.data["lookup"][k] = "missing-help-wanted"
                                 modified.add(k)
                             continue
                         elif v == "":

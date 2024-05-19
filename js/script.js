@@ -2379,7 +2379,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             }
             switch(t.toLowerCase())
             {
-                case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": case "help-wanted": i.classList.add("tag-gold"); break;
+                case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": case "missing-help-wanted": i.classList.add("tag-gold"); break;
                 case "sr": i.classList.add("tag-silver"); break;
                 case "r": i.classList.add("tag-bronze"); break;
                 case "n": case "gran": case "djeeta": case "null": case "unknown-boss": i.classList.add("tag-normal"); break;
