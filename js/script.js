@@ -1792,6 +1792,7 @@ function loadAssets(id, data, target, indexed = true)
     let tmp_last_id = last_id;
     let area_name = "";
     let include_link = false;
+    let include_navigation = true;
     let search_type = null;
     let assets = null;
     let skycompass = null;
@@ -1940,6 +1941,7 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "story":
             area_name = "Main Story Chapter";
+            include_navigation = false;
             last_id = "ms"+id;
             search_type = 11;
             assets = [
@@ -1948,6 +1950,7 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "events":
             area_name = "Event";
+            include_navigation = false;
             last_id = "q"+id;
             search_type = 7;
             assets = [
@@ -2004,7 +2007,7 @@ function loadAssets(id, data, target, indexed = true)
         updateHistory(id, search_type);
         favButton(true, id, search_type);
     }
-    prepareOuputAndHeader(area_name, id, target, search_type, data, include_link, indexed);
+    prepareOuputAndHeader(area_name, id, target, search_type, data, include_link, include_navigation, indexed);
     for(let i = 0; i < assets.length; ++i)
     {
         if(assets[i].break ?? false) output.appendChild(document.createElement('br'));
@@ -2223,7 +2226,7 @@ function loadAssets_sound(id, sounds)
     return first;
 }
 
-function prepareOuputAndHeader(name, id, target, search_type, data, include_link, indexed=true) // prepare the output element by cleaning it up and create its header
+function prepareOuputAndHeader(name, id, target, search_type, data, include_link, include_navigation, indexed) // prepare the output element by cleaning it up and create its header
 {
     // open tab
     openTab("view");
@@ -2232,7 +2235,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     // create header
     let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + " (20"+id.substr(0,2)+"/"+id.substr(2,2)+"/"+id.substr(4,2)+")") : addResultHeader("Result Header", name + ": " + id);
     // add next/previous
-    if(indexed)
+    if(indexed && include_navigation)
     {
         let keys = Object.keys(index[target]);
         keys.sort();
@@ -2241,7 +2244,6 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
         if(next != c)
         {
             let previous = (c + keys.length - 1) % keys.length;
-            console.log(previous, c, next);
             let span = document.createElement('span');
             span.classList.add("navigate-element");
             span.classList.add("navigate-element-left");
