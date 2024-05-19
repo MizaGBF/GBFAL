@@ -33,7 +33,7 @@ class Editor(Tk.Tk):
                     if isinstance(d, list):
                         self.entries[k] = None
                 for k, d in data.get("lookup",{}).items():
-                    if d is None or d == "help-wanted": continue
+                    if d is None or d == "missing-help-wanted": continue
                     if "@@" in d:
                         n = d.split("@@", 1)[1].split(" ", 1)[1]
                     else: n = d
