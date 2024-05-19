@@ -1792,7 +1792,6 @@ function loadAssets(id, data, target, indexed = true)
     let tmp_last_id = last_id;
     let area_name = "";
     let include_link = false;
-    let include_navigation = true;
     let search_type = null;
     let assets = null;
     let skycompass = null;
@@ -1941,7 +1940,6 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "story":
             area_name = "Main Story Chapter";
-            include_navigation = false;
             last_id = "ms"+id;
             search_type = 11;
             assets = [
@@ -1950,7 +1948,6 @@ function loadAssets(id, data, target, indexed = true)
             break;
         case "events":
             area_name = "Event";
-            include_navigation = false;
             last_id = "q"+id;
             search_type = 7;
             assets = [
@@ -2007,7 +2004,7 @@ function loadAssets(id, data, target, indexed = true)
         updateHistory(id, search_type);
         favButton(true, id, search_type);
     }
-    prepareOuputAndHeader(area_name, id, target, search_type, data, include_link, include_navigation, indexed);
+    prepareOuputAndHeader(area_name, id, target, search_type, data, include_link, indexed);
     for(let i = 0; i < assets.length; ++i)
     {
         if(assets[i].break ?? false) output.appendChild(document.createElement('br'));
@@ -2226,7 +2223,7 @@ function loadAssets_sound(id, sounds)
     return first;
 }
 
-function prepareOuputAndHeader(name, id, target, search_type, data, include_link, include_navigation, indexed) // prepare the output element by cleaning it up and create its header
+function prepareOuputAndHeader(name, id, target, search_type, data, include_link, indexed) // prepare the output element by cleaning it up and create its header
 {
     // open tab
     openTab("view");
@@ -2235,25 +2232,72 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     // create header
     let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + " (20"+id.substr(0,2)+"/"+id.substr(2,2)+"/"+id.substr(4,2)+")") : addResultHeader("Result Header", name + ": " + id);
     // add next/previous
-    if(indexed && include_navigation)
+    if(indexed)
     {
         let keys = Object.keys(index[target]);
-        keys.sort();
-        const c = keys.indexOf(id);
-        let next = (c + 1) % keys.length;
-        if(next != c)
+        if(keys.length > 0)
         {
-            let previous = (c + keys.length - 1) % keys.length;
-            let span = document.createElement('span');
-            span.classList.add("navigate-element");
-            span.classList.add("navigate-element-left");
-            div.appendChild(span);
-            updateList(span, [[keys[previous], search_type]]);
-            span = document.createElement('span');
-            span.classList.add("navigate-element");
-            span.classList.add("navigate-element-right");
-            div.appendChild(span);
-            updateList(span, [[keys[next], search_type]]);
+            keys.sort();
+            const c = keys.indexOf(id);
+            let next = 0;
+            let previous = 0;
+            switch(search_type)
+            {
+                case 11: case 7:
+                    let si = search_type == 7 ? 2 : 0;
+                    let valid = false;
+                    next = c;
+                    while(!valid)
+                    {
+                        next = (next + 1) % keys.length;
+                        if(index[target][keys[next]] !== 0)
+                        {
+                            for(let i = si; i < index[target][keys[next]].length; ++i)
+                            {
+                                if(index[target][keys[next]][i].length > 0)
+                                {
+                                    valid = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    valid = false;
+                    previous = c;
+                    while(!valid)
+                    {
+                        previous = (previous + keys.length - 1) % keys.length;
+                        if(index[target][keys[previous]] !== 0)
+                        {
+                            for(let i = si; i < index[target][keys[previous]].length; ++i)
+                            {
+                                if(index[target][keys[previous]][i].length > 0)
+                                {
+                                    valid = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    next = (c + 1) % keys.length;
+                    previous = (c + keys.length - 1) % keys.length;
+                    break;
+            }
+            if(next != c)
+            {
+                let span = document.createElement('span');
+                span.classList.add("navigate-element");
+                span.classList.add("navigate-element-left");
+                div.appendChild(span);
+                updateList(span, [[keys[previous], search_type]]);
+                span = document.createElement('span');
+                span.classList.add("navigate-element");
+                span.classList.add("navigate-element-right");
+                div.appendChild(span);
+                updateList(span, [[keys[next], search_type]]);
+            }
         }
     }
     // get chara id if partner
