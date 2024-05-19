@@ -28,6 +28,7 @@ body {
     border: none;
     outline: none;
     cursor: pointer;
+    overflow: hidden;
 }
 
 .element-detail:hover {
