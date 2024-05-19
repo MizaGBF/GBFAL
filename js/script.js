@@ -2004,7 +2004,7 @@ function loadAssets(id, data, target, indexed = true)
         updateHistory(id, search_type);
         favButton(true, id, search_type);
     }
-    prepareOuputAndHeader(area_name, id, data, include_link, indexed);
+    prepareOuputAndHeader(area_name, id, target, search_type, data, include_link, indexed);
     for(let i = 0; i < assets.length; ++i)
     {
         if(assets[i].break ?? false) output.appendChild(document.createElement('br'));
@@ -2223,19 +2223,37 @@ function loadAssets_sound(id, sounds)
     return first;
 }
 
-function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // prepare the output element by cleaning it up and create its header
+function prepareOuputAndHeader(name, id, target, search_type, data, include_link, indexed=true) // prepare the output element by cleaning it up and create its header
 {
     // open tab
     openTab("view");
     // cleanup output
-    while(true)
-    {
-        let child = output.lastElementChild;
-        if(!child) break;
-        output.removeChild(child);
-    }
+    output.innerHTML = "";
     // create header
     let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + " (20"+id.substr(0,2)+"/"+id.substr(2,2)+"/"+id.substr(4,2)+")") : addResultHeader("Result Header", name + ": " + id);
+    // add next/previous
+    if(indexed)
+    {
+        let keys = Object.keys(index[target]);
+        keys.sort();
+        const c = keys.indexOf(id);
+        let next = (c + 1) % keys.length;
+        if(next != c)
+        {
+            let previous = (c + keys.length - 1) % keys.length;
+            console.log(previous, c, next);
+            let span = document.createElement('span');
+            span.classList.add("navigate-element");
+            span.classList.add("navigate-element-left");
+            div.appendChild(span);
+            updateList(span, [[keys[previous], search_type]]);
+            span = document.createElement('span');
+            span.classList.add("navigate-element");
+            span.classList.add("navigate-element-right");
+            div.appendChild(span);
+            updateList(span, [[keys[next], search_type]]);
+        }
+    }
     // get chara id if partner
     let lid = id;
     if(name == "Partner")
@@ -2355,6 +2373,7 @@ function prepareOuputAndHeader(name, id, data, include_link, indexed=true) // pr
                 lookup(t);
             };
             div.appendChild(i);
+            div.appendChild(document.createTextNode(" "));
         }
         did_lookup = true;
     }

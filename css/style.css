@@ -493,6 +493,32 @@ details[open] > .element-detail {
     text-align: start;
 }
 
+.navigate-element {
+    border: 2px solid #808080;
+    border-radius: 10px;
+    max-width: 70px;
+    max-height: 60px;
+    overflow: hidden;
+}
+
+.navigate-element-left {
+    position: absolute;
+    right: calc(100% - 75px);
+    top: -1px;
+}
+
+.navigate-element-right {
+    position: absolute;
+    left: calc(100% - 75px);
+    top: -1px;
+}
+
+.navigate-element > * {
+    position: relative;
+    left: -35px;
+    top: -10px;
+}
+
 .index-image {
     max-height: 80px;
 }
@@ -795,6 +821,25 @@ a:active {
 
     .tabcontent {
         font-size: 40px;
+    }
+    
+    .navigate-element {
+        max-width: 140px;
+        max-height: 120px;
+    }
+
+    .navigate-element-left {
+        right: calc(100% - 145px);
+    }
+
+    .navigate-element-right {
+        left: calc(100% - 145px);
+    }
+
+    .navigate-element > * {
+        position: relative;
+        left: -70px;
+        top: -20px;
     }
 
     .index-image {
