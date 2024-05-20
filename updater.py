@@ -2333,7 +2333,7 @@ class Updater():
                                             for c in v:
                                                 looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
                                         case "_pageName":
-                                            wiki = "@@" + v.replace(' ', '_')) + " "
+                                            wiki = "@@" + v.replace(' ', '_') + " "
                                         case "rarity":
                                             looks.append(v.lower())
                                         case "race":
