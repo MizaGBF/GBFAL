@@ -201,6 +201,21 @@ details[open] > .element-detail {
     margin: 10px;
 }
 
+#notice {
+    font-family: sans-serif;
+    font-size: 20px;
+    text-align:center;
+    background: #222a42;
+    border-color: #000000;
+    border-radius: 20px;
+    border-style: solid;
+    width:80%;
+    margin:auto;
+    margin-top:10px;
+    margin-bottom:10px;
+    padding-bottom:10px;
+}
+
 #issues {
     font-family: sans-serif;
     font-size: 20px;
@@ -787,7 +802,7 @@ a:active {
         margin: 20px;
     }
 
-    #issues {
+    #issues, #notice {
         font-size: 40px;
         width:80%;
     }

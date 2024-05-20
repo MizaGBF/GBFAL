@@ -203,6 +203,16 @@ function initData() // load data.json
             if(!(value in index["lookup_reverse"])) index["lookup_reverse"][value] = [];
             index["lookup_reverse"][value].push(key);
         }
+        if("missing-help-wanted" in index["lookup_reverse"])
+        {
+            const l = index["lookup_reverse"]["missing-help-wanted"].length;
+            if(l > 10)
+            {
+                const d = document.getElementById("notice");
+                d.style.display = null;
+                d.innerHTML = l + ' element(s) are still missing names.<br>You can click <a href="?id=missing-help-wanted">here</a> to find some of them, or browse the npc list.<br>Then contact me or fill this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a> to submit a name.';
+            }
+        }
         if(updated.length > 0) // init Updated list
         {
             updateList(document.getElementById('new'), updated);
