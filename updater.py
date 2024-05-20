@@ -2296,7 +2296,7 @@ class Updater():
                                         append =" unknown-boss"
                         vs = v.split(" ")
                         if vs[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: vs = vs[1:]
-                        l = (" ".join(vs) + append).lower().strip().replace(',', ' ').replace('  ', ' ')
+                        l = (" ".join(vs) + append).lower().strip().replace(',', ' ').replace('、', ' ').replace('  ', ' ')
                         if l != self.data["lookup"].get(k, ""):
                             self.data["lookup"][k] = l
                             modified.add(k)
@@ -2333,7 +2333,7 @@ class Updater():
                                             for c in v:
                                                 looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
                                         case "_pageName":
-                                            wiki = "@@" + v.replace(' ', '_') + " "
+                                            wiki = "@@" + v.replace(' ', '_')) + " "
                                         case "rarity":
                                             looks.append(v.lower())
                                         case "race":
@@ -2357,7 +2357,7 @@ class Updater():
                             id = str(item['id']).split('_', 1)[0]
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
-                        looks = wiki + html.unescape(html.unescape(" ".join(looks))).replace(',<br />', ' ').replace('<br />', ' ').replace(',', ' ').replace('  ', ' ')
+                        looks = wiki + html.unescape(html.unescape(" ".join(looks))).replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ')
                         if id not in self.data['lookup'] or self.data['lookup'][id] != looks:
                             self.data['lookup'][id] = looks
                             modified.add(id)
