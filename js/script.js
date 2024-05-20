@@ -610,11 +610,7 @@ function customSortPair(a, b) // used to sort banter sound files
 
 function customSortBoss(a, b) // used to sort boss sound files
 {
-    let A = a.split('_');
-    A = parseInt(A[A.length-1].replaceAll(/\D/g,''), 10);
-    let B = b.split('_');
-    B = parseInt(B[B.length-1].replaceAll(/\D/g,''), 10);
-    return A-B;
+    return parseInt(a.replaceAll(/\D/g,''), 10)-parseInt(b.replaceAll(/\D/g,''), 10);
 }
 
 function customSortSeasonal(a, b) // used to sort seasonal sound files
