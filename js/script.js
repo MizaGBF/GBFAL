@@ -1641,7 +1641,7 @@ function get_search_filter_states()
     return searchFilters;
 }
 
-function updateSearchResuls()
+function updateSearchResuls(scrollToSearch=true)
 {
     if(searchResults.length == 0) return;
     const searchFilters = get_search_filter_states();
@@ -1708,16 +1708,19 @@ function updateSearchResuls()
         label.innerHTML = e[1];
         div.appendChild(label);
     }
-    // scroll up if needed
-    let filter = document.getElementById('filter');
-    var rect = filter.getBoundingClientRect();
-    if(
-        rect.bottom < 0 ||
-        rect.right < 0 ||
-        rect.top > (window.innerHeight || document.documentElement.clientHeight) ||
-        rect.left > (window.innerWidth || document.documentElement.clientWidth)
-    )
-    filter.scrollIntoView();
+    if(scrollToSearch)
+    {
+        // scroll up if needed
+        let filter = document.getElementById('filter');
+        var rect = filter.getBoundingClientRect();
+        if(
+            rect.bottom < 0 ||
+            rect.right < 0 ||
+            rect.top > (window.innerHeight || document.documentElement.clientHeight) ||
+            rect.left > (window.innerWidth || document.documentElement.clientWidth)
+        )
+        filter.scrollIntoView();
+    }
 }
 
 function toggleSearchFilter(indice)
@@ -1735,7 +1738,7 @@ function toggleSearchFilter(indice)
         console.error("Exception thrown", err.stack);
     }
     // update
-    updateSearchResuls();
+    updateSearchResuls(false);
 }
 
 function loadDummy(id, target)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder
