@@ -2359,6 +2359,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     {
         div.appendChild(document.createElement('br'));
         let prev = "";
+        let missing = false;
         for(let t of index["lookup"][lid].split(' '))
         {
             if(t.substring(0, 2) == "@@" || t == "") continue;
@@ -2378,7 +2379,8 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             }
             switch(t.toLowerCase())
             {
-                case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": case "missing-help-wanted": i.classList.add("tag-gold"); break;
+                case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": i.classList.add("tag-gold"); break;
+                case "missing-help-wanted": missing = true; i.classList.add("tag-gold"); break;
                 case "sr": i.classList.add("tag-silver"); break;
                 case "r": i.classList.add("tag-bronze"); break;
                 case "n": case "gran": case "djeeta": case "null": case "unknown-boss": i.classList.add("tag-normal"); break;
@@ -2422,6 +2424,13 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             };
             div.appendChild(i);
             div.appendChild(document.createTextNode(" "));
+        }
+        if(missing)
+        {
+            let a = document.createElement("a");
+            a.href = "https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform"
+            a.innerHTML = "Submit name"
+            div.appendChild(a);
         }
         did_lookup = true;
     }
