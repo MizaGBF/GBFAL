@@ -27,8 +27,7 @@ class Editor(Tk.Tk):
                 data = json.load(f)
                 for k, d in data.get("npcs",{}).items():
                     if isinstance(d, list):
-                        if not d[0]:
-                            self.entries[k] = None
+                        self.entries[k] = None
                 for k, d in data.get("enemies",{}).items():
                     if isinstance(d, list):
                         self.entries[k] = None
