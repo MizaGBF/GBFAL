@@ -84,11 +84,6 @@ details[open] > .element-detail {
     font-size: 24px;
 }
 
-.tag {
-    color: #ccccff;
-    
-}
-
 .std-button-container {
     display: flex;
     align-items: center;
@@ -277,6 +272,10 @@ details[open] > .element-detail {
     margin: 2px;
     padding-left: 5px;
     padding-right: 5px;
+}
+
+.tag:hover {
+    outline: solid #007acc;
 }
 
 .tag-gold {
@@ -810,9 +809,6 @@ a:active {
     }
 
     .tag {
-        border: 3px solid #808080;
-        border-radius: 10px;
-        border-style: solid;
         font-size: 30px;
         margin: 5px;
         padding-left: 5px;
