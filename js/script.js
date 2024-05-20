@@ -2226,7 +2226,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     // cleanup output
     output.innerHTML = "";
     // create header
-    let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + " (20"+id.substr(0,2)+"/"+id.substr(2,2)+"/"+id.substr(4,2)+")") : addResultHeader("Result Header", name + ": " + id);
+    let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + " (20"+id.substring(0,2)+"/"+id.substring(2,2)+"/"+id.substring(4,2)+")") : addResultHeader("Result Header", name + ": " + id);
     // add next/previous
     if(indexed)
     {
@@ -2358,7 +2358,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
         let prev = "";
         for(let t of index["lookup"][lid].split(' '))
         {
-            if(t.substr(0, 2) == "@@" || t == "") continue;
+            if(t.substring(0, 2) == "@@" || t == "") continue;
             if(t == prev) continue; // avoid repetitions
             prev = t;
             let i = document.createElement('i');
