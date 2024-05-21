@@ -194,7 +194,7 @@ class Updater():
     SCENE_MC_ID = set(["3990219000", "3990220000"])
     SCENE_BASE = ["", "_a", "_b", "_c", "_m", "_nalhe", "_school", "_astral", "_battle", "_knife", "_off", "_race", "_guardian", "_cook", "_orange", "_muffler", "_cigarette", "_face", "_mask", "_halfmask", "_girl", "_town", "_two", "_three", "_2022", "_2023", "_2024"]
     SCENE_BASE_MC = SCENE_BASE + ["_monk", "_dancer", "_mechanic", "_lumberjack", "_robinhood", "_horse", "_cavalry", "_manadiver", "_eternals", "_eternals2"]
-    SCENE_EXPRESSIONS = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_4", "_5", "_6", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_hot", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_hood", "_letter", "_child1", "_child2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_chara", "_fight", "_2022", "_2023", "_2024", "_all", "_all2", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_left", "_right", "_move", "_move2", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_ghost", "_two", "_three", "_beppo", "_beppo_jiji", "_jiji", "_foogee", "_foogee_nicola", "_nicola", "_momo", "_all2", "_eyeline"]
+    SCENE_EXPRESSIONS = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_4", "_5", "_6", "_up", "_laugh", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_hot", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_hood", "_letter", "_child1", "_child2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_chara", "_fight", "_2022", "_2023", "_2024", "_all", "_all2", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_move", "_move2", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_ghost", "_two", "_three", "_beppo", "_beppo_jiji", "_jiji", "_foogee", "_foogee_nicola", "_nicola", "_momo", "_all2", "_eyeline"]
     SCENE_VARIATIONS = ["", "_a", "_b", "_b1", "_b2", "_b3", "_speed", "_line", "_up", "_up_speed", "_up_line", "_up2", "_up3", "_up4", "_down", "_shadow", "_shadow2", "_shadow3", "_light", "_up_light", "_vanish", "_vanish1", "_vanish2", "_blood", "_up_blood"]
     SCENE_CHECK = list(set(SCENE_BASE_MC + SCENE_EXPRESSIONS + SCENE_VARIATIONS))
     SCENE_VARIATIONS_SET = set(SCENE_VARIATIONS)
@@ -1602,8 +1602,9 @@ class Updater():
                     if self.debug_npc_detail: base_target = self.SCENE_CHECK
                     elif id in self.SCENE_MC_ID: base_target = self.SCENE_BASE_MC
                     else: base_target = self.SCENE_BASE
-                    for u in ["", "_03"]:
+                    for u in ["", "_02", "_03"]:
                         for f in base_target:
+                            if f != "" and u != "": break
                             try:
                                 if f not in data[self.NPC_SCENE]:
                                     if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}{}.png".format(id, u, f), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, f)])) is not None:
@@ -1928,7 +1929,7 @@ class Updater():
         elements = []
         for id in target_list:
             if id[:3] in ['399', '305']:
-                uncaps = ["", "03"]
+                uncaps = ["", "02", "03"]
                 idx = self.NPC_SCENE
                 k = 'npcs'
             else:
@@ -1975,7 +1976,8 @@ class Updater():
             # search bare base suffix
             if us not in existing:
                 await self.update_all_scene_sub_req(k, id, idx, us, False)
-                existing.add(us)
+                if us in self.data[k][id][idx]:
+                    existing.add(us)
             
             # opti for npcs: quit if no base _03 file
             if k == "npcs" and us != "" and us not in existing: return
