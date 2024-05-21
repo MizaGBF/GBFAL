@@ -1979,7 +1979,6 @@ class Updater():
             
             # opti for npcs: quit if no base _03 file
             if k == "npcs" and us != "" and us not in existing: return
-            print(">>>", id, us)
             
             # search other base suffixes
             tasks = []
