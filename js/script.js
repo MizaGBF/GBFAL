@@ -2430,7 +2430,16 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
                 default: break;
             }
             i.onclick = function() {
-                lookup(t);
+                if(window.event.ctrlKey)
+                {
+                    let f = document.getElementById('filter');
+                    f.value = t + " " + f.value;
+                    lookup(f.value.trim().toLowerCase());
+                }
+                else
+                {
+                    lookup(t);
+                }
             };
             div.appendChild(i);
             div.appendChild(document.createTextNode(" "));
