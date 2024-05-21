@@ -1597,7 +1597,7 @@ class Updater():
                     if id.startswith("305"): return False # don't continue for special npcs
                 if not exist:
                     # base scene
-                    for u in ["", "_02", "_03"]:
+                    for u in ["", "_03"]:
                         for f in (self.SCENE_CHECK if self.debug_npc_detail else self.SCENE_BASE):
                             try:
                                 if f not in data[self.NPC_SCENE]:
@@ -1923,7 +1923,7 @@ class Updater():
         elements = []
         for id in target_list:
             if id[:3] in ['399', '305']:
-                uncaps = ["", "02", "03"]
+                uncaps = ["", "03"]
                 idx = self.NPC_SCENE
                 k = 'npcs'
             else:
@@ -1969,7 +1969,7 @@ class Updater():
             tasks = []
             for s in self.SCENE_BASE:
                 f = us+s
-                if f in existing: continue
+                if f in existing or (k == "npcs" and us != "" and us not in self.data[k][id][idx]): continue
                 tasks.append(self.update_all_scene_sub_req(k, id, idx, f, False))
             if len(tasks) > 0: await asyncio.gather(*tasks)
             existing = set(self.data[k][id][idx])
