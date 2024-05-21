@@ -16,7 +16,7 @@ var endpoint_count = -1;
 // list of known scene strings for unindexed characters
 const DUMMY_SCENE = ["", "_a", "_b", "_up", "_down", "_laugh", "_wink", "_shout", "_sad", "_angry", "_cry", "_painful", "_shadow", "_light", "_close", "_serious", "_surprise", "_think", "_serious", "_mood", "_ecstasy", "_suddenly", "_speed", "_shy", "_weak", "_sleepy", "_open", "_bad", "_amaze", "_joy", "_pride", "_intrigue", "_motivation", "_melancholy", "_concentration", "_weapon", "_foot", "_head"];
 // list of scene suffixes to ignore for raid bubbles
-const NO_BUBBLE_FILTER = ["b1", "b2", "b3", "speed", "line", "up", "up2", "up3", "up4", "down", "shadow", "shadow2", "shadow3", "damage", "light", "vanish", "vanish1", "vanish2", "vanish3", "fadein1", "fadein2", "blood"];
+const NO_BUBBLE_FILTER = ["b1", "b2", "b3", "speed", "line", "up", "up2", "up3", "up4", "down", "shadow", "shadow2", "shadow3", "damage", "light", "vanish", "vanish1", "vanish2", "fadein1", "blood"];
 // HTML UI indexes
 const CHARACTERS = [
     ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", [0, -1, 0, -1, 504, 999]],
