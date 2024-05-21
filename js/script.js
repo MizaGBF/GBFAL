@@ -1560,6 +1560,8 @@ function lookup(id) // check element validity and either load it or return searc
 function search(id) // generate search results
 {
     if(id == "" || id == searchID) return;
+    // temp
+    let extra_limit = (id.toLowerCase().replace("@@", "") == "missing-help-wanted");
     // search
     let words = id.toLowerCase().replace("@@", "").split(' ');
     let positives = [];
@@ -1599,7 +1601,7 @@ function search(id) // generate search results
                     case 7: et = 4; break; // boss
                     default: et = (["305", "399"].includes(v.slice(0, 3)) ? 5 : parseInt(v[0])); break;
                 }
-                if(counters[et] >= SEARCH_LIMIT) break;
+                if(counters[et] >= (extra_limit ? SEARCH_LIMIT*4:SEARCH_LIMIT)) break;
                 counters[et]++;
                 positives.push([v, et]);
             }
@@ -1655,6 +1657,9 @@ function updateSearchResuls(scrollToSearch=true)
 {
     if(searchResults.length == 0) return;
     const searchFilters = get_search_filter_states();
+    // temp
+    let extra_limit = (searchID == "missing-help-wanted");
+    let search_lim = (extra_limit ? SEARCH_LIMIT*4:SEARCH_LIMIT)
     // filter results
     let results = [];
     for(let e of searchResults)
@@ -1682,7 +1687,7 @@ function updateSearchResuls(scrollToSearch=true)
             default:
                 continue;
         }
-        if(results.length >= SEARCH_LIMIT)
+        if(results.length >= search_lim)
             break;
     }
     let node = document.getElementById('results');
@@ -1695,7 +1700,7 @@ function updateSearchResuls(scrollToSearch=true)
     {
         updateList(node, results);
         node.insertBefore(document.createElement("br"), node.firstChild);
-        node.insertBefore(document.createTextNode((results.length >= SEARCH_LIMIT) ? "First " + SEARCH_LIMIT + " Results for \"" + searchID + "\"" : "Results for \"" + searchID + "\""), node.firstChild);
+        node.insertBefore(document.createTextNode((results.length >= search_lim) ? "First " + search_lim + " Results for \"" + searchID + "\"" : "Results for \"" + searchID + "\""), node.firstChild);
     }
     // add checkboxes
     node.appendChild(document.createElement("br"));
