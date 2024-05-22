@@ -210,7 +210,7 @@ function initData() // load data.json
             {
                 const d = document.getElementById("notice");
                 d.style.display = null;
-                d.innerHTML = l + ' element(s) are still missing names.<br>You can click <a href="?id=missing-help-wanted">here</a> to find some of them, or browse the npc list.<br>Then contact me or fill this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a> to submit a name.';
+                d.innerHTML = 'Help wanted! ' + l + ' element(s) are still missing names.<br>You can browse the list <a href="?id=missing-help-wanted">here</a> and then fill this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a> to submit a name.<br>Note: Boss files are usually before their event/release.';
             }
         }
         if(updated.length > 0) // init Updated list
