@@ -239,6 +239,7 @@ class Updater():
         self.scene_strings = None # contains list of suffix
         self.scene_strings_special = None # contains list of suffix
         self.force_partner = False # set to True by -partner
+        self.shared_task_container = [] # used for -scene
         
         # asyncio semaphores
         self.sem = asyncio.Semaphore(self.MAX_UPDATE) # update semaphore
@@ -463,6 +464,22 @@ class Updater():
                     pass
             raise Exception("Invalid Spritesheets")
         return res
+
+    # clean shared_task_container of completed tasks
+    def clean_shared_task(self) -> None:
+        self.shared_task_container = [t for t in self.shared_task_container if not t.done()]
+
+    # wait for all tasks in shared_task_container to be complete
+    async def wait_shared_task_completion(self) -> None:
+        while len(self.shared_task_container) > 0:
+            await asyncio.sleep(0.01)
+            self.clean_shared_task()
+
+    # wait for free space to appear in shared_task_container
+    async def wait_shared_task_free(self, limit : int) -> None:
+        while len(self.shared_task_container) >= limit:
+            await asyncio.sleep(0.01)
+            self.clean_shared_task()
 
     # for limited queued asyncio concurrency
     async def map_unordered(self, func : Callable, iterable : Union[Iterator,Collection,AsyncIterator], limit : int) -> asyncio.Task:
@@ -1971,8 +1988,10 @@ class Updater():
         # start
         if len(elements) > 0:
             self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
+            self.shared_task_container = []
             async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_SCENE_CONCURRENT):
                 pass
+            await self.wait_shared_task_completion()
             if update_pending: self.data['scene_queue'] = []
             print("Done")
             self.sort_all_scene()
@@ -2020,11 +2039,8 @@ class Updater():
                     g = f + ss
                     if ss == "" or g in existing or (filter is not None and not self.scene_suffix_is_matching(g, filter)): continue
                     no_bubble = (g != "" and g.split("_")[-1] in self.SCENE_BUBBLE_FILTER)
-                    tasks.append(self.update_all_scene_sub_req(k, id, idx, g, no_bubble))
-                    if len(tasks) >= self.MAX_HTTP:
-                        await asyncio.gather(*tasks)
-                        tasks = []
-            if len(tasks) > 0: await asyncio.gather(*tasks)
+                    await self.wait_shared_task_free(self.MAX_UPDATEALL)
+                    self.shared_task_container.append(asyncio.create_task(self.update_all_scene_sub_req(k, id, idx, g, no_bubble)))
 
     # request used just above
     async def update_all_scene_sub_req(self, k : str, id : str, idx : int, g : str, no_bubble : bool) -> None:
@@ -2177,7 +2193,7 @@ class Updater():
                         max_err = 1
                 elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
             for i in range(0, 65): # break down _v_ for speed, up to 650
-                elements.append((id, existing, uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2"], 1, 1, 6))
+                elements.append((id, existing, uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
         # chain burst
         elements.append((id, existing, "_chain_start", [], None, None, None))
         for A in range(2, 5):
