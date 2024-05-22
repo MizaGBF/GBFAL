@@ -203,16 +203,18 @@ function initData() // load data.json
             if(!(value in index["lookup_reverse"])) index["lookup_reverse"][value] = [];
             index["lookup_reverse"][value].push(key);
         }
-        if("missing-help-wanted" in index["lookup_reverse"])
+        // temp
+        let l = 0;
+        if("missing-help-wanted" in index["lookup_reverse"]) l += index["lookup_reverse"]["missing-help-wanted"].length;
+        if("missing-help-wanted voiced" in index["lookup_reverse"]) l += index["lookup_reverse"]["missing-help-wanted voiced"].length;
+        if("missing-help-wanted voiced voice-only" in index["lookup_reverse"]) l += index["lookup_reverse"]["missing-help-wanted voiced voice-only"].length;
+        if(l > 0)
         {
-            const l = index["lookup_reverse"]["missing-help-wanted"].length;
-            if(l > 10)
-            {
-                const d = document.getElementById("notice");
-                d.style.display = null;
-                d.innerHTML = 'Help wanted! ' + l + ' element(s) are still missing names.<br>You can browse the list <a href="?id=missing-help-wanted">here</a> and then fill this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a> to submit a name.<br>Note: Boss files are usually before their event/release.';
-            }
+            const d = document.getElementById("notice");
+            d.style.display = null;
+            d.innerHTML = 'Help wanted! ' + l + ' element(s) are still missing names.<br>You can browse the list <a href="?id=missing-help-wanted">here</a> and then fill this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a> to submit a name.<br>Note: Boss files are usually before their event/release.';
         }
+        
         if(updated.length > 0) // init Updated list
         {
             updateList(document.getElementById('new'), updated);
