@@ -262,15 +262,36 @@ class Updater():
         print("Process PAUSED")
         if self.progress is not None and self.progress.total != 9999999999999:
             print("State: {}/{}".format(self.progress.current, self.progress.total))
-        print("Type 'save' to save, type 'exit' to force an exit, anything else to continue")
+        print("Type 'help' for a command list, or a command to execute, anything else to resume")
         while True:
-            s = input(":").lower()
-            match s:
+            s = input(":").lower().split(' ')
+            match s[0]:
+                case 'help':
+                    print("save    - call the save() function")
+                    print("exit    - force exit the process, changes won't be saved")
+                    print("peek    - check the content of data.json. Take two parameters: the index to look at and an id")
+                    print("tchange - toggle update_changelog setting")
                 case 'save':
                     if not self.modified:
                         print("No changes waiting to be saved")
                     else:
                         self.save()
+                case 'peek':
+                    if len(s) < 3:
+                        print("missing 1 parameter: ID")
+                    elif len(s) < 2:
+                        print("missing 2 parameters: index, ID")
+                    else:
+                        try:
+                            d = self.data[s[1]][s[2]]
+                            print(s[1], '-', s[2])
+                            print(d)
+                        except Exception as e:
+                            print("Can't read", s[1], '-', s[2])
+                            print(e)
+                case 'tchange':
+                    self.update_changelog = not self.update_changelog
+                    print("changelog.json updated list WILL be modified" if self.update_changelog else "changelog.json updated list won't be modified")
                 case 'exit':
                     print("Exiting...")
                     os._exit(0)
