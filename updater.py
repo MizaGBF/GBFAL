@@ -2294,9 +2294,19 @@ class Updater():
                 data = json.load(f)
                 for k, v in data.items():
                     try:
+                        voice = False
+                        voice_only = False
+                        if len(k) == 10 and self.data["npcs"].get(k, 0) != 0 and len(self.data["npcs"][k][self.NPC_SOUND]) > 0: # npc sound
+                            voice = True
+                            if not self.data["npcs"][k][self.NPC_JOURNAL] and len(self.data["npcs"][k][self.NPC_SCENE]) == 0:
+                                voice_only = True
                         if v is None:
-                            if k not in self.data["lookup"]:
+                            if self.data["lookup"].get(k, "missing-help-wanted") == "missing-help-wanted":
                                 self.data["lookup"][k] = "missing-help-wanted"
+                                if voice:
+                                    self.data["lookup"][k] += " voiced"
+                                    if voice_only:
+                                        self.data["lookup"][k] += " voice-only"
                                 modified.add(k)
                             continue
                         elif v == "":
@@ -2357,6 +2367,10 @@ class Updater():
                         vs = v.split(" ")
                         if vs[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: vs = vs[1:]
                         l = (" ".join(vs) + append).lower().strip().replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('  ', ' ').replace('  ', ' ')
+                        if voice:
+                            l += " voiced"
+                            if voice_only:
+                                l += " voice-only"
                         if l != self.data["lookup"].get(k, ""):
                             self.data["lookup"][k] = l
                             modified.add(k)

@@ -1561,7 +1561,7 @@ function search(id) // generate search results
 {
     if(id == "" || id == searchID) return;
     // temp
-    let extra_limit = (id.toLowerCase().replace("@@", "") == "missing-help-wanted");
+    let extra_limit = (id.toLowerCase().replace("@@", "").startsWith("missing-help-wanted"));
     // search
     let words = id.toLowerCase().replace("@@", "").split(' ');
     let positives = [];
@@ -1658,7 +1658,7 @@ function updateSearchResuls(scrollToSearch=true)
     if(searchResults.length == 0) return;
     const searchFilters = get_search_filter_states();
     // temp
-    let extra_limit = (searchID == "missing-help-wanted");
+    let extra_limit = (searchID.startsWith("missing-help-wanted"));
     let search_lim = (extra_limit ? SEARCH_LIMIT*4:SEARCH_LIMIT)
     // filter results
     let results = [];
@@ -2396,7 +2396,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             {
                 case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": i.classList.add("tag-gold"); break;
                 case "missing-help-wanted": missing = true; i.classList.add("tag-gold"); break;
-                case "sr": i.classList.add("tag-silver"); break;
+                case "sr": case "voiced": case "voice-only": i.classList.add("tag-silver"); break;
                 case "r": i.classList.add("tag-bronze"); break;
                 case "n": case "gran": case "djeeta": case "null": case "unknown-boss": i.classList.add("tag-normal"); break;
                 case "fire": case "dragon-boss": case "elemental-boss": case "other-boss": i.classList.add("tag-fire"); break;
