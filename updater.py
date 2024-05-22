@@ -2431,7 +2431,12 @@ class Updater():
                             id = str(item['id']).split('_', 1)[0]
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
-                        looks = wiki + html.unescape(html.unescape(" ".join(looks))).replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ')
+                        looks = wiki + html.unescape(html.unescape(" ".join(looks))).replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
+                        # voice
+                        if len(id) == 10 and self.data["npcs"].get(id, 0) != 0 and len(self.data["npcs"][id][self.NPC_SOUND]) > 0: # npc sound
+                            looks += " voiced"
+                            if not self.data["npcs"][id][self.NPC_JOURNAL] and len(self.data["npcs"][id][self.NPC_SCENE]) == 0:
+                                looks += " voice-only"
                         if id not in self.data['lookup'] or self.data['lookup'][id] != looks:
                             self.data['lookup'][id] = looks
                             modified.add(id)
