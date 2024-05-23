@@ -2293,20 +2293,16 @@ class Updater():
                 data = json.load(f)
                 for k, v in data.items():
                     try:
-                        voice = False
-                        voice_only = False
-                        if len(k) == 10 and self.data["npcs"].get(k, 0) != 0 and len(self.data["npcs"][k][self.NPC_SOUND]) > 0: # npc sound
-                            voice = True
-                            if not self.data["npcs"][k][self.NPC_JOURNAL] and len(self.data["npcs"][k][self.NPC_SCENE]) == 0:
-                                voice_only = True
                         if v is None:
-                            if self.data["lookup"].get(k, "missing-help-wanted") == "missing-help-wanted":
-                                self.data["lookup"][k] = "missing-help-wanted"
-                                if voice:
-                                    self.data["lookup"][k] += " voiced"
-                                    if voice_only:
-                                        self.data["lookup"][k] += " voice-only"
-                                modified.add(k)
+                            if self.data["lookup"].get(k, "missing-help-wanted").startswith("missing-help-wanted"):
+                                l = "missing-help-wanted"
+                                if len(k) == 10 and self.data["npcs"].get(k, 0) != 0 and len(self.data["npcs"][k][self.NPC_SOUND]) > 0:
+                                    l += " voiced"
+                                    if not self.data["npcs"][k][self.NPC_JOURNAL] and len(self.data["npcs"][k][self.NPC_SCENE]) == 0:
+                                        l += " voice-only"
+                                if l != self.data["lookup"].get(k, None):
+                                    self.data["lookup"][k] = l
+                                    modified.add(k)
                             continue
                         elif v == "":
                             continue
