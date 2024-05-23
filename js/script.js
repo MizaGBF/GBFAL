@@ -2165,6 +2165,7 @@ function loadAssets_sound(id, sounds)
     let checks = {
         "": ["Generic", "assets/ui/result_icon/voice.png"],
         "_boss_v_": ["Boss", "assets/ui/result_icon/v_boss.png"],
+        "_navi": ["Story Event", "assets/ui/result_icon/v_event.png"],
         "_v_": ["Standard", "assets/ui/result_icon/voice.png"],
         "birthday": ["Happy Birthday", "assets/ui/result_icon/v_birthday.png"],
         "year": ["Happy New Year", "assets/ui/result_icon/art.png"],
