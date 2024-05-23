@@ -2166,7 +2166,6 @@ function loadAssets_sound(id, sounds)
         "": ["Generic", "assets/ui/result_icon/voice.png"],
         "_boss_v_": ["Boss", "assets/ui/result_icon/v_boss.png"],
         "_v_": ["Standard", "assets/ui/result_icon/voice.png"],
-        "_navi": ["Story Event", "assets/ui/result_icon/v_event.png"],
         "birthday": ["Happy Birthday", "assets/ui/result_icon/v_birthday.png"],
         "year": ["Happy New Year", "assets/ui/result_icon/art.png"],
         "alentine": ["Valentine", "assets/ui/result_icon/v_valentine.png"],

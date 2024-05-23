@@ -1656,7 +1656,7 @@ class Updater():
                                 pass
                     # base sound
                     if not exist:
-                        base_target = (["_v_" + str(i).zfill(3) for i in range(5, 200, 5)] + ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_3", "_boss_v_4", "_boss_v_5", "_navi0", "_navi1", "_navi2", "_navi3", "_navi10", "_navi20", "_navi30", "_navi40", "_navi50", "_navi60", "_navi70", "_navi80", "_navi90", "d_boss_v_1"]) if self.debug_npc_detail else ["_v_001", "_boss_v_1", "_boss_v_2", "_navi0", "_navi1"]
+                        base_target = (["_v_" + str(i).zfill(3) for i in range(5, 200, 5)] + ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_3", "_boss_v_4", "_boss_v_5", "_boss_v_10", "_boss_v_15", "_boss_v_20", "_boss_v_25", "_boss_v_30", "_boss_v_35", "_boss_v_45", "_boss_v_50", "_boss_v_55", "_boss_v_60", "_boss_v_65", "_boss_v_70", "_boss_v_75", "d_boss_v_1"]) if self.debug_npc_detail else ["_v_001", "_boss_v_1", "_boss_v_2"]
                         for k in base_target:
                             try:
                                 f = "{}{}".format(id, k)
@@ -2200,7 +2200,7 @@ class Updater():
             if uncap == "01": uncap = ""
             elif uncap == "02": continue # seems unused
             elif uncap != "": uncap = "_" + uncap
-            for mid, Z in [("_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("_boss_v_", 1), ("d_boss_v_", 1)]:
+            for mid, Z in [("_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("d_boss_v_", 1)]:
                 match mid: # opti
                     case "_":
                         suffixes = ["", "a", "b"]
@@ -2210,17 +2210,13 @@ class Updater():
                         suffixes = [""]
                         A = 1
                         max_err = 5
-                    case "_boss_v_":
-                        suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
-                        A = 1
-                        max_err = 5
                     case _:
                         suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
                         A = 0 if mid == "_cutin" else 1
                         max_err = 2
                 elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
             for i in range(0, 10): # break down _navi for speed, up to 100
-                elements.append((id, existing, uncap + "_navi" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
+                elements.append((id, existing, uncap + "_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 1, 1, 6))
             for i in range(0, 65): # break down _v_ for speed, up to 650
                 elements.append((id, existing, uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
         # chain burst
@@ -2246,7 +2242,7 @@ class Updater():
                     result.append(f)
         else:
             err = 0
-            is_z_limited = suffix.startswith('_v_') or suffix.startswith('_navi')
+            is_z_limited = suffix.startswith('_v_') or suffix.startswith('_boss_v_')
             while not is_z_limited or (is_z_limited and len(str(index)) <= zfill):
                 found = False
                 for p in post: # check if already processed in the past
