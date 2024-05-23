@@ -2118,6 +2118,7 @@ class Updater():
             except:
                 pass
         if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
+        si = start_index
         elements = []
         for id in target_list:
             if id[:3] in ['399', '305']:
@@ -2140,15 +2141,15 @@ class Updater():
                 if i == 0: prep_split.append(None) # banter
                 for kk in prep[i:i + self.SOUND_CONCURRENT_PER_STEP]:
                     prep_split.append(kk)
-                if start_index > 0:
-                    start_index -= 1
+                if si > 0:
+                    si -= 1
                 else:
                     elements.append((k, id, idx, voices, prep_split))
         # memory cleaning
         prep = None
         prep_split = None
         # start
-        self.progress = Progress(self, total=len(elements), silent=False)
+        self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
         async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_UPDATEALL):
             pass
         print("Done")
