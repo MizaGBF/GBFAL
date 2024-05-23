@@ -2396,17 +2396,17 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             }
             switch(t.toLowerCase())
             {
-                case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": i.classList.add("tag-gold"); break;
+                case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": case "xeno": case "exo": i.classList.add("tag-gold"); break;
                 case "missing-help-wanted": missing = true; i.classList.add("tag-gold"); break;
-                case "sr": case "voiced": case "voice-only": i.classList.add("tag-silver"); break;
+                case "sr": case "militis": case "voiced": case "voice-only": i.classList.add("tag-silver"); break;
                 case "r": i.classList.add("tag-bronze"); break;
                 case "n": case "gran": case "djeeta": case "null": case "unknown-boss": i.classList.add("tag-normal"); break;
                 case "fire": case "dragon-boss": case "elemental-boss": case "other-boss": i.classList.add("tag-fire"); break;
-                case "water": case "fish-boss": case "core-boss": i.classList.add("tag-water"); break;
+                case "water": case "fish-boss": case "core-boss": case "aberration-boss": i.classList.add("tag-water"); break;
                 case "earth": case "beast-boss": case "golem-boss": case "machine-boss": case "goblin-boss": i.classList.add("tag-earth"); break;
-                case "wind": case "flying-boss": case "plant-boss": case "insect-boss": i.classList.add("tag-wind"); break;
+                case "wind": case "flying-boss": case "plant-boss": case "insect-boss": case "wyvern-boss": i.classList.add("tag-wind"); break;
                 case "light": case "people-boss": case "fairy-boss": case "primal-boss": i.classList.add("tag-light"); break;
-                case "dark": case "otherworld-boss": case "undead-boss": case "reptile-boss": i.classList.add("tag-dark"); break;
+                case "dark": case "monster-boss": case "otherworld-boss": case "undead-boss": case "reptile-boss": i.classList.add("tag-dark"); break;
                 case "cut-content": case "trial": i.classList.add("tag-cut-content"); break;
                 case "sabre": case "sword": case "spear": case "dagger": case "axe": case "staff": case "melee": case "gun": case "bow": case "harp": case "katana": i.classList.add("tag-weaptype"); break;
                 case "summer": i.classList.add("tag-series-summer"); break;

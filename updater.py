@@ -193,8 +193,8 @@ class Updater():
     # scene string
     SCENE_MC_ID = set(["3990219000", "3990220000"])
     SCENE_BASE = ["", "_a", "_b", "_c", "_m", "_nalhe", "_school", "_astral", "_battle", "_knife", "_off", "_race", "_guardian", "_cook", "_orange", "_helicopter", "_muffler", "_cigarette", "_face", "_mask", "_halfmask", "_girl", "_town", "_cow", "_two", "_three", "_2022", "_2023", "_2024"]
-    SCENE_BASE_MC = SCENE_BASE + ["_dancer", "_mechanic", "_monk", "_lumberjack", "_robinhood", "_horse", "_cavalry", "_paladin", "_manadiver", "_king", "_eternals", "_eternals2"]
-    SCENE_EXPRESSIONS = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_10", "_up", "_laugh", "_laugh_small", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_painful3", "_painful4", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_despair", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_jito", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_hood", "_letter", "_child1", "_child2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_chara", "_fight", "_2021", "_2022", "_2023", "_2024", "_all", "_all2", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_move", "_move2", "_jump", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_ghost", "_stand", "_two", "_three", "_stand", "_eyeline"]
+    SCENE_BASE_MC = SCENE_BASE + ["_dancer", "_mechanic", "_glory", "_kengo", "_monk", "_lumberjack", "_robinhood", "_horse", "_cavalry", "_paladin", "_panakeia", "_manadiver", "_king", "_eternals", "_eternals2"]
+    SCENE_EXPRESSIONS = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_10", "_up", "_laugh", "_laugh_small", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_roar", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_painful3", "_painful4", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_despair", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_jito", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_hood", "_letter", "_child1", "_child2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_chara", "_fight", "_2021", "_2022", "_2023", "_2024", "_all", "_all2", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_move", "_move2", "_jump", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_ghost", "_stand", "_two", "_three", "_stand", "_eyeline"]
     SCENE_VARIATIONS = ["", "_a", "_b", "_b1", "_b2", "_b3", "_speed", "_line", "_up", "_up_speed", "_up_damage", "_up_line", "_up2", "_up3", "_up4", "_down", "_shadow", "_shadow2", "_shadow3", "_damage", "_damage_up", "_light", "_up_light", "_light_speed", "_vanish", "_vanish1", "_vanish2", "_fadein1", "_blood", "_up_blood"]
     SCENE_CHECK = list(set(SCENE_BASE_MC + SCENE_EXPRESSIONS + SCENE_VARIATIONS))
     SCENE_VARIATIONS_SET = set(SCENE_VARIATIONS)
@@ -1938,6 +1938,7 @@ class Updater():
 
     # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
     async def update_all_scene(self, target_index : Optional[str] = None, params : list = [], update_pending : bool = False) -> None:
+        self.new_elements = set()
         target_list = []
         if update_pending:
             for k in self.data['scene_queue']:
@@ -1996,8 +1997,9 @@ class Updater():
             await self.wait_shared_task_completion()
             if update_pending: self.data['scene_queue'] = []
             print("Done")
-            self.sort_all_scene()
             self.save()
+            self.sort_all_scene()
+        self.new_elements = []
 
     # used in update_all_scene_sub
     def scene_suffix_is_matching(self, name : str, filters : list) -> bool:
@@ -2049,11 +2051,12 @@ class Updater():
         if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, g)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, g), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, g)])) is not None:
             self.data[k][id][idx].append(g)
             self.modified = True
+            self.new_elements.add(id)
 
     # Sort scene data by string suffix order, to keep some sort of coherency on the web page
-    def sort_all_scene(self) -> None:
+    def sort_all_scene(self, full : bool = False) -> None:
         print("Sorting scene data...")
-        valentines = {}
+        valentines = self.data['valentines'].copy()
         suffixes = []
         tmp = set()
         for u in ["", "_02", "_03", "_04"]:
@@ -2068,7 +2071,7 @@ class Updater():
             if t == "npcs": idx = self.NPC_SCENE
             else: idx = self.CHARA_SCENE
             for id, v in self.data[t].items():
-                if not isinstance(v, list): continue
+                if not isinstance(v, list) or (not full and id not in self.new_elements): continue
                 new = []
                 before = str(v[idx])
                 d = set(v[idx])
@@ -2152,6 +2155,20 @@ class Updater():
         if update_pending and len(self.data['sound_queue']) > 0:
             self.data['sound_queue'] = []
             self.modified = True
+        print("Cleaning...")
+        for id in target_list: # removing dupes if any
+            if id[:3] in ['399', '305']:
+                uncaps = ["01"]
+                idx = self.NPC_SOUND
+                k = "npcs"
+            else:
+                uncaps = []
+                idx = self.CHARA_SOUND
+                k = 'characters' if id.startswith('30') else 'skins'
+            voices = list(set(self.data[k][id][idx]))
+            if len(voices) != len(self.data[k][id][idx]):
+                self.data[k][id][idx] = voices
+        print("Done")
         self.save()
 
     # update_all_sound() subroutine
@@ -2334,16 +2351,20 @@ class Updater():
                                 match k[:2]:
                                     case "11":
                                         append = " flying-boss"
-                                    case "12"|"13":
+                                    case "12":
                                         append = " beast-boss"
+                                    case "13":
+                                        append = " monster-boss"
                                     case "21":
                                         append = " plant-boss"
                                     case "22":
                                         append = " insect-boss"
                                     case "31":
                                         append = " fish-boss"
-                                    case "41"|"42":
+                                    case "41":
                                         append = " golem-boss"
+                                    case "42":
+                                        append = " aberration-boss"
                                     case "43":
                                         append = " machine-boss"
                                     case "51":
@@ -2356,10 +2377,12 @@ class Updater():
                                         append = " people-boss"
                                     case "63":
                                         append = " fairy-boss"
-                                    case "71"|"73":
-                                        append = " dragon-boss"
+                                    case "71":
+                                        append = " wyvern-boss"
                                     case "72":
                                         append = " reptile-boss"
+                                    case "73":
+                                        append = " dragon-boss"
                                     case "81":
                                         append = " primal-boss"
                                     case "82":
@@ -3179,7 +3202,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.34\n")
+                print("GBFAL updater v2.35\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
@@ -3221,7 +3244,7 @@ class Updater():
                     elif "-scenechara" in flags: await self.update_all_scene("characters", extras)
                     elif "-sceneskin" in flags: await self.update_all_scene("skins", extras)
                     elif "-scenefull" in flags: await self.update_all_scene(None, extras)
-                    elif "-scenesort" in flags: self.sort_all_scene()
+                    elif "-scenesort" in flags: self.sort_all_scene(full=True)
                     elif "-thumb" in flags: await self.update_npc_thumb()
                     elif "-sound" in flags: await self.update_all_sound(extras)
                     elif "-partner" in flags: await self.update_all_partner(extras)
