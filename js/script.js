@@ -620,7 +620,7 @@ function customSortPair(a, b) // used to sort banter sound files
     }
 }
 
-function customSortBoss(a, b) // used to sort boss sound files
+function customSort(a, b) // used to sort some sound files
 {
     return parseInt(a.replaceAll(/\D/g,''), 10)-parseInt(b.replaceAll(/\D/g,''), 10);
 }
@@ -2164,9 +2164,9 @@ function loadAssets_sound(id, sounds)
     let sorted_sound = {"Generic":[]};
     let checks = {
         "": ["Generic", "assets/ui/result_icon/voice.png"],
+        "_v_": ["Standard", "assets/ui/result_icon/voice.png"],
         "_boss_v_": ["Boss", "assets/ui/result_icon/v_boss.png"],
         "_navi": ["Story Event", "assets/ui/result_icon/v_event.png"],
-        "_v_": ["Standard", "assets/ui/result_icon/voice.png"],
         "birthday": ["Happy Birthday", "assets/ui/result_icon/v_birthday.png"],
         "year": ["Happy New Year", "assets/ui/result_icon/art.png"],
         "alentine": ["Valentine", "assets/ui/result_icon/v_valentine.png"],
@@ -2215,7 +2215,8 @@ function loadAssets_sound(id, sounds)
     if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
     // additional sorting
     if("Banter" in sorted_sound) sorted_sound["Banter"].sort(customSortPair);
-    if("Boss" in sorted_sound) sorted_sound["Boss"].sort(customSortBoss);
+    if("Boss" in sorted_sound) sorted_sound["Boss"].sort(customSort);
+    if("Story Event" in sorted_sound) sorted_sound["Story Event"].sort(customSort);
     for(const k of ["Happy Birthday","Happy New Year","Valentine","White Day","Halloween","Christmas"])
     {
         try
