@@ -2219,7 +2219,7 @@ class Updater():
                         A = 0 if mid == "_cutin" else 1
                         max_err = 2
                 elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
-            for i in range(0, 9): # break down _navi for speed, up to 100
+            for i in range(0, 10): # break down _navi for speed, up to 100
                 elements.append((id, existing, uncap + "_navi" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
             for i in range(0, 65): # break down _v_ for speed, up to 650
                 elements.append((id, existing, uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
