@@ -2662,7 +2662,8 @@ function addSound(div, id, sound) // add a sound asset
     elem.classList.add("clickable");
     elem.title = "Click to play " + id + sound + ".mp3";
     // format element text
-    let s = sound.substring(1);
+    let s = sound;
+    if(s[0] == '_') s = s.substring(1);
     switch(s.substring(0, 3))
     {
         case "02_": s = "4★_" + s.substring(3); break;

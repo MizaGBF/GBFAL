@@ -1656,15 +1656,17 @@ class Updater():
                                 pass
                     # base sound
                     if not exist:
-                        for k in ["_v_001", "_boss_v_1"]:
+                        base_target = (["_v_" + str(i).zfill(3) for i in range(5, 200, 5)] + ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_3", "_boss_v_4", "_boss_v_5", "d_boss_v_1"]) if self.debug_npc_detail else ["_v_001", "_boss_v_1", "_boss_v_2"]
+                        for k in base_target:
                             try:
                                 f = "{}{}".format(id, k)
-                                if f not in data[self.NPC_SCENE]:
+                                if f not in data[self.NPC_SOUND]:
                                     await self.head(self.SOUND + "voice/" + f + ".mp3")
                                     data[self.NPC_SOUND].append(k)
                                     exist = True
                                 else:
                                     exist = True
+                                break
                             except:
                                 pass
                 if exist:
@@ -2180,16 +2182,24 @@ class Updater():
             if uncap == "01": uncap = ""
             elif uncap == "02": continue # seems unused
             elif uncap != "": uncap = "_" + uncap
-            for mid, Z in [("_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("_boss_v_", 1)]:
+            for mid, Z in [("_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("_boss_v_", 1), ("d_boss_v_", 1)]:
                 match mid: # opti
                     case "_":
                         suffixes = ["", "a", "b"]
                         A = 1
-                        max_err = 1
+                        max_err = 2
+                    case "d_boss_v_": # athena militis only ?...
+                        suffixes = [""]
+                        A = 1
+                        max_err = 5
+                    case "_boss_v_":
+                        suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
+                        A = 1
+                        max_err = 5
                     case _:
                         suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
                         A = 0 if mid == "_cutin" else 1
-                        max_err = 1
+                        max_err = 2
                 elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
             for i in range(0, 65): # break down _v_ for speed, up to 650
                 elements.append((id, existing, uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
@@ -2216,7 +2226,8 @@ class Updater():
                     result.append(f)
         else:
             err = 0
-            while len(str(index)) <= zfill:
+            is_v = suffix.startswith('_v_')
+            while not is_v or (is_v and len(str(index)) <= zfill):
                 found = False
                 for p in post: # check if already processed in the past
                     f = suffix.format(str(index).zfill(zfill)) + p
