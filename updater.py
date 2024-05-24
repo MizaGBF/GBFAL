@@ -2101,8 +2101,16 @@ class Updater():
 
     # Called by -sound, update all npc and character sound datas
     async def update_all_sound(self, parameters : list = [], update_pending : bool = False) -> None:
-        if update_pending:
-            target_list = list(set(self.data['sound_queue']))
+        start_index = 0
+        if len(parameters) > 0 and len(parameters[0]) < 10:
+            try:
+                start_index = int(parameters[0])
+                parameters = paramters[1:]
+            except:
+                pass
+        target_list = list(set(self.data['sound_queue'])) if update_pending else []
+        if len(parameters) > 0:
+            target_list += [id for id in parameters if id not in target_list]
         else:
             target_list = []
             for k in ["characters", "skins", "npcs"]:
@@ -2111,16 +2119,11 @@ class Updater():
         if len(target_list) == 0:
             return
         print("Updating sound data for {} element(s)".format(len(target_list)))
-        start_index = 0
-        if len(parameters) > 0:
-            try:
-                start_index = int(parameters[0])
-            except:
-                pass
         if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
         si = start_index
         elements = []
         for id in target_list:
+            if len(id) != 10: continue
             if id[:3] in ['399', '305']:
                 uncaps = ["01"]
                 idx = self.NPC_SOUND
@@ -2149,6 +2152,7 @@ class Updater():
         if update_pending and len(self.data['sound_queue']) > 0:
             self.data['sound_queue'] = []
             self.modified = True
+        self.save()
         print("Cleaning...")
         for id in target_list: # removing dupes if any
             if id[:3] in ['399', '305']:
@@ -2162,6 +2166,7 @@ class Updater():
             voices = list(set(self.data[k][id][idx]))
             if len(voices) != len(self.data[k][id][idx]):
                 self.data[k][id][idx] = voices
+                self.modified = True
         print("Done")
         self.save()
 
@@ -2203,9 +2208,9 @@ class Updater():
                         max_err = 2
                 elements.append((uncap + mid + "{}", suffixes, A, Z, max_err))
             for i in range(0, 10): # break down _navi for speed, up to 100
-                elements.append((uncap + "_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 1, 1, 6))
+                elements.append((uncap + "_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 0, 1, 6))
             for i in range(0, 65): # break down _v_ for speed, up to 650
-                elements.append((uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
+                elements.append((uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 0, 1, 6))
         # chain burst
         elements.append(("_chain_start", [], None, None, None))
         for A in range(2, 5):
