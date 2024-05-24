@@ -2135,23 +2135,16 @@ class Updater():
                         uncaps.append(uu)
             try: voices = set(self.data[k][id][idx])
             except: voices = set()
-            prep = self.update_chara_sound_file_prep(id, uncaps, voices)
-            for i in range(0, len(prep), self.SOUND_CONCURRENT_PER_STEP):
-                prep_split = []
-                if i == 0: prep_split.append(None) # banter
-                for kk in prep[i:i + self.SOUND_CONCURRENT_PER_STEP]:
-                    prep_split.append(kk)
-                if si > 0:
-                    si -= 1
-                else:
-                    elements.append((k, id, idx, voices, prep_split))
-        # memory cleaning
-        prep = None
-        prep_split = None
+            if si > 0:
+                si -= 1
+            else:
+                elements.append((k, id, idx, uncaps, voices))
         # start
         self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
+        self.shared_task_container = []
         async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_UPDATEALL):
             pass
+        await self.wait_shared_task_completion()
         print("Done")
         if update_pending and len(self.data['sound_queue']) > 0:
             self.data['sound_queue'] = []
@@ -2175,22 +2168,16 @@ class Updater():
     # update_all_sound() subroutine
     async def update_all_sound_sub(self, tup : tuple) -> None:
         with self.progress:
-            index, id, idx, existing, elements = tup
-            for t in elements:
-                if t is None:
-                    res = await self.update_chara_sound_file_sub_banter(id, existing)
-                else:
-                    res =  await self.update_chara_sound_file_sub(*t)
-                if len(res) > 0:
-                    m = False
-                    for r in res:
-                        if r not in existing:
-                            self.data[index][id][idx].append(r)
-                            m = True
-                    if m:
-                        self.data[index][id][idx] = list(set(self.data[index][id][idx]))
-                        self.data[index][id][idx].sort()
-                        self.modified = True
+            index, id, idx, uncaps, existing = tup
+            # banter
+            await self.wait_shared_task_free(self.MAX_UPDATEALL)
+            self.shared_task_container.append(asyncio.create_task(self.update_chara_sound_file_sub_banter(index, id, idx, existing)))
+            prep = self.update_chara_sound_file_prep(id, uncaps, existing)
+            # finish
+            for i in range(0, len(prep), self.SOUND_CONCURRENT_PER_STEP):
+                for kk in prep[i:i + self.SOUND_CONCURRENT_PER_STEP]:
+                    await self.wait_shared_task_free(self.MAX_UPDATEALL)
+                    self.shared_task_container.append(asyncio.create_task(self.update_chara_sound_file_sub(index, id, idx, existing, kk)))
 
     # prep work for update_chara_sound_file
     def update_chara_sound_file_prep(self, id : str, uncaps : Optional[list] = None, existing : set = set()) -> list:
@@ -2214,28 +2201,29 @@ class Updater():
                         suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
                         A = 0 if mid == "_cutin" else 1
                         max_err = 2
-                elements.append((id, existing, uncap + mid + "{}", suffixes, A, Z, max_err))
+                elements.append((uncap + mid + "{}", suffixes, A, Z, max_err))
             for i in range(0, 10): # break down _navi for speed, up to 100
-                elements.append((id, existing, uncap + "_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 1, 1, 6))
+                elements.append((uncap + "_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 1, 1, 6))
             for i in range(0, 65): # break down _v_ for speed, up to 650
-                elements.append((id, existing, uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
+                elements.append((uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 1, 1, 6))
         # chain burst
-        elements.append((id, existing, "_chain_start", [], None, None, None))
+        elements.append(("_chain_start", [], None, None, None))
         for A in range(2, 5):
-            elements.append((id, existing, "_chain{}_"+str(A), [], 1, 1, 1))
+            elements.append(("_chain{}_"+str(A), [], 1, 1, 1))
         # seasonal A
         for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
-            elements.append((id, existing, mid + "{}", [], 1, Z, 5))
+            elements.append((mid + "{}", [], 1, Z, 5))
         for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
             for s in range(1, 6):
-                elements.append((id, existing, "_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
+                elements.append(("_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
         return elements
 
     # generic sound subroutine
-    async def update_chara_sound_file_sub(self, id : str, existing : set, suffix : str, post : list, index : Optional[int], zfill : Optional[int], max_err : Optional[int]) -> list:
+    async def update_chara_sound_file_sub(self, index : str, id : str, idx : int, existing : set, element : tuple) -> None:
         result = []
+        (suffix, post, current, zfill, max_err) = element
         if len(post) == 0: post = [""]
-        if index is None: # single mode
+        if current is None: # single mode
             for p in post:
                 f = suffix + p
                 if f in existing or (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
@@ -2243,10 +2231,10 @@ class Updater():
         else:
             err = 0
             is_z_limited = suffix.startswith('_v_') or suffix.startswith('_boss_v_')
-            while not is_z_limited or (is_z_limited and len(str(index)) <= zfill):
+            while not is_z_limited or (is_z_limited and len(str(current)) <= zfill):
                 found = False
                 for p in post: # check if already processed in the past
-                    f = suffix.format(str(index).zfill(zfill)) + p
+                    f = suffix.format(str(current).zfill(zfill)) + p
                     if f in existing:
                         found = True
                         err = 0
@@ -2254,7 +2242,7 @@ class Updater():
                 if not found: # if not
                     tasks = []
                     for p in post:
-                        f = suffix.format(str(index).zfill(zfill)) + p
+                        f = suffix.format(str(current).zfill(zfill)) + p
                         if f not in existing:
                             tasks.append(self.update_chara_sound_file_sub_req(id, f))
                         else:
@@ -2266,12 +2254,14 @@ class Updater():
                                 found = True
                     if not found:
                         err += 1
-                        if err >= max_err and index > 0:
+                        if err >= max_err and current > 0:
                             break
                     else:
                         err = 0
-                index += 1
-        return result
+                current += 1
+        if len(result) > 0:
+            self.data[index][id][idx] += result
+            self.modified = True
 
     async def update_chara_sound_file_sub_req(self, id : str, f : str) -> Optional[str]: # used above for asyncio gather
         if (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
@@ -2279,7 +2269,7 @@ class Updater():
         return None
 
     # banter sound subroutine
-    async def update_chara_sound_file_sub_banter(self, id : str, existing : set) -> list:
+    async def update_chara_sound_file_sub_banter(self, index : str, id : str, idx : int, existing : set) -> None:
         result = []
         A = 1
         B = 1
@@ -2305,7 +2295,9 @@ class Updater():
                 else:
                     A += 1
                     B = 1
-        return result
+        if len(result) > 0:
+            self.data[index][id][idx] += result
+            self.modified = True
 
     ### Lookup ##################################################################################################################
 
