@@ -30,6 +30,7 @@ Running `python updater.py` without any parameters will give you an up-to-date l
 Start parameters:
 - `-wait`: Wait for GBF to update before running.  
 - `-nochange`: Disable changes to [changelog.json](https://github.com/MizaGBF/GBFAL/blob/main/json/changelog.json) "new" list.  
+- `-stats`: Display `data.json` statistics before quitting.  
   
 Action parameters (Only one of those can be used at a time):
 - `-run`: Look for new content. If new content is found, it will automatically run `-update`, `-event`, `-thumb`, `-relation` and `-lookup`. Can append a list of element to `-update`.  

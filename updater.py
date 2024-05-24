@@ -113,7 +113,7 @@ class Updater():
     JOB_ALT = 1
     JOB_DETAIL = 2
     JOB_DETAIL_ALT = 3
-    JOB_DETAIl_ALL = 4
+    JOB_DETAIL_ALL = 4
     JOB_SD = 5
     JOB_MH = 6
     JOB_SPRITE = 7
@@ -945,7 +945,7 @@ class Updater():
                         data[self.JOB_DETAIL_ALT].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
                 for j in colors:
                     for k in range(2):
-                        data[self.JOB_DETAIl_ALL].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+                        data[self.JOB_DETAIL_ALL].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
                 for j in colors:
                     data[self.JOB_SD].append(keys[i][:-2]+str(j).zfill(2))
 
@@ -1094,7 +1094,7 @@ class Updater():
                                 s = input().lower()
                                 if s in self.data['job_key']:
                                     sheets = []
-                                    for v in self.data['job'][jid][self.JOB_DETAIl_ALL]:
+                                    for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
                                         try:
                                             sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
                                         except:
@@ -1220,7 +1220,7 @@ class Updater():
                 case 0:
                     # set key
                     sheets = []
-                    for v in self.data['job'][jid][self.JOB_DETAIl_ALL]:
+                    for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
                         try:
                             sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
                         except:
@@ -3106,6 +3106,93 @@ class Updater():
 
     ### Others ##################################################################################################################
 
+    def make_stats(self) -> None:
+        try:
+            entity_count = 0
+            scene_count = 0
+            sound_count = 0
+            file_estimation = 0
+            for t in ["characters", "partners", "summons", "weapons", "enemies", "skins", "job", "npcs", "title", "suptix", "lookup", "events", "skills", "subskills", "buffs", "story"]:
+                ref = self.data.get(t, {})
+                entity_count += len(ref)
+                for k, v in ref.items():
+                    match t:
+                        case "characters"|"skins"|"partners":
+                            if v is None or v == 0: continue
+                            file_estimation += len(v[self.CHARA_SPRITE])
+                            file_estimation += len(v[self.CHARA_PHIT])
+                            file_estimation += len(v[self.CHARA_SP])
+                            file_estimation += len(v[self.CHARA_AB_ALL])
+                            file_estimation += len(v[self.CHARA_AB])
+                            file_estimation += len(v[self.CHARA_GENERAL]) * 14
+                            if t != "partners":
+                                file_estimation += len(v[self.CHARA_SD]) * 5
+                                file_estimation += len(v[self.CHARA_SCENE])
+                                file_estimation += len(v[self.CHARA_SOUND])
+                                
+                                scene_count += len(v[self.CHARA_SCENE])
+                                sound_count += len(v[self.CHARA_SOUND])
+                        case "summons":
+                            if v is None or v == 0: continue
+                            file_estimation += len(v[self.SUM_GENERAL]) * 12
+                            file_estimation += len(v[self.SUM_CALL])
+                            file_estimation += len(v[self.SUM_DAMAGE])
+                        case "weapons":
+                            if v is None or v == 0: continue
+                            file_estimation += len(v[self.WEAP_GENERAL]) * 9
+                            file_estimation += len(v[self.WEAP_PHIT])
+                            file_estimation += len(v[self.WEAP_SP])
+                        case "job":
+                            if v is None or v == 0: continue
+                            file_estimation += len(v[self.JOB_ID]) * 4
+                            file_estimation += len(v[self.JOB_ALT]) * 3
+                            file_estimation += len(v[self.JOB_DETAIL]) * 13
+                            file_estimation += len(v[self.JOB_DETAIL_ALT])
+                            file_estimation += len(v[self.JOB_DETAIL_ALL])
+                            
+                            file_estimation += len(v[self.JOB_SPRITE])
+                            file_estimation += len(v[self.JOB_PHIT])
+                            file_estimation += len(v[self.JOB_SP])
+                        case "enemies":
+                            if v is None or v == 0: continue
+                            file_estimation += len(v[self.BOSS_GENERAL])
+                            file_estimation += len(v[self.BOSS_SPRITE])
+                            file_estimation += len(v[self.BOSS_APPEAR])
+                            file_estimation += len(v[self.BOSS_HIT])
+                            file_estimation += len(v[self.BOSS_SP])
+                            file_estimation += len(v[self.BOSS_SP_ALL])
+                        case "events":
+                            if v is None or v == 0: continue
+                            if v[self.EVENT_THUMB] is not None: file_estimation += 1
+                            for i in range(self.EVENT_OP, self.EVENT_SKY+1):
+                                file_estimation += len(v[i])
+                        case "story":
+                            if v is None or v == 0: continue
+                            file_estimation += len(v[self.STORY_CONTENT])
+                        case "npcs":
+                            if v is None or v == 0: continue
+                            if v[self.NPC_JOURNAL]: file_estimation += 1
+                            file_estimation += len(v[self.NPC_SCENE])
+                            file_estimation += len(v[self.NPC_SOUND])
+                            
+                            scene_count += len(v[self.NPC_SCENE])
+                            sound_count += len(v[self.NPC_SOUND])
+                        case "buffs":
+                            if v is None or v == 0: continue
+                            if len(v[0][0].split('_')) == 1: file_estimation += 1
+                            file_estimation += len(v[1])
+                        case _:
+                            file_estimation += 2
+            print("")
+            print("==== Indexation Stats ====")
+            print(entity_count, "indexed elements")
+            print(scene_count, "scene files" + ("" if file_estimation == 0 else " ({:.1f}%)".format(100*scene_count/file_estimation)))
+            print(sound_count, "sound files" + ("" if file_estimation == 0 else " ({:.1f}%)".format(100*sound_count/file_estimation)))
+            print("Approximately", file_estimation, "files total")
+        except Exception as e:
+            print("An unexpected error occured, can't display stats")
+            print(e)
+
     async def missing_npcs(self) -> None: # check for missing npc
         try:
             keys = list(self.data['npcs'].keys())
@@ -3169,6 +3256,7 @@ class Updater():
         print("START parameters (Optional):")
         print("-wait        : Wait an in-game update before running.")
         print("-nochange    : Disable the update of changelog.json.")
+        print("-stats       : Display data.json stats before quitting.")
         print("")
         print("MODE parameters (One at a time):")
         print("-run         : Update the data with new content (Followed by IDs to check if needed).")
@@ -3201,7 +3289,7 @@ class Updater():
                 print("GBFAL updater v2.35\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
-                start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange"])
+                start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
                 flags = set()
                 extras = []
                 for i, k in enumerate(argv):
@@ -3222,6 +3310,7 @@ class Updater():
                 if "-debug_wpn" in flags: self.debug_wpn = True
                 if "-wait" in flags: forced_stop = not (await self.wait())
                 if "-nochange" in flags: self.update_changelog = False
+                run_stats = "-stats" in flags
                 
                 if not forced_stop:
                     if len(flags) == 0:
@@ -3275,11 +3364,16 @@ class Updater():
                     elif "-eventedit" in flags: await self.event_edit()
                     elif "-buff" in flags: await self.update_buff()
                     elif "-bg" in flags: await self.manualUpdate(list(self.data.get('background', {}).keys()))
+                    elif run_stats:
+                        self.make_stats()
+                        run_stats = False
                     elif not ran:
                         self.print_help()
                         print("")
                         print("Unknown parameter:", k)
                 self.save()
+                if run_stats:
+                    self.make_stats()
         except Exception as e:
             print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
