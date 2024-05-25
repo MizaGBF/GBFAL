@@ -2105,7 +2105,7 @@ class Updater():
         if len(parameters) > 0 and len(parameters[0]) < 10:
             try:
                 start_index = int(parameters[0])
-                parameters = paramters[1:]
+                parameters = parameters[1:]
             except:
                 pass
         target_list = list(set(self.data['sound_queue'])) if update_pending else []
@@ -2155,6 +2155,7 @@ class Updater():
         self.save()
         print("Cleaning...")
         for id in target_list: # removing dupes if any
+            if len(id) != 10: continue
             if id[:3] in ['399', '305']:
                 uncaps = ["01"]
                 idx = self.NPC_SOUND
@@ -2163,6 +2164,7 @@ class Updater():
                 uncaps = []
                 idx = self.CHARA_SOUND
                 k = 'characters' if id.startswith('30') else 'skins'
+            if not isinstance(self.data.get(k, None), list): continue
             voices = list(set(self.data[k][id][idx]))
             if len(voices) != len(self.data[k][id][idx]):
                 self.data[k][id][idx] = voices
