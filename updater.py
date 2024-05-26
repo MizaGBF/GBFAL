@@ -1938,7 +1938,6 @@ class Updater():
 
     # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
     async def update_all_scene(self, target_index : Optional[str] = None, params : list = [], update_pending : bool = False) -> None:
-        self.new_elements = set()
         target_list = []
         if update_pending:
             for k in self.data['scene_queue']:
@@ -1999,7 +1998,6 @@ class Updater():
             print("Done")
             self.save()
             self.sort_all_scene()
-        self.new_elements = []
 
     # used in update_all_scene_sub
     def scene_suffix_is_matching(self, name : str, filters : list) -> bool:
@@ -2051,46 +2049,25 @@ class Updater():
         if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, g)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, g), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, g)])) is not None:
             self.data[k][id][idx].append(g)
             self.modified = True
-            self.new_elements.add(id)
 
     # Sort scene data by string suffix order, to keep some sort of coherency on the web page
-    def sort_all_scene(self, full : bool = False) -> None:
+    def sort_all_scene(self) -> None:
         print("Sorting scene data...")
         valentines = self.data['valentines'].copy()
-        suffixes = []
-        tmp = set()
-        for u in ["", "_02", "_03", "_04"]:
-            for s in self.SCENE_BASE_MC:
-                for ss in self.generate_scene_file_list()[1 if u == "" else 0]:
-                    f = u+s+ss
-                    if f not in tmp:
-                        suffixes.append(f)
-                        tmp.add(f)
-        tmp = None
         for t in ["characters", "skins", "npcs"]:
             if t == "npcs": idx = self.NPC_SCENE
             else: idx = self.CHARA_SCENE
             for id, v in self.data[t].items():
-                if not isinstance(v, list) or (not full and id not in self.new_elements): continue
-                new = []
-                before = str(v[idx])
-                d = set(v[idx])
-                for s in suffixes:
-                    if s in d:
-                        new.append(s)
-                snew = str(new)
-                if snew != before:
-                    if len(new) == len(d): # should be the same length
-                        self.modified = True
-                        self.data[t][id][idx] = new
-                    else: # just in case...
-                        print(before)
-                        print(snew)
-                        print("Error sorting scene for ID:", id)
-                        print("Interrupting...")
-                        return
-                if "_white" in snew or "_valentine" in snew:
-                    valentines[id] = 0
+                if not isinstance(v, list): continue
+                new = v[idx].copy()
+                new.sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e)))
+                if new != v[idx]:
+                    self.modified = True
+                    self.data[t][id][idx] = new
+                if id not in valentines:
+                    snew = str(new)
+                    if "_white" in snew or "_valentine" in snew:
+                        valentines[id] = 0
         if str(valentines) != str(self.data['valentines']):
             self.data['valentines'] = valentines
             self.modified = True
@@ -3331,7 +3308,7 @@ class Updater():
                     elif "-scenechara" in flags: await self.update_all_scene("characters", extras)
                     elif "-sceneskin" in flags: await self.update_all_scene("skins", extras)
                     elif "-scenefull" in flags: await self.update_all_scene(None, extras)
-                    elif "-scenesort" in flags: self.sort_all_scene(full=True)
+                    elif "-scenesort" in flags: self.sort_all_scene()
                     elif "-thumb" in flags: await self.update_npc_thumb()
                     elif "-sound" in flags: await self.update_all_sound(extras)
                     elif "-partner" in flags: await self.update_all_partner(extras)
