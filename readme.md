@@ -19,7 +19,7 @@ Two of the JSON files in the `json` folder are the core of the system:
   
 Others JSON files are used for debug or update purpose:  
 - [job_data_export.json](https://github.com/MizaGBF/GBFAL/blob/main/json/job_data_export.json) is used to quickly link some MC jobs to their weapon animations using the built-in CLI.  
-- [name_data.json](https://github.com/MizaGBF/GBFAL/blob/main/json/name_data.json) is used to fill lookup entries without wiki data, using a text editor or the GUY `namesless_editor.pyw`.
+- [manual_lookup.json](https://github.com/MizaGBF/GBFAL/blob/main/json/manual_lookup.json) is used to fill lookup entries without wiki data.
   
 More JSON files not specified here might appear in this folder.  
   

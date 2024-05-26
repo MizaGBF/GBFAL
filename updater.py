@@ -471,7 +471,7 @@ class Updater():
                     new.append([k, v])
                 if len(new) > self.MAX_NEW: new = new[len(new)-self.MAX_NEW:]
                 with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
-                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues, 'help':False}, outfile)
+                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues, 'help':help}, outfile)
                 if self.update_changelog: print("data.json and changelog.json updated")
                 else: print("data.json updated")
         except Exception as e:
@@ -2405,97 +2405,127 @@ class Updater():
         modified = set()
         # manual npcs
         try:
-            print("Importing name_data.json ...")
-            with open("json/name_data.json", mode="r", encoding="utf-8") as f:
+            print("Importing manual_lookup.json ...")
+            with open("json/manual_lookup.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
-                for k, v in data.items():
-                    try:
-                        voice = (len(k) == 10 and self.data["npcs"].get(k, 0) != 0 and len(self.data["npcs"][k][self.NPC_SOUND]) > 0)
-                        voice_only = voice and self.data["npcs"][k][self.NPC_JOURNAL] and len(self.data["npcs"][k][self.NPC_SCENE]) == 0
-                        if v is None or v == "":
-                            if self.data["lookup"].get(k, "missing-help-wanted").startswith("missing-help-wanted"):
-                                l = "missing-help-wanted"
-                                if voice:
-                                    l += " voiced"
-                                    if not voice_only:
-                                        l += " voice-only"
-                                if l != self.data["lookup"].get(k, None):
-                                    self.data["lookup"][k] = l
-                                    modified.add(k)
-                            continue
-                        if "$$" not in v and "$" in v: print("Missing $ Warning for", k, "in name_data.json")
-                        match len(k):
-                            case 10: # npc
-                                if "@@" in self.data["lookup"].get(k, ""): continue
-                                if "$$" in v:
-                                    v = " ".join(v.split("$$")[0])
-                                append = ""
-                            case 7: # enemy
-                                if "$$" in v:
-                                    vs = v.split("$$")
-                                    if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null"]: print("Element Warning for", k, "in name_data.json")
-                                    v = vs[1] + " " + vs[0]
+            # check entries
+            to_save = False
+            for t in ["npcs", "enemies"]:
+                for k in self.data[t]:
+                    if k not in data:
+                        s = self.data['lookup'].get(k, None)
+                        if s is not None and s != "":
+                            if '@@' in s:
+                                s = s.split("@@", 1)[1].split(" ", 1)[1]
+                            s = s.split(" ")
+                            i = 0
+                            while i < len(s):
+                                if s[i] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
+                                    i += 1
                                 else:
-                                    print("Element Warning for", k, "in name_data.json")
-                                match k[:2]:
-                                    case "11":
-                                        append = " flying-boss"
-                                    case "12":
-                                        append = " beast-boss"
-                                    case "13":
-                                        append = " monster-boss"
-                                    case "21":
-                                        append = " plant-boss"
-                                    case "22":
-                                        append = " insect-boss"
-                                    case "31":
-                                        append = " fish-boss"
-                                    case "41":
-                                        append = " golem-boss"
-                                    case "42":
-                                        append = " aberration-boss"
-                                    case "43":
-                                        append = " machine-boss"
-                                    case "51":
-                                        append = " otherworld-boss"
-                                    case "52":
-                                        append = " undead-boss"
-                                    case "61":
-                                        append = " goblin-boss"
-                                    case "62":
-                                        append = " people-boss"
-                                    case "63":
-                                        append = " fairy-boss"
-                                    case "71":
-                                        append = " wyvern-boss"
-                                    case "72":
-                                        append = " reptile-boss"
-                                    case "73":
-                                        append = " dragon-boss"
-                                    case "81":
-                                        append = " primal-boss"
-                                    case "82":
-                                        append = " elemental-boss"
-                                    case "83":
-                                        append = " core-boss"
-                                    case "91":
-                                        append = " other-boss"
-                                    case _:
-                                        append =" unknown-boss"
-                        vs = v.split(" ")
-                        if vs[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: vs = vs[1:]
-                        l = (" ".join(vs) + append).lower().strip().replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('  ', ' ').replace('  ', ' ')
-                        if voice:
-                            l += " voiced"
-                            if voice_only:
-                                l += " voice-only"
-                        if l != self.data["lookup"].get(k, ""):
-                            self.data["lookup"][k] = l
-                            modified.add(k)
-                    except:
-                        pass
+                                    break
+                            s = " ".join(s[i:])
+                            if s == "": continue
+                            data[k] = s.replace(' voiced', '').replace(' voice-only', '')
+                        else:
+                            data[k] = None
+                        to_save = True
+            if to_save:
+                keys = list(data.keys())
+                keys.sort(key=lambda s : (10 - len(s), s))
+                data = {k : data[k] for k in keys}
+                with open("json/manual_lookup.json", mode="w", encoding="utf-8") as f:
+                    json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
+                print("json/manual_lookup.json updated with new entries")
+            # fill the lookup table
+            for k, v in data.items():
+                try:
+                    voice = (len(k) == 10 and self.data["npcs"].get(k, 0) != 0 and len(self.data["npcs"][k][self.NPC_SOUND]) > 0)
+                    voice_only = voice and self.data["npcs"][k][self.NPC_JOURNAL] and len(self.data["npcs"][k][self.NPC_SCENE]) == 0
+                    if v is None or v == "":
+                        if self.data["lookup"].get(k, "missing-help-wanted").startswith("missing-help-wanted"):
+                            l = "missing-help-wanted"
+                            if voice:
+                                l += " voiced"
+                                if not voice_only:
+                                    l += " voice-only"
+                            if l != self.data["lookup"].get(k, None):
+                                self.data["lookup"][k] = l
+                                modified.add(k)
+                        continue
+                    if "$$" not in v and "$" in v: print("Missing $ Warning for", k, "in manual_lookup.json")
+                    match len(k):
+                        case 10: # npc
+                            if "@@" in self.data["lookup"].get(k, ""): continue
+                            if "$$" in v:
+                                v = " ".join(v.split("$$")[0])
+                            append = ""
+                        case 7: # enemy
+                            if "$$" in v:
+                                vs = v.split("$$")
+                                if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null"]: print("Element Warning for", k, "in manual_lookup.json")
+                                v = vs[1] + " " + vs[0]
+                            else:
+                                print("Element Warning for", k, "in manual_lookup.json")
+                            match k[:2]:
+                                case "11":
+                                    append = " flying-boss"
+                                case "12":
+                                    append = " beast-boss"
+                                case "13":
+                                    append = " monster-boss"
+                                case "21":
+                                    append = " plant-boss"
+                                case "22":
+                                    append = " insect-boss"
+                                case "31":
+                                    append = " fish-boss"
+                                case "41":
+                                    append = " golem-boss"
+                                case "42":
+                                    append = " aberration-boss"
+                                case "43":
+                                    append = " machine-boss"
+                                case "51":
+                                    append = " otherworld-boss"
+                                case "52":
+                                    append = " undead-boss"
+                                case "61":
+                                    append = " goblin-boss"
+                                case "62":
+                                    append = " people-boss"
+                                case "63":
+                                    append = " fairy-boss"
+                                case "71":
+                                    append = " wyvern-boss"
+                                case "72":
+                                    append = " reptile-boss"
+                                case "73":
+                                    append = " dragon-boss"
+                                case "81":
+                                    append = " primal-boss"
+                                case "82":
+                                    append = " elemental-boss"
+                                case "83":
+                                    append = " core-boss"
+                                case "91":
+                                    append = " other-boss"
+                                case _:
+                                    append =" unknown-boss"
+                    vs = v.split(" ")
+                    if vs[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: vs = vs[1:]
+                    l = (" ".join(vs) + append).lower().strip().replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('  ', ' ').replace('  ', ' ')
+                    if voice:
+                        l += " voiced"
+                        if voice_only:
+                            l += " voice-only"
+                    if l != self.data["lookup"].get(k, ""):
+                        self.data["lookup"][k] = l
+                        modified.add(k)
+                except:
+                    pass
         except Exception as e:
-            print("An error occured while reading name_data.json:", e)
+            print("An error occured while reading manual_lookup.json:", e)
         # first pass
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
         fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date', 'weapons':'id,element,type,rarity,name,series,jpname', 'summons':'id,element,rarity,name,series,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'}
@@ -3379,7 +3409,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.35\n")
+                print("GBFAL updater v2.36\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
