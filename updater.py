@@ -453,12 +453,14 @@ class Updater():
                     with open('json/changelog.json', mode='r', encoding='utf-8') as f:
                         data = json.load(f)
                         issues = data.get('issues', [])
+                        help = data.get('help', False)
                         existing = {}
                         for e in data.get('new', []): # convert content to dict
                             existing[e[0]] = e[1]
                 except:
                     existing = {}
                     issues = []
+                    help = False
                 if self.update_changelog:
                     for k, v in self.addition.items(): # merge but put updated elements last
                         if k in existing: existing.pop(k)
@@ -469,7 +471,7 @@ class Updater():
                     new.append([k, v])
                 if len(new) > self.MAX_NEW: new = new[len(new)-self.MAX_NEW:]
                 with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
-                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues}, outfile)
+                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues, 'help':False}, outfile)
                 if self.update_changelog: print("data.json and changelog.json updated")
                 else: print("data.json updated")
         except Exception as e:
