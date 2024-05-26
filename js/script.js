@@ -2,6 +2,7 @@
 
 // =================================================================================================
 // constant
+const HELP_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform"; // set to null to disable
 const HISTORY_LENGTH = 50; // size limit of the history
 // endpoints
 const ENDPOINTS = [
@@ -184,13 +185,13 @@ function initChangelog() // load content of changelog.json
                 el.style.display = null;
             }
         }
-        if(json.hasOwnProperty("help")) // read issues, if any
+        if(HELP_FORM != null && json.hasOwnProperty("help")) // read issues, if any
         {
             if(json["help"])
             {
                 const d = document.getElementById("notice");
                 d.style.display = null;
-                d.innerHTML = 'Looking for help to find the name of those <a href="?id=missing-help-wanted">elements</a>.<br>Contact me or use this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a> to submit a name.';
+                d.innerHTML = 'Looking for help to find the name of those <a href="?id=missing-help-wanted">elements</a>.<br>Contact me or use this <a href="' + HELP_FORM + '">form</a> to submit a name.';
             }
         }
     }
@@ -2444,11 +2445,11 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             div.appendChild(i);
             div.appendChild(document.createTextNode(" "));
         }
-        if(missing)
+        if(missing && HELP_FORM != null)
         {
             let a = document.createElement("a");
-            a.href = "https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform"
-            a.innerHTML = "Submit name"
+            a.href = HELP_FORM;
+            a.innerHTML = "Submit name";
             div.appendChild(a);
         }
         did_lookup = true;
