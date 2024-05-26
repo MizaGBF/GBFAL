@@ -191,15 +191,92 @@ class Updater():
     PARTNER_STEP = 10
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
     # scene string
-    SCENE_MC_ID = set(["3990219000", "3990220000"])
-    SCENE_BASE = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_m", "_nalhe", "_school", "_astral", "_new", "_battle", "_knife", "_off", "_race", "_guardian", "_cook", "_orange", "_helicopter", "_swim", "_nude", "_muffler", "_cigarette", "_face", "_mask", "_halfmask", "_girl", "_town", "_cow", "_two", "_three", "_2022", "_2023", "_2024"]
-    SCENE_BASE_MC = SCENE_BASE + ["_dancer", "_mechanic", "_glory", "_kengo", "_monk", "_lumberjack", "_robinhood", "_horse", "_cavalry", "_paladin", "_panakeia", "_manadiver", "_king", "_eternals", "_eternals2"]
-    SCENE_EXPRESSIONS = ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_10", "_up", "_laugh", "_laugh_small", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_roar", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_painful3", "_painful4", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_despair", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_jito", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_stance", "_hood", "_letter", "_child1", "_child2", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_chara", "_fight", "_2021", "_2022", "_2023", "_2024", "_all", "_all2", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_move", "_move2", "_jump", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_ghost", "_stand", "_two", "_three", "_stand", "_eyeline"]
-    SCENE_VARIATIONS = ["", "_a", "_b", "_b1", "_b2", "_b3", "_speed", "_line", "_up", "_up_speed", "_up_damage", "_up_line", "_up2", "_up3", "_up4", "_down", "_shadow", "_shadow2", "_shadow3", "_damage", "_damage_up", "_light", "_up_light", "_light_speed", "_vanish", "_vanish1", "_vanish2", "_fadein1", "_blood", "_up_blood"]
-    SCENE_CHECK = list(set(SCENE_BASE_MC + SCENE_EXPRESSIONS + SCENE_VARIATIONS))
-    SCENE_VARIATIONS_SET = set(SCENE_VARIATIONS)
-    SCENE_UNIQUE = ["_light_heart", "_jewel", "_jewel2", "_thug", "_uncontroll", "_narrator", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5", "_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3", "_summer", "_summer2", "_halloween", "_rabbit", "_rabbit1", "_rabbit2", "_rabbit3", "_rabbit4", "_sturm", "_beppo", "_beppo_jiji", "_jiji", "_foogee", "_foogee_nicola", "_nicola", "_momo", "_skin", "_skin_01", "_skin_02", "_skin_03"]
-    SCENE_BUBBLE_FILTER = set(["b1", "b2", "b3", "speed", "line", "up", "up2", "up3", "up4", "down", "shadow", "shadow2", "shadow3", "damage", "light", "vanish", "vanish1", "vanish2", "fadein1", "blood"])
+    SCENE_SUFFIXES = {
+        "default": {
+            "base": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_nalhe", "_school", "_astral", "_battle", "_off", "_race", "_guardian", "_cook", "_orange", "_blue", "_green", "_nude", "_mask", "_girl", "_cow", "_two", "_three", "_2021", "_2022", "_2023", "_2024"],
+            
+            "main": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_10", "_up", "_laugh", "_laugh_small", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_roar", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_painful3", "_painful4", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_despair", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_jito", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_stance", "_hood", "_letter", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_fight", "_2021", "_2022", "_2023", "_2024", "_all", "_all2", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_move", "_move2", "_jump", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_ghost", "_stand", "_two", "_three", "_stand", "_eyeline"],
+            
+            "unique": ["_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3", "_summer", "_summer2", "_halloween", "_sturm", "_rabbit"],
+            
+            "end": ["", "_a", "_b", "_b1", "_b2", "_b3", "_speed", "_line", "_up", "_up_speed", "_up_damage", "_up_line", "_up2", "_up3", "_up4", "_down", "_shadow", "_shadow2", "_shadow3", "_damage", "_damage_up", "_light", "_up_light", "_light_speed", "_vanish", "_vanish1", "_vanish2", "_fadein1", "_blood", "_up_blood"]
+        },
+        "3050000000": { # lyria
+            "base": ["_muffler", "_swim"],
+            "unique": ["_jewel", "_jewel2", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5"]
+        },
+        "3050001000": { # vyrn
+            "unique": ["_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5"]
+        },
+        "3992852000": { # gold slime
+            "unique": ["_jewel"]
+        },
+        "3990219000": { # mc (gran)
+            "base": ["_dancer", "_mechanic", "_glory", "_kengo", "_monk", "_lumberjack", "_robinhood", "_horse", "_cavalry", "_paladin", "_panakeia", "_manadiver", "_king", "_eternals", "_eternals2"]
+        },
+        "3990002000": { # bk
+            "base": ["_m"],
+            "main": ["_off"]
+        },
+        "3030280000": { # sr joi
+            "main": ["_off"]
+        },
+        "3030006000": { # sr io
+            "base": ["_new"]
+        },
+        "3990326000": { # veight
+            "base": ["_knife"]
+        },
+        "3991542000": { # rackam
+            "base": ["_cigarette"]
+        },
+        "3991849000": { # shadowverse cards
+            "unique": ["_03", "_06", "_09", "_10", "_11", "_12", "_19", "_20", "_21", "_22", "_25", "_30", "_31", "_32", "_37", "_40"]
+        },
+        "3993542000": { # marks
+            "unique": ["_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10"]
+        },
+        "3990135000": { # thug
+            "base": ["_town"],
+            "main": ["_thug"]
+        },
+        "3990162000": { # gastalga
+            "main": ["_child1", "_child2"]
+        },
+        "3990465000": { # teepo
+            "main": ["_chara"]
+        },
+        "3992265000": { # teepo
+            "base": ["_helicopter"]
+        },
+        "3991666000": { # seox
+            "base": ["_mask", "_halfmask"]
+        },
+        "3991829000": { # anthony
+            "unique": ["_narrator"]
+        },
+        "3992169000": { # tsubasa
+            "unique": ["_skin", "_skin_01", "_skin_02", "_skin_03"]
+        },
+        "3992888000": { # makura
+            "unique": ["_rabbit1", "_rabbit2", "_rabbit3", "_rabbit4"]
+        },
+        "3993539000": { # miss heaty
+            "unique": ["_uncontroll"]
+        },
+        "3040073000": { # ferry
+            "unique": ["_beppo", "_beppo_jiji", "_jiji", "_foogee", "_foogee_nicola", "_nicola", "_momo"]
+        }
+    }
+    SCENE_SUFFIXES["3990220000"] = SCENE_SUFFIXES["3990219000"] # djeeta = gran
+    SCENE_SUFFIXES["3990024000"] = SCENE_SUFFIXES["3990135000"] # thug 2 = thug
+    SCENE_SUFFIXES["3990031000"] = SCENE_SUFFIXES["3990135000"] # thug 3 = thug
+    SCENE_SUFFIXES["3992257000"] = SCENE_SUFFIXES["3992265000"] # helicopter (auguste of the dead)
+    SCENE_SUFFIXES["3040209000"] = SCENE_SUFFIXES["3040073000"] # ferry
+    SCENE_SUFFIXES["3991804000"] = SCENE_SUFFIXES["3040073000"] # ferry
+    
+    SCENE_BUBBLE_FILTER = set([k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0])
+    
     def __init__(self) -> None:
         # main variables
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
@@ -1637,9 +1714,9 @@ class Updater():
                     if id.startswith("305"): return False # don't continue for special npcs
                 if not exist:
                     # base scene
-                    if self.debug_npc_detail: base_target = self.SCENE_CHECK
-                    elif id in self.SCENE_MC_ID: base_target = self.SCENE_BASE_MC
-                    else: base_target = self.SCENE_BASE
+                    base_target, main_x, uncap_x = self.generate_scene_file_list(id)
+                    if self.debug_npc_detail:
+                        base_target = list(set(base_target + main_x))
                     for u in ["", "_02", "_03"]:
                         for f in base_target:
                             if f != "" and u != "": break
@@ -1914,27 +1991,60 @@ class Updater():
                 print("Data exported to 'json/debug_scene_strings.json'")
 
     # set self.scene_strings and self.scene_strings_special if needed and return them
-    def generate_scene_file_list(self) -> tuple:
+    def generate_scene_file_list(self, id : str) -> tuple:
         if self.scene_strings is None:
-            self.scene_strings = []
-            self.scene_strings_special = []
-            added = set()
-            for ex in self.SCENE_EXPRESSIONS:
-                for v in self.SCENE_VARIATIONS:
-                    if ex == v and ex != "": continue
-                    f = ex+v
-                    if f not in added:
-                        added.add(f)
-                        self.scene_strings.append(f)
-                        self.scene_strings_special.append(f)
-            for ex in self.SCENE_UNIQUE:
-                for v in self.SCENE_VARIATIONS:
-                    if ex == v and ex != "": continue
-                    f = ex+v
-                    if f not in added:
-                        added.add(f)
-                        self.scene_strings_special.append(f)
-        return self.scene_strings, self.scene_strings_special
+            self.scene_strings = [{}, {}] # dict to keep order
+            for main in self.SCENE_SUFFIXES["default"]["main"]:
+                for end in self.SCENE_SUFFIXES["default"]["end"]:
+                    if main != "" and main == end: continue
+                    f = main + end
+                    self.scene_strings[0][f] = None
+            self.scene_strings[1] = self.scene_strings[0].copy()
+            self.scene_strings[1] = list(self.scene_strings[1].keys())
+            for unique in self.SCENE_SUFFIXES["default"]["unique"]:
+                for end in self.SCENE_SUFFIXES["default"]["end"]:
+                    if unique != "" and unique == end: continue
+                    f = unique + end
+                    self.scene_strings[0][f] = None
+            self.scene_strings[0] = list(self.scene_strings[0].keys())
+        
+        if id in self.SCENE_SUFFIXES:
+            if "base" in self.SCENE_SUFFIXES[id]:
+                base = self.SCENE_SUFFIXES["default"]["base"] + self.SCENE_SUFFIXES[id]["base"]
+            else:
+                base = self.SCENE_SUFFIXES["default"]["base"]
+            if "main" in self.SCENE_SUFFIXES[id] or "end" in self.SCENE_SUFFIXES[id] or "unique" in self.SCENE_SUFFIXES[id]:
+                d = {}
+                for k in ["main", "unique", "end"]:
+                    if k not in self.SCENE_SUFFIXES[id]:
+                        d[k] = self.SCENE_SUFFIXES["default"][k]
+                    else:
+                        s = set()
+                        d[k] = []
+                        for f in (self.SCENE_SUFFIXES["default"][k] + self.SCENE_SUFFIXES[id].get(k, [])):
+                            if f not in s:
+                                s.add(f)
+                                d[k].append(f)
+                A = {}
+                for main in d["main"]:
+                    for end in d["end"]:
+                        if main != "" and main == end: continue
+                        f = main + end
+                        A[f] = None
+                B = {}
+                for unique in d["unique"]:
+                    for end in d["end"]:
+                        if unique != "" and unique == end: continue
+                        f = unique + end
+                        A[f] = None
+                A = list(A.keys())
+                B = list(B.keys())
+            else:
+                A = self.scene_strings[0]
+                B = self.scene_strings[1]
+            return base, A, B
+        else:
+            return self.SCENE_SUFFIXES["default"]["base"], self.scene_strings[0], self.scene_strings[1]
 
     # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
     async def update_all_scene(self, target_index : Optional[str] = None, params : list = [], update_pending : bool = False) -> None:
@@ -1996,8 +2106,8 @@ class Updater():
             await self.wait_shared_task_completion()
             if update_pending: self.data['scene_queue'] = []
             print("Done")
-            self.save()
             self.sort_all_scene()
+            self.save()
 
     # used in update_all_scene_sub
     def scene_suffix_is_matching(self, name : str, filters : list) -> bool:
@@ -2013,7 +2123,9 @@ class Updater():
             try: existing = set(self.data[k][id][idx])
             except: return
             us = "" if uncap in ["", "01"] else "_"+uncap
-            base_target = (self.SCENE_BASE_MC if id in self.SCENE_MC_ID else self.SCENE_BASE)
+            
+            base_target, main_x, uncap_x = self.generate_scene_file_list(id)
+            suffixes = main_x if us == "" else uncap_x
             
             # search bare base suffix
             if us not in existing:
@@ -2037,7 +2149,7 @@ class Updater():
             for s in base_target:
                 f = us+s
                 if (s != "" and f not in existing): continue
-                for ss in self.generate_scene_file_list()[1 if us == "" else 0]:
+                for ss in suffixes:
                     g = f + ss
                     if ss == "" or g in existing or (filter is not None and not self.scene_suffix_is_matching(g, filter)): continue
                     no_bubble = (g != "" and g.split("_")[-1] in self.SCENE_BUBBLE_FILTER)
