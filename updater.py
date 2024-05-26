@@ -1723,7 +1723,7 @@ class Updater():
                             try:
                                 if f not in data[self.NPC_SCENE]:
                                     if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}{}.png".format(id, u, f), self.IMG + "sp/raid/navi_face/{}{}{}.png".format(id, u, f)])) is not None:
-                                        data[self.NPC_SCENE].append(f)
+                                        data[self.NPC_SCENE].append(u+f)
                                         exist = True
                                         break
                                 else:
