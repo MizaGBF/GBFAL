@@ -2202,13 +2202,11 @@ class Updater():
         target_list = list(set(self.data['sound_queue'])) if update_pending else []
         if len(parameters) > 0:
             target_list += [id for id in parameters if id not in target_list]
-        else:
+        elif len(target_list) == 0:
             target_list = []
             for k in ["characters", "skins", "npcs"]:
                 target_list += list(self.data[k].keys())
             target_list = set(list(target_list))
-        if len(target_list) == 0:
-            return
         print("Updating sound data for {} element(s)".format(len(target_list)))
         if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
         si = start_index
