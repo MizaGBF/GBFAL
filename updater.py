@@ -2410,9 +2410,9 @@ class Updater():
             to_save = False
             for t in ["npcs", "enemies"]:
                 for k in self.data[t]:
-                    if k not in data:
+                    if data.get(k, None) is None:
                         s = self.data['lookup'].get(k, None)
-                        if s is not None and s != "":
+                        if s is not None and s != "" and not s.startswith("missing-help-wanted"):
                             if '@@' in s:
                                 s = s.split("@@", 1)[1].split(" ", 1)[1]
                             s = s.split(" ")
