@@ -310,6 +310,7 @@ class Updater():
         }
         self.load() # load self.data NOW
         self.modified = False # if set to true, data.json will be written on the next call of save()
+        self.stat_string = None # set and updated by make_stats
         self.new_elements = [] # new indexed element
         self.addition = {} # new elements for changelog.json
         self.job_list = None
@@ -452,6 +453,7 @@ class Updater():
                 try:
                     with open('json/changelog.json', mode='r', encoding='utf-8') as f:
                         data = json.load(f)
+                        stat = data.get('stat', None)
                         issues = data.get('issues', [])
                         help = data.get('help', False)
                         existing = {}
@@ -459,6 +461,7 @@ class Updater():
                             existing[e[0]] = e[1]
                 except:
                     existing = {}
+                    stat = None
                     issues = []
                     help = False
                 if self.update_changelog:
@@ -466,12 +469,15 @@ class Updater():
                         if k in existing: existing.pop(k)
                         existing[k] = v
                     self.addition = {} # clear self.addition
+                # updated new elements
                 new = []
                 for k, v in existing.items(): # convert back to list. NOTE: maybe make a cleaner way later
                     new.append([k, v])
                 if len(new) > self.MAX_NEW: new = new[len(new)-self.MAX_NEW:]
+                # update stat
+                if self.stat_string is not None: stat = self.stat_string
                 with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
-                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'issues':issues, 'help':help}, outfile)
+                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'stat':stat, 'issues':issues, 'help':help}, outfile)
                 if self.update_changelog: print("data.json and changelog.json updated")
                 else: print("data.json updated")
         except Exception as e:
@@ -1387,6 +1393,7 @@ class Updater():
             if t.result():
                 tsuccess += 1
         print(tsuccess, "positive result(s)")
+        self.make_stats(silent=True)
         self.save()
         if len(self.data['scene_queue']) > 0:
             await self.update_all_scene(update_pending=True)
@@ -3223,15 +3230,15 @@ class Updater():
 
     ### Others ##################################################################################################################
 
-    def make_stats(self) -> None:
+    def make_stats(self, silent=False) -> None:
         try:
             entity_count = 0
             scene_count = 0
             sound_count = 0
             file_estimation = 0
-            for t in ["characters", "partners", "summons", "weapons", "enemies", "skins", "job", "npcs", "title", "suptix", "lookup", "events", "skills", "subskills", "buffs", "story"]:
+            for t in ["characters", "partners", "summons", "weapons", "enemies", "skins", "job", "npcs", "title", "suptix", "events", "skills", "subskills", "buffs", "story"]:
                 ref = self.data.get(t, {})
-                entity_count += len(ref)
+                entity_count += len(ref.keys())
                 for k, v in ref.items():
                     match t:
                         case "characters"|"skins"|"partners":
@@ -3300,14 +3307,16 @@ class Updater():
                             file_estimation += len(v[1])
                         case _:
                             file_estimation += 2
-            print("")
-            print("==== Indexation Stats ====")
-            print(entity_count, "indexed elements")
-            print(scene_count, "scene files" + ("" if file_estimation == 0 else " ({:.1f}%)".format(100*scene_count/file_estimation)))
-            print(sound_count, "sound files" + ("" if file_estimation == 0 else " ({:.1f}%)".format(100*sound_count/file_estimation)))
-            print("Approximately", file_estimation, "files total")
+            if not silent:
+                print("")
+                print("==== Indexation Stats ====")
+                print(entity_count, "indexed elements")
+                print(scene_count, "scene files" + ("" if file_estimation == 0 else " ({:.1f}%)".format(100*scene_count/file_estimation)))
+                print(sound_count, "sound files" + ("" if file_estimation == 0 else " ({:.1f}%)".format(100*sound_count/file_estimation)))
+                print("Approximately", file_estimation, "files total")
+            self.stat_string = "{:,} indexed elements, for ~{:.1f}K files".format(entity_count, file_estimation / 1000).replace(".0K", "K")
         except Exception as e:
-            print("An unexpected error occured, can't display stats")
+            print("An unexpected error occured, can't produce stats")
             print(e)
 
     async def missing_npcs(self) -> None: # check for missing npc

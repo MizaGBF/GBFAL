@@ -125,15 +125,16 @@ const BANNED = [
 // =================================================================================================
 // global variables
 var output = null; // contain the html output element
+var stat_string = null; // stat string (from changelog.json)
 var last_id = null; // last id loaded
 var last_type = null; // last asset type loaded
-var index = {}; // data index (loaded from data.json)
+var index = {}; // data index (from data.json)
 var searchHistory = []; // history
 var searchResults = []; // search results
 var searchID = null; // search result id
 var bookmarks = []; // bookmarks
-var timestamp = Date.now(); // timestamp (loaded from changelog.json)
-var updated = []; // list of recently updated elements (loaded from changelog.json)
+var timestamp = Date.now(); // timestamp (from changelog.json)
+var updated = []; // list of recently updated elements (from changelog.json)
 var intervals = []; // on screen notifications
 var typingTimer; // typing timer timeout
 var audio = null; // last played/playing audio
@@ -173,6 +174,7 @@ function initChangelog() // load content of changelog.json
             updated = json["new"].reverse();
         timestamp = json.timestamp; // set timestamp
         clock(); // start the clock
+        if(json.hasOwnProperty("stat")) stat_string = json["stat"];
         if(json.hasOwnProperty("issues")) // read issues, if any
         {
             let issues = json["issues"];
@@ -448,6 +450,13 @@ function initIndex() // build the html index. simply edit the constants above to
                 display(tmp, 'suptix', null, null, true, true);
                 this.onclick = null;
             };
+        }
+        if(stat_string)
+        {
+            let center = document.createElement("center");
+            center.appendChild(document.createTextNode(stat_string));
+            center.classList.add("small-text");
+            content.appendChild(center);
         }
     }
     catch(err)
