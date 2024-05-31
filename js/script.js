@@ -956,7 +956,8 @@ function display_subskills(id, data, unusedA = null, unusedB = null)
     return [
         [id+"_1", "GBF/assets_en/img_low/sp/assets/item/ability/s/" + id + "_1.jpg", null, "preview", true],
         [id+"_2", "GBF/assets_en/img_low/sp/assets/item/ability/s/" + id + "_2.jpg", null, "preview", true],
-        [id+"_3", "GBF/assets_en/img_low/sp/assets/item/ability/s/" + id + "_3.jpg", null, "preview", true]
+        [id+"_3", "GBF/assets_en/img_low/sp/assets/item/ability/s/" + id + "_3.jpg", null, "preview", true],
+        [id+"_4", "GBF/assets_en/img_low/sp/assets/item/ability/s/" + id + "_4.jpg", null, "preview", true]
     ];
 }
 
