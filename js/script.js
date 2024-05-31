@@ -305,7 +305,7 @@ function initIndex() // build the html index. simply edit the constants above to
         {
             const tmp = elems[0];
             elems[1].onclick = function (){
-                display(tmp, 'job', null, null, false, true);
+                display(tmp, 'job', null, null, false, true, "Descending Order by ID");
                 this.onclick = null;
             };
         }
