@@ -2522,7 +2522,7 @@ class Updater():
             print("An error occured while reading manual_lookup.json:", e)
         # first pass
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
-        fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date', 'weapons':'id,element,type,rarity,name,series,jpname', 'summons':'id,element,rarity,name,series,jpname', 'classes':'id,name,jpname', 'mc_outfits':'outfit_id,outfit_name', 'character_outfits':'outfit_id,outfit_name,character_name', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'}
+        fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date', 'weapons':'id,element,type,rarity,name,series,jpname,release_date', 'summons':'id,element,rarity,name,series,jpname,release_date', 'classes':'id,name,jpname,release_date', 'mc_outfits':'outfit_id,outfit_name,release_date', 'character_outfits':'outfit_id,outfit_name,character_name,release_date', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'}
         for t in self.LOOKUP_TYPES:
             for table in tables.get(t, [t]):
                 try:
