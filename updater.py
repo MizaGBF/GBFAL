@@ -756,10 +756,6 @@ class Updater():
         self.save()
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
-            today = datetime.now()
-            tomorrow = today + timedelta(days=1)
-            if today.month != tomorrow.month: # check missing npcs monthly
-                await self.missing_npcs()
             await self.check_msq()
             await self.check_new_event()
             await self.update_npc_thumb()
@@ -3407,7 +3403,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.36\n")
+                print("GBFAL updater v2.37\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
