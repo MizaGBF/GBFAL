@@ -166,7 +166,7 @@ class Updater():
     # others
     SAVE_VERSION = 1
     LOAD_EXCLUSION = ['version']
-    QUEUE_KEY = ['scene_queue', 'sound_queue']
+    QUEUE_KEY = ['uncap_queue', 'scene_queue', 'sound_queue']
     STRING_CHAR = string.ascii_lowercase + string.digits
     MISSING_EVENTS = ["201017", "211017", "221017", "231017", "241017", "200214", "210214", "220214", "230214", "240214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "200101", "210101", "220101", "230101", "240101"] + ["131201", "140330", "160430", "161031", "161227", "170501", "170801", "171129", "180301", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181214", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304"]
     CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
@@ -284,6 +284,7 @@ class Updater():
         self.debug_npc_detail = False # set to true for better detection
         self.data = { # data structure
             "version":self.SAVE_VERSION,
+            "uncap_queue":[],
             "scene_queue":[],
             "sound_queue":[],
             "valentines":[],
@@ -411,6 +412,7 @@ class Updater():
                 # data.json
                 for k in self.QUEUE_KEY:
                     self.data[k] = list(set(self.data[k]))
+                    self.data[k].sort()
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
                     # custom json indentation
                     outfile.write("{\n")
@@ -766,6 +768,8 @@ class Updater():
             await self.check_new_event()
             await self.update_npc_thumb()
         else:
+            if len(self.data['uncap_queue']) > 0:
+                await self.manualUpdate([])
             if len(self.data['scene_queue']) > 0:
                 await self.update_all_scene(update_pending=True)
             if len(self.data['sound_queue']) > 0:
@@ -1344,9 +1348,13 @@ class Updater():
 
     # Called by -update or other function when new content is detected
     async def manualUpdate(self, ids : list, skip : int = 0) -> None: # skip is only used for the -partner resume feature
+        if len(self.data["uncap_queue"]) > 0:
+            ids += self.data["uncap_queue"]
+            self.data["uncap_queue"] = []
         if len(ids) == 0:
             return
         ids = list(set(ids)) # remove dupes
+        ids.sort()
         start_index = skip
         async with asyncio.TaskGroup() as tg:
             tasks = []
@@ -3399,6 +3407,7 @@ class Updater():
         print("-thumb       : Update npc thumbnail data.")
         print("-sound       : Update sound index for characters (Very time consuming).")
         print("-partner     : Update data for partner characters (Very time consuming).")
+        print("-adduncap    : Add a list of element ID and they will automatically be checked the next time -run or -update is used.")
         print("-addpending  : Add a list of character/skin/npc ID to the pending list for scene/sound updates.")
         print("-runpending  : Run scene/sound updates for the pending lists of character/skin/npc IDs (Time consuming).")
         print("-enemy       : Update data for enemies (Time consuming).")
@@ -3412,7 +3421,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.37\n")
+                print("GBFAL updater v2.38\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
@@ -3462,6 +3471,10 @@ class Updater():
                     elif "-enemy" in flags: await self.manualUpdate(list(self.data['enemies'].keys()))
                     elif "-missingnpc" in flags:
                         await self.missing_npcs()
+                    elif "-adduncap" in flags:
+                        self.data['uncap_queue'] += extras
+                        self.modified = True
+                        self.save()
                     elif "-addpending" in flags:
                         for id in extras:
                             if len(id) == 10 and id.startswith('3'):

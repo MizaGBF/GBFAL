@@ -49,6 +49,7 @@ Action parameters (Only one of those can be used at a time):
 - `-partner`: Update all partner datas. Very time consuming.  
 - `-enemy`: Update all enemy datas. Time consuming.  
 - `-missingnpc`: Update all missing npc datas. Time consuming.  
+- `-adduncap`: Add a list of element ID and they will automatically be checked the next time `-run` or `-update` is used.  
 - `-addpending`: Add a list of character/skin/npc ID to the pending list for scene/sound updates.  
 - `-runpending`: Run scene/sound updates for the pending lists of character/skin/npc IDs. Can be Time consuming.  
 - `-story`: Update main story datas. Can add `all` to update existing chapters and/or a number to limit set manually the last chapter number.  
