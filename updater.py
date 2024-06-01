@@ -3270,8 +3270,8 @@ class Updater():
                             if v is None or v == 0: continue
                             file_estimation += len(v[self.JOB_ID]) * 4
                             file_estimation += len(v[self.JOB_ALT]) * 3
-                            file_estimation += len(v[self.JOB_DETAIL]) * 13
-                            file_estimation += len(v[self.JOB_DETAIL_ALT])
+                            file_estimation += len(v[self.JOB_DETAIL]) * 4
+                            file_estimation += len(v[self.JOB_DETAIL_ALT]) * 14
                             file_estimation += len(v[self.JOB_DETAIL_ALL])
                             
                             file_estimation += len(v[self.JOB_SPRITE])

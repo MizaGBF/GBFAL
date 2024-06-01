@@ -1947,7 +1947,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Various Big Portraits", paths:[["sp/assets/leader/p/", "png"], ["sp/assets/leader/pm/", "png"], ["sp/assets/leader/jobon_z/", "png"]], index:3, icon:"assets/ui/result_icon/big_portrait.png"},
                 {name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"]], icon:"assets/ui/result_icon/portrait.png", index:3},
                 {name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"assets/ui/result_icon/battle.png", index:3},
-                {name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:2, icon:"assets/ui/result_icon/other.png"},
+                {name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:2, icon:"assets/ui/result_icon/other.png"},
                 {name:"Sprites", paths:[["sp/assets/leader/sd/", "png"]], icon:"assets/ui/result_icon/sprite.png", index:4},
                 {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/spritesheet.png", index:7},
                 {name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:8, icon:"assets/ui/result_icon/auto.png"},
