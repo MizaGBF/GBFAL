@@ -1324,6 +1324,11 @@ class Updater():
                             except:
                                 if g == "_0":
                                     break
+                    if jid == "360101": # special exception for racing suit
+                        try:
+                            sheets += await self.processManifest("phit_racer")
+                        except:
+                            pass
                     sheets = list(set(sheets))
                     sheets.sort()
                     self.data['job'][jid][self.JOB_PHIT] = sheets
