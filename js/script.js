@@ -610,40 +610,42 @@ window.addEventListener("popstate", (event) => { // load the appropriate element
     }
 });
 
-function customSortPair(a, b) // used to sort banter sound files
+function soundSort(a, b) // used to sort some sound files
 {
-    const [empty1, string1, a1, b1] = a.split('_');
-    const [empty2, string2, a2, b2] = b.split('_');
-
-    const numA1 = parseInt(a1, 10);
-    const numA2 = parseInt(a2, 10);
-    const numB1 = parseInt(b1, 10);
-    const numB2 = parseInt(b2, 10);
-
-    if (numA1 !== numA2) {
-        return numA1 - numA2;
-    } else {
-        return numB1 - numB2;
+    const A = a.split('_');
+    const B = b.split('_');
+    const l = Math.max(A.length, B.length);
+    // uncap
+    let lvlA = 1;
+    if(["02", "03", "04"].includes(A[1]))
+    {
+        lvlA = parseInt(A[1]);
     }
-}
-
-function customSort(a, b) // used to sort some sound files
-{
-    return parseInt(a.replaceAll(/\D/g,''), 10)-parseInt(b.replaceAll(/\D/g,''), 10);
-}
-
-function customSortSeasonal(a, b) // used to sort seasonal sound files
-{
-    const baseA = a.replaceAll(/\d+$/, '');
-    const baseB = b.replaceAll(/\d+$/, '');
-
-    if (baseA < baseB) return -1;
-    if (baseA > baseB) return 1;
-
-    const numA = parseInt(a.slice(baseA.length), 10);
-    const numB = parseInt(b.slice(baseB.length), 10);
-
-    return numA - numB;
+    let lvlB = 1;
+    if(["02", "03", "04"].includes(B[1]))
+    {
+        lvlB = parseInt(B[1]);
+    }
+    if(lvlA < lvlB) return -1;
+    else if(lvlA > lvlB) return 1;
+    // string cmp
+    for(let i = 0; i < l; ++i)
+    {
+        if(i >= A.length) return -1;
+        else if(i >= B.length) return 1;
+        
+        if(A[i] < B[i])
+        {
+            if(A[i].length > B[i].length) return 1;
+            return -1;
+        }
+        else if(A[i] > B[i])
+        {
+            if(A[i].length < B[i].length) return -1;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // =================================================================================================
@@ -2199,7 +2201,7 @@ function loadAssets_sound(id, sounds)
         "player": ["To Player", "assets/ui/result_icon/v_player.png"],
         "pair": ["Banter", "assets/ui/result_icon/v_banter.png"]
     };
-    for(let sound of sounds) // sorting
+    for(let sound of sounds)
     {
         let found = false;
         for(const [k, v] of Object.entries(checks))
@@ -2216,18 +2218,7 @@ function loadAssets_sound(id, sounds)
         if(!found) sorted_sound["Generic"].push(sound);
     }
     if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
-    // additional sorting
-    if("Banter" in sorted_sound) sorted_sound["Banter"].sort(customSortPair);
-    if("Boss" in sorted_sound) sorted_sound["Boss"].sort(customSort);
-    if("Story Event" in sorted_sound) sorted_sound["Story Event"].sort(customSort);
-    for(const k of ["Happy Birthday","Happy New Year","Valentine","White Day","Halloween","Christmas"])
-    {
-        try
-        {
-            if(k in sorted_sound) sorted_sound[k].sort(customSortSeasonal);
-        } catch(errrr) {}
-    }
-    // loop over categories
+    // loop over categories and sort
     let first = null;
     for(const [k, v] of Object.entries(checks))
     {
@@ -2235,6 +2226,7 @@ function loadAssets_sound(id, sounds)
         {
             let div = addResult(v[0], v[0] + " Voices", v[1]);
             if(!first) first = div;
+            sorted_sound[v[0]].sort(soundSort);
             for(let sound of sorted_sound[v[0]])
             {
                 addSound(div, id, sound);
@@ -2329,6 +2321,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
         if("characters" in index && cid in index["characters"])
             lid = cid;
     }
+    let did_lookup = false;
     // include wiki link
     if(include_link)
     {
@@ -2351,8 +2344,8 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
         img.classList.add("img-link");
         l.appendChild(img);
         div.appendChild(l);
+        did_lookup = true;
     }
-    let did_lookup = false;
     // include GBFAP link if element is compatible
     if((id.length == 10 && ["302", "303", "304", "371", "101", "102", "103", "104", "201", "202", "203", "204", "290"].includes(id.slice(0, 3))) || (id.length == 6 && name == "Main Character") || (id.length == 7 && name == "Enemy"))
     {

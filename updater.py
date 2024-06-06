@@ -2269,7 +2269,7 @@ class Updater():
                 uncaps = []
                 idx = self.CHARA_SOUND
                 k = 'characters' if id.startswith('30') else 'skins'
-            if not isinstance(self.data.get(k, None), list): continue
+            if not isinstance(self.data[k].get(id, None), list): continue
             voices = list(set(self.data[k][id][idx]))
             if len(voices) != len(self.data[k][id][idx]):
                 self.data[k][id][idx] = voices
@@ -2323,7 +2323,7 @@ class Updater():
         for A in range(2, 5):
             elements.append(("_chain{}_"+str(A), [], 1, 1, 1))
         # seasonal A
-        for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
+        for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_Whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
             elements.append((mid + "{}", [], 1, Z, 5))
         for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
             for s in range(1, 6):
