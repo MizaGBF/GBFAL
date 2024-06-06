@@ -1836,10 +1836,10 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Sprites", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0},
                 {name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/auto.png"},
                 {name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/ca.png"},
-                {name:"Recruit Header", paths:[["sp/gacha/cjs_cover/", "png"]], index:0, icon:"assets/ui/result_icon/recruit.png", break:true},
-                {name:"Reforge Arts", paths:[["sp/archaic/", ""]], index:-3, icon:"assets/ui/result_icon/forge.png"},
-                {name:"Reforge Portraits", paths:[["sp/archaic/", ""]], index:-4, icon:"assets/ui/result_icon/forge.png"},
-                {name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", "png"]], index:-8, icon:"assets/ui/result_icon/siero.png"}
+                {name:"Recruit Header", paths:[["sp/gacha/cjs_cover/", "png"]], index:0, icon:"assets/ui/result_icon/recruit.png", break:true, lazy:false},
+                {name:"Reforge Arts", paths:[["sp/archaic/", ""]], index:-3, icon:"assets/ui/result_icon/forge.png", lazy:false},
+                {name:"Reforge Portraits", paths:[["sp/archaic/", ""]], index:-4, icon:"assets/ui/result_icon/forge.png", lazy:false},
+                {name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", "png"]], index:-8, icon:"assets/ui/result_icon/siero.png", lazy:false}
             ];
             melee = (id[4] == "6");
             break;
@@ -1856,7 +1856,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Battle Portraits", paths:[["sp/assets/summon/raid_normal/", "jpg"], ["sp/assets/summon/btn/", "png"]], index:0, icon:"assets/ui/result_icon/battle.png"},
                 {name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/summon_call.png"},
                 {name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/summon_call.png"},
-                {name:"Quest Portraits", paths:[["sp/assets/summon/qm/", "png"]], index:-7, icon:"assets/ui/result_icon/quest.png", break:true}
+                {name:"Quest Portraits", paths:[["sp/assets/summon/qm/", "png"]], index:-7, icon:"assets/ui/result_icon/quest.png", break:true, lazy:false}
             ];
             skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
             break;
@@ -1880,12 +1880,12 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/ca.png"},
                 {name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/skill.png"},
                 {name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"assets/ui/result_icon/skill.png"},
-                {name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], index:-8, icon:"assets/ui/result_icon/fate_reward.png", break:true, form:false},
-                {name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], index:-9, icon:"assets/ui/result_icon/recruit.png", form:false},
-                {name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"assets/ui/result_icon/news.png", form:false},
-                {name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], index:-2, icon:"assets/ui/result_icon/result.png", form:false},
-                {name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], index:-6, icon:"assets/ui/result_icon/custom.png", form:false},
-                {name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", ""]], index:-10, icon:"assets/ui/result_icon/siero.png", form:false}
+                {name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], index:-8, icon:"assets/ui/result_icon/fate_reward.png", break:true, form:false, lazy:false},
+                {name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], index:-9, icon:"assets/ui/result_icon/recruit.png", form:false, lazy:false},
+                {name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"assets/ui/result_icon/news.png", form:false, lazy:false},
+                {name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], index:-2, icon:"assets/ui/result_icon/result.png", form:false, lazy:false},
+                {name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], index:-6, icon:"assets/ui/result_icon/custom.png", form:false, lazy:false},
+                {name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", ""]], index:-10, icon:"assets/ui/result_icon/siero.png", form:false, lazy:false}
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
             npcdata = data[7];
@@ -1955,7 +1955,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/spritesheet.png", index:7},
                 {name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:8, icon:"assets/ui/result_icon/auto.png"},
                 {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"assets/ui/result_icon/ca.png"},
-                {name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], index:-5, icon:"assets/ui/result_icon/custom.png", break:true}
+                {name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], index:-5, icon:"assets/ui/result_icon/custom.png", break:true, lazy:false}
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
             mc_skycompass = true;
@@ -2030,7 +2030,7 @@ function loadAssets(id, data, target, indexed = true)
     for(let i = 0; i < assets.length; ++i)
     {
         if(assets[i].break ?? false) output.appendChild(document.createElement('br'));
-        loadAssets_main(id, data, target, indexed, assets[i], loadAssets_getFiles(id, data, assets[i], files, melee), mc_skycompass, skycompass);
+        loadAssets_main(id, data, target, indexed, assets[i], loadAssets_getFiles(id, data, assets[i], files, melee), mc_skycompass, skycompass, (assets[i].lazy ?? true));
     }
     if(npcdata && npcdata.length > 0)
     {
@@ -2105,7 +2105,7 @@ function loadAssets_getFiles(id, data, asset, files, melee)
     return files;
 }
 
-function loadAssets_main(id, data, target, indexed, asset, files, mc_skycompass, skycompass)
+function loadAssets_main(id, data, target, indexed, asset, files, mc_skycompass, skycompass, lazy_loading)
 {
     if(files.length == 0) return null;
     // add section
@@ -2128,7 +2128,7 @@ function loadAssets_main(id, data, target, indexed, asset, files, mc_skycompass,
             let file = files[i];
             if(asset.name != "Sky Compass") // event sky compass exception
             {
-                if(!addImage(div, file, asset, path))
+                if(!addImage(div, file, asset, path, lazy_loading))
                     continue;
             }
             if(skycompass != null && (asset.skycompass ?? false) && path == asset.paths[0]) // skycompass
@@ -2552,7 +2552,7 @@ function addResultHeader(identifier, name) // add an asset category
     return div;
 }
 
-function addImage(div, file, asset, path) // add an asset
+function addImage(div, file, asset, path, lazy_loading) // add an asset
 {
     if(!(asset.form ?? true) && (file.endsWith('_f') || file.endsWith('_f1'))) return false;
     let img = document.createElement("img");
@@ -2564,7 +2564,7 @@ function addImage(div, file, asset, path) // add an asset
     ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img")); // set link
     img.classList.add("loading");
     if(asset.home ?? false) img.classList.add("homepage"); // use this for mypage previews
-    img.setAttribute('loading', 'lazy');
+    if(lazy_loading) img.setAttribute('loading', 'lazy');
     img.onerror = function() {
         let details = this.parentNode.parentNode.parentNode;
         let result = this.parentNode.parentNode; // parent div
