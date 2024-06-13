@@ -28,7 +28,7 @@ class Progress():
             self.total = total
         self.silent = silent
         if not self.silent and self.total > 0:
-            sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00', ''))
+            sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00%', '%').replace('0%', '%'))
             sys.stdout.flush()
 
     def update(self) -> None: # to call to update the progress text (if not silent and not done)
@@ -42,7 +42,7 @@ class Progress():
                 self.elapsed = time.time()
                 self.parent.save()
             if not self.silent:
-                sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00', ''))
+                sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00%', '%').replace('0%', '%'))
                 sys.stdout.flush()
                 if self.current >= self.total:
                     diff = time.time() - self.start_time # elapsed time
