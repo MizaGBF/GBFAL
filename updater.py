@@ -21,14 +21,27 @@ class Progress():
         self.start_time = time.time()
         self.elapsed = self.start_time
         self.parent = parent
+        self._prev_percents_ = ("", "")
         if self.total > 0: self.update()
+
+    def progress2str(self) -> str: # convert the percentage to a valid string
+        s = "{:.2f}".format(100 * self.current / float(self.total))
+        if s == self._prev_percents_[0]: # use cached result if same string
+            return self._prev_percents_[1]
+        l = len(s)
+        while s[l-1] == '0' or s[l-1] == '.': # remove trailing 0 up to the dot (included)
+            l -= 1
+            if s[l-1] == '.':
+                break
+        self._prev_percents_ = (s, s[:l]) # cache the result
+        return s[:l]
 
     def set(self, *, total : int = 0, silent : bool = False) -> None: # to initialize it after a task start, once we know the total
         if total >= 0:
             self.total = total
         self.silent = silent
         if not self.silent and self.total > 0:
-            sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00%', '%').replace('0%', '%'))
+            sys.stdout.write("\rProgress: {}%      ".format(self.progress2str()))
             sys.stdout.flush()
 
     def update(self) -> None: # to call to update the progress text (if not silent and not done)
@@ -42,7 +55,7 @@ class Progress():
                 self.elapsed = time.time()
                 self.parent.save()
             if not self.silent:
-                sys.stdout.write("\rProgress: {:.2f}%      ".format(100 * self.current / float(self.total)).replace('.00%', '%').replace('0%', '%'))
+                sys.stdout.write("\rProgress: {}%      ".format(self.progress2str()))
                 sys.stdout.flush()
                 if self.current >= self.total:
                     diff = time.time() - self.start_time # elapsed time
