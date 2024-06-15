@@ -31,7 +31,7 @@ class Progress():
         l = len(s)
         while s[l-1] == '0' or s[l-1] == '.': # remove trailing 0 up to the dot (included)
             l -= 1
-            if s[l-1] == '.':
+            if s[l] == '.':
                 break
         self._prev_percents_ = (s, s[:l]) # cache the result
         return s[:l]
@@ -1490,16 +1490,23 @@ class Updater():
                     targets = []
                     sd = []
                     for uncap in flags:
-                        # main
                         base_fn = "{}_{}{}".format(id, uncap, style)
+                        # sprites
+                        sd.append(base_fn)
+                        # other portraits
                         uf = flags[uncap]
                         for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
                             for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
                                 for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
                                     for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                         targets.append(base_fn + af + g + m + n)
-                        # sprites
-                        sd.append(base_fn)
+                            # different sprites
+                            if g != "":
+                                try:
+                                    await self.head(self.IMG + "/sp/assets/npc/sd/" + base_fn + g + ".png")
+                                    sd.append(base_fn + g)
+                                except:
+                                    pass
                     data[self.CHARA_GENERAL] += targets
                     data[self.CHARA_SD] += sd
                     if len(targets) == 0:
@@ -3439,7 +3446,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.38\n")
+                print("GBFAL updater v2.39\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
