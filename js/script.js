@@ -769,7 +769,7 @@ function display_characters(id, data, range, unused = null)
         for(const f of data[6])
         {
             if(f.includes("_st")) continue;
-            const u = f.slice(10, 3);
+            const u = f.slice(10, 13);
             switch(u)
             {
                 case "_03": case "_04": case "_05": case "_06":
