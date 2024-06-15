@@ -767,7 +767,19 @@ function display_characters(id, data, range, unused = null)
     if(data)
     {
         for(const f of data[6])
-            if(!f.includes("st") && f[11] != 8 && f.slice(11, 13) != "02" && (f[11] != 9 || (f[11] == 9 && !(["_03", "_04", "_05"].includes(uncap))))) uncap = f.slice(10);
+        {
+            if(f.includes("_st")) continue;
+            const u = f.slice(10, 3);
+            switch(u)
+            {
+                case "_03": case "_04": case "_05": case "_06":
+                    if(u != uncap)
+                        uncap = f.slice(10);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
     let onerr = null;
     if(uncap != "_01")
