@@ -550,18 +550,16 @@ function storePreviewProfileSetting() // set profile page preview button setting
 
 function togglePreviewProfile() // toggle profile preview
 {
-    const homepageElements = document.querySelectorAll(".profilepage, .profilepage-ui");
+    const homepageElements = document.querySelectorAll(".profilepage");
     homepageElements.forEach(e => {
         if (!previewprofile) {
             e.classList.remove("asset");
-            e.classList.remove("profilepage");
             e.src = e.src.replace('/img_low/', '/img/');
             e.parentNode.classList.add("profilepage-ui");
         } else {
-            e.classList.remove("profilepage-ui");
-            e.firstChild.src = e.firstChild.src.replace('/img/', '/img_low/');
-            e.firstChild.classList.add("asset");
-            e.firstChild.classList.add("profilepage");
+            e.parentNode.classList.remove("profilepage-ui");
+            e.src = e.src.replace('/img/', '/img_low/');
+            e.classList.add("asset");
         }
     });
 
@@ -2297,6 +2295,7 @@ function loadAssets_sound(id, sounds)
 function prepareOuputAndHeader(name, id, target, search_type, data, include_link, indexed) // prepare the output element by cleaning it up and create its header
 {
     // open tab
+    document.getElementById("tab-view").style.display = null;
     openTab("view");
     // cleanup output
     output.innerHTML = "";
@@ -2621,8 +2620,26 @@ function addImage(div, file, asset, path, lazy_loading) // add an asset
         img.src = cycleEndpoint() + "assets_en/img_low/" + path[0] + file + "." + path[1];
     ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img")); // set link
     img.classList.add("loading");
-    if(asset.home ?? false) img.classList.add("homepage"); // use this for mypage previews
-    else if((asset.profile ?? false) && path[0].includes("leader/pm/")) img.classList.add("profilepage"); // use this for profile previews
+    // preview stuff
+    if(asset.home ?? false)
+    {
+        if(previewhome)
+        {
+            img.classList.add("homepage-bg");
+            img.src = img.src.replace('/img_low/', '/img/');
+            ref.classList.add("homepage-ui");
+        }
+        else img.classList.add("homepage");
+    }
+    else if(asset.profile ?? false)
+    {
+        if(previewprofile)
+        {
+            img.src = img.src.replace('/img_low/', '/img/');
+            ref.classList.add("profilepage-ui");
+        }
+        img.classList.add("profilepage");
+    }
     if(lazy_loading) img.setAttribute('loading', 'lazy');
     img.onerror = function() {
         let details = this.parentNode.parentNode.parentNode;
@@ -2634,20 +2651,8 @@ function addImage(div, file, asset, path, lazy_loading) // add an asset
     };
     img.onload = function() {
         this.classList.remove("loading");
-        if(this.classList.contains("homepage") && previewhome) // toggle state of previewhome is true
-        {
-            this.classList.remove("homepage");
-            this.classList.add("homepage-bg");
-            this.src = this.src.replace('/img_low/', '/img/');
-            this.parentNode.classList.add("homepage-ui");
-        }
-        else if(this.classList.contains("profilepage") && previewprofile) // toggle state of previewprofile is true
-        {
-            this.classList.remove("profilepage");
-            this.src = this.src.replace('/img_low/', '/img/');
-            this.parentNode.classList.add("profilepage-ui");
-        }
-        else this.classList.add("asset");
+        if(!this.classList.contains("homepage-bg") && (!this.classList.contains("profilepage") || !previewprofile))
+            this.classList.add("asset");
         this.onload = null;
     };
     div.appendChild(ref);

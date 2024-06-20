@@ -45,7 +45,7 @@
     <br>
     <div>
         <button class="tabbutton" id="tab-index" onclick="openTab('index')"><img class="btn-icon" src="assets/ui/icon/index.png" />Index</button>
-        <button class="tabbutton" id="tab-view" onclick="openTab('view')"><img class="btn-icon" src="assets/ui/icon/view.png" />Assets</button>
+        <button class="tabbutton" id="tab-view" onclick="openTab('view')", style="display:none"><img class="btn-icon" src="assets/ui/icon/view.png" />Assets</button>
         <button class="tabbutton" id="tab-new" onclick="openTab('new')"><img class="btn-icon" src="assets/ui/icon/new.png" />Newest</button>
         <button class="tabbutton" id="tab-history" onclick="openTab('history')"><img class="btn-icon" src="assets/ui/icon/history.png" />History</button>
         <button class="tabbutton" id="tab-bookmark" onclick="openTab('bookmark')"><img class="btn-icon" src="assets/ui/icon/bookmark.png" />Bookmarks</button>
@@ -62,10 +62,6 @@
     </div>
     <div id="view" class="tabcontent" style="display:none">
         <div id="output" class="container">
-            <div>
-                Search an element to start.
-            </div>
-            <img src="assets/ui/waiting.png">
         </div>
     </div>
     <div id="new" class="tabcontent container" style="display:none">
