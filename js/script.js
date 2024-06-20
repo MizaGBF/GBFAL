@@ -139,12 +139,14 @@ var intervals = []; // on screen notifications
 var typingTimer; // typing timer timeout
 var audio = null; // last played/playing audio
 var previewhome = false; // boolean to keep track of mypage preview
+var previewprofile = false; // boolean to keep track of profile preview
 
 // =================================================================================================
 // initialization
 function init() // entry point, called by body onload
 {
-    loadPreviewSetting();
+    loadPreviewHomeSetting();
+    loadPreviewProfileSetting();
     openTab('index'); // set to this tab by default
     output = document.getElementById('output'); // set output
     getJSON("json/changelog.json?" + timestamp, initChangelog); // load changelog
@@ -500,7 +502,18 @@ function openTab(tabName) // reset and then select a tab
     document.getElementById("tab-"+tabName).classList.add("active");
 }
 
-function togglePreview() // toggle mypage preview
+function loadPreviewHomeSetting() // load home page preview button setting
+{
+    let tmp = localStorage.getItem("gbfal-previewhome");
+    if(tmp != null) previewhome = !!JSON.parse(tmp);
+}
+
+function storePreviewHomeSetting() // set home page preview button setting
+{
+    localStorage.setItem("gbfal-previewhome", JSON.stringify(previewhome));
+}
+
+function togglePreviewHome() // toggle mypage preview
 {
     const homepageElements = document.querySelectorAll(".homepage, .homepage-bg");
 
@@ -521,7 +534,39 @@ function togglePreview() // toggle mypage preview
     });
 
     previewhome = !previewhome;
-    storePreviewSetting();
+    storePreviewHomeSetting();
+}
+
+function loadPreviewProfileSetting() // load profile page preview button setting
+{
+    let tmp = localStorage.getItem("gbfal-previewprofile");
+    if(tmp != null) previewprofile = !!JSON.parse(tmp);
+}
+
+function storePreviewProfileSetting() // set profile page preview button setting
+{
+    localStorage.setItem("gbfal-previewprofile", JSON.stringify(previewprofile));
+}
+
+function togglePreviewProfile() // toggle profile preview
+{
+    const homepageElements = document.querySelectorAll(".profilepage, .profilepage-ui");
+    homepageElements.forEach(e => {
+        if (!previewprofile) {
+            e.classList.remove("asset");
+            e.classList.remove("profilepage");
+            e.src = e.src.replace('/img_low/', '/img/');
+            e.parentNode.classList.add("profilepage-ui");
+        } else {
+            e.classList.remove("profilepage-ui");
+            e.firstChild.src = e.firstChild.src.replace('/img/', '/img_low/');
+            e.firstChild.classList.add("asset");
+            e.firstChild.classList.add("profilepage");
+        }
+    });
+
+    previewprofile = !previewprofile;
+    storePreviewProfileSetting();
 }
 
 // =================================================================================================
@@ -1196,17 +1241,6 @@ function updateList(node, elems) // update a list of elements
             }
         }
     }
-}
-
-function loadPreviewSetting() // load home page preview button setting
-{
-    let tmp = localStorage.getItem("gbfal-previewhome");
-    if(tmp != null) previewhome = !!JSON.parse(tmp);
-}
-
-function storePreviewSetting() // set home page preview button setting
-{
-    localStorage.setItem("gbfal-previewhome", JSON.stringify(previewhome));
 }
 
 function favButton(state, id = null, search_type = null) // favorite button control
@@ -1957,9 +1991,10 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Portraits", paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:1, icon:"assets/ui/result_icon/portrait.png", open:true},
                 {name:"Full Arts", paths:[["sp/assets/leader/job_change/", "png"]], index:3, icon:"assets/ui/result_icon/art.png", skycompass:true, open:true},
                 {name:"Home Page", paths:[["sp/assets/leader/my/", "png"]], index:3, icon:"assets/ui/result_icon/home.png", home:true},
+                {name:"Profile Page", paths:[["sp/assets/leader/pm/", "png"]], index:3, icon:"assets/ui/result_icon/profile.png", profile:true},
                 {name:"Class Unlock", paths:[["sp/assets/leader/jobtree/", "png"], ["sp/ui/job_name_tree_l/", "png"]], index:0, icon:"assets/ui/result_icon/unlock.png", lazy:false},
                 {name:"Other Class Texts", paths:[["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"]], icon:"assets/ui/result_icon/text.png", index:0, lazy:false},
-                {name:"Various Big Portraits", paths:[["sp/assets/leader/p/", "png"], ["sp/assets/leader/pm/", "png"], ["sp/assets/leader/jobon_z/", "png"]], index:3, icon:"assets/ui/result_icon/big_portrait.png"},
+                {name:"Various Big Portraits", paths:[["sp/assets/leader/p/", "png"], ["sp/assets/leader/jobon_z/", "png"]], index:3, icon:"assets/ui/result_icon/big_portrait.png"},
                 {name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"]], icon:"assets/ui/result_icon/portrait.png", index:3},
                 {name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"assets/ui/result_icon/battle.png", index:3},
                 {name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:2, icon:"assets/ui/result_icon/other.png", lazy:false},
@@ -2129,8 +2164,18 @@ function loadAssets_main(id, data, target, indexed, asset, files, mc_skycompass,
         let img = document.createElement("img");
         img.src = "assets/ui/mypage.png";
         img.classList.add("clickable");
-        img.classList.add("mypage-btn");
-        img.onclick = togglePreview;
+        img.classList.add("toggle-btn");
+        img.onclick = togglePreviewHome;
+        div.appendChild(img);
+    }
+    // add mypage preview
+    else if(asset.profile ?? false)
+    {
+        let img = document.createElement("img");
+        img.src = "assets/ui/profile.png";
+        img.classList.add("clickable");
+        img.classList.add("toggle-btn");
+        img.onclick = togglePreviewProfile;
         div.appendChild(img);
     }
     // for each path and file
@@ -2577,6 +2622,7 @@ function addImage(div, file, asset, path, lazy_loading) // add an asset
     ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img")); // set link
     img.classList.add("loading");
     if(asset.home ?? false) img.classList.add("homepage"); // use this for mypage previews
+    else if((asset.profile ?? false) && path[0].includes("leader/pm/")) img.classList.add("profilepage"); // use this for profile previews
     if(lazy_loading) img.setAttribute('loading', 'lazy');
     img.onerror = function() {
         let details = this.parentNode.parentNode.parentNode;
@@ -2594,6 +2640,12 @@ function addImage(div, file, asset, path, lazy_loading) // add an asset
             this.classList.add("homepage-bg");
             this.src = this.src.replace('/img_low/', '/img/');
             this.parentNode.classList.add("homepage-ui");
+        }
+        else if(this.classList.contains("profilepage") && previewprofile) // toggle state of previewprofile is true
+        {
+            this.classList.remove("profilepage");
+            this.src = this.src.replace('/img_low/', '/img/');
+            this.parentNode.classList.add("profilepage-ui");
         }
         else this.classList.add("asset");
         this.onload = null;

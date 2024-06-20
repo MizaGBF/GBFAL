@@ -593,7 +593,7 @@ img {
     background: url(../assets/ui/skycompass.png) no-repeat bottom left 0% / 15%;
 }
 
-.mypage-btn
+.toggle-btn
 {
     position: absolute;
     top: 0px;
@@ -602,7 +602,7 @@ img {
     z-index: 1;
 }
 
-.mypage-btn:hover
+.toggle-btn:hover
 {
     filter: hue-rotate(170deg);
 }
@@ -627,6 +627,23 @@ img {
 .homepage-bg {
     background: url(../assets/ui/home_bg.jpg) no-repeat;
     background-size: 640px 940px;
+    max-width: 640px;
+    max-height: 940px;
+    width: 640px;
+    height: 940px;
+}
+
+.profilepage-ui {
+    width: 640px;
+    height: 940px;
+    white-space: nowrap;
+}
+
+.profilepage-ui:before {
+    position: absolute;
+    content: '';
+    background: url(../assets/ui/profile_ui.png) no-repeat;
+    background-size: 100% 100%;
     max-width: 640px;
     max-height: 940px;
     width: 640px;
