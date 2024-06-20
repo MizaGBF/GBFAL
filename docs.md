@@ -54,7 +54,7 @@ where:
     - Index 5: AOE charge attack sheets. Path: `sp/cjs/FILE.png`.  
 - `skins`: Same format as `characters`.  
 - `job`: Object of ID, data pairs for MC classes or skins. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
-    - General format: A list of ten lists, each containing file names. (`[[], [], [], [], [], [], [], [], [], []]`).
+    - General format: A list of eleven lists, each containing file names. (`[[], [], [], [], [], [], [], [], [], [], []]`).
     - Index 0: Base file. Used for icons (`sp/ui/icon/job/FILE.png`) and texts (`sp/ui/job_name/job_list/FILE.png`, ...).  
     - Index 1: Other Base file. Used for inventory portraits and such.  
     - Index 2: Detail portrait files.  
@@ -65,6 +65,7 @@ where:
     - Index 7: Spritesheets. Path: `sp/cjs/FILE.png`.  
     - Index 8: Attack sheets (effects playing during auto attacks). Path: `sp/cjs/FILE.png`.  
     - Index 9: Charage attack sheets. Path: `sp/cjs/FILE.png`.  
+    - Index 10: Unlock animation sheets. Path: `sp/cjs/FILE.png`.  
 - `job_wpn`: Object of weapon ID, class ID pairs. Some special weapons are used in the game internally to have specific animations for some class outfits. This object is for internal use and is used to associate those weapons with the corresponding class ID.  
 - `job_key`: Similar to `job_wpn`, it's also for internal use. Classes all have what I call a secondary ID, a three characters string. Those strings are used for spritesheets. This object lists them.  
 - `background`: Object of ID, data pairs for guild/battle backgrounds. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  

@@ -132,6 +132,7 @@ class Updater():
     JOB_SPRITE = 7
     JOB_PHIT = 8
     JOB_SP = 9
+    JOB_UNLOCK = 10
     # summon update
     SUM_GENERAL = 0
     SUM_CALL = 1
@@ -1033,7 +1034,7 @@ class Updater():
                     except:
                         continue
                 # set data
-                data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp
+                data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
                 for j in alts:
                     data[self.JOB_ALT].append(keys[i][:-2]+str(j).zfill(2)+"_01")
                 for k in range(2):
@@ -1046,7 +1047,9 @@ class Updater():
                         data[self.JOB_DETAIL_ALL].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
                 for j in colors:
                     data[self.JOB_SD].append(keys[i][:-2]+str(j).zfill(2))
-
+                for j in range(2): # currently only for gw skins
+                    try: data[self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(keys[i], j))
+                    except: pass
                 self.data['job'][keys[i]] = data
                 self.modified = True
                 self.addition[keys[i]] = self.ADD_JOB
@@ -1168,8 +1171,9 @@ class Updater():
             print("[1] List Unset Job Weapons")
             print("[2] List Unset Job Keys")
             print("[3] List Uncomplete Job")
-            print("[4] Export Data")
-            print("[5] Import Data")
+            print("[4] Check unlock animations")
+            print("[5] Export Data")
+            print("[6] Import Data")
             print("[Any] Exit")
             match input():
                 case "0":
@@ -1260,6 +1264,11 @@ class Updater():
                     if tmp == 0:
                         print("Everything seems complete")
                 case "4":
+                    print("Checking for unlock animations...")
+                    tasks = [self.edit_job_unlock_task(k) for k in self.data["job"]]
+                    await asyncio.gather(*tasks)
+                    print("Done")
+                case "5":
                     tmp = {"lookup":{}, "weapon":{}, "unset_key":[], "unset_wpn":[]}
                     for k in self.data['job']:
                         tmp['lookup'][k] = None
@@ -1276,7 +1285,7 @@ class Updater():
                     with open("json/job_data_export.json", mode="w", encoding="ascii") as f:
                         json.dump(tmp, f, ensure_ascii=True, indent=4)
                         print("Data exported to json/job_data_export.json")
-                case "5":
+                case "6":
                     try:
                         with open("json/job_data_export.json", mode="r", encoding="ascii") as f:
                             tmp = json.load(f)
@@ -1311,6 +1320,21 @@ class Updater():
                 case _:
                     break
             self.save()
+
+    async def edit_job_unlock_task(self, jid : str) -> None:
+        if isinstance(self.data["job"][jid], list):
+            if len(self.data["job"][jid]) == self.JOB_UNLOCK:
+                self.data["job"][jid].append([])
+                self.modified = True
+            self.data["job"][jid][self.JOB_UNLOCK] = []
+            for i in range(2):
+                try:
+                    self.data["job"][jid][self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(jid, i))
+                    self.modified = True
+                except:
+                    pass
+            if len(self.data["job"][jid][self.JOB_UNLOCK]) > 0:
+                print(len(self.data["job"][jid][self.JOB_UNLOCK]), "sheets for", jid)
 
     async def edit_job_import_task(self, jid : str, s : Any, mode : int) -> None:
         try:
@@ -3310,6 +3334,7 @@ class Updater():
                             file_estimation += len(v[self.JOB_SPRITE])
                             file_estimation += len(v[self.JOB_PHIT])
                             file_estimation += len(v[self.JOB_SP])
+                            file_estimation += len(v[self.JOB_UNLOCK])
                         case "enemies":
                             if v is None or v == 0: continue
                             file_estimation += len(v[self.BOSS_GENERAL])
