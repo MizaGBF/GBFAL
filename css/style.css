@@ -635,7 +635,7 @@ img {
 
 .profilepage-ui {
     width: 640px;
-    height: 940px;
+    height: 912px;
     white-space: nowrap;
 }
 
@@ -645,9 +645,9 @@ img {
     background: url(../assets/ui/profile_ui.png) no-repeat;
     background-size: 100% 100%;
     max-width: 640px;
-    max-height: 940px;
+    max-height: 912px;
     width: 640px;
-    height: 940px;
+    height: 912px;
 }
 
 .link {
