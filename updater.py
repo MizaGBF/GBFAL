@@ -405,12 +405,15 @@ class Updater():
             for k in self.data:
                 if k in self.LOAD_EXCLUSION: continue
                 elif k in data: self.data[k] = data[k]
-        except Exception as e:
-            if not str(e).startswith("[Errno 2] No such file or directory"):
-                print("The following error occured while loading data.json:")
-                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                print(e)
+        except OSError as e:
+            print(e)
+            if input("Continue anyway? (type 'y' to continue):").lower() != 'y':
                 os._exit(0)
+        except Exception as e:
+            print("The following error occured while loading data.json:")
+            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            print(e)
+            os._exit(0)
 
     # make older data.json compatible with newer versions
     def retrocompatibility(self, data : dict) -> dict:
@@ -486,9 +489,7 @@ class Updater():
                         existing[k] = v
                     self.addition = {} # clear self.addition
                 # updated new elements
-                new = []
-                for k, v in existing.items(): # convert back to list. NOTE: maybe make a cleaner way later
-                    new.append([k, v])
+                new = [[k, v] for k, v in existing.items()] # convert back to list. NOTE: maybe make a cleaner way later
                 if len(new) > self.MAX_NEW: new = new[len(new)-self.MAX_NEW:]
                 # update stat
                 if self.stat_string is not None: stat = self.stat_string
@@ -552,10 +553,7 @@ class Updater():
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
         data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
-        res = []
-        for l in data:
-            src = l['src'].split('?')[0].split('/')[-1]
-            res.append(src)
+        res = [src for l in data if (src := l['src'].split('?')[0].split('/')[-1])] # list all string srcs
         if verify_file: # check if at least one file is visible
             for k in res:
                 try:
@@ -618,15 +616,12 @@ class Updater():
         skill_task = 10
         buff_series_task = 12
         # job keys to check
-        jkeys = []
         if self.job_list is None:
             self.job_list = await self.init_job_list()
         if self.job_list is None:
             print("Couldn't retrieve job list from the game")
             return
-        for k in list(self.job_list.keys()):
-            if k not in self.data['job']:
-                jkeys.append(k)
+        jkeys = [k for k in list(self.job_list.keys()) if k not in self.data['job']]
         if len(jkeys) > 0:
             job_task == 0
         # jobs
@@ -770,9 +765,7 @@ class Updater():
         print("Starting process...")
         self.progress = Progress(self, total=len(categories), silent=False)
         async with asyncio.TaskGroup() as tg:
-            tasks = []
-            for c in categories:
-                tasks.append(tg.create_task(self.run_category(c)))
+            tasks = [tg.create_task(self.run_category(c)) for c in categories]
         for t in tasks:
             t.result()
         self.save()
@@ -798,10 +791,8 @@ class Updater():
                     break
                 await asyncio.sleep(1)
             try:
-                tasks = []
                 async with asyncio.TaskGroup() as tg:
-                    for i in range(len(coroutines)): # run the coroutines
-                        tasks.append(tg.create_task(coroutines[i]))
+                    tasks = [tg.create_task(coroutines[i]) for i in range(len(coroutines))]
                 for t in tasks:
                     t.result()
             except Exception as e:
@@ -847,11 +838,8 @@ class Updater():
     async def search_skill(self, start : int, step : int) -> None: # skill search
         err = 0
         i = start
-        tmp = []
         tmp_c = ("0" if start < 1000 else str(start)[0])
-        for k in list(self.data["skills"].keys()):
-            if k[0] == tmp_c:
-                tmp.append(k)
+        tmp = [k for k in list(self.data["skills"].keys()) if k[0] == tmp_c]
         tmp.sort()
         try:
             highest = int(tmp[-1])
@@ -886,11 +874,8 @@ class Updater():
         err = 0
         i = start
         end = (start // 1000) * 1000 + 1000
-        tmp = []
         tmp_c = ("0" if start < 1000 else str(start)[0])
-        for k in list(self.data["buffs"].keys()):
-            if k[0] == tmp_c:
-                tmp.append(k)
+        tmp = [k for k in list(self.data["buffs"].keys()) if k[0] == tmp_c]
         tmp.sort()
         try:
             highest = int(tmp[-1])
@@ -1035,10 +1020,9 @@ class Updater():
                         continue
                 # set data
                 data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
-                for j in alts:
-                    data[self.JOB_ALT].append(keys[i][:-2]+str(j).zfill(2)+"_01")
-                for k in range(2):
-                    data[self.JOB_DETAIL].append(keys[i]+"_"+cmh[0]+"_"+str(k)+"_01")
+                
+                data[self.JOB_ALT] = [keys[i][:-2]+str(j).zfill(2)+"_01" for j in alts]
+                data[self.JOB_DETAIL] = [keys[i]+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
                 for j in [1]+alts:
                     for k in range(2):
                         data[self.JOB_DETAIL_ALT].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
@@ -1236,17 +1220,13 @@ class Updater():
                                 else:
                                     print("Unknown element", s)
                 case "1":
-                    tmp = []
-                    for k, v in self.data['job_wpn'].items():
-                        if v is None: tmp.append(k)
+                    tmp = [k for k, v in self.data['job_wpn'].items() if v is None]
                     if len(tmp) == 0:
                         print("No unset weapon in memory")
                     else:
                         print("\n".join(tmp))
                 case "2":
-                    tmp = []
-                    for k, v in self.data['job_key'].items():
-                        if v is None: tmp.append(k)
+                    tmp = [k for k, v in self.data['job_key'].items() if v is None]
                     if len(tmp) == 0:
                         print("No free key in memory")
                     else:
@@ -1291,8 +1271,13 @@ class Updater():
                             tmp = json.load(f)
                             if 'lookup' not in tmp or 'weapon' not in tmp:
                                 raise Exception()
-                    except:
-                        print("Couldn't find, open or load json/job_data_export.json")
+                    except OSError as e:
+                        print("Couldn't open json/job_data_export.json")
+                        print(e)
+                        tmp = None
+                    except Exception as e:
+                        print("Couldn't load json/job_data_export.json")
+                        print(e)
                         tmp = None
                     if tmp is not None and input("Are you sure? Press 'y' to continue:").lower() == 'y':
                         print("Importing data...")
@@ -2462,6 +2447,7 @@ class Updater():
         if not self.use_wiki: return
         modified = set()
         # manual npcs
+        
         try:
             print("Importing manual_lookup.json ...")
             with open("json/manual_lookup.json", mode="r", encoding="utf-8") as f:
@@ -2495,6 +2481,15 @@ class Updater():
                 with open("json/manual_lookup.json", mode="w", encoding="utf-8") as f:
                     json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
                 print("json/manual_lookup.json updated with new entries")
+        except OSError as e:
+            print("Couldn't open json/manual_lookup.json")
+            print(e)
+            data = {}
+        except Exception as e:
+            print("Couldn't load json/manual_lookup.json")
+            print(e)
+            data = {}
+        try:
             # fill the lookup table
             for k, v in data.items():
                 try:
@@ -2583,7 +2578,7 @@ class Updater():
                 except:
                     pass
         except Exception as e:
-            print("An error occured while reading manual_lookup.json:", e)
+            print("An error occured while updating the lookup table with json/manual_lookup.json", e)
         # first pass
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
         fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date', 'weapons':'id,element,type,rarity,name,series,jpname,release_date', 'summons':'id,element,rarity,name,series,jpname,release_date', 'classes':'id,name,jpname,release_date', 'mc_outfits':'outfit_id,outfit_name,release_date', 'character_outfits':'outfit_id,outfit_name,character_name,release_date', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'}
@@ -3382,11 +3377,7 @@ class Updater():
             keys = list(self.data['npcs'].keys())
             keys.sort()
             max_id = int(keys[-1][3:7])
-            ids = []
-            for i in range(0, max_id):
-                id = "399" + str(i).zfill(4) + "000"
-                if id not in self.data['npcs']:
-                    ids.append(id)
+            ids = [id for i in range(0, max_id) if (id := "399" + str(i).zfill(4) + "000") not in self.data['npcs']] # list of all npc without data
             if len(ids) > 0:
                 print("Checking for", len(ids), "missing NPCs...")
                 self.debug_npc_detail = True
@@ -3471,7 +3462,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.39\n")
+                print("GBFAL updater v2.40\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
