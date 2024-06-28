@@ -1599,35 +1599,37 @@ class Updater():
         with self.progress:
             async with self.sem:
                 is_mc = id.startswith("389")
+                lookup = []
                 try:
                     data = self.data['partners'][str((int(id) // 1000) * 1000)]
                     if data == 0: raise Exception()
+                    # build set of existing ids to avoid looking for them again
+                    for i in data[self.CHARA_SPRITE]:
+                        if i.startswith("npc_"):
+                            lookup.append(i.split('_')[1])
+                    for i in data[self.CHARA_PHIT]:
+                        if i.startswith("phit_"):
+                            lookup.append(i.split('_')[1])
+                    for i in data[self.CHARA_SP]:
+                        if i.startswith("nsp_"):
+                            lookup.append(i.split('_')[1])
+                    for i in data[self.CHARA_AB_ALL]:
+                        if i.startswith("ab_all_"):
+                            lookup.append(i.split('_')[2])
+                    for i in data[self.CHARA_AB]:
+                        if i.startswith("ab_"):
+                            lookup.append(i.split('_')[1])
+                    for i in data[self.CHARA_GENERAL]:
+                        lookup.append(i.split('_')[0])
                 except:
-                    data = [[], [], [], [], [], []] # sprite, phit, sp, aoe, single, general
+                    pass
+                lookup = set(lookup)
+                # ready empty container and set id
+                data = [[], [], [], [], [], []] # sprite, phit, sp, aoe, single, general
                 tid = id
                 id = str((int(id) // 1000) * 1000)
                 style = "" # placeholder
                 max_err = 15 if id == "3890005000" else max(5, step // 3)  # placeholder
-                # build set of existing element
-                lookup = []
-                for i in data[self.CHARA_SPRITE]:
-                    if i.startswith("npc_"):
-                        lookup.append(i.split('_')[1])
-                for i in data[self.CHARA_PHIT]:
-                    if i.startswith("phit_"):
-                        lookup.append(i.split('_')[1])
-                for i in data[self.CHARA_SP]:
-                    if i.startswith("nsp_"):
-                        lookup.append(i.split('_')[1])
-                for i in data[self.CHARA_AB_ALL]:
-                    if i.startswith("ab_all_"):
-                        lookup.append(i.split('_')[2])
-                for i in data[self.CHARA_AB]:
-                    if i.startswith("ab_"):
-                        lookup.append(i.split('_')[1])
-                for i in data[self.CHARA_GENERAL]:
-                    lookup.append(i.split('_')[0])
-                lookup = set(lookup)
                 edited = False
                 err = 0
                 # search loop
@@ -1738,8 +1740,8 @@ class Updater():
                 if id not in self.data['partners'] or self.data['partners'][id] == 0:
                     self.data['partners'][id] = data
                 else:
-                    for i, e in enumerate(data):
-                        self.data['partners'][id][i] = list(set(self.data['partners'][id][i] + e))
+                    for i in range(len(data)):
+                        self.data['partners'][id][i] = list(set(self.data['partners'][id][i] + data[i]))
                         self.data['partners'][id][i].sort()
                 self.addition[id] = self.ADD_PARTNER
             return True
@@ -2456,9 +2458,10 @@ class Updater():
             to_save = False
             for t in ["npcs", "enemies"]:
                 for k in self.data[t]:
-                    if data.get(k, None) is None:
-                        s = self.data['lookup'].get(k, None)
-                        if s is not None and s != "" and not s.startswith("missing-help-wanted"):
+                    s = self.data['lookup'].get(k, None)
+                    valid = s is not None and s != "" and not s.startswith("missing-help-wanted")
+                    if k not in data and valid:
+                        if valid:
                             if '@@' in s:
                                 s = s.split("@@", 1)[1].split(" ", 1)[1]
                             s = s.split(" ")
@@ -2468,12 +2471,13 @@ class Updater():
                                     i += 1
                                 else:
                                     break
-                            s = " ".join(s[i:])
-                            if s == "": continue
-                            data[k] = s.replace(' voiced', '').replace(' voice-only', '')
-                        else:
+                            s = " ".join(s[i:]).replace(' voiced', '').replace(' voice-only', '')
+                            if s == "" or data[k] == s: continue
+                            data[k] = s
+                            to_save = True
+                        elif k not in data:
                             data[k] = None
-                        to_save = True
+                            to_save = True
             if to_save:
                 keys = list(data.keys())
                 keys.sort(key=lambda s : (10 - len(s), s))
@@ -3462,7 +3466,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.40\n")
+                print("GBFAL updater v2.41\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
