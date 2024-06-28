@@ -2460,24 +2460,23 @@ class Updater():
                 for k in self.data[t]:
                     s = self.data['lookup'].get(k, None)
                     valid = s is not None and s != "" and not s.startswith("missing-help-wanted")
-                    if k not in data and valid:
-                        if valid:
-                            if '@@' in s:
-                                s = s.split("@@", 1)[1].split(" ", 1)[1]
-                            s = s.split(" ")
-                            i = 0
-                            while i < len(s):
-                                if s[i] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
-                                    i += 1
-                                else:
-                                    break
-                            s = " ".join(s[i:]).replace(' voiced', '').replace(' voice-only', '')
-                            if s == "" or data[k] == s: continue
-                            data[k] = s
-                            to_save = True
-                        elif k not in data:
-                            data[k] = None
-                            to_save = True
+                    if valid and data.get(k, None) is None:
+                        if '@@' in s:
+                            s = s.split("@@", 1)[1].split(" ", 1)[1]
+                        s = s.split(" ")
+                        i = 0
+                        while i < len(s):
+                            if s[i] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
+                                i += 1
+                            else:
+                                break
+                        s = " ".join(s[i:]).replace(' voiced', '').replace(' voice-only', '')
+                        if s == "" or data.get(k, "") == s: continue
+                        data[k] = s
+                        to_save = True
+                    elif not valid and k not in data:
+                        data[k] = None
+                        to_save = True
             if to_save:
                 keys = list(data.keys())
                 keys.sort(key=lambda s : (10 - len(s), s))
