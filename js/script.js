@@ -83,7 +83,7 @@ const ENEMIES = [
 ];
 const NPCS = [
     ["Special", "assets/ui/index_icon/special.png", "05", [0, 100000]],
-    ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", "99", [3391, 100000]],
+    ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", "99", [3391, 3582], [3582, 9999]],
     ["Year 2023 (Rabbit)", "assets/ui/index_icon/year_2023_(rabbit).png", "99", [2915, 3188], [3188, 3391]],
     ["Year 2022 (Tiger)", "assets/ui/index_icon/year_2022_(tiger).png", "99", [2519, 2714], [2714, 2915]],
     ["Year 2021 (Ox)", "assets/ui/index_icon/year_2021_(ox).png", "99", [2008, 2248], [2248, 2519]],
