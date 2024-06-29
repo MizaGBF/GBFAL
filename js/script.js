@@ -1929,7 +1929,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"assets/ui/result_icon/news.png", form:false, lazy:false},
                 {name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], index:-2, icon:"assets/ui/result_icon/result.png", form:false, lazy:false},
                 {name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], index:-6, icon:"assets/ui/result_icon/custom.png", form:false, lazy:false},
-                {name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", ""]], index:-10, icon:"assets/ui/result_icon/siero.png", form:false, lazy:false}
+                {name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], index:-8, icon:"assets/ui/result_icon/siero.png", form:false, lazy:false}
             ];
             skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
             npcdata = data[7];
@@ -2126,9 +2126,6 @@ function loadAssets_getFiles(id, data, asset, files, melee)
             break;
         case -9: // character unlock
             files = [id + "_char", id + "_char_w"]; 
-            break;
-        case -10: // character siero training reward
-            files = [id + ".jpg", "name_" + id + ".png"]; 
             break;
         default:
             files = data[asset.index];
