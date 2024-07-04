@@ -2642,7 +2642,7 @@ function addImage(div, file, asset, path, lazy_loading) // add an asset
         let details = this.parentNode.parentNode.parentNode;
         let result = this.parentNode.parentNode; // parent div
         this.parentNode.remove();
-        let n = (this.classList.contains("homepage") ? 1 : 0);
+        const n = (this.classList.contains("homepage-bg") || this.classList.contains("homepage") || this.classList.contains("profilepage")) ? 1 : 0;
         this.remove();
         if(result.childNodes.length <= n) details.remove();
     };
