@@ -441,7 +441,7 @@ function filter(content)
         {
             items[k].style.display = "none";
         }
-        search(content, true);
+        search(content, 1);
         for(let i = 0; i < searchResults.length; ++i)
         {
             if(searchResults[i][1] == 2 || searchResults[i][1] == 3) // only chara and summon
