@@ -140,6 +140,8 @@ var typingTimer; // typing timer timeout
 var audio = null; // last played/playing audio
 var previewhome = false; // boolean to keep track of mypage preview
 var previewprofile = false; // boolean to keep track of profile preview
+var playingAudio = null; // contains last played audio sfx
+var audioMuted = true; // if true, doesn't play audio files
 
 // =================================================================================================
 // initialization
@@ -150,6 +152,7 @@ function init() // entry point, called by body onload
     openTab('index'); // set to this tab by default
     output = document.getElementById('output'); // set output
     getJSON("json/changelog.json?" + timestamp, initChangelog); // load changelog
+    beep(); // to preload Audio
 }
 
 function getJSON(url, callback) { // generic function to request a file. will always call the callback no matter the result.
@@ -241,6 +244,7 @@ function initData() // load data.json
     {
         lookup(id);
     }
+    audioMuted = false;
 }
 
 function initIndex() // build the html index. simply edit the constants above to change the index.
@@ -578,6 +582,13 @@ function cycleEndpoint() // return one of the endpoint, one after the other (to 
 function idToEndpoint(id) // use the id as a seed to return one of the endpoints (to benefit from the sharding)
 {
     return ENDPOINTS[parseInt(id.replace(/\D/g,'')) % ENDPOINTS.length];
+}
+
+function beep() // play a sound effect
+{
+    if(playingAudio != null && !playingAudio.paused) return;
+    playingAudio = new Audio("assets/audio/beep.ogg");
+    if(!audioMuted) playingAudio.play();
 }
 
 function swap(json)  // swap keys and values from an object
@@ -1613,10 +1624,11 @@ function lookup(id) // check element validity and either load it or return searc
     }
 }
 
-function search(id) // generate search results
+function search(id, internal_use = false) // generate search results
 {
     if(id == "" || id == searchID) return;
     // search
+    let is_updated = false;
     let words = id.toLowerCase().replace("@@", "").split(' ');
     let positives = [];
     let counters = [];
@@ -1684,7 +1696,8 @@ function search(id) // generate search results
         let filter = document.getElementById('filter');
         if(filter.value != id) filter.value = id;
     }
-    updateSearchResuls();
+    if(!internal_use)
+        updateSearchResuls();
 }
 
 function get_search_filter_states()
@@ -1853,6 +1866,7 @@ function loadDummy(id, target)// minimal load of an element not indexed or not f
 
 function loadAssets(id, data, target, indexed = true)
 {
+    beep();
     endpoint_count = -1;
     let tmp_last_id = last_id;
     let area_name = "";
@@ -2518,14 +2532,27 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
         div.appendChild(document.createElement('br'));
         div.appendChild(document.createTextNode("This element isn't indexed, assets will be missing"));
     }
-    // add related partner for character
+    // add related partner and weapon for character
     else if(name == "Character")
     {
+        if(id in index["premium"])
+        {
+            if(did_lookup) div.appendChild(document.createElement('br'));
+            div.appendChild(document.createTextNode("Unlock Weapon:"));
+            div.appendChild(document.createElement('br'));
+            let i = document.createElement('i');
+            i.classList.add("clickable");
+            i.onclick = function() {
+                lookup(index["premium"][id]);
+            };
+            div.appendChild(i);
+            updateList(i, [[index["premium"][id], 1]]);
+        }
         let cid = "38" + id.slice(2);
         if("partners" in index && cid in index["partners"])
         {
             if(did_lookup) div.appendChild(document.createElement('br'));
-            div.appendChild(document.createTextNode("Associated Partner:"));
+            div.appendChild(document.createTextNode("Partner Version:"));
             div.appendChild(document.createElement('br'));
             let i = document.createElement('i');
             i.classList.add("clickable");
@@ -2534,6 +2561,23 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             };
             div.appendChild(i);
             updateList(i, [[cid, 6]]);
+        }
+    }
+    // add related character for weapon
+    else if(name == "Weapon")
+    {
+        if(id in index["premium"])
+        {
+            if(did_lookup) div.appendChild(document.createElement('br'));
+            div.appendChild(document.createTextNode("Unlock Character:"));
+            div.appendChild(document.createElement('br'));
+            let i = document.createElement('i');
+            i.classList.add("clickable");
+            i.onclick = function() {
+                lookup(index["premium"][id]);
+            };
+            div.appendChild(i);
+            updateList(i, [[index["premium"][id], 3]]);
         }
     }
     // add related character for partner

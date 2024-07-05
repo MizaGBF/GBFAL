@@ -321,7 +321,8 @@ class Updater():
             "subskills":{},
             "buffs":{},
             "eventthumb":{},
-            "story":{}
+            "story":{},
+            "premium":{}
         }
         self.load() # load self.data NOW
         self.modified = False # if set to true, data.json will be written on the next call of save()
@@ -2583,13 +2584,16 @@ class Updater():
         except Exception as e:
             print("An error occured while updating the lookup table with json/manual_lookup.json", e)
         # first pass
+        premium_lookup = {}
+        weapon_associations = {}
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
-        fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date', 'weapons':'id,element,type,rarity,name,series,jpname,release_date', 'summons':'id,element,rarity,name,series,jpname,release_date', 'classes':'id,name,jpname,release_date', 'mc_outfits':'outfit_id,outfit_name,release_date', 'character_outfits':'outfit_id,outfit_name,character_name,release_date', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'}
+        fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date,obtain,join_weapon', 'weapons':'id,element,type,rarity,name,series,jpname,release_date,character_unlock', 'summons':'id,element,rarity,name,series,jpname,release_date,obtain', 'classes':'id,name,jpname,release_date', 'mc_outfits':'outfit_id,outfit_name,release_date', 'character_outfits':'outfit_id,outfit_name,character_name,release_date', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'}
         for t in self.LOOKUP_TYPES:
             for table in tables.get(t, [t]):
                 try:
                     print("Checking", table, "wiki cargo table for", t, "lookup...")
                     data = (await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables={}&fields=_pageName,{}&format=json&limit=20000".format(table, fields.get(table)), headers={'User-Agent':self.USER_AGENT}, get_json=True))
+                    await asyncio.sleep(0.2)
                     for item in data:
                         match table:
                             case "classes"|"mc_outfits":
@@ -2621,11 +2625,28 @@ class Updater():
                                                 looks.append(v.lower())
                                         case "series":
                                             looks.append(v.lower().replace(';', ' '))
+                                        case "join weapon":
+                                            if len(item.get("obtain", [])) > 0:
+                                                obtain = set(item["obtain"][0].split(","))
+                                                if "classic" in obtain or  "classic2" in obtain or "flash" in obtain or "premium" in obtain:
+                                                    weapon_associations[v] = item["id"]
+                                                    premium_lookup[str(item["id"])] = None
+                                        case "character unlock":
+                                            if item["name"] in weapon_associations:
+                                                premium_lookup[str(weapon_associations[item["name"]])] = str(item["id"]) # character id = weapon id
+                                                premium_lookup[str(item["id"])] = str(weapon_associations[item["name"]]) # weapon id = character id
+                                        case "obtain": # summon
+                                            if table == "summons" and v is not None and v != "":
+                                                obtain = set(v.split(","))
+                                                if "classic" in obtain or  "classic2" in obtain or "flash" in obtain or "premium" in obtain:
+                                                    premium_lookup[str(item["id"])] = None
                                         case _:
                                             looks.append(v.lower())
                                 case list():
                                     for e in v:
-                                        if k == "race" and e == "Other":
+                                        if k == "obtain":
+                                            continue
+                                        elif k == "race" and e == "Other":
                                             looks.append("unknown")
                                         elif e != "-":
                                             looks.append(e.lower())
@@ -2647,7 +2668,9 @@ class Updater():
                 except Exception as e:
                     print(e)
                     pass
-
+        if premium_lookup != self.data['premium']:
+            self.data['premium'] = premium_lookup
+            self.modified = True
         # second pass
         if len(modified) > 0:
             print(len(modified), "element lookup(s) added/updated")

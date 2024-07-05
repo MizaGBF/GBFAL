@@ -97,6 +97,7 @@ where:
 - `story`: Object of chapter ID (zfilled to string of length 3) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of one single list, containing file names. (`[[]]`).  
     - Index 0: The list of known files.  
+- `premium`: Object listing element IDs obtained via the gachas, along with character/weapon associations.  
 
 # Skycompass  
 Skycompass files can be accessed with the following URLs:  

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>GBF Asset Lookup</title>
+    <meta name="title" content="Granblue Fantasy Asset Lookup">
+    <meta name="description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+    <meta name="theme-color" content="#5217b0">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mizagbf.github.io/GBFAL/">
+    <meta property="og:title" content="Granblue Fantasy Asset Lookup">
+    <meta property="og:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+    <meta property="og:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://mizagbf.github.io/GBFAL/">
+    <meta property="twitter:title" content="Granblue Fantasy Asset Lookup">
+    <meta property="twitter:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+    <meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/spark.css">
+    <script src="js/script.js"></script>
+    <script src="js/spark.js"></script>
+    <link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
+    <link rel="dns-prefetch" href="https://prd-game-a1-granbluefantasy.akamaized.net/" />
+    <link rel="dns-prefetch" href="https://prd-game-a2-granbluefantasy.akamaized.net/" />
+    <link rel="dns-prefetch" href="https://prd-game-a3-granbluefantasy.akamaized.net/" />
+    <link rel="dns-prefetch" href="https://prd-game-a4-granbluefantasy.akamaized.net/" />
+    <link rel="dns-prefetch" href="https://prd-game-a5-granbluefantasy.akamaized.net/" />
+</head>
+<body onload="init_spark()">
+    <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
+    <div id="header">
+        <div>Spark v1.0</div>
+        <div id="timestamp"></div>
+    </div>
+    <div id="issues" style="display:none">
+        <h3>Known Issues</h3>
+    </div>
+    <div id="notice" style="display:none">
+    </div>
+    <br>
+    <div class="spark-container" id="spark-container">
+        <div id="spark-rate">
+            0 / 300<br>
+            0% SSR
+        </div>
+        <table class="spark-border" id="spark-main">
+            <tbody>
+                <tr>
+                    <th class="spark-section-header">
+                        <img src="assets/spark/gem.jpg">
+                    </th>
+                    <th class="spark-section-header">
+                        <img src="assets/spark/moon.jpg">
+                    </th>
+                    <th class="spark-section-header">
+                        <img src="assets/spark/sunstone.jpg">
+                    </th>
+                </tr>
+                <tr>
+                    <td>
+                        <div class="spark-section" id="spark-npc"></div>
+                    </td>
+                    <td>
+                        <div class="spark-section" id="spark-moon"></div>
+                    </td>
+                    <td>
+                        <div class="spark-section" id="spark-summon"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="spark-tab-container">
+            <button class="spark-tab active" id="spark-tab-btn-npc" onclick="openSparkTab('npc');"><img class="spark-tab-icon" src="assets/ui/icon/characters.png">Characters</button>
+            <button class="spark-tab" id="spark-tab-btn-summon" onclick="openSparkTab('summon');"><img class="spark-tab-icon" src="assets/ui/icon/summons.png">Summons</button>
+        </div>
+        <div class="spark-border spark-select" id="spark-select-npc"></div>
+        <div class="spark-border spark-select" id="spark-select-summon" style="display:none"></div>
+    </div>
+    <div class="container">
+        <input type="text" id="filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Filter..."><br>
+        <input type="text" id="rate-input" onkeydown="typying()" onkeyup="updateRate()" placeholder="Roll Count" value="300"> Rolls<br>
+        <br>
+        Shift+Click on a Character to add it to moons.<br>
+        Shift+Click on an element to toggle its Sparked status.<br>
+        On mobile, use those two checkboxes:<br>
+        <input type="checkbox" class="checkbox" id="moon-check" name="moon-check"><label class="checkbox-label" for="moon-check">Add to Moons</label><input type="checkbox" class="checkbox" id="spark-check" name="spark-check"><label class="checkbox-label" for="spark-check">Select Spark</label><br>
+        <br>
+        <br>
+        <div class="std-btn-container"><button class="std-button" onclick="spark_clear()">Reset</button></div>
+    </div>
+    <br>
+</body>
+<footer>
+    <div id="footer">
+        <a href="https://github.com/MizaGBF/GBFAL" title="Source Code"><img class="img-link" src="assets/ui/icon/github.png"></a>
+        <a href="https://mizagbf.github.io/GBFAP" title="GBF Animation Player"><img class="img-link" src="assets/ui/icon/GBFAP.png"></a>
+        <a href="https://mizagbf.github.io/" title="Home Page"><img class="img-link" src="assets/ui/mypage.png"></a>
+    </div>
+    <div id="copyright">
+        Granblue Fantasy content and materials are trademarks and copyrights of Cygames, Inc. or its licensors. All rights reserved.
+    </div>
+</footer>
+</html>
