@@ -257,6 +257,7 @@ function update_node(mode, addition)
         case STONE: node = document.getElementById("spark-summon"); break;
         default: return;
     }
+    updateRate();
     if(node.childNodes.length == 0) return;
     const nw = node.offsetWidth - 5;
     const nh = node.offsetHeight - 5;
@@ -298,7 +299,6 @@ function update_node(mode, addition)
             }
         }
     }
-    updateRate();
 }
 
 function updateRate()

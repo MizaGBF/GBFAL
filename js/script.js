@@ -140,7 +140,7 @@ var typingTimer; // typing timer timeout
 var audio = null; // last played/playing audio
 var previewhome = false; // boolean to keep track of mypage preview
 var previewprofile = false; // boolean to keep track of profile preview
-var playingAudio = null; // contains last played audio sfx
+var beepAudio = new Audio("assets/audio/beep.ogg"); // contains last played audio sfx
 var audioMuted = true; // if true, doesn't play audio files
 
 // =================================================================================================
@@ -586,9 +586,8 @@ function idToEndpoint(id) // use the id as a seed to return one of the endpoints
 
 function beep() // play a sound effect
 {
-    if(playingAudio != null && !playingAudio.paused) return;
-    playingAudio = new Audio("assets/audio/beep.ogg");
-    if(!audioMuted) playingAudio.play();
+    if(!beepAudio.paused) return;
+    if(!audioMuted) beepAudio.play();
 }
 
 function swap(json)  // swap keys and values from an object
@@ -1624,7 +1623,12 @@ function lookup(id) // check element validity and either load it or return searc
     }
 }
 
-function search(id, internal_use = false) // generate search results
+function search(id, internal_behavior = 0) // generate search results
+/*
+    * internal_behavior is only used by spark.html so far
+    0 = default bevahior
+    1 = spark mode: remove search limit, doesn't call updateSearchResuls at the end, limit the search to premium elements
+*/
 {
     if(id == "" || id == searchID) return;
     // search
@@ -1632,9 +1636,11 @@ function search(id, internal_use = false) // generate search results
     let words = id.toLowerCase().replace("@@", "").split(' ');
     let positives = [];
     let counters = [];
+    const _LIMIT_ = (internal_behavior == 1) ? 1000000 : SEARCH_LIMIT;
     while(counters.length < 10) counters.push(0);
     for(const [key, value] of Object.entries(index['lookup_reverse']))
     {
+        if(internal_behavior == 1 && !(value in index["premium"])) continue;
         let matching = true;
         for(const w of words)
         {
@@ -1667,7 +1673,7 @@ function search(id, internal_use = false) // generate search results
                     case 7: et = 4; break; // boss
                     default: et = (["305", "399"].includes(v.slice(0, 3)) ? 5 : parseInt(v[0])); break;
                 }
-                if(counters[et] >= SEARCH_LIMIT) break;
+                if(counters[et] >= _LIMIT_) break;
                 counters[et]++;
                 positives.push([v, et]);
             }
@@ -1696,7 +1702,7 @@ function search(id, internal_use = false) // generate search results
         let filter = document.getElementById('filter');
         if(filter.value != id) filter.value = id;
     }
-    if(!internal_use)
+    if(!internal_behavior)
         updateSearchResuls();
 }
 
