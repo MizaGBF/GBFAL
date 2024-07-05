@@ -1697,13 +1697,15 @@ function search(id, internal_behavior = 0) // generate search results
     });
     searchResults = positives;
     searchID = id;
-    if(searchResults.length > 0)
-    {
-        let filter = document.getElementById('filter');
-        if(filter.value != id) filter.value = id;
-    }
     if(!internal_behavior)
+    {
+        if(searchResults.length > 0)
+        {
+            let filter = document.getElementById('filter');
+            if(filter.value != id) filter.value = id;
+        }
         updateSearchResuls();
+    }
 }
 
 function get_search_filter_states()

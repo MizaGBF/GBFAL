@@ -150,7 +150,7 @@ function addImage_spark(node, path, id, onerr) // add an image to an index. path
         this.onclick = function()
         {
             beep();
-            if(!isSummon && (window.event.shiftKey || document.getElementById("moon-check").checked))
+            if(!isSummon && (window.event.shiftKey || document.getElementById("moon-check").classList.contains("active")))
             {
                 addImageResult_spark(MOON, id, this.src);
             }
@@ -159,7 +159,6 @@ function addImage_spark(node, path, id, onerr) // add an image to an index. path
                 addImageResult_spark(isSummon ? STONE : NPC, id, this.src);
             }
             saveSpark();
-            saveSetting();
         };
     };
     img.src = path.replace("GBF/", idToEndpoint(id));
@@ -182,11 +181,10 @@ function addImageResult_spark(mode, id, path)
     div.onclick = function()
     {
         beep();
-        if(window.event.shiftKey || document.getElementById("spark-check").checked)
+        if(window.event.shiftKey || document.getElementById("spark-check").classList.contains("active"))
         {
-            toggle_spark(div);
+            toggle_spark_state(div);
             saveSpark();
-            saveSetting();
         }
         else
         {
@@ -212,7 +210,7 @@ function addImageResult_spark(mode, id, path)
     return div;
 }
 
-function toggle_spark(div)
+function toggle_spark_state(div)
 {
     if(div.childNodes.length == 2) remove_spark(div);
     else if(div.childNodes.length == 1) add_spark(div);
@@ -306,7 +304,7 @@ function updateRate()
     let v;
     try
     {
-        v = parseInt(document.getElementById("rate-input").value);
+        v = parseInt(document.getElementById("spark-roll-input").value);
         if(isNaN(v) || v <= 0) return;
         let c = lists[NPC].length + lists[MOON].length + lists[STONE].length;
         if(v < c) v = c;
@@ -341,7 +339,7 @@ function spark_clear()
 
 function saveSpark()
 {
-    let tmp = [[], [], [], document.getElementById("rate-input").value];
+    let tmp = [[], [], [], document.getElementById("spark-roll-input").value];
     for(let i = 0; i < COUNT; ++i)
     {
         for(let j = 0; j < lists[i].length; ++j)
@@ -366,7 +364,7 @@ function loadSpark()
             tmp = JSON.parse(tmp);
         }
         if(tmp[COUNT] != undefined)
-            document.getElementById("rate-input").value = tmp[COUNT];
+            document.getElementById("spark-roll-input").value = tmp[COUNT];
         lists = [[], [], []];
         for(let i = 0; i < COUNT; ++i)
         {
@@ -398,7 +396,7 @@ function loadSpark()
 
 function saveSetting()
 {
-    let tmp = [document.getElementById("moon-check").checked, document.getElementById("spark-check").checked];
+    let tmp = [document.getElementById("moon-check").classList.contains("active"), document.getElementById("spark-check").classList.contains("active")];
     localStorage.setItem("gbfal-spark-settings", JSON.stringify(tmp));
 }
 
@@ -409,8 +407,8 @@ function loadSetting()
         let tmp = localStorage.getItem("gbfal-spark-settings");
         if(tmp == null) return;
         tmp = JSON.parse(tmp);
-        document.getElementById("moon-check").checked = tmp[0];
-        document.getElementById("spark-check").checked = tmp[1];
+        if(tmp[0]) document.getElementById("moon-check").classList.add("active");
+        if(tmp[1]) document.getElementById("spark-check").classList.add("active");
     }
     catch(err)
     {
@@ -422,7 +420,7 @@ function spark_filter()
 {
     clearTimeout(typingTimer);
     typingTimer = setTimeout(function(){
-        filter(document.getElementById('filter').value.trim().toLowerCase());
+        filter(document.getElementById('spark-filter').value.trim().toLowerCase());
     }, 1000);
 }
 
@@ -457,4 +455,22 @@ function filter(content)
             }
         }
     }
+}
+
+function toggle_moon()
+{
+    if(document.getElementById("moon-check").classList.contains("active"))
+        document.getElementById("moon-check").classList.remove("active");
+    else
+        document.getElementById("moon-check").classList.add("active");
+    saveSetting();
+}
+
+function toggle_spark()
+{
+    if(document.getElementById("spark-check").classList.contains("active"))
+        document.getElementById("spark-check").classList.remove("active");
+    else
+        document.getElementById("spark-check").classList.add("active");
+    saveSetting();
 }

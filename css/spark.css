@@ -1,6 +1,6 @@
 .spark-container {
     width: 95%;
-    height: 90vh;
+    height: 95vh;
     min-height: 500px;
     font-size: 30px;
     padding: 5px;
@@ -23,8 +23,8 @@
 #spark-main {
     width: 100%;
     max-width: 100%;
-    height: 70%;
-    max-height: 70%;
+    height: calc((100% - 40px * 2) * 0.75);
+    max-height: calc((100% - 40px * 2) * 0.75);
     table-layout:fixed;
 }
 
@@ -41,24 +41,24 @@
 td {
     width: 30%;
     max-width: 30%;
-    height: calc(95% - 60px);
-    max-height: calc(95% - 60px);
+    height: calc(95% - 40px * 2);
+    max-height: calc(95% - 40px * 2);
 }
 
 .spark-section {
     width: 100%;
     max-width: 100%;
-    height: calc(90vh * 0.7 * 0.95 - 60px);
-    max-height: calc(90vh * 0.7 * 0.95 - 60px);
+    height: calc(90vh * 0.7 * 0.95 - 40px * 2);
+    max-height: calc(90vh * 0.7 * 0.95 - 40px * 2);
     overflow: hidden;
     line-height: 0;
 }
 
-.spark-tab-container {
+.spark-ui-container {
     width: 100%;
     max-width: 100%;
-    height: 4%;
-    max-height: 4%;
+    height: 40px;
+    max-height: 40px;
     margin-top: 2px;
     margin-bottom: 10px;
     box-sizing: border-box;
@@ -99,7 +99,7 @@ td {
 
 .spark-select {
     width: 100%;
-    height: 24%;
+    height: calc((100% - 40px * 2)* 0.24);
     overflow-y: scroll;
 }
 
@@ -138,28 +138,119 @@ td {
 
 #spark-rate {
     position: absolute;
-    top: 10px;
+    top: calc((100% - 40px * 2) * 0.75 - 60px);
     left: 20px;
     text-align: left;
     font-size: 20px;
     color: #cccccc;
 }
 
-#rate-input {
-    background: #91a0b8b0;
+.spark-ui-element {
+    height: 35px;
+    background: #2d2d30;
     border-color: #000000;
-    color: #000000;
-    font-size: 40px;
-    border-radius: 10px;
+    border-radius: 5px;
     border-style: solid;
-    width:200px;
-    margin: 10px;
+    border: none;
+    outline: none;
+    color: white;
+    margin: 1px;
+    font-size: 24px;
+    cursor: pointer;
+    display: inline-block;
 }
 
-#rate-input:hover {
-    background: #ffffff;
+.spark-ui-element:hover {
+    outline: solid #ffffff;
+}
+
+#spark-filter {
+    width: calc(80% - 80px * 3);
+}
+
+#spark-roll-input {
+    width: 10%;
+}
+
+.spark-ui-element::placeholder {
+  color: #888888;
+}
+
+.spark-ui-button {
+    width: 70px;
+}
+
+.spark-ui-button.active {
+    background: #004080;
 }
 
 @media (hover: none) { /* mobile stuff */
+    .spark-container {
+        margin: 10px auto;
+    }
 
+    .spark-image {
+        min-height: 160px;
+        max-height: 160px;
+    }
+
+    #spark-main {
+        height: calc((100% - 80px * 2) * 0.75);
+        max-height: calc((100% - 80px * 2) * 0.75);
+    }
+
+    .spark-section-header {
+        min-height: 100px;
+        max-height: 100px;
+    }
+
+    .spark-section-header > img {
+        min-height: 100px;
+        max-height: 100px;
+    }
+
+    td {
+        height: calc(95% - 80px * 2);
+        max-height: calc(95% - 80px * 2);
+    }
+
+    .spark-section {
+        height: calc(90vh * 0.7 * 0.95 - 80px * 2);
+        max-height: calc(90vh * 0.7 * 0.95 - 80px * 2);
+    }
+
+    .spark-ui-container {
+        height: 80px;
+        max-height: 80px;
+    }
+
+    .spark-tab {
+        font-size: 40px;
+    }
+
+    .spark-select {
+        height: calc((100% - 80px * 2)* 0.24);
+    }
+
+    .spark-icon {
+        height: 60%;
+    }
+
+    #spark-rate {
+        top: calc((100% - 80px * 2) * 0.75 - 100px); 
+        font-size: 40px;
+    }
+
+    .spark-ui-element {
+        height: 70px;
+        font-size: 30px;
+    }
+
+    #spark-filter {
+        width: calc(80% - 100px * 3);
+    }
+
+    .spark-ui-button {
+        width: 100px;
+    }
 }

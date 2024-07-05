@@ -31,7 +31,7 @@
 <body onload="init_spark()">
     <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div>Spark v1.1</div>
+        <div>Spark v1.2</div>
         <div id="timestamp"></div>
     </div>
     <div id="issues" style="display:none">
@@ -71,24 +71,28 @@
                 </tr>
             </tbody>
         </table>
-        <div class="spark-tab-container">
+        <div class="spark-ui-container">
             <button class="spark-tab active" id="spark-tab-btn-npc" onclick="openSparkTab('npc');"><img class="spark-tab-icon" src="assets/ui/icon/characters.png">Characters</button>
             <button class="spark-tab" id="spark-tab-btn-summon" onclick="openSparkTab('summon');"><img class="spark-tab-icon" src="assets/ui/icon/summons.png">Summons</button>
+        </div>
+        <div class="spark-ui-container">
+            <input type="text" class="spark-ui-element" id="spark-filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Filter...">
+            <input type="text" class="spark-ui-element" id="spark-roll-input" onkeyup="updateRate()" placeholder="Rolls" value="300">
+            <button class="spark-ui-element spark-ui-button" id="moon-check" onclick="toggle_moon()">Moon</button>
+            <button class="spark-ui-element spark-ui-button" id="spark-check" onclick="toggle_spark()">Spark</button>
+            <button class="spark-ui-element spark-ui-button" onclick="spark_clear()">Reset</button>
         </div>
         <div class="spark-border spark-select" id="spark-select-npc"></div>
         <div class="spark-border spark-select" id="spark-select-summon" style="display:none"></div>
     </div>
+    <br>
     <div class="container">
-        <input type="text" id="filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Filter..."><br>
-        <input type="text" id="rate-input" onkeydown="typying()" onkeyup="updateRate()" placeholder="Roll Count" value="300"> Rolls<br>
+        <b>How-To</b>
         <br>
-        Shift+Click on a Character to add it to moons.<br>
-        Shift+Click on an element to toggle its Sparked status.<br>
-        On mobile, use those two checkboxes:<br>
-        <input type="checkbox" class="checkbox" id="moon-check" name="moon-check"><label class="checkbox-label" for="moon-check">Add to Moons</label><input type="checkbox" class="checkbox" id="spark-check" name="spark-check"><label class="checkbox-label" for="spark-check">Select Spark</label><br>
+        Shift+Click on a Character to add to the Moon list.<br>
+        Shift+Click on a listed element to toggle its Sparked status.<br>
+        On mobile, you can use the Moon and Spark buttons to emulate those behaviors.<br>
         <br>
-        <br>
-        <div class="std-btn-container"><button class="std-button" onclick="spark_clear()">Reset</button></div>
     </div>
     <br>
 </body>
