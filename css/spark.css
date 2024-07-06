@@ -59,6 +59,8 @@ td {
     max-height: calc(90vh * 0.7 * 0.95 - 52px * 2);
     overflow: hidden;
     line-height: 0;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
 .spark-ui-container {
