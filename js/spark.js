@@ -245,12 +245,14 @@ function add_spark(div) // add spark icon
     img.classList.add("spark-icon");
     img.src = "assets/spark/spark.png";
     div.appendChild(img);
+    div.classList.add("sparked");
 }
 
 function remove_spark(div) // remove spark icon
 {
     if(div.childNodes.length != 2) return;
     div.removeChild(div.childNodes[1]);
+    div.classList.remove("sparked");
 }
 
 addEventListener("resize", (event) => { // capture window resize event and call update_all() (after 300ms)
@@ -582,35 +584,103 @@ function generate_image() // generate spark canvas
     else pushPopup("Wait before generating another image");
 }
 
+/* NOTE
+drawSpark is broken into three functions to ensure the draw order is respected (as image loading shuffle everything up), by syncing using the canvasWait variable
+I'm sure there are better wait to do it in javascript but it works so...
+*/
+
 function drawSpark(canvas) // draw the spark on the canvas
 {
     var ctx = canvas.getContext("2d");
-    
+    ++canvasWait;
     // background
     ctx.rect(0, 0, 1920, 1080);
     ctx.fillStyle = "#252526";
     ctx.fill();
-    // content
-    for(let i = 0; i < COUNT; ++i)
-    {
-        const offset = 640 * i; // horizontal offset (1920 / 3 = 640)
-        drawImage(ctx, HEADERS[i], ((640-100)/2) + offset, 50, 100, 100); // draw column header
-        drawColumn(ctx, offset, lists[i]); // draw column content
-    }
-    // add rate
+    // texts
     ctx.font = "40px sans-serif";
     ctx.fillStyle = "#cccccc";
     ctx.fillText(document.getElementById("spark-rate").innerHTML.replace("<br>", " - "), 50, 1070);
     ctx.fillStyle = "#1d1d1d";
     // add source/credit
     ctx.fillText("GBFAL", 1750, 1070);
+    // spark target
+    let sparked = null;
+    for(let i = 0; i < COUNT && sparked == null; ++i)
+        for(let j = 0; j < lists[i].length && sparked == null; ++j)
+            if(lists[i][j][1].childNodes.length == 2)
+                    sparked = lists[i][j];
+    if(sparked != null)
+    {
+        ctx.globalAlpha = 0.4; // change opacity
+        const s = sparked[1].childNodes[0].src.split('/');
+        switch(sparked[0][0])
+        {
+            case '2':
+            {
+                drawImage(ctx, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/b/" + s[s.length-1].replace('.jpg', '.png'), 1920-1100, 0, 1100, 1080);
+                break;
+            }
+            case '3':
+            {
+                drawImage(ctx, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/zoom/" + s[s.length-1].replace('.jpg', '.png').replace('_01', '_02'), 30, 0, 1296, 1080);
+                break;
+            }
+        }
+    }
+    setTimeout(drawSpark_middle, 50, ctx);
+}
+
+function drawSpark_middle(ctx) // draw the spark content
+{
+    if(canvasState == 2) return;
+    if(canvasWait > 1)
+    {
+        setTimeout(drawSpark_middle, 50, ctx);
+        return;
+    }
+    ctx.globalAlpha = 1; // reset opacity if changed previously
+    // content
+    let sparkIcon_list = []
+    for(let i = 0; i < COUNT; ++i)
+    {
+        const offset = 640 * i; // horizontal offset (1920 / 3 = 640)
+        drawImage(ctx, HEADERS[i], ((640-100)/2) + offset, 50, 100, 100); // draw column header
+        sparkIcon_list = sparkIcon_list.concat(drawColumn(ctx, offset, lists[i])); // draw column content
+    }
+    setTimeout(drawSpark_end, 50, ctx, sparkIcon_list);
+}
+
+function drawSpark_end(ctx, sparkIcon_list) // draw the spark icons
+{
+    if(canvasState == 2) return;
+    if(canvasWait > 1)
+    {
+        setTimeout(drawSpark_end, 50, ctx, sparkIcon_list);
+        return;
+    }
+    // draw spark outlines and icons
+    for(let ico of sparkIcon_list)
+    {
+        ctx.beginPath();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#3bddf6";
+        ctx.rect(ico[0], ico[1], ico[2], ico[3]);
+        ctx.stroke();
+        ctx.closePath();
+        drawImage(ctx, "assets/spark/spark.png", ico[0], ico[1], ico[3]*0.4, ico[3]*0.4);
+    }
+    // over
+    --canvasWait;
 }
 
 function drawImage(ctx, src, x, y, w, h) // draw an image at the specified src url on the canvas
 {
+    ++canvasWait; // canvasWait is used like a mutex
     const img = new Image(w, h);
     img.onload = function() {
         ctx.drawImage(this,x,y,w,h);
+        --canvasWait;
     };
     img.onerror = function() {
         canvasState = 2; // put the process in error state
@@ -621,12 +691,13 @@ function drawImage(ctx, src, x, y, w, h) // draw an image at the specified src u
 function drawColumn(ctx, offset, content)
 {
     const imgcount = content.length;
-    if(imgcount == 0) return; // if no image, stop now
+    if(imgcount == 0) return []; // if no image, stop now
     const RECT_CONTENT = [offset+50, 100+50+50, 640-100, 1080-200-50];
     let size = DEFAULT_SIZE; // default image size x2
     size[0] *= 2;
     size[1] *= 2;
     let grid = [0, 0]; // will contain the number of horizontal and vertical elements
+    let sparkIcon_list = [];
     // search ideal size
     while(true)
     {
@@ -652,7 +723,7 @@ function drawColumn(ctx, offset, content)
         // draw image
         drawImage(ctx, content[i][1].childNodes[0].src.replace('img_low', 'img'), RECT_CONTENT[0]+pos[0]+hoff, RECT_CONTENT[1]+pos[1], size[0], size[1]); // change to /img/ quality
         if(content[i][1].childNodes.length == 2) // add spark icon
-            drawImage(ctx, "assets/spark/spark.png", RECT_CONTENT[0]+pos[0]+hoff, RECT_CONTENT[1]+pos[1], size[1]*0.4, size[1]*0.4);
+            sparkIcon_list.push([RECT_CONTENT[0]+pos[0]+hoff, RECT_CONTENT[1]+pos[1], size[0], size[1]]);
         // update position
         if(pos[0] + size[0] >= RECT_CONTENT[2] - size[0])
         {
@@ -664,6 +735,7 @@ function drawColumn(ctx, offset, content)
         else
             pos[0] += size[0];
     }
+    return sparkIcon_list;
 }
 
 function displayCanvas(canvas)
@@ -677,7 +749,7 @@ function displayCanvas(canvas)
     }
     else if(canvasWait > 0) // image loading still on going
     {
-        setTimeout(displayCanvas, 1000, canvas); // try again in one second
+        setTimeout(displayCanvas, 100, canvas); // try again in one second
     }
     else
     {

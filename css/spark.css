@@ -128,6 +128,13 @@ td {
     animation: spark-img-fadein .5s;
 }
 
+.sparked {
+    outline-color: #3bddf6;
+    outline-style: solid;
+    outline-width: 2px;
+    z-index: 10;
+}
+
 @keyframes spark-img-fadein {
   from {
     transform: scale(0);
@@ -205,6 +212,7 @@ td {
     top: 0;
     width: 100vw;
     height: 100vh;
+    z-index: 99;
 }
 
 .spark-fullscreen {
