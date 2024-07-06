@@ -573,6 +573,11 @@ function togglePreviewProfile() // toggle profile preview
 
 // =================================================================================================
 // utility
+function isOnMobile()
+{
+    return (window.getComputedStyle(document.body).getPropertyValue('--is-mobile') != '')
+}
+
 function cycleEndpoint() // return one of the endpoint, one after the other (to benefit from the sharding)
 {
     endpoint_count = (endpoint_count + 1) % ENDPOINTS.length;

@@ -9,6 +9,10 @@ body {
     color: white;
 }
 
+.margin-element {
+    margin: 5px;
+}
+
 .element-detail {
     list-style-type: '';
     background: #2d2d30;
@@ -147,17 +151,35 @@ details[open] > .element-detail {
     cursor: pointer;
 }
 
-.halfbutton {
-    width: 100px;
-    text-align: center;
+.tabbutton.active {
+  outline: solid #007acc;
 }
 
 .tabbutton:hover, .std-button:hover, .btn-load:hover {
     outline: solid #ffffff;
 }
 
-.tabbutton.active {
-  outline: solid #007acc;
+.page-link {
+    background: #2d2d30;
+    border-color: #000000;
+    border-radius: 5px;
+    border-style: solid;
+    border: none;
+    outline: none;
+    color: white;
+    display:inline-block;
+}
+
+.page-link-icon {
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    vertical-align: middle;
+}
+
+.page-link:hover {
+    outline: solid #ffffff;
 }
 
 .btn-load {
@@ -740,6 +762,7 @@ a:active {
 
 @media (hover: none) { /* mobile stuff */
     body {
+        --is-mobile: 1;
         font-size: 50px;
     }
 
@@ -799,6 +822,13 @@ a:active {
         width: 400px;
         height: 160px;
         font-size: 40px;
+    }
+
+    .page-link-icon {
+        min-width: 80px;
+        max-width: 80px;
+        min-height: 80px;
+        max-height: 80px;
     }
 
     .btn-load {

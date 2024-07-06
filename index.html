@@ -29,7 +29,7 @@
 <body onload="init()">
     <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div>v9.11</div>
+        <div>v9.12</div>
         <div id="timestamp"></div>
     </div>
     <div id="issues" style="display:none">
@@ -43,16 +43,17 @@
     <br>
     <div id="results" class="container" style="display:none"></div>
     <br>
-    <div>
+    <div class="margin-element">
         <button class="tabbutton" id="tab-index" onclick="openTab('index')"><img class="btn-icon" src="assets/ui/icon/index.png" />Index</button>
         <button class="tabbutton" id="tab-view" onclick="openTab('view')", style="display:none"><img class="btn-icon" src="assets/ui/icon/view.png" />Assets</button>
         <button class="tabbutton" id="tab-new" onclick="openTab('new')"><img class="btn-icon" src="assets/ui/icon/new.png" />Newest</button>
         <button class="tabbutton" id="tab-history" onclick="openTab('history')"><img class="btn-icon" src="assets/ui/icon/history.png" />History</button>
         <button class="tabbutton" id="tab-bookmark" onclick="openTab('bookmark')"><img class="btn-icon" src="assets/ui/icon/bookmark.png" />Bookmarks</button>
         <button class="tabbutton" id="tab-about" onclick="openTab('about')"><img class="btn-icon" src="assets/ui/icon/about.png" />About</button>
-        <button class="tabbutton halfbutton"><a href="spark.html"><img class="btn-icon" src="assets/spark/moon.jpg" /></a></button>
     </div>
-    <br>
+    <div class="margin-element">
+        <a class="page-link" href="spark.html"><img class="page-link-icon" src="assets/ui/moon.png" /></a>
+    </div>
     <div id="index" class="tabcontent" style="display:none">
         <div class="container">
             <div>

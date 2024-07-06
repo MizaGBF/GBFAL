@@ -158,6 +158,7 @@ function addImage_spark(node, path, id, onerr) // add an image to an index. path
             {
                 addImageResult_spark(isSummon ? STONE : NPC, id, this.src);
             }
+            document.getElementById("spark-container").scrollIntoView();
             saveSpark();
         };
     };
@@ -260,6 +261,7 @@ function update_node(mode, addition)
     const nw = node.offsetWidth - 5;
     const nh = node.offsetHeight - 5;
     let current_size;
+    const is_mobile = isOnMobile();
     if(addition)
     {
         current_size = sizes[mode];
@@ -267,6 +269,11 @@ function update_node(mode, addition)
     
     {
         current_size = DEFAULT_SIZE;
+        if(is_mobile)
+        {
+            current_size[0] *= 2;
+            current_size[1] *= 2;
+        }
         sizes[mode] = null;
     }
     let changed = false;
@@ -288,10 +295,15 @@ function update_node(mode, addition)
         {
             if(sizes[mode] == null)
             {
+                node.childNodes[i].style.minWidth = null;
+                node.childNodes[i].style.minHeight = null;
+                node.childNodes[i].style.maxWidth = null;
                 node.childNodes[i].style.maxHeight = null;
             }
             else
             {
+                node.childNodes[i].style.minWidth = "" + Math.max(1, sizes[mode][0]) + "px";
+                node.childNodes[i].style.minHeight = "" + Math.max(1, sizes[mode][1]) + "px";
                 node.childNodes[i].style.maxWidth = "" + Math.max(1, sizes[mode][0]) + "px";
                 node.childNodes[i].style.maxHeight = "" + Math.max(1, sizes[mode][1]) + "px";
             }
