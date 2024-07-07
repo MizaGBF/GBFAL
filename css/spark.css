@@ -8,6 +8,24 @@
     position: relative;
 }
 
+.spark-manual {
+    background: #181818;
+    color: #ffffff;
+    font-size: 30px;
+    padding: 5px;
+}
+
+.spark-manual > ul {
+    text-align: left;
+}
+
+.spark-manual-icon {
+    min-width: 30px;
+    max-width: 30px;
+    min-height: 30px;
+    max-height: 30px;
+}
+
 .spark-border {
     border-color: #ffffff;
     border-radius: 10px;
@@ -246,6 +264,13 @@ td {
 @media (hover: none) { /* mobile stuff */
     .spark-container {
         margin: 10px auto;
+    }
+
+    .spark-manual-icon {
+        min-width: 60px;
+        max-width: 60px;
+        min-height: 60px;
+        max-height: 60px;
     }
 
     .spark-image {

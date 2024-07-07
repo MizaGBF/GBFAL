@@ -22,7 +22,6 @@ var canvasWait = 0; // used to track pending loadings
 function init_spark() // entry point, called by body onload
 {
     getJSON("json/changelog.json?" + timestamp, initChangelog_spark); // load changelog
-    beep(); // to preload Audio
 }
 
 function openSparkTab(tabName) // reset and then select a tab
@@ -205,6 +204,7 @@ function addImageResult_spark(mode, id, path)
             if(window.event.shiftKey || document.getElementById("spark-check").classList.contains("active")) // toggle spark icon
             {
                 toggle_spark_state(div);
+                updateRate();
                 saveSpark();
             }
             else
@@ -348,10 +348,15 @@ function updateRate() // update ssr rate text
         try
         {
             v = parseInt(document.getElementById("spark-roll-input").value);
-            if(isNaN(v) || v <= 0) return;
-            let c = lists[NPC].length + lists[MOON].length + lists[STONE].length; // total ssr
+            if(isNaN(v) || v <= 0) v = 300;
+            let c = 0; // total ssr count
+            let s = 0; // sparked
+            for(let i = 0; i < COUNT; ++i)
+                for(let j = 0; j < lists[i].length; ++j)
+                    if(lists[i][j][1].childNodes.length == 2) ++s;
+                    else ++c;
             if(v < c) v = c;
-            document.getElementById("spark-rate").innerHTML = "" + c + " / " + v + "<br>" + (Math.round(c / v * 1000) / 10) + "% SSR";
+            document.getElementById("spark-rate").innerHTML = "" + c + " / " + v + (s > 0 ? " +" + s + " sparked": "") + "<br>" + (Math.round(c / v * 1000) / 10) + "% SSR";
         }
         catch(err)
         {
@@ -372,8 +377,6 @@ function confirm_spark_clear() // open popup when pressing reset button
         let div = document.createElement("div");
         div.classList.add("spark-fullscreen-bg");
         div.innerHTML = '<div class="spark-delete-confirm">Are you certain that you want to reset the spark screen?<br><button class="std-button" onclick="close_fullscreen(); spark_clear();">Yes</button><button class="std-button" onclick="close_fullscreen();">No</button></div>';
-        
-        
         document.body.appendChild(div);
     }
 }
@@ -548,7 +551,9 @@ function toggle_spark() // toggle spark mode button
 function close_fullscreen() // close fullscreen popups
 {
     beep();
-    document.getElementsByClassName("spark-fullscreen-bg")[0].remove();
+    let bgs = document.getElementsByClassName("spark-fullscreen-bg");
+    for(let bg of bgs)
+        bg.remove();
 }
 
 function generate_image() // generate spark canvas
@@ -767,7 +772,8 @@ function displayCanvas(canvas)
         div.classList.add("spark-fullscreen-bg");
         document.body.appendChild(div);
         div.appendChild(canvas);
-        pushPopup("Right Click, Save as...");
+        if(isOnMobile()) pushPopup("Hold Touch, Save as...");
+        else pushPopup("Right Click, Save as...");
         canvasState = 0;
     }
 }
