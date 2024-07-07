@@ -141,7 +141,6 @@ var audio = null; // last played/playing audio
 var previewhome = false; // boolean to keep track of mypage preview
 var previewprofile = false; // boolean to keep track of profile preview
 var beepAudio = new Audio("assets/audio/beep.ogg"); // contains last played audio sfx
-var audioMuted = true; // if true, doesn't play audio files
 
 // =================================================================================================
 // initialization
@@ -152,7 +151,6 @@ function init() // entry point, called by body onload
     openTab('index'); // set to this tab by default
     output = document.getElementById('output'); // set output
     getJSON("json/changelog.json?" + timestamp, initChangelog); // load changelog
-    beep(); // to preload Audio
 }
 
 function getJSON(url, callback) { // generic function to request a file. will always call the callback no matter the result.
@@ -244,7 +242,6 @@ function initData() // load data.json
     {
         lookup(id);
     }
-    audioMuted = false;
 }
 
 function initIndex() // build the html index. simply edit the constants above to change the index.
@@ -592,7 +589,7 @@ function idToEndpoint(id) // use the id as a seed to return one of the endpoints
 function beep() // play a sound effect
 {
     if(!beepAudio.paused) return;
-    if(!audioMuted) beepAudio.play();
+    beepAudio.play();
 }
 
 function swap(json)  // swap keys and values from an object
