@@ -75,10 +75,10 @@
         <div class="spark-ui-container">
             <input type="text" class="spark-ui-element" id="spark-filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Filter...">
             <input type="text" class="spark-ui-element" id="spark-roll-input" onkeyup="updateRate()" placeholder="Rolls" value="300">
-            <button class="spark-ui-element spark-ui-button" id="moon-check" onclick="toggle_moon()"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button>
-            <button class="spark-ui-element spark-ui-button" id="spark-check" onclick="toggle_spark()"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button>
-            <button class="spark-ui-element spark-ui-button" onclick="generate_image()"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button>
-            <button class="spark-ui-element spark-ui-button" onclick="confirm_spark_clear()"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button>
+            <button class="spark-ui-element spark-ui-button" id="moon-check" onclick="toggle_moon(this);"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button>
+            <button class="spark-ui-element spark-ui-button" id="spark-check" onclick="toggle_spark(this);"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button>
+            <button class="spark-ui-element spark-ui-button" onclick="generate_image();"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button>
+            <button class="spark-ui-element spark-ui-button" onclick="confirm_spark_clear();"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button>
         </div>
         <div class="spark-ui-container">
             <button class="spark-tab active" id="spark-tab-btn-npc" onclick="openSparkTab('npc');"><img class="spark-tab-icon" src="assets/ui/icon/characters.png">Characters</button>
@@ -91,9 +91,9 @@
         <h3>How-To</h3>
         <ul>
             <li><b>Click</b> a Character or Summon to <b>add</b> it to the list.</li>
-            <li><button class="spark-ui-element spark-ui-button active" id="moon-check"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button> or <b>Hold Shift</b> before adding a Character to add it to the <b>Moon Column</b>.</li>
+            <li><button class="spark-ui-element spark-ui-button active"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button> or <b>Hold Shift</b> before adding a Character to add it to the <b>Moon Column</b>.</li>
             <li><b>Click</b> on an Element to <b>Remove</b> it from the list.</li>
-            <li><button class="spark-ui-element spark-ui-button active" id="spark-check"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button> or <b>Hold Shift</b> and click on an Element to toggle its <img src="assets/spark/spark.png" class="spark-manual-icon"> Sparked state.</li>
+            <li><button class="spark-ui-element spark-ui-button active"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button> or <b>Hold Shift</b> and click on an Element to toggle its <img src="assets/spark/spark.png" class="spark-manual-icon"> Sparked state.</li>
             <li>Change the <b>number of rolls</b> next to the Filter.</li>
             <li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button> to generate an <b>Image</b> of your spark. You can then right click/hold touch it, copy or save as.</li>
             <li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button> to <b>Reset</b> the whole list.</li>

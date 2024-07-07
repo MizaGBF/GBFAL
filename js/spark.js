@@ -522,27 +522,31 @@ function filter(content) // apply the filter
     }
 }
 
-function toggle_moon() // toggle moon mode button
+function toggle_moon(btn) // toggle moon mode button
 {
     beep();
-    if(document.getElementById("moon-check").classList.contains("active"))
-        document.getElementById("moon-check").classList.remove("active");
+    if(btn.classList.contains("active"))
+    {
+        btn.classList.remove("active");
+    }
     else
     {
-        document.getElementById("moon-check").classList.add("active");
+        btn.classList.add("active");
         pushPopup("Click on a Character to add it to the Moons");
     }
     saveSetting();
 }
 
-function toggle_spark() // toggle spark mode button
+function toggle_spark(btn) // toggle spark mode button
 {
     beep();
-    if(document.getElementById("spark-check").classList.contains("active"))
-        document.getElementById("spark-check").classList.remove("active");
+    if(btn.classList.contains("active"))
+    {
+       btn.classList.remove("active");
+    }
     else
     {
-        document.getElementById("spark-check").classList.add("active");
+        btn.classList.add("active");
         pushPopup("Click on an Element to add a Sparked icon");
     }
     saveSetting();
