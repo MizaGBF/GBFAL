@@ -2824,6 +2824,7 @@ class Updater():
                         print("Event", ev, "has been added (", check[ev], "chapters )")
                     self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
                     self.modified = True
+            await self.update_all_event_skycompass()
         # check thumbnail
         if len(thumbnail_check) > 0:
             thumbnail_check.sort()
@@ -3118,16 +3119,7 @@ class Updater():
                         skip = 0
                     await self.update_event(l, skip=skip)
                 case "4":
-                    tasks = []
-                    async with asyncio.TaskGroup() as tg:
-                        c = 0
-                        for ev in self.data["events"]:
-                            if self.data["events"][ev][self.EVENT_THUMB] is not None:
-                                tasks.append(tg.create_task(self.update_event_sky(ev)))
-                        print("Checking", len(tasks), "event(s)...")
-                    for t in tasks: t.result()
-                    print("\nDone.")
-                    self.save()
+                    await self.update_all_event_skycompass()
                 case "5":
                     while True:
                         s = input("Input a list of Event date or a combo date:thumbnail (Leave blank to cancel):")
@@ -3153,6 +3145,18 @@ class Updater():
                         await self.event_thumbnail_association(s.split(" "))
                 case _:
                     break
+
+    # Check skycompass for all events
+    async def update_all_event_skycompass(self) -> None:
+        tasks = []
+        async with asyncio.TaskGroup() as tg:
+            for ev in self.data["events"]:
+                if self.data["events"][ev][self.EVENT_THUMB] is not None:
+                    tasks.append(tg.create_task(self.update_event_sky(ev)))
+            print("Checking", len(tasks), "event(s)...")
+        for t in tasks: t.result()
+        print("\nDone.")
+        self.save()
 
     # Attempt to automatically associate new event thumbnails to events
     async def event_thumbnail_association(self, events : list) -> None:
@@ -3191,7 +3195,6 @@ class Updater():
                 for i in range(len(new)):
                     self.data["events"][str(events[i])][self.EVENT_THUMB] = new[i]
                     self.data["eventthumb"][str(new[i])] = 1
-                    await self.update_event_sky(str(events[i]))
                     self.modified = True
                 print("Please make sure they have been set to their correct events")
             else:
@@ -3488,7 +3491,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.41\n")
+                print("GBFAL updater v2.42\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
