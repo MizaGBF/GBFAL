@@ -131,7 +131,7 @@ function setSparkList()
     }
 }
 
-function addImage_spark(node, path, id, onerr) // add an image to an index. path must start with "GBF/" if it's not a local asset.
+function addImage_spark(node, path, id, onerr) // add an image to the selector
 {
     let img = document.createElement("img");
     node.appendChild(img);
@@ -178,7 +178,7 @@ function addImage_spark(node, path, id, onerr) // add an image to an index. path
     return img;
 }
 
-function addImageResult_spark(mode, id, path)
+function addImageResult_spark(mode, id, path) // add image to the spark result
 {
     let node;
     switch(mode)
