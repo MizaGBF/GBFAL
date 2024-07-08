@@ -59,15 +59,6 @@ function initChangelog_spark() // load content of changelog.json
                 el.style.display = null;
             }
         }
-        if(HELP_FORM != null && json.hasOwnProperty("help")) // read issues, if any
-        {
-            if(json["help"])
-            {
-                const d = document.getElementById("notice");
-                d.style.display = null;
-                d.innerHTML = 'Looking for help to find the name of those <a href="?id=missing-help-wanted">elements</a>.<br>Contact me or use this <a href="' + HELP_FORM + '">form</a> to submit a name.';
-            }
-        }
     }
     catch(err)
     {
@@ -90,7 +81,6 @@ function initData_spark() // load data.json
         setSparkList();
         loadSpark();
         loadSetting();
-        audioMuted = false;
         document.getElementById("spark-container").scrollIntoView();
     }
     catch(err)
