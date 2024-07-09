@@ -818,18 +818,22 @@ function display_characters(id, data, range, unused = null)
         default:
             return null;
     }
-    let uncap = "_01";
+    let uncap = 1;
+    let uncap_string = "_01";
     if(data)
     {
-        for(const f of data[6])
+        for(const f of data[5])
         {
             if(f.includes("_st")) continue;
-            const u = f.slice(10, 13);
+            const u = parseInt(f.slice(11, 13));
             switch(u)
             {
-                case "_03": case "_04": case "_05": case "_06":
-                    if(u != uncap)
-                        uncap = f.slice(10);
+                case 3: case 4: case 5: case 6:
+                    if(u > uncap || (uncap_string.length == 3 && f.length > 13))
+                    {
+                        uncap = u;
+                        uncap_string = f.slice(10);
+                    }
                     break;
                 default:
                     break;
@@ -837,11 +841,11 @@ function display_characters(id, data, range, unused = null)
         }
     }
     let onerr = null;
-    if(uncap != "_01")
+    if(uncap_string != "_01")
         onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"; this.onerror=default_onerror;};
     else
         onerr = default_onerror;
-    let path = "GBF/assets_en/img_low/sp/assets/npc/m/" + id + uncap + ".jpg";
+    let path = "GBF/assets_en/img_low/sp/assets/npc/m/" + id + uncap_string + ".jpg";
     return [[id, path, onerr, "", false]];
 }
 
@@ -943,7 +947,7 @@ function display_enemies(id, data, type, size)
 
 function display_npcs(id, data, prefix, range)
 {
-    if(id.slice(1, 3) != prefix) return null;
+    if(prefix != null && id.slice(1, 3) != prefix) return null;
     let val = parseInt(id.slice(3, 7));
     if(val < range[0] || val >= range[1]) return null;
     let path = "";
@@ -1630,6 +1634,7 @@ function search(id, internal_behavior = 0) // generate search results
     * internal_behavior is only used by spark.html so far
     0 = default bevahior
     1 = spark mode: remove search limit, doesn't call updateSearchResuls at the end, limit the search to premium elements
+    2 = blind mode: remove search limit, doesn't call updateSearchResuls at the end, limit the search to chara/npc elements
 */
 {
     if(id == "" || id == searchID) return;
@@ -1638,11 +1643,10 @@ function search(id, internal_behavior = 0) // generate search results
     let words = id.toLowerCase().replace("@@", "").split(' ');
     let positives = [];
     let counters = [];
-    const _LIMIT_ = (internal_behavior == 1) ? 1000000 : SEARCH_LIMIT;
+    const _LIMIT_ = (internal_behavior >= 1) ? 1000000 : SEARCH_LIMIT;
     while(counters.length < 10) counters.push(0);
     for(const [key, value] of Object.entries(index['lookup_reverse']))
     {
-        if(internal_behavior == 1 && !(value in index["premium"])) continue;
         let matching = true;
         for(const w of words)
         {
@@ -1668,6 +1672,10 @@ function search(id, internal_behavior = 0) // generate search results
         {
             for(const v of value)
             {
+                if(
+                   (internal_behavior == 1 && !(v in index["premium"]))
+                || (internal_behavior == 2 && !["302", "303", "304", "305", "399"].includes(v.slice(0, 3)))
+                ) continue;
                 let et = 0;
                 switch(v.length)
                 {

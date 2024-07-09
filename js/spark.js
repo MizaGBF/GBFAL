@@ -475,11 +475,11 @@ function spark_filter() // filter trigger
 {
     clearTimeout(typingTimer);
     typingTimer = setTimeout(function(){
-        filter(document.getElementById('spark-filter').value.trim().toLowerCase());
+        spark_apply_filter(document.getElementById('spark-filter').value.trim().toLowerCase());
     }, 1000);
 }
 
-function filter(content) // apply the filter
+function spark_apply_filter(content) // apply the filter
 {
     if(content == "") // empty, we reset
     {
