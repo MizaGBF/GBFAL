@@ -3956,6 +3956,7 @@
 "5101063":"maxwell $$fire",
 "5101073":"maxwell $$fire",
 "5101083":"otherworld cocoon $$dark",
+"5101093":null,
 "5200021":"zombie $$dark",
 "5200022":"zombie $$dark",
 "5200031":"timeworn skeleton $$dark",
@@ -5224,6 +5225,7 @@
 "8104263":"exo diablo $$dark",
 "8104273":"leviathan mare omega $$water",
 "8104283":"yggdrasil arbos omega $$earth",
+"8104293":null,
 "8200011":"wind elemental $$wind",
 "8200012":"wind elemental $$wind",
 "8200013":"boslavia tempest $$wind",
@@ -5259,6 +5261,7 @@
 "8200201":"earth gyre $$earth",
 "8200202":"earth gyre $$earth",
 "8200211":"wind gyre $$wind",
+"8200212":null,
 "8200221":"light gyre $$light",
 "8200231":"dark gyre $$dark",
 "8200232":"dark gyre $$dark",
@@ -5571,5 +5574,6 @@
 "9102453":"gokon $$dark",
 "9102463":"bastet $$light",
 "9102473":"tameemon $$earth",
-"9102483":"tameemon $$earth"
+"9102483":"tameemon $$earth",
+"9102493":null
 }
