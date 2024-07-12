@@ -146,7 +146,7 @@ details[open] > .element-detail {
     border: none;
     outline: none;
     color: white;
-    margin: 1px;
+    margin: 3px;
     font-size: 20px;
     cursor: pointer;
 }
