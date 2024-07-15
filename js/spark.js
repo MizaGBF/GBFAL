@@ -93,6 +93,11 @@ function initData_spark() // load data.json
     }
 }
 
+function default_onerror() // overwrite definition
+{
+    this.remove();
+}
+
 function setSparkList()
 {
     // for each characters
@@ -100,7 +105,7 @@ function setSparkList()
     const ckeys = Object.keys(index["characters"]).reverse();
     for(const id of ckeys)
     {
-        if(id in index["lookup"] && !(id in index["premium"])) continue; // exclude non gacha characters (unless not in lookup = it's recent)
+        if(id in index["lookup"] && !(id in index["premium"]) && skeys.indexOf(id) > 5) continue; // exclude non gacha characters (unless not in lookup = it's recent)
         const ret = display_characters(id, (index["characters"][id] !== 0 ? index["characters"][id] : null), [-1, -1, -1, -1, 0, 1000]);
         if(ret != null)
         {
@@ -112,7 +117,7 @@ function setSparkList()
     const skeys = Object.keys(index["summons"]).reverse();
     for(const id of skeys)
     {
-        if(id in index["lookup"] && !(id in index["premium"])) continue; // exclude non gacha summons (unless not in lookup = it's recent)
+        if(id in index["lookup"] && !(id in index["premium"]) && skeys.indexOf(id) > 5) continue; // exclude non gacha summons (unless not in lookup = it's recent)
         const ret = display_summons(id, (index["summons"][id] !== 0 ? index["summons"][id] : null), "4", [0, 1000]);
         if(ret != null)
         {
