@@ -3043,6 +3043,7 @@
 "3993579000":"tameemon unknown male タメヱモン taku yashiro 八代拓",
 "3993580000":"gran human male グラン",
 "3993581000":"djeeta human female ジータ",
+"3993598000":"netzach",
 "1100021":"cave bat $$dark",
 "1100023":"cave bat $$dark",
 "1100031":"hornbird $$wind",
@@ -5225,7 +5226,7 @@
 "8104263":"exo diablo $$dark",
 "8104273":"leviathan mare omega $$water",
 "8104283":"yggdrasil arbos omega $$earth",
-"8104293":null,
+"8104293":"vortex dragon tonitrus $$light",
 "8200011":"wind elemental $$wind",
 "8200012":"wind elemental $$wind",
 "8200013":"boslavia tempest $$wind",
@@ -5261,7 +5262,7 @@
 "8200201":"earth gyre $$earth",
 "8200202":"earth gyre $$earth",
 "8200211":"wind gyre $$wind",
-"8200212":null,
+"8200212":"flamen anima $$wind",
 "8200221":"light gyre $$light",
 "8200231":"dark gyre $$dark",
 "8200232":"dark gyre $$dark",
@@ -5575,5 +5576,5 @@
 "9102463":"bastet $$light",
 "9102473":"tameemon $$earth",
 "9102483":"tameemon $$earth",
-"9102493":null
+"9102493":"netzach $$wind"
 }
