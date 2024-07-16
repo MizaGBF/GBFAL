@@ -1809,20 +1809,20 @@ class Updater():
                         fn = "{}_{}".format(id, uncap)
                         await self.head(self.IMG + "sp/assets/summon/m/{}{}.jpg".format(id, uncap))
                         data[self.SUM_GENERAL].append("{}{}".format(id, uncap))
-                        uncaps.append(uncap)
-                        if uncap == "": uncaps.append("01")
+                        uncaps.append("_"+uncap if uncap != "" else "")
+                        if uncap == "": uncaps.append("_01")
                     except:
                         break
                 if len(uncaps) == 0 and id not in self.CUT_CONTENT:
                     return False
                 if len(data[self.SUM_GENERAL]) == 0 and id in self.CUT_CONTENT:
                     data[self.SUM_GENERAL].append(id)
-                    uncaps = ["", "01"]
+                    uncaps = ["", "_01"]
                 # attack
                 for u in uncaps:
                     for m in ["", "_a", "_b", "_c", "_d", "_e"]:
                         try:
-                            fn = "summon_{}_{}{}_attack".format(id, u, m)
+                            fn = "summon_{}{}{}_attack".format(id, u, m)
                             data[self.SUM_CALL] += await self.processManifest(fn)
                         except:
                             pass
@@ -1834,7 +1834,7 @@ class Updater():
                 for u in uncaps:
                     for m in ["", "_a", "_b", "_c", "_d", "_e"]:
                         try:
-                            fn = "summon_{}_{}{}_damage".format(id, u, m)
+                            fn = "summon_{}{}{}_damage".format(id, u, m)
                             data[self.SUM_DAMAGE] += await self.processManifest(fn)
                         except:
                             pass
