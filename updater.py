@@ -677,7 +677,7 @@ class Updater():
             categories.append([])
             self.newShared(errs)
             for i in range(5):
-                categories[-1].append(self.search_generic('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "js/model/manifest/summon_", "_01_damage.js",  20))
+                categories[-1].append(self.search_generic('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "img/sp/assets/summon/m/", ".jpg",  20))
             if r > 1:
                 # characters
                 categories.append([])
@@ -812,27 +812,20 @@ class Updater():
                 err[0] = 0
                 await asyncio.sleep(0.02)
             else:
-                if len(f) == 10 and f.startswith("20"):
-                    replaces = [None, ("_damage", "_a_damage")]
-                else:
-                    replaces = [None]
-                for r in replaces:
-                    try:
-                        if r is not None: await self.head(self.ENDPOINT + path + f + ext.replace(r[0], r[1]))
-                        else: await self.head(self.ENDPOINT + path + f + ext)
-                        err[0] = 0
-                        self.data[index][f] = 0
-                        if index in self.ADD_SINGLE_ASSET:
-                            self.addition[index+":"+f] = index
-                        self.modified = True
-                        self.new_elements.append(f)
-                        break
-                    except:
-                        if r is replaces[-1]:
-                            err[0] += 1
-                            if err[0] >= maxerr:
-                                err[1] = False
-                                return
+                try:
+                    await self.head(self.ENDPOINT + path + f + ext)
+                    err[0] = 0
+                    self.data[index][f] = 0
+                    if index in self.ADD_SINGLE_ASSET:
+                        self.addition[index+":"+f] = index
+                    self.modified = True
+                    self.new_elements.append(f)
+                    break
+                except:
+                    err[0] += 1
+                    if err[0] >= maxerr:
+                        err[1] = False
+                        return
             i += step
 
     # -run subroutine to search for new skills
@@ -1816,14 +1809,15 @@ class Updater():
                         fn = "{}_{}".format(id, uncap)
                         await self.head(self.IMG + "sp/assets/summon/m/{}{}.jpg".format(id, uncap))
                         data[self.SUM_GENERAL].append("{}{}".format(id, uncap))
-                        uncaps.append("01" if uncap == "" else uncap[1:])
+                        uncaps.append(uncap)
+                        if uncap == "": uncaps.append("01")
                     except:
                         break
                 if len(uncaps) == 0 and id not in self.CUT_CONTENT:
                     return False
                 if len(data[self.SUM_GENERAL]) == 0 and id in self.CUT_CONTENT:
                     data[self.SUM_GENERAL].append(id)
-                    uncaps = ["01"]
+                    uncaps = ["", "01"]
                 # attack
                 for u in uncaps:
                     for m in ["", "_a", "_b", "_c", "_d", "_e"]:
