@@ -641,30 +641,30 @@ class Updater():
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/quest/scene/character/body/", ".png",  70))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/quest/scene/character/body/", ".png", 70))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/raid/navi_face/", ".png",  50))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/raid/navi_face/", ".png", 50))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/quest/scene/character/body/", "_a.png",  50))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/quest/scene/character/body/", "_a.png", 50))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/assets/npc/b/", "_01.png",  70))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/assets/npc/b/", "_01.png", 70))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # sounds
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3",  50))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3", 50))
         categories.append([])
         self.newShared(errs)
         for i in range(10): # boss sounds
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_boss_v_1.mp3",  50))
+            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_boss_v_1.mp3", 50))
         # special
         categories.append([])
-        categories[-1].append(self.search_generic('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img/sp/quest/scene/character/body/", ".png",  2))
+        categories[-1].append(self.search_generic('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img/sp/quest/scene/character/body/", ".png", 2))
         #rarity of various stuff
         for r in range(1, 5):
             # weapons
@@ -672,12 +672,12 @@ class Updater():
                 categories.append([])
                 self.newShared(errs)
                 for i in range(5):
-                    categories[-1].append(self.search_generic('weapons', i, 5, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img/sp/assets/weapon/m/", ".jpg",  20))
+                    categories[-1].append(self.search_generic('weapons', i, 5, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img/sp/assets/weapon/m/", ".jpg", 20))
             # summons
             categories.append([])
             self.newShared(errs)
             for i in range(5):
-                categories[-1].append(self.search_generic('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "img/sp/assets/summon/m/", ".jpg",  20))
+                categories[-1].append(self.search_generic('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "img/sp/assets/summon/m/", ".jpg", 20))
             if r > 1:
                 # characters
                 categories.append([])
@@ -688,34 +688,34 @@ class Updater():
                 categories.append([])
                 self.newShared(errs)
                 for i in range(5):
-                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img/sp/assets/npc/raid_normal/", "_01.jpg",  20))
+                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img/sp/assets/npc/raid_normal/", "_01.jpg", 20))
                 categories.append([])
                 self.newShared(errs)
                 for i in range(5):
-                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js",  20))
+                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js", 20))
                 categories.append([])
                 self.newShared(errs)
                 for i in range(5):
-                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20))
+                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js", 20))
         # other partners
         for r in range(8, 10):
             categories.append([])
             self.newShared(errs)
             for i in range(5):
-                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img/sp/assets/npc/raid_normal/", "_01.jpg",  20))
+                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img/sp/assets/npc/raid_normal/", "_01.jpg", 20))
             categories.append([])
             self.newShared(errs)
             for i in range(5):
-                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js",  20))
+                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js", 20))
             categories.append([])
             self.newShared(errs)
             for i in range(5):
-                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js",  20))
+                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js", 20))
         # skins
         categories.append([])
         self.newShared(errs)
         for i in range(5):
-            categories[-1].append(self.search_generic('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01.js",  20))
+            categories[-1].append(self.search_generic('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01.js", 20))
         # enemies
         for a in range(1, 10):
             for b in range(1, 4):
@@ -723,46 +723,46 @@ class Updater():
                     categories.append([])
                     self.newShared(errs)
                     for i in range(5):
-                        categories[-1].append(self.search_generic('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png",  50))
+                        categories[-1].append(self.search_generic('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", 50))
         # backgrounds
         # event & common
         for i in ["event_{}", "common_{}"]:
             categories.append([])
             self.newShared(errs)
             for j in range(5):
-                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i, 3 if i.startswith("common_") else 1, "img/sp/raid/bg/", ".jpg",  10))
+                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i, 3 if i.startswith("common_") else 1, "img/sp/raid/bg/", ".jpg", 10))
         # main
         categories.append([])
         self.newShared(errs)
         for j in range(5):
-            categories[-1].append(self.search_generic('background', j, 5, errs[-1], "main_{}", 1, "img/sp/guild/custom/bg/", ".png",  10))
+            categories[-1].append(self.search_generic('background', j, 5, errs[-1], "main_{}", 1, "img/sp/guild/custom/bg/", ".png", 10))
         # others
         for i in ["ra", "rb", "rc"]:
             categories.append([])
             self.newShared(errs)
             for j in range(5):
-                categories[-1].append(self.search_generic('background', j, 5, errs[-1], "{}"+i, 1, "img/sp/raid/bg/", "_1.jpg",  50))
+                categories[-1].append(self.search_generic('background', j, 5, errs[-1], "{}"+i, 1, "img/sp/raid/bg/", "_1.jpg", 50))
             break
         for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
             categories.append([])
             self.newShared(errs)
             for j in range(5):
-                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img/sp/raid/bg/", "_1.jpg",  50))
+                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img/sp/raid/bg/", "_1.jpg", 50))
         # titles
         categories.append([])
         self.newShared(errs)
         for i in range(3):
-            categories[-1].append(self.search_generic('title', i, 3, errs[-1], "{}", 1, "img/sp/top/bg/bg_", ".jpg",  5))
+            categories[-1].append(self.search_generic('title', i, 3, errs[-1], "{}", 1, "img/sp/top/bg/bg_", ".jpg", 5))
         # subskills
         categories.append([])
         self.newShared(errs)
         for i in range(3):
-            categories[-1].append(self.search_generic('subskills', i, 3, errs[-1], "{}", 1, "img/sp/assets/item/ability/s/", "_1.jpg",  5))
+            categories[-1].append(self.search_generic('subskills', i, 3, errs[-1], "{}", 1, "img/sp/assets/item/ability/s/", "_1.jpg", 5))
         # suptix
         categories.append([])
         self.newShared(errs)
         for i in range(3):
-            categories[-1].append(self.search_generic('suptix', i, 3, errs[-1], "{}", 1, "img/sp/gacha/campaign/surprise/top_", ".jpg",  15))
+            categories[-1].append(self.search_generic('suptix', i, 3, errs[-1], "{}", 1, "img/sp/gacha/campaign/surprise/top_", ".jpg", 15))
         print("Starting process...")
         self.progress = Progress(self, total=len(categories), silent=False)
         async with asyncio.TaskGroup() as tg:
