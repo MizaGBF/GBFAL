@@ -4099,8 +4099,8 @@
 "6100983":"goblin princess $$earth",
 "6100993":"goblin princess $$earth",
 "6101003":"goblin king $$water",
-"6101013":null,
-"6101023":null,
+"6101013":"abominable demonfoot $$dark",
+"6101023":"yeti $$dark",
 "6200012":"imperial soldier $$earth",
 "6200022":"imperial soldier $$water",
 "6200032":"imperial soldier $$wind",
@@ -5579,5 +5579,5 @@
 "9102473":"tameemon $$earth",
 "9102483":"tameemon $$earth",
 "9102493":"netzach $$wind",
-"9102503":null
+"9102503":"muskel vicious slasher $$dark"
 }
