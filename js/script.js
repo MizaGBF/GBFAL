@@ -842,9 +842,24 @@ function display_characters(id, data, range, unused = null)
     }
     let onerr = null;
     if(uncap_string != "_01")
-        onerr = function() {this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"; this.onerror=default_onerror;};
+    {
+        onerr = function() {
+            if(uncap_string.includes("_f"))
+            {
+                this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+uncap_string.split("_f")[0]+".jpg";
+                this.onerror=function(){this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg"; this.onerror=default_onerror;};
+            }
+            else
+            {
+                this.src=idToEndpoint(id) + "assets_en/img_low/sp/assets/npc/m/"+id+"_01.jpg";
+                this.onerror=default_onerror;
+            }
+        };
+    }
     else
+    {
         onerr = default_onerror;
+    }
     let path = "GBF/assets_en/img_low/sp/assets/npc/m/" + id + uncap_string + ".jpg";
     return [[id, path, onerr, "", false]];
 }
