@@ -103,6 +103,19 @@ function setSparkList()
     // for each characters
     let node = document.getElementById('spark-select-npc');
     const ckeys = Object.keys(index["characters"]).reverse();
+    if(ckeys.length > 0) // add more non-indexed characters first, so that the user got recent stuff in all scenarios
+    {
+        let highest = parseInt(ckeys[0]);
+        for(let i = 5; i > 0; --i)
+        {
+            let id = JSON.stringify(highest+i*1000);
+            const ret = display_characters(id, null, [-1, -1, -1, -1, 0, 1000]);
+            if(ret != null)
+            {
+                items[id] = addImage_spark(node, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
+            }
+        }
+    }
     for(const id of ckeys)
     {
         if(id in index["lookup"] && !(id in index["premium"]) && ckeys.indexOf(id) > 5) continue; // exclude non gacha characters (unless not in lookup = it's recent)
@@ -112,9 +125,23 @@ function setSparkList()
             items[id] = addImage_spark(node, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
         }
     }
+    
     // for each summons
     node = document.getElementById('spark-select-summon');
     const skeys = Object.keys(index["summons"]).reverse();
+    if(skeys.length > 0) // add more non-indexed summons first, so that the user got recent stuff in all scenarios
+    {
+        let highest = parseInt(skeys[0]);
+        for(let i = 5; i > 0; --i)
+        {
+            let id = JSON.stringify(highest+i*1000);
+            const ret = display_summons(id, null, "4", [0, 1000]);
+            if(ret != null)
+            {
+                items[id] = addImage_spark(node, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
+            }
+        }
+    }
     for(const id of skeys)
     {
         if(id in index["lookup"] && !(id in index["premium"]) && skeys.indexOf(id) > 5) continue; // exclude non gacha summons (unless not in lookup = it's recent)
