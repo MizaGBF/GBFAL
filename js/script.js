@@ -2282,7 +2282,7 @@ function loadAssets_sound(id, sounds)
         "introduce": ["Recruit", "assets/ui/result_icon/v_recruit.png"],
         "formation": ["Add to Party", "assets/ui/result_icon/v_party.png"],
         "evolution": ["Evolution", "assets/ui/result_icon/v_uncap.png"],
-        "zenith_up": ["Extended Mastery", "assets/ui/result_icon/v_emp.png"],
+        "zenith_": ["Extended Mastery", "assets/ui/result_icon/v_emp.png"],
         "archive": ["Journal", "assets/ui/result_icon/journal.png"],
         "cutin": ["Battle", "assets/ui/result_icon/v_battle.png"],
         "attack": ["Attack", "assets/ui/result_icon/auto.png"],
