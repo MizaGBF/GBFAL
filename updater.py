@@ -2354,7 +2354,6 @@ class Updater():
         for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
             for s in range(1, 6):
                 elements.append(("_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
-        elements = [e for e in elements if 'ankup' in e[0]]
         return elements
 
     # generic sound subroutine
