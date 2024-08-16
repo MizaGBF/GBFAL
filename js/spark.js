@@ -797,12 +797,7 @@ function displayCanvas(canvas)
         }
         div.classList.add("spark-fullscreen-bg");
         document.body.appendChild(div);
-        // test
-        let a = document.createElement("a");
-        a.download = "spark.png"
-        div.appendChild(a);
-        
-        a.appendChild(canvas);
+        div.appendChild(canvas);
         if(isOnMobile()) pushPopup("Hold Touch, Save as...");
         else pushPopup("Right Click, Save as...");
         canvasState = 0;
