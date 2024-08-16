@@ -2573,7 +2573,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     // add related partner and weapon for character
     else if(name == "Character")
     {
-        if(id in index["premium"])
+        if(id in index["premium"] && index["premium"][id] != null)
         {
             if(did_lookup) div.appendChild(document.createElement('br'));
             div.appendChild(document.createTextNode("Unlock Weapon:"));
@@ -2604,7 +2604,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     // add related character for weapon
     else if(name == "Weapon")
     {
-        if(id in index["premium"])
+        if(id in index["premium"] && index["premium"][id] != null)
         {
             if(did_lookup) div.appendChild(document.createElement('br'));
             div.appendChild(document.createTextNode("Unlock Character:"));
