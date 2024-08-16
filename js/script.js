@@ -1200,74 +1200,79 @@ function updateList(node, elems) // update a list of elements
     node.innerHTML = "";
     for(let e of elems)
     {
-        let res = null;
-        let image_callback = addIndexImage;
-        switch(e[1])
+        try
         {
-            case 3:
-                if(e[0].slice(1, 3) == "71")
-                {
-                    res = display_skins(e[0], (e[0] in index['skins']) ? index['skins'][e[0]] : null, [0, 1000]);
-                }
-                else
-                {
-                    res = display_characters(e[0], (e[0] in index['characters']) ? index['characters'][e[0]] : null, [0, 1000, 0, 1000, 0, 1000]);
-                }
-                break;
-            case 2:
-                res = display_summons(e[0], (e[0] in index['summons']) ? index['summons'][e[0]] : null, e[0][2], [0, 1000]);
-                break;
-            case 1:
-                res = display_weapons(e[0], (e[0] in index['weapons']) ? index['weapons'][e[0]] : null, e[0][2], e[0][4]);
-                break;
-            case 0:
-                res = display_mc(e[0], (e[0] in index['job']) ? index['job'][e[0]] : null);
-                break;
-            case 4:
-                res = display_enemies(e[0], (e[0] in index['enemies']) ? index['enemies'][e[0]] : null, e[0][0], e[0][1]);
-                break;
-            case 5:
-                res = display_npcs(e[0], (e[0] in index['npcs']) ? index['npcs'][e[0]] : null, e[0].slice(1, 3), [0, 10000]);
-                break;
-            case 6:
-                res = display_partners(e[0], (e[0] in index['partners']) ? index['partners'][e[0]] : null, e[0].slice(1, 3));
-                break;
-            case 7:
-                res = display_events(e[0], (e[0] in index['events']) ? index['events'][e[0]] : null);
-                break;
-            case 8:
-                res = display_skills(e[0], (e[0] in index['skills']) ? index['skills'][e[0]] : null, [0, 10000]);
-                break;
-            case 9:
-                res = display_buffs(e[0], (e[0] in index['buffs']) ? index['buffs'][e[0]] : null, [0, 10000]);
-                break;
-            case 10:
-                if(e[0] in index['background'])
-                {
-                    let tmp = e[0].split('_')[0];
-                    res = display_backgrounds(e[0], index['background'][e[0]], (["common", "main", "event"].includes(tmp) ? tmp : ""));
-                }
-                break;
-            case 11:
-                res = display_story(e[0], (e[0] in index['story']) ? index['story'][e[0]] : null);
-                image_callback = addTextImage;
-                break;
-            case "subskills":
-                res = display_subskills(e[0].split(':')[1], index['subskills'][e[0].split(':')[1]]);
-                break;
-            case "title":
-                res = display_titles(e[0].split(':')[1], index['title'][e[0].split(':')[1]]);
-                break;
-            case "suptix":
-                res = display_suptix(e[0].split(':')[1], index['suptix'][e[0].split(':')[1]]);
-                break;
-        }
-        if(res != null)
-        {
-            for(let r of res)
+            let res = null;
+            let image_callback = addIndexImage;
+            switch(e[1])
             {
-                image_callback(node, r[1], r[0], r[2], r[3], r[4]);
+                case 3:
+                    if(e[0].slice(1, 3) == "71")
+                    {
+                        res = display_skins(e[0], (e[0] in index['skins']) ? index['skins'][e[0]] : null, [0, 1000]);
+                    }
+                    else
+                    {
+                        res = display_characters(e[0], (e[0] in index['characters']) ? index['characters'][e[0]] : null, [0, 1000, 0, 1000, 0, 1000]);
+                    }
+                    break;
+                case 2:
+                    res = display_summons(e[0], (e[0] in index['summons']) ? index['summons'][e[0]] : null, e[0][2], [0, 1000]);
+                    break;
+                case 1:
+                    res = display_weapons(e[0], (e[0] in index['weapons']) ? index['weapons'][e[0]] : null, e[0][2], e[0][4]);
+                    break;
+                case 0:
+                    res = display_mc(e[0], (e[0] in index['job']) ? index['job'][e[0]] : null);
+                    break;
+                case 4:
+                    res = display_enemies(e[0], (e[0] in index['enemies']) ? index['enemies'][e[0]] : null, e[0][0], e[0][1]);
+                    break;
+                case 5:
+                    res = display_npcs(e[0], (e[0] in index['npcs']) ? index['npcs'][e[0]] : null, e[0].slice(1, 3), [0, 10000]);
+                    break;
+                case 6:
+                    res = display_partners(e[0], (e[0] in index['partners']) ? index['partners'][e[0]] : null, e[0].slice(1, 3));
+                    break;
+                case 7:
+                    res = display_events(e[0], (e[0] in index['events']) ? index['events'][e[0]] : null);
+                    break;
+                case 8:
+                    res = display_skills(e[0], (e[0] in index['skills']) ? index['skills'][e[0]] : null, [0, 10000]);
+                    break;
+                case 9:
+                    res = display_buffs(e[0], (e[0] in index['buffs']) ? index['buffs'][e[0]] : null, [0, 10000]);
+                    break;
+                case 10:
+                    if(e[0] in index['background'])
+                    {
+                        let tmp = e[0].split('_')[0];
+                        res = display_backgrounds(e[0], index['background'][e[0]], (["common", "main", "event"].includes(tmp) ? tmp : ""));
+                    }
+                    break;
+                case 11:
+                    res = display_story(e[0], (e[0] in index['story']) ? index['story'][e[0]] : null);
+                    image_callback = addTextImage;
+                    break;
+                case "subskills":
+                    res = display_subskills(e[0].split(':')[1], index['subskills'][e[0].split(':')[1]]);
+                    break;
+                case "title":
+                    res = display_titles(e[0].split(':')[1], index['title'][e[0].split(':')[1]]);
+                    break;
+                case "suptix":
+                    res = display_suptix(e[0].split(':')[1], index['suptix'][e[0].split(':')[1]]);
+                    break;
             }
+            if(res != null)
+            {
+                for(let r of res)
+                {
+                    image_callback(node, r[1], r[0], r[2], r[3], r[4]);
+                }
+            }
+        } catch(err) {
+            console.error("Exception thrown", err.stack);
         }
     }
 }
