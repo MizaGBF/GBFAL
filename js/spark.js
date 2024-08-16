@@ -800,7 +800,7 @@ function displayCanvas(canvas)
         // test
         let a = document.createElement("a");
         a.download = "spark.png"
-        div.body.appendChild(a);
+        div.appendChild(a);
         
         a.appendChild(canvas);
         if(isOnMobile()) pushPopup("Hold Touch, Save as...");
