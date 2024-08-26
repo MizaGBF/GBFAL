@@ -506,6 +506,7 @@ class Updater():
     async def get(self, url : str, headers : dict = {}, timeout : Optional[int] = None, get_json : bool = False):
         async with self.http_sem:
             response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=timeout)
+            if "wiki" in url: print(response.status)
             async with response:
                 if response.status != 200: raise Exception("HTTP error {}".format(response.status))
                 if get_json: return await response.json()
