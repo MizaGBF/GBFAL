@@ -3148,7 +3148,7 @@ class Updater():
                     tasks.append(tg.create_task(self.update_event_sky(ev)))
             print("Checking", len(tasks), "event(s)...")
         for t in tasks: t.result()
-        print("Done.")
+        print("Done")
         self.save()
 
     # Attempt to automatically associate new event thumbnails to events
