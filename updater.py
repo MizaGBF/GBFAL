@@ -3135,8 +3135,7 @@ class Updater():
                     self.save()
                 case "6":
                     s = input("Input a list of Event dates to associate (Leave blank to continue):")
-                    if s != "":
-                        await self.event_thumbnail_association(s.split(" "))
+                    await self.event_thumbnail_association(s.split(" "))
                 case _:
                     break
 
