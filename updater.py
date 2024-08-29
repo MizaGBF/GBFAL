@@ -1099,7 +1099,7 @@ class Updater():
                     passed = True
                     for mh in cmh:
                         try:
-                            await self.processManifest("{}_{}_0_01".format(d, mh))
+                            await self.head(self.MANIFEST + "{}_{}_0_01.js".format(d, mh))
                         except:
                             passed = False
                             break
@@ -1132,7 +1132,7 @@ class Updater():
         with self.progress:
             for mh in self.MAINHAND:
                 try:
-                    await self.processManifest("{}_{}_0_01".format(key, mh))
+                    await self.head(self.MANIFEST + "{}_{}_0_01.js".format(key, mh))
                     self.data["job_key"][key] = None
                     self.modified = True
                     print("\nUnknown job key", key, "for mh", mh)
