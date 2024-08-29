@@ -3134,7 +3134,7 @@ class Updater():
                             break
                     self.save()
                 case "6":
-                    s = input("Input a list of Event dates (Leave blank to cancel):")
+                    s = input("Input a list of Event dates to associate (Leave blank to continue):")
                     if s != "":
                         await self.event_thumbnail_association(s.split(" "))
                 case _:
@@ -3156,7 +3156,7 @@ class Updater():
     async def event_thumbnail_association(self, events : list) -> None:
         tmp = []
         for ev in events:
-            if ev == "": continue
+            if ev == "" or ev not in self.data["events"]: continue
             if self.data["events"][ev][self.EVENT_THUMB] is None:
                 tmp.append(ev)
         events = tmp
