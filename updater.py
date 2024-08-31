@@ -2492,7 +2492,7 @@ class Updater():
             for k, v in data.items():
                 try:
                     voice = (len(k) == 10 and self.data["npcs"].get(k, 0) != 0 and len(self.data["npcs"][k][self.NPC_SOUND]) > 0)
-                    voice_only = voice and self.data["npcs"][k][self.NPC_JOURNAL] and len(self.data["npcs"][k][self.NPC_SCENE]) == 0
+                    voice_only = voice and not self.data["npcs"][k][self.NPC_JOURNAL] and len(self.data["npcs"][k][self.NPC_SCENE]) == 0
                     if v is None or v == "":
                         if self.data["lookup"].get(k, "missing-help-wanted").startswith("missing-help-wanted"):
                             l = "missing-help-wanted"
