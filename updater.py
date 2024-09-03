@@ -774,6 +774,7 @@ class Updater():
             await self.manualUpdate(self.new_elements)
             await self.check_msq()
             await self.check_new_event()
+            await self.update_all_event_skycompass()
             await self.update_npc_thumb()
         else:
             if len(self.data['uncap_queue']) > 0:
@@ -2818,7 +2819,6 @@ class Updater():
                         print("Event", ev, "has been added (", check[ev], "chapters )")
                     self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
                     self.modified = True
-            await self.update_all_event_skycompass()
         # check thumbnail
         if len(thumbnail_check) > 0:
             thumbnail_check.sort()
@@ -3484,7 +3484,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.43\n")
+                print("GBFAL updater v2.44\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
