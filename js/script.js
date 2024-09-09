@@ -2160,7 +2160,7 @@ function loadAssets_getFiles(id, data, asset, files, melee)
             files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
             break;
         case -5: // custom MC skin skills
-            files = [id+"_0_attack", id+"_1_attack"];
+            files = [id+"_0_ability", id+"_1_ability", id+"_0_attack", id+"_1_attack"];
             for(let i = 1; i < 5; ++i)
                 for(let j = 0; j < 2; ++j)
                     files.push(id+"_"+j+"_vs_motion_"+i);
