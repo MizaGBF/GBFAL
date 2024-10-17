@@ -2800,10 +2800,13 @@ class Updater():
                             thumbnail_check.append(ev)
                 elif now >= int(ev): # new event
                     check[ev] = -1
+                    new_format = int(ev) == 241017 # bandaid
                     for i in range(0, self.EVENT_MAX_CHAPTER):
                         for j in range(1, 2):
                             for k in range(1, 2):
                                tasks.append(tg.create_task(self.update_event_sub(ev, self.VOICE + "scene_evt{}_cp{}_q{}_s{}0".format(ev, i, j, k))))
+                               if new_format: # bandaid
+                                   tasks.append(tg.create_task(self.update_event_sub(ev, self.VOICE + "scene_evt20{}_cp{}_q{}_s{}0".format(ev, i, j, k))))
                                thumbnail_check.append(ev)
             self.progress.set(total=len(tasks), silent=False)
         if len(tasks) > 0: # processing tasks
@@ -2853,7 +2856,7 @@ class Updater():
            "231007": "_arcarum_geisenborger",
            "231114": "_arcarum_haaselia",
            "240122": "_arcarum_alanaan",
-           "240322": "_arcarum_katzelia"
+           "240322": "_arcarum_katzelia",
         }
         
         print("Checking for content of", len(events), "event(s)")
@@ -2866,6 +2869,7 @@ class Updater():
             if full and ev not in self.data["events"]:
                 self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
             if ev in self.data["events"] and (full or (not full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0)):
+                new_format = int(ev) == 241017
                 known_assets = set()
                 for i in range(self.EVENT_OP, len(self.data["events"][ev])):
                     for e in self.data["events"][ev][i]:
@@ -2874,20 +2878,36 @@ class Updater():
                 if full: ch_count = self.EVENT_MAX_CHAPTER
                 else: ch_count = self.data["events"][ev][self.EVENT_CHAPTER_COUNT]
                 for j in range(self.EVENT_UPDATE_COUNT):
-                    if ev not in special_events:
-                        for i in range(1, ch_count+1):
-                            fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
-                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                            if i < 10:
-                                fn = "scene_evt{}_cp{}".format(ev, i)
+                    if not new_format:
+                        if ev not in special_events:
+                            for i in range(1, ch_count+1):
+                                fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
                                 tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                        for ch in ["op", "ed"]:
-                            fn = "scene_evt{}_{}".format(ev, ch)
+                                if i < 10:
+                                    fn = "scene_evt{}_cp{}".format(ev, i)
+                                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                            for ch in ["op", "ed"]:
+                                fn = "scene_evt{}_{}".format(ev, ch)
+                                tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                            fn = "evt{}".format(ev)
                             tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                        fn = "evt{}".format(ev)
+                        fn = "scene_evt{}".format(ev) + special_events.get(ev, '')
                         tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    fn = "scene_evt{}".format(ev) + special_events.get(ev, '')
-                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                    else: # bandaid, for now
+                        if ev not in special_events:
+                            for i in range(1, ch_count+1):
+                                fn = "scene_evt20{}_cp{}".format(ev, str(i).zfill(2))
+                                tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                                if i < 10:
+                                    fn = "scene_evt20{}_cp{}".format(ev, i)
+                                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                            for ch in ["op", "ed"]:
+                                fn = "scene_evt20{}_{}".format(ev, ch)
+                                tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                            fn = "evt{}".format(ev)
+                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                        fn = "scene_evt20{}".format(ev) + special_events.get(ev, '')
+                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
         self.progress = Progress(self, total=len(tasks), silent=False, current=skip)
         if skip > 0:
             tasks = tasks[skip:]
