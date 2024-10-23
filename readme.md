@@ -59,7 +59,7 @@ Action parameters (Only one of those can be used at a time):
 - `-bg`: Update all background datas. Time consuming.  
   
 ## Other Informations  
-- On Windows, [local_server.bat](https://github.com/MizaGBF/GBFAL/blob/main/local_server.bat) can be used to test the project locally, in a web browser.  
+- Use one of the `server` scripts to start a Python HTTP server and test the project locally, in your web browser.  
 - On other OS, just run `python-m http.server` in a terminal, in the project folder.  
 - [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations.  
 - For developpers, I documented some things in this [file](https://github.com/MizaGBF/GBFAL/blob/main/docs.md).  
