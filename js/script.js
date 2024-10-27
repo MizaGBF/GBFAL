@@ -105,8 +105,8 @@ const BUFFS = [
     ["Unique Set 1", "assets/ui/index_icon/unique_set_1.png", [3000, 3250], [3250, 3500], [3500, 3750], [3750, 4000]],
     ["Unique Set 2", "assets/ui/index_icon/unique_set_2.png", [4000, 4250], [4250, 4500], [4500, 4750], [4750, 5000]],
     ["Field Effect Set", "assets/ui/index_icon/field_effect_set.png", [5000, 5250], [5250, 5500], [5500, 5750], [5750, 6000]],
-    ["Buff Set", "assets/ui/index_icon/buff_set.png", [6000, 6250], [6250, 6500], [6500, 6750], [6750, 7000], [7000, 7250], [7250, 7500], [7500, 7750], [7750, 8000]],
-    ["Old Stack Set", "assets/ui/index_icon/old_stack_set.png", [8000, 10000]]
+    ["Buff Set", "assets/ui/index_icon/buff_set.png", [6000, 6250], [6250, 6500], [6500, 6750], [6750, 7000], [7000, 7250], [7250, 7500], [7500, 7750], [7750, 8000], [9000, 9250], [9250, 9500], [9500, 9750], [9750, 10000]], // unsure for the 9k+ ones
+    ["Old Stack Set", "assets/ui/index_icon/old_stack_set.png", [8000, 9000]]
 ];
 const BACKGROUNDS = [
     ["Mains", "main"],
