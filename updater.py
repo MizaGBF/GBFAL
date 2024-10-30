@@ -2869,7 +2869,7 @@ class Updater():
             if full and ev not in self.data["events"]:
                 self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
             if ev in self.data["events"] and (full or (not full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0)):
-                new_format = int(ev) == 241017
+                new_format = int(ev) == 241017 # keep in min for later if we need to improve this (only used by halloween 2024 for now)
                 known_assets = set()
                 for i in range(self.EVENT_OP, len(self.data["events"][ev])):
                     for e in self.data["events"][ev][i]:
