@@ -10,7 +10,7 @@ import os
 import signal
 from datetime import datetime, timezone, timedelta
 import traceback
-from typing import Optional, Callable, Collection, AsyncIterator, Iterator, Union
+from typing import Optional, Callable, Collection, AsyncIterator, Any, Iterator, Union
 
 # progress bar class
 class Progress():
@@ -185,6 +185,7 @@ class Updater():
     MISSING_EVENTS = ["201017", "211017", "221017", "231017", "241017", "200214", "210214", "220214", "230214", "240214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "200101", "210101", "220101", "230101", "240101"] + ["131201", "140330", "160430", "161031", "161227", "170501", "170801", "171129", "180301", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181214", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304"]
     CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
     SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
+    UNIQUE_SKIN = ["311301", "311302"]
     SPECIAL_LOOKUP = { # special elements
         "3020065000": "R brown poppet trial",
         "3030158000": "SR blue poppet trial",
@@ -993,50 +994,57 @@ class Updater():
         i = start
         while i < len(keys):
             if keys[i] in self.data['job']: continue
-            cmh = []
-            colors = [1]
-            alts = []
-            # mh check
-            for mh in self.MAINHAND:
-                try:
-                    await self.head(self.IMG + "sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(keys[i], mh))
-                    cmh.append(mh)
-                except:
-                    continue
-            if len(cmh) > 0:
-                # alt check
-                for j in [2, 3, 4, 5, 80]:
-                    try:
-                        await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
-                        colors.append(j)
-                        if j >= 80 or keys[i] == "311301": # gw skin exception
-                            alts.append(j)
-                    except:
-                        continue
-                # set data
-                data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
-                
-                data[self.JOB_ALT] = [keys[i]+"_01"] + [keys[i][:-2]+str(j).zfill(2)+"_01" for j in alts]
-                data[self.JOB_DETAIL] = [keys[i]+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
-                for j in [1]+alts:
-                    for k in range(2):
-                        data[self.JOB_DETAIL_ALT].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
-                for j in colors:
-                    for k in range(2):
-                        data[self.JOB_DETAIL_ALL].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
-                for j in colors:
-                    data[self.JOB_SD].append(keys[i][:-2]+str(j).zfill(2))
-                if keys[i] == "311301": # currently only for gw skins
-                    for i in data[self.JOB_ALT]:
-                        for j in range(2):
-                            try: data[self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(i.split('_', 1)[0], j))
-                            except: pass
-                self.data['job'][keys[i]] = data
-                self.modified = True
-                self.addition[keys[i]] = self.ADD_JOB
+            await self.search_job_content(keys[i])
             i += step
         if shared[1]:
             shared[1] = False
+
+    async def search_job_content(self, jid : str) -> None:
+        cmh = []
+        colors = [int(jid[-1])]
+        alts = []
+        # mh check
+        for mh in self.MAINHAND:
+            try:
+                await self.head(self.IMG + "sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(jid, mh))
+                cmh.append(mh)
+            except:
+                continue
+        if len(cmh) > 0:
+            # alt check
+            if colors[0] == 1:
+                for j in [2, 3, 4, 5, 80]:
+                    try:
+                        await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(jid[:-2]+str(j).zfill(2), cmh[0]))
+                        if jid in self.UNIQUE_SKIN:
+                            await self.search_job_content(jid[:-2]+str(j).zfill(2))
+                        else:
+                            colors.append(j)
+                            if j >= 80:
+                                alts.append(j)
+                    except:
+                        continue
+            # set data
+            data = [[jid], [jid+"_01"], [], [], [], [], cmh, [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
+            
+            data[self.JOB_ALT] = [jid+"_01"] + [jid[:-2]+str(j).zfill(2)+"_01" for j in alts]
+            data[self.JOB_DETAIL] = [jid+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
+            for j in [1]+alts:
+                for k in range(2):
+                    data[self.JOB_DETAIL_ALT].append(jid[:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+            for j in colors:
+                for k in range(2):
+                    data[self.JOB_DETAIL_ALL].append(jid[:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+            for j in colors:
+                data[self.JOB_SD].append(jid[:-2]+str(j).zfill(2))
+            for h in data[self.JOB_ALT]:
+                for j in range(2):
+                    try: data[self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(h.split('_', 1)[0], j))
+                    except: pass
+            self.data['job'][jid] = data
+            self.modified = True
+            self.addition[jid] = self.ADD_JOB
+
 
     # Used by -job, more specific but also slower job detection system
     async def search_job_detail(self, params : list) -> None:
@@ -1282,14 +1290,13 @@ class Updater():
                             tasks = []
                             for jid, s in tmp["lookup"].items():
                                 # add job if needed
-                                if jid.endswith('1'):
-                                    if jid not in self.data['job']:
-                                        await self.search_job(0, 1, [jid], self.newShared([]))
-                                    if s is not None:
-                                        tasks.append(self.edit_job_import_task(jid, tmp["lookup"], 0))
+                                if jid not in self.data['job']:
+                                    await self.search_job(0, 1, [jid], self.newShared([]))
+                                if s is not None:
+                                    tasks.append(self.edit_job_import_task(jid, s, 0))
                             for jid, s in tmp["weapon"].items():
-                                if jid.endswith('1') and s is not None:
-                                    tasks.append(self.edit_job_import_task(jid, tmp["weapon"], 1))
+                                if s is not None:
+                                    tasks.append(self.edit_job_import_task(jid, s, 1))
                             res = True
                             for l in await asyncio.gather(*tasks):
                                 res = res and l
@@ -1320,7 +1327,7 @@ class Updater():
             if len(self.data["job"][jid][self.JOB_UNLOCK]) > 0:
                 print(len(self.data["job"][jid][self.JOB_UNLOCK]), "sheets for", jid)
 
-    async def edit_job_import_task(self, jid : str, table : dict, mode : int) -> None:
+    async def edit_job_import_task(self, jid : str, s : Any, mode : int) -> None:
         try:
             match mode:
                 case 0:
@@ -1328,57 +1335,46 @@ class Updater():
                     sheets = []
                     for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
                         try:
-                            key = v.split('_')[0][-2:]
-                            jskey = jid[:4] + key
-                            if jskey in table:
-                                string = table[jskey]
-                                self.data['job_key'][string] = jskey
+                            if jid in self.UNIQUE_SKIN:
+                                sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_01")
                             else:
-                                string = table[jid]
-                                self.data['job_key'][string] = jid
-                            sheets += await self.processManifest(string + "_" + '_'.join(v.split('_')[1:3]) + "_" + key)
+                                sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
                         except:
                             pass
                     self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
+                    self.data['job_key'][s] = jid
                     self.modified = True
                     print(len(sheets),"sprites set to job", jid)
                 case 1:
-                    phits = []
-                    sps = []
-                    for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
-                        key = v.split('_')[0][-2:]
-                        jskey = jid[:4] + key
-                        if jskey in table:
-                            string = table[jskey]
-                        else:
-                            string = table[jid]
-                        # phit
-                        for u in ["", "_1", "_2", "_3"]:
-                            for g in ["", "_0", "_1"]:
-                                try:
-                                    phits += await self.processManifest("phit_{}{}{}".format(string, u, g))
-                                except:
-                                    if g == "_0":
-                                        break
-                        if jid == "360101": # special exception for racing suit
+                    # phit
+                    sheets = []
+                    for u in ["", "_1", "_2", "_3"]:
+                        for g in ["", "_0", "_1"]:
                             try:
-                                phits += await self.processManifest("phit_racer")
+                                sheets += await self.processManifest("phit_{}{}{}".format(s, u, g))
                             except:
-                                pass
-                        # ougi
-                        for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
-                            try:
-                                sps += await self.processManifest("sp_{}{}".format(string, u))
-                            except:
-                                pass
-                        self.data['job_wpn'][string] = jskey
-                    phits = list(set(phits))
-                    phits.sort()
-                    self.data['job'][jid][self.JOB_PHIT] = phits
-                    sps = list(set(sps))
-                    sps.sort()
-                    self.data['job'][jid][self.JOB_SP] = sps
+                                if g == "_0":
+                                    break
+                    if jid == "360101": # special exception for racing suit
+                        try:
+                            sheets += await self.processManifest("phit_racer")
+                        except:
+                            pass
+                    sheets = list(set(sheets))
+                    sheets.sort()
+                    self.data['job'][jid][self.JOB_PHIT] = sheets
+                    # ougi
+                    sheets = []
+                    for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
+                        try:
+                            sheets += await self.processManifest("sp_{}{}".format(s, u))
+                        except:
+                            pass
+                    sheets = list(set(sheets))
+                    sheets.sort()
+                    self.data['job'][jid][self.JOB_SP] = sheets
                     print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
+                    self.data['job_wpn'][s] = jid
                     self.modified = True
             return True
         except:
@@ -3522,7 +3518,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.45\n")
+                print("GBFAL updater v2.46\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
