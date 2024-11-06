@@ -1029,7 +1029,7 @@ class Updater():
             
             data[self.JOB_ALT] = [jid+"_01"] + [jid[:-2]+str(j).zfill(2)+"_01" for j in alts]
             data[self.JOB_DETAIL] = [jid+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
-            for j in [1]+alts:
+            for j in [int(jid[-1])]+alts:
                 for k in range(2):
                     data[self.JOB_DETAIL_ALT].append(jid[:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
             for j in colors:
