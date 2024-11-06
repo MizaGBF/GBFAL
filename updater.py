@@ -10,7 +10,7 @@ import os
 import signal
 from datetime import datetime, timezone, timedelta
 import traceback
-from typing import Optional, Callable, Collection, AsyncIterator, Iterator, Any, Union
+from typing import Optional, Callable, Collection, AsyncIterator, Iterator, Union
 
 # progress bar class
 class Progress():
@@ -1009,14 +1009,14 @@ class Updater():
                     try:
                         await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(keys[i][:-2]+str(j).zfill(2), cmh[0]))
                         colors.append(j)
-                        if j >= 80:
+                        if j >= 80 or keys[i] == "311301": # gw skin exception
                             alts.append(j)
                     except:
                         continue
                 # set data
                 data = [[keys[i]], [keys[i]+"_01"], [], [], [], [], cmh, [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
                 
-                data[self.JOB_ALT] = [keys[i][:-2]+str(j).zfill(2)+"_01" for j in alts]
+                data[self.JOB_ALT] = [keys[i]+"_01"] + [keys[i][:-2]+str(j).zfill(2)+"_01" for j in alts]
                 data[self.JOB_DETAIL] = [keys[i]+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
                 for j in [1]+alts:
                     for k in range(2):
@@ -1026,9 +1026,11 @@ class Updater():
                         data[self.JOB_DETAIL_ALL].append(keys[i][:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
                 for j in colors:
                     data[self.JOB_SD].append(keys[i][:-2]+str(j).zfill(2))
-                for j in range(2): # currently only for gw skins
-                    try: data[self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(keys[i], j))
-                    except: pass
+                if keys[i] == "311301": # currently only for gw skins
+                    for i in data[self.JOB_ALT]:
+                        for j in range(2):
+                            try: data[self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(i.split('_', 1)[0], j))
+                            except: pass
                 self.data['job'][keys[i]] = data
                 self.modified = True
                 self.addition[keys[i]] = self.ADD_JOB
@@ -1267,12 +1269,12 @@ class Updater():
                             if 'lookup' not in tmp or 'weapon' not in tmp:
                                 raise Exception()
                     except OSError as e:
+                        print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                         print("Couldn't open json/job_data_export.json")
-                        print(e)
                         tmp = None
                     except Exception as e:
+                        print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                         print("Couldn't load json/job_data_export.json")
-                        print(e)
                         tmp = None
                     if tmp is not None and input("Are you sure? Press 'y' to continue:").lower() == 'y':
                         print("Importing data...")
@@ -1280,13 +1282,14 @@ class Updater():
                             tasks = []
                             for jid, s in tmp["lookup"].items():
                                 # add job if needed
-                                if jid not in self.data['job']:
-                                    await self.search_job(0, 1, [jid], self.newShared([]))
-                                if s is not None:
-                                    tasks.append(self.edit_job_import_task(jid, s, 0))
+                                if jid.endswith('1'):
+                                    if jid not in self.data['job']:
+                                        await self.search_job(0, 1, [jid], self.newShared([]))
+                                    if s is not None:
+                                        tasks.append(self.edit_job_import_task(jid, tmp["lookup"], 0))
                             for jid, s in tmp["weapon"].items():
-                                if s is not None:
-                                    tasks.append(self.edit_job_import_task(jid, s, 1))
+                                if jid.endswith('1') and s is not None:
+                                    tasks.append(self.edit_job_import_task(jid, tmp["weapon"], 1))
                             res = True
                             for l in await asyncio.gather(*tasks):
                                 res = res and l
@@ -1294,8 +1297,8 @@ class Updater():
                                 raise Exception("Check the log for details")
                             print("Job Data Import finished with success")
                         except Exception as e:
+                            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                             print("An error occured during the import")
-                            print(e)
                             return
                 case _:
                     break
@@ -1307,16 +1310,17 @@ class Updater():
                 self.data["job"][jid].append([])
                 self.modified = True
             self.data["job"][jid][self.JOB_UNLOCK] = []
-            for i in range(2):
-                try:
-                    self.data["job"][jid][self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(jid, i))
-                    self.modified = True
-                except:
-                    pass
+            for j in self.data["job"][jid][self.JOB_ALT]:
+                for i in range(2):
+                    try:
+                        self.data["job"][jid][self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(j.split('_', 1)[0], i))
+                        self.modified = True
+                    except:
+                        pass
             if len(self.data["job"][jid][self.JOB_UNLOCK]) > 0:
                 print(len(self.data["job"][jid][self.JOB_UNLOCK]), "sheets for", jid)
 
-    async def edit_job_import_task(self, jid : str, s : Any, mode : int) -> None:
+    async def edit_job_import_task(self, jid : str, table : dict, mode : int) -> None:
         try:
             match mode:
                 case 0:
@@ -1324,43 +1328,57 @@ class Updater():
                     sheets = []
                     for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
                         try:
-                            sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
+                            key = v.split('_')[0][-2:]
+                            jskey = jid[:4] + key
+                            if jskey in table:
+                                string = table[jskey]
+                                self.data['job_key'][string] = jskey
+                            else:
+                                string = table[jid]
+                                self.data['job_key'][string] = jid
+                            sheets += await self.processManifest(string + "_" + '_'.join(v.split('_')[1:3]) + "_" + key)
                         except:
                             pass
                     self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
-                    self.data['job_key'][s] = jid
                     self.modified = True
                     print(len(sheets),"sprites set to job", jid)
                 case 1:
-                    # phit
-                    sheets = []
-                    for u in ["", "_1", "_2", "_3"]:
-                        for g in ["", "_0", "_1"]:
+                    phits = []
+                    sps = []
+                    for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
+                        key = v.split('_')[0][-2:]
+                        jskey = jid[:4] + key
+                        if jskey in table:
+                            string = table[jskey]
+                        else:
+                            string = table[jid]
+                        # phit
+                        for u in ["", "_1", "_2", "_3"]:
+                            for g in ["", "_0", "_1"]:
+                                try:
+                                    phits += await self.processManifest("phit_{}{}{}".format(string, u, g))
+                                except:
+                                    if g == "_0":
+                                        break
+                        if jid == "360101": # special exception for racing suit
                             try:
-                                sheets += await self.processManifest("phit_{}{}{}".format(s, u, g))
+                                phits += await self.processManifest("phit_racer")
                             except:
-                                if g == "_0":
-                                    break
-                    if jid == "360101": # special exception for racing suit
-                        try:
-                            sheets += await self.processManifest("phit_racer")
-                        except:
-                            pass
-                    sheets = list(set(sheets))
-                    sheets.sort()
-                    self.data['job'][jid][self.JOB_PHIT] = sheets
-                    # ougi
-                    sheets = []
-                    for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
-                        try:
-                            sheets += await self.processManifest("sp_{}{}".format(s, u))
-                        except:
-                            pass
-                    sheets = list(set(sheets))
-                    sheets.sort()
-                    self.data['job'][jid][self.JOB_SP] = sheets
+                                pass
+                        # ougi
+                        for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
+                            try:
+                                sps += await self.processManifest("sp_{}{}".format(string, u))
+                            except:
+                                pass
+                        self.data['job_wpn'][string] = jskey
+                    phits = list(set(phits))
+                    phits.sort()
+                    self.data['job'][jid][self.JOB_PHIT] = phits
+                    sps = list(set(sps))
+                    sps.sort()
+                    self.data['job'][jid][self.JOB_SP] = sps
                     print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
-                    self.data['job_wpn'][s] = jid
                     self.modified = True
             return True
         except:
@@ -3504,7 +3522,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.44\n")
+                print("GBFAL updater v2.45\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
