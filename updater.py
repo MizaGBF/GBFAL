@@ -175,7 +175,7 @@ class Updater():
     VOICE = SOUND + "voice/"
     # regex
     ID_REGEX = re.compile("[123][07][1234]0\\d{4}00")
-    VERSION_REGEX = re.compile("\\/assets_en\\/(\d+)\\/")
+    VERSION_REGEX = re.compile("\\/assets\\/(\d+)\\/")
     CHAPTER_REGEX = re.compile("Chapter (\d+)(-(\d+))?")
     # others
     SAVE_VERSION = 1
