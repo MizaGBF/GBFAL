@@ -155,7 +155,7 @@ class Updater():
     EVENT_ED = 3
     EVENT_INT = 4
     EVENT_CHAPTER_START = 5
-    EVENT_MAX_CHAPTER = 15
+    EVENT_MAX_CHAPTER = 20
     EVENT_SKY = EVENT_CHAPTER_START+EVENT_MAX_CHAPTER
     EVENT_UPDATE_COUNT = 20
     # story update
@@ -2786,6 +2786,30 @@ class Updater():
     def ev2daycount(self, ev : str) -> int:
         return (int(ev[:2]) * 12 + int(ev[2:4])) * 31 + int(ev[4:6])
 
+    # update old event entries
+    def update_event_container(self, old : list) -> list:
+        if len(old) != self.EVENT_CHAPTER_START + self.EVENT_MAX_CHAPTER + 1:
+            l = [old[self.EVENT_CHAPTER_COUNT], old[self.EVENT_THUMB], old[self.EVENT_OP], old[self.EVENT_ED], old[self.EVENT_INT]]
+            for i in range(self.EVENT_MAX_CHAPTER):
+                if i + self.EVENT_CHAPTER_START < len(old) - 1:
+                    l.append(old[i + self.EVENT_CHAPTER_START])
+                else:
+                    l.append([])
+            l.append(old[-1])
+            return l
+        else:
+            return old
+
+    # create the array containing the event data
+    def create_event_container(self) -> list:
+        l = [-1, None]
+        while len(l) < self.EVENT_CHAPTER_START:
+            l.append([])
+        for i in range(self.EVENT_MAX_CHAPTER):
+            l.append([])
+        l.append([])
+        return l
+
     # Call get_event_list() and check the current time to determine if new events have been added. If so, check if they got voice lines to determine if they got chapters, and then call update_event()
     async def check_new_event(self, init_list : Optional[list] = None) -> None:
         now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400)
@@ -2834,7 +2858,8 @@ class Updater():
                 if ev not in self.data["events"]:
                     if check[ev] >= 0:
                         print("Event", ev, "has been added (", check[ev], "chapters )")
-                    self.data["events"][ev] = [check[ev], None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
+                    self.data["events"][ev] = self.create_event_container()
+                    self.data["events"][ev][0] = check[ev]
                     self.modified = True
         # check thumbnail
         if len(thumbnail_check) > 0:
@@ -2881,7 +2906,7 @@ class Updater():
         self.progress = Progress(self)
         for ev in events:
             if full and ev not in self.data["events"]:
-                self.data["events"][ev] = [-1, None, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []] # 15+3+sky
+                self.data["events"][ev] = self.create_event_container()
             if ev in self.data["events"] and (full or (not full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0)):
                 new_format = int(ev) == 241017 # keep in min for later if we need to improve this (only used by halloween 2024 for now)
                 known_assets = set()
@@ -3091,6 +3116,7 @@ class Updater():
             print("[4] Update SkyCompass")
             print("[5] Add Events")
             print("[6] Check new thumbnails")
+            print("[7] Update event containers")
             print("[Any] Quit")
             s = input().lower()
             match s:
@@ -3170,6 +3196,13 @@ class Updater():
                 case "6":
                     s = input("Input a list of Event dates to associate (Leave blank to continue):")
                     await self.event_thumbnail_association(s.split(" "))
+                case "7":
+                    for ev in self.data["events"]:
+                        l = self.update_event_container(self.data["events"][ev])
+                        if len(l) != len(self.data["events"][ev]):
+                            self.data["events"][ev] = l
+                            self.modified = True
+                    self.save()
                 case _:
                     break
 
@@ -3518,7 +3551,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.46\n")
+                print("GBFAL updater v2.47\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])

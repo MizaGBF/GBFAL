@@ -2088,6 +2088,11 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Chapter 13", paths:[["sp/quest/scene/character/body/", "png"]], index:17, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Chapter 14", paths:[["sp/quest/scene/character/body/", "png"]], index:18, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Chapter 15", paths:[["sp/quest/scene/character/body/", "png"]], index:19, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 16", paths:[["sp/quest/scene/character/body/", "png"]], index:20, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 17", paths:[["sp/quest/scene/character/body/", "png"]], index:21, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 18", paths:[["sp/quest/scene/character/body/", "png"]], index:22, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 19", paths:[["sp/quest/scene/character/body/", "png"]], index:23, icon:"assets/ui/result_icon/scene.png"},
+                {name:"Chapter 20", paths:[["sp/quest/scene/character/body/", "png"]], index:24, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Ending", paths:[["sp/quest/scene/character/body/", "png"]], index:3, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:4, icon:"assets/ui/result_icon/art.png", open:true}
             ];
