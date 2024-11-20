@@ -2525,7 +2525,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
                 case "holiday": i.classList.add("tag-series-holiday"); break;
                 case "12generals": i.classList.add("tag-series-zodiac"); break;
                 case "fantasy": i.classList.add("tag-series-fantasy"); break;
-                case "tie-in": i.classList.add("tag-series-tiein"); break;
+                case "collab": i.classList.add("tag-series-collab"); break;
                 case "eternals": i.classList.add("tag-series-eternal"); break;
                 case "evokers": i.classList.add("tag-series-evoker"); break;
                 case "4saints": i.classList.add("tag-series-saint"); break;
