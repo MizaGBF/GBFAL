@@ -2071,7 +2071,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "q"+id;
             search_type = 7;
             assets = [
-                {name:"Sky Compass", paths:[["", ""]], index:20, icon:"assets/ui/result_icon/skycompass.png", skycompass:true},
+                {name:"Sky Compass", paths:[["", ""]], index:25, icon:"assets/ui/result_icon/skycompass.png", skycompass:true},
                 {name:"Opening", paths:[["sp/quest/scene/character/body/", "png"]], index:2, icon:"assets/ui/result_icon/scene.png", open:true},
                 {name:"Chapter 1", paths:[["sp/quest/scene/character/body/", "png"]], index:5, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Chapter 2", paths:[["sp/quest/scene/character/body/", "png"]], index:6, icon:"assets/ui/result_icon/scene.png"},
