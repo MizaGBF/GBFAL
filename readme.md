@@ -65,14 +65,14 @@ Action parameters (Only one of those can be used at a time):
 - `-bg`: Update all background datas. Time consuming.  
   
 > [!TIP]  
-> For an "every day" use case, you'll only need:  
+> For an **"every day" use case**, you'll only need to:  
 > Use `-run` after game updates.  
 > Use `-update` for element uncaps or if an older NPC got new arts, with their IDs.  
 > Use `-eventedit` if a new event didn't get its thumbnail automatically set.  
 > Use `-job` and `-jobedit` when new MC classes or skins are released to find and set their datas.  
   
 > [!TIP]  
-> For maintenance purpose, you might need the following, once in a while:  
+> For **maintenance purpose**, you might need, once in a while, to:  
 > Use `-lookup` to manually update the lookup table. It's usually called automatically after `-update`.  
 > Use `-scenefull` or its variants to update specific scene files. For example, if a new file name has been noticed to be missing, you can add the related suffixes in `updater.py` to `SCENE_SUFFIXES` and then run `-scenefull` followed by the suffix to only search for those files and save on time and bandwidth. This commands supports resuming.  
 > Use `-sound` to update sound files. Unlike `-scenefull`, you can't search for specific files but you can set IDs to update. Or you can `update_chara_sound_file_prep` in `updater.py` to reduce the scope to certain files and save time.  This commands supports resuming.  
@@ -83,7 +83,7 @@ You can pause `updater.py` with a simple `CTRL+C`. It opens a CLI letting you sa
 It'll also show you the current number of cleared tasks.  
 This number can be provided to some commands (like `-scenefull` and `-sound`) to resume later.  
   
-> [!TIP] 
+> [!NOTE] 
 > For example, let's say you must stop `-scenefull`.
 > Do `CTRL+C`. Type `save` to save any pending changes.  
 > Take note of the current State shown. For our example, let's say it's 3547/11763.  
