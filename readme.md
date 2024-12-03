@@ -13,7 +13,7 @@ There are two pages:
 - The Asset Lookup, to search assets, consisting of one HTML, one javascript and one css files.  
 - The Spark Maker, for users to keep track of their "spark", which has its own HTML, javascript and css files too, on top of reusing the Asset Lookup javascript and css files. 
   
-> [!INFORMATION]  
+> [!NOTE]  
 > These pages are static and are currently hosted on [Github Pages](https://pages.github.com/), but it can technically be hosted anywhere.  
   
 # Back-End  
