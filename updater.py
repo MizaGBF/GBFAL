@@ -204,7 +204,7 @@ class Updater():
     }
     MALINDA = "3030093000"
     PARTNER_STEP = 10
-    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Rosetta/Dev'
+    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     # scene string
     SCENE_SUFFIXES = {
         "default": {
