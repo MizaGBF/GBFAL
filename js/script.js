@@ -94,6 +94,20 @@ const NPCS = [
     ["Year 2016 (Monkey)", "assets/ui/index_icon/year_2016_(monkey).png", "99", [378, 476], [476, 603]],
     ["Years 2014 & 2015", "assets/ui/index_icon/years_2014_&_2015.png", "99", [0, 239], [239, 378]]
 ];
+const EVENTS = [
+    ["Special", "assets/ui/icon/other.png", ""],
+    ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", "24"],
+    ["Year 2023 (Rabbit)", "assets/ui/index_icon/year_2023_(rabbit).png", "23"],
+    ["Year 2022 (Tiger)", "assets/ui/index_icon/year_2022_(tiger).png", "22"],
+    ["Year 2021 (Ox)", "assets/ui/index_icon/year_2021_(ox).png", "21"],
+    ["Year 2020 (Rat)", "assets/ui/index_icon/year_2020_(rat).png", "20"],
+    ["Year 2019 (Pig)", "assets/ui/index_icon/year_2019_(pig).png", "19"],
+    ["Year 2018 (Dog)", "assets/ui/index_icon/year_2018_(dog).png", "18"],
+    ["Year 2017 (Chicken)", "assets/ui/index_icon/year_2017_(chicken).png", "17"],
+    ["Year 2016 (Monkey)", "assets/ui/index_icon/year_2016_(monkey).png", "16"],
+    ["Year 2015 (Sheep)", "assets/ui/index_icon/year_2015_(sheep).png", "15"],
+    ["Year 2014", "assets/ui/index_icon/year_2014.png", "14"]
+];
 const SKILLS = [
     ["assets/ui/index_icon/skill1.png", [0, 250], [250, 500], [500, 750], [750, 1000]],
     ["assets/ui/index_icon/skill2.png", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000]],
@@ -371,13 +385,18 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        elems = makeIndexSummary(content, "Events", false, 0, "assets/ui/icon/events.png");
+        parents = makeIndexSummary(content, "Events", true, 0, "assets/ui/icon/events.png");
+        for(let i of EVENTS)
         {
-            const tmp = elems[0];
-            elems[1].onclick = function (){
-                display(tmp, 'events', null, null, false, true);
-                this.onclick = null;
-            };
+            let elems = makeIndexSummary(parents[0], i[0], false, 1, i[1]);
+            for(let j = 1; j < i.length; ++j)
+            {
+                const tmp = [elems[0], i[2]];
+                elems[1].onclick = function (){
+                    display(elems[0], 'events', tmp[1], null, false, true, tmp[1] == "" ? "No particular order" : null);
+                    this.onclick = null;
+                };
+            }
         }
         parents = makeIndexSummary(content, "Skills", true, 0, "assets/ui/icon/skills.png");
         for(let i of SKILLS)
@@ -1009,9 +1028,14 @@ function display_story(id, data, unusedA = null, unusedB = null)
     return [["ms"+id, "story", "Chapter " + parseInt(id), null, null]];
 }
 
-function display_events(id, data, unusedA = null, unusedB = null)
+function display_events(id, data, idfilter = null, unusedB = null)
 {
     if(!data) return null;
+    if(idfilter != null)
+    {
+        if(idfilter == "" && !isNaN(id)) return
+        else if(!id.startsWith(idfilter)) return
+    }
     let has_file = false;
     let path = "";
     let className = "";
