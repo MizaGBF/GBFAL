@@ -183,6 +183,23 @@ class Updater():
     QUEUE_KEY = ['uncap_queue', 'scene_queue', 'sound_queue']
     STRING_CHAR = string.ascii_lowercase + string.digits
     MISSING_EVENTS = ["201017", "211017", "221017", "231017", "241017", "200214", "210214", "220214", "230214", "240214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "200101", "210101", "220101", "230101", "240101"] + ["131201", "140330", "160430", "161031", "161227", "170501", "170801", "171129", "180301", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181214", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304"]
+    SPECIAL_EVENTS = {
+       "221121":"221121_arcarum_maria",
+       "230322":"230322_arcarum_caim",
+       "230515":"230515_arcarum_nier",
+       "230607":"230607_arcarum_estarriola",
+       "230723":"230723_arcarum_fraux",
+       "230816":"230816_arcarum_lobelia",
+       "231007":"231007_arcarum_geisenborger",
+       "231114":"231114_arcarum_haaselia",
+       "240122":"240122_arcarum_alanaan",
+       "240322":"240322_arcarum_katzelia",
+       "241017":"20241017",
+       "241206":"terra_anre_feower",
+       "babyl0":"babeel_01",
+       "dread0":"dreadbarrage",
+       "alchm0":"kaitaku_renkin_hwop"
+    }
     CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
     SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
     UNIQUE_SKIN = ["311301", "311302"]
@@ -2776,6 +2793,9 @@ class Updater():
                 t = e['time start'].split(' ', 1)[0].split('-')
                 t = t[0][2:] + t[1] + t[2]
                 l.append(t)
+            # add special events
+            for k in self.SPECIAL_EVENTS:
+                l.append(k)
         except:
             pass
         l = list(set(l))
@@ -2831,7 +2851,10 @@ class Updater():
             check = {}
             self.progress = Progress(self)
             for ev in known_events:
-                if ev in self.data["events"]: # event already registered
+                if not ev.isdigit():
+                    if ev not in self.data["events"]:
+                        check[ev] = 0
+                elif ev in self.data["events"]: # event already registered
                     if now >= int(ev) and now_day - self.ev2daycount(ev) <= 14: # if event is recent (2 weeks)
                         check[ev] = self.data["events"][ev][self.EVENT_CHAPTER_COUNT] # add to check list
                         if self.data["events"][ev][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
@@ -2848,7 +2871,7 @@ class Updater():
                                thumbnail_check.append(ev)
             self.progress.set(total=len(tasks), silent=False)
         if len(tasks) > 0: # processing tasks
-            print(len(check.keys()), "potential new event(s)")
+            print(len(check.keys()), "potential new event(s), checking...")
             for t in tasks:
                 r = t.result()
                 ev = r[0]
@@ -2884,20 +2907,6 @@ class Updater():
 
     # Check the given event list for potential art pieces
     async def update_event(self, events : list, full : bool = False, skip : int = 0) -> None:
-        # dig
-        special_events = {
-           "221121": "_arcarum_maria",
-           "230322": "_arcarum_caim",
-           "230515": "_arcarum_nier",
-           "230607": "_arcarum_estarriola",
-           "230723": "_arcarum_fraux",
-           "230816": "_arcarum_lobelia",
-           "231007": "_arcarum_geisenborger",
-           "231114": "_arcarum_haaselia",
-           "240122": "_arcarum_alanaan",
-           "240322": "_arcarum_katzelia",
-        }
-        
         print("Checking for content of", len(events), "event(s)")
         if skip > 0:
             print("(Skipping the first {} tasks(s) )".format(skip))
@@ -2908,7 +2917,8 @@ class Updater():
             if full and ev not in self.data["events"]:
                 self.data["events"][ev] = self.create_event_container()
             if ev in self.data["events"] and (full or (not full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0)):
-                new_format = int(ev) == 241017 # keep in min for later if we need to improve this (only used by halloween 2024 for now)
+                name = self.SPECIAL_EVENTS.get(ev, ev)
+                prefix = "evt" if name.isdigit() else ""
                 known_assets = set()
                 for i in range(self.EVENT_OP, len(self.data["events"][ev])):
                     for e in self.data["events"][ev][i]:
@@ -2917,36 +2927,25 @@ class Updater():
                 if full: ch_count = self.EVENT_MAX_CHAPTER
                 else: ch_count = self.data["events"][ev][self.EVENT_CHAPTER_COUNT]
                 for j in range(self.EVENT_UPDATE_COUNT):
-                    if not new_format:
-                        if ev not in special_events:
-                            for i in range(1, ch_count+1):
-                                fn = "scene_evt{}_cp{}".format(ev, str(i).zfill(2))
-                                tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                                if i < 10:
-                                    fn = "scene_evt{}_cp{}".format(ev, i)
-                                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                            for ch in ["op", "ed"]:
-                                fn = "scene_evt{}_{}".format(ev, ch)
-                                tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                            fn = "evt{}".format(ev)
-                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                        fn = "scene_evt{}".format(ev) + special_events.get(ev, '')
+                    for i in range(1, ch_count+1):
+                        fn = "scene_{}{}_cp{}".format(prefix, name, str(i).zfill(2))
                         tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    else: # bandaid, for now
-                        if ev not in special_events:
-                            for i in range(1, ch_count+1):
-                                fn = "scene_evt20{}_cp{}".format(ev, str(i).zfill(2))
-                                tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                                if i < 10:
-                                    fn = "scene_evt20{}_cp{}".format(ev, i)
-                                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                            for ch in ["op", "ed"]:
-                                fn = "scene_evt20{}_{}".format(ev, ch)
-                                tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                            fn = "evt{}".format(ev)
+                        if i < 10:
+                            fn = "scene_{}{}_cp{}".format(prefix, name, i)
                             tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                        fn = "scene_evt20{}".format(ev) + special_events.get(ev, '')
+                    for ch in ["op", "ed"]:
+                        fn = "scene_{}{}_{}".format(prefix, name, ch)
                         tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                    fn = "{}{}".format(prefix, name)
+                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                    fn = "scene_{}{}".format(prefix, name)
+                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                    if ev == "babyl0": # special exception
+                        for ss in range(1, 30):
+                            fn = "scene_babeel_01_ed{}".format(ss)
+                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
+                            fn = "scene_babeel_ed{}".format(ss)
+                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
         self.progress = Progress(self, total=len(tasks), silent=False, current=skip)
         if skip > 0:
             tasks = tasks[skip:]
@@ -2958,21 +2957,19 @@ class Updater():
                     ev = r[0]
                     if len(r[1])  > 0:
                         for e in r[1]:
-                            try:
-                                x = e.split("_")[2]
-                                match x:
-                                    case "op":
-                                        target = self.EVENT_OP
-                                    case "ed":
-                                        target = self.EVENT_ED
-                                    case "osarai":
-                                        target = self.EVENT_INT
-                                    case _:
-                                        if "_cp" in e:
-                                            target = self.EVENT_CHAPTER_START-1+int(x[2:])
-                                        else:
-                                            target = self.EVENT_INT
-                            except:
+                            if "op_" in e:
+                                target = self.EVENT_OP
+                            elif "ed_" in e or "_ed" in e:
+                                target = self.EVENT_ED
+                            elif "osarai" in e:
+                                target = self.EVENT_INT
+                            elif "_cp" in e:
+                                try:
+                                    target = self.EVENT_CHAPTER_START-1+int(e.split('_cp', 1)[1].split('_', 1)[0])
+                                except Exception as test:
+                                    print(test)
+                                    target = self.EVENT_INT
+                            else:
                                 target = self.EVENT_INT
                             if e not in self.data["events"][ev][target]:
                                 self.data["events"][ev][target].append(e)
@@ -3176,7 +3173,7 @@ class Updater():
                     await self.update_all_event_skycompass()
                 case "5":
                     while True:
-                        s = input("Input a list of Event date or a combo date:thumbnail (Leave blank to cancel):")
+                        s = input("Input a list of Event ID or a combo ID:thumbnail (Leave blank to cancel):")
                         if s != "":
                             th = None
                             if ":" in s:
@@ -3194,7 +3191,7 @@ class Updater():
                             break
                     self.save()
                 case "6":
-                    s = input("Input a list of Event dates to associate (Leave blank to continue):")
+                    s = input("Input a list of Event ID to associate (Leave blank to continue):")
                     await self.event_thumbnail_association(s.split(" "))
                 case "7":
                     for ev in self.data["events"]:
@@ -3551,7 +3548,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.47\n")
+                print("GBFAL updater v2.48\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])

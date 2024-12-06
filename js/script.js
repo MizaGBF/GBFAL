@@ -1575,7 +1575,7 @@ function lookup(id) // check element validity and either load it or return searc
                 }
                 break;
             case 7:
-                if(id.toLowerCase()[0] === 'q' && !isNaN(id.slice(1)))
+                if(id.toLowerCase()[0] === 'q' && id.slice(1) in index["events"])
                 {
                     target = "events";
                     id = id.slice(1);
@@ -2354,7 +2354,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     // cleanup output
     output.innerHTML = "";
     // create header
-    let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + " (20"+id.substring(0,2)+"/"+id.substring(2,4)+"/"+id.substring(4,6)+")") : addResultHeader("Result Header", name + ": " + id);
+    let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + (isNaN(id.slice(1)) ? "" : " (20"+id.substring(0,2)+"/"+id.substring(2,4)+"/"+id.substring(4,6)+")")) : addResultHeader("Result Header", name + ": " + id);
     // add next/previous
     if(indexed)
     {

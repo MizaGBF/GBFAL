@@ -75,7 +75,7 @@ where:
 - `title`: Object of ID, integer pairs, for title screens. The integer is unused. Simply use `sp/top/bg/bg_ID.jpg`.  
 - `suptix`: Object of ID, integer pairs, for surprise ticket banners. The integer is unused. Simply use `sp/gacha/campaign/surprise/top_ID.jpg`.  
 - `lookup`: Object of ID, string pairs. It's used to create the tag lists on GBFAL. The ID can be found in any other index and the string is the list of tags. The element starting with `@@` corresponds to the wiki link.  
-- `events`: Object of ID, data pairs for MC classes or skins. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
+- `events`: Object of ID, data pairs for events. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of twenty one elements. (`[CHAPTER_COUNT, THUMBNAIL_ID, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]`).  
     - Index 0: An integer, the estimated number of chapters in the event. Set to **-1** if no chapters is found, **0** if the number of chapters is unknown.  
     - Index 1. An integer, the event thumbnail ID. Set to **null** if not set.  
