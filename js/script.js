@@ -3035,10 +3035,10 @@ function randomLookup()
                 {
                     case "enemies":
                         lookup("e"+keys[e][roll]);
-                        break;
+                        return;
                     default:
                         lookup(keys[e][roll]);
-                        break;
+                        return;
                 }
             }
         }
