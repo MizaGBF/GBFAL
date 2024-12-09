@@ -1565,7 +1565,7 @@ function filter() // called by the search filter (onkeyup event)
     }, 1000);
 }
 
-function lookup(id) // check element validity and either load it or return search results
+function lookup(id, allow_open=true) // check element validity and either load it or return search results
 {
     try
     {
@@ -1655,16 +1655,16 @@ function lookup(id) // check element validity and either load it or return searc
             {
                 if(index[target][id] !== 0)
                 {
-                    loadAssets(id, index[target][id], target);
+                    loadAssets(id, index[target][id], target, true, allow_open);
                 }
                 else
                 {
-                    loadDummy(id, target);
+                    loadDummy(id, target, allow_open);
                 }
             }
             else
             {
-                loadDummy(id, target);
+                loadDummy(id, target, allow_open);
             }
         }
         else search(id);
@@ -1882,7 +1882,7 @@ function toggleSearchFilter(indice)
     updateSearchResuls(false);
 }
 
-function loadDummy(id, target)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder
+function loadDummy(id, target, allow_open)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder
 {
     let data = null;
     switch(target)
@@ -1922,11 +1922,11 @@ function loadDummy(id, target)// minimal load of an element not indexed or not f
     }
     if(data != null)
     {
-        loadAssets(id, data, target, false);
+        loadAssets(id, data, target, false, allow_open);
     }
 }
 
-function loadAssets(id, data, target, indexed = true)
+function loadAssets(id, data, target, indexed, allow_open)
 {
     beep();
     endpoint_count = -1;
@@ -1950,7 +1950,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 1;
             assets = [
-                {name:"Journal Arts", paths:[["sp/assets/weapon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:true},
+                {name:"Journal Arts", paths:[["sp/assets/weapon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:allow_open},
                 {name:"Miscellaneous Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"assets/ui/result_icon/other.png"},
                 {name:"Various Portraits", paths:[["sp/assets/weapon/m/", "jpg"], ["sp/assets/weapon/s/", "jpg"], ["sp/assets/weapon/ls/", "jpg"]], icon:"assets/ui/result_icon/portrait.png", index:0},
                 {name:"Sprites", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0},
@@ -1969,7 +1969,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 2;
             assets = [
-                {name:"Journal Arts", paths:[["sp/assets/summon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:true},
+                {name:"Journal Arts", paths:[["sp/assets/summon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:allow_open},
                 {name:"Home Page", paths:[["sp/assets/summon/my/", "png"]], index:0, icon:"assets/ui/result_icon/home.png", home:true},
                 {name:"Miscellaneous Arts", paths:[["sp/assets/summon/summon_evolution/main/", "png"], ["sp/assets/summon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"assets/ui/result_icon/other.png"},
                 {name:"Various Portraits", paths:[["sp/assets/summon/m/", "jpg"], ["sp/assets/summon/s/", "jpg"], ["sp/assets/summon/party_main/", "jpg"], ["sp/assets/summon/party_sub/", "jpg"], ["sp/assets/summon/detail/", "png"]], index:0, icon:"assets/ui/result_icon/portrait.png"},
@@ -1987,7 +1987,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 3;
             assets = [
-                {name:"Main Arts", paths:[["sp/assets/npc/zoom/", "png"]], index:5, icon:"assets/ui/result_icon/art.png", skycompass:true, form:false, open:true},
+                {name:"Main Arts", paths:[["sp/assets/npc/zoom/", "png"]], index:5, icon:"assets/ui/result_icon/art.png", skycompass:true, form:false, open:allow_open},
                 {name:"Home Page", paths:[["sp/assets/npc/my/", "png"]], index:5, icon:"assets/ui/result_icon/home.png", form:false, home:true},
                 {name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:5, icon:"assets/ui/result_icon/journal.png", form:false},
                 {name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:6, icon:"assets/ui/result_icon/other.png", form:false},
@@ -2017,7 +2017,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 6;
             assets = [
-                {name:"Party Portraits", paths:[["sp/assets/npc/quest/", "jpg"]], index:5, icon:"assets/ui/result_icon/portrait.png", form:false, open:true},
+                {name:"Party Portraits", paths:[["sp/assets/npc/quest/", "jpg"]], index:5, icon:"assets/ui/result_icon/portrait.png", form:false, open:allow_open},
                 {name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"assets/ui/result_icon/battle.png"},
                 {name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"assets/ui/result_icon/cb.png", form:false},
                 {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/spritesheet.png", index:0},
@@ -2033,10 +2033,10 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 5;
             assets = [
-                {name:"Portrait", paths:[["sp/assets/npc/m/", "jpg"]], index:-1, icon:"assets/ui/result_icon/portrait.png", open:true},
-                {name:"Arts", paths:[["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], icon:"assets/ui/result_icon/art.png", index:-1, open:true}
+                {name:"Portrait", paths:[["sp/assets/npc/m/", "jpg"]], index:-1, icon:"assets/ui/result_icon/portrait.png", open:allow_open},
+                {name:"Arts", paths:[["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], icon:"assets/ui/result_icon/art.png", index:-1, open:allow_open}
             ];
-            openscene = true;
+            openscene = allow_open;
             npcdata = data[1];
             sounds = data[2];
             files = [id, id + "_01"];
@@ -2046,8 +2046,8 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "e"+id;
             search_type = 4;
             assets = [
-                {name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:0, icon:"assets/ui/result_icon/eicon.png", open:true},
-                {name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/appear.png", open:true},
+                {name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:0, icon:"assets/ui/result_icon/eicon.png", open:allow_open},
+                {name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/appear.png", open:allow_open},
                 {name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/spritesheet.png"},
                 {name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/auto.png"},
                 {name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"assets/ui/result_icon/ca.png"},
@@ -2061,9 +2061,9 @@ function loadAssets(id, data, target, indexed = true)
             last_id = id;
             search_type = 0;
             assets = [
-                {name:"Icon", paths:[["sp/ui/icon/job/", "png"]], index:0, icon:"assets/ui/result_icon/jicon.png", open:true},
-                {name:"Portraits", paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:1, icon:"assets/ui/result_icon/portrait.png", open:true},
-                {name:"Full Arts", paths:[["sp/assets/leader/job_change/", "png"]], index:3, icon:"assets/ui/result_icon/art.png", skycompass:true, open:true},
+                {name:"Icon", paths:[["sp/ui/icon/job/", "png"]], index:0, icon:"assets/ui/result_icon/jicon.png", open:allow_open},
+                {name:"Portraits", paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:1, icon:"assets/ui/result_icon/portrait.png", open:allow_open},
+                {name:"Full Arts", paths:[["sp/assets/leader/job_change/", "png"]], index:3, icon:"assets/ui/result_icon/art.png", skycompass:true, open:allow_open},
                 {name:"Home Page", paths:[["sp/assets/leader/my/", "png"]], index:3, icon:"assets/ui/result_icon/home.png", home:true},
                 {name:"Profile Page", paths:[["sp/assets/leader/pm/", "png"]], index:3, icon:"assets/ui/result_icon/profile.png", profile:true},
                 {name:"Class Unlock", paths:[["sp/assets/leader/jobtree/", "png"], ["sp/ui/job_name_tree_l/", "png"]], index:0, icon:"assets/ui/result_icon/unlock.png", lazy:false},
@@ -2087,7 +2087,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "ms"+id;
             search_type = 11;
             assets = [
-                {name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"assets/ui/result_icon/art.png", open:true}
+                {name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"assets/ui/result_icon/art.png", open:allow_open}
             ];
             break;
         case "events":
@@ -2096,7 +2096,7 @@ function loadAssets(id, data, target, indexed = true)
             search_type = 7;
             assets = [
                 {name:"Sky Compass", paths:[["", ""]], index:25, icon:"assets/ui/result_icon/skycompass.png", skycompass:true},
-                {name:"Opening", paths:[["sp/quest/scene/character/body/", "png"]], index:2, icon:"assets/ui/result_icon/scene.png", open:true},
+                {name:"Opening", paths:[["sp/quest/scene/character/body/", "png"]], index:2, icon:"assets/ui/result_icon/scene.png", open:allow_open},
                 {name:"Chapter 1", paths:[["sp/quest/scene/character/body/", "png"]], index:5, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Chapter 2", paths:[["sp/quest/scene/character/body/", "png"]], index:6, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Chapter 3", paths:[["sp/quest/scene/character/body/", "png"]], index:7, icon:"assets/ui/result_icon/scene.png"},
@@ -2118,7 +2118,7 @@ function loadAssets(id, data, target, indexed = true)
                 {name:"Chapter 19", paths:[["sp/quest/scene/character/body/", "png"]], index:23, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Chapter 20", paths:[["sp/quest/scene/character/body/", "png"]], index:24, icon:"assets/ui/result_icon/scene.png"},
                 {name:"Ending", paths:[["sp/quest/scene/character/body/", "png"]], index:3, icon:"assets/ui/result_icon/scene.png"},
-                {name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:4, icon:"assets/ui/result_icon/art.png", open:true}
+                {name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:4, icon:"assets/ui/result_icon/art.png", open:allow_open}
             ];
             skycompass = ["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png", true];
             break;
@@ -2127,7 +2127,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "sk"+id;
             search_type = 8;
             assets = [
-                {name:"Skill Icons", paths:[["sp/ui/icon/ability/m/", "png"]], index:-1, icon:"assets/ui/result_icon/ability.png", open:true},
+                {name:"Skill Icons", paths:[["sp/ui/icon/ability/m/", "png"]], index:-1, icon:"assets/ui/result_icon/ability.png", open:allow_open},
             ];
             files = [""+parseInt(id), ""+parseInt(id)+"_1", ""+parseInt(id)+"_2", ""+parseInt(id)+"_3", ""+parseInt(id)+"_4", ""+parseInt(id)+"_5"];
             break;
@@ -2136,7 +2136,7 @@ function loadAssets(id, data, target, indexed = true)
             last_id = "b"+id;
             search_type = 9;
             assets = [
-                {name:"Icons", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:0, icon:"assets/ui/result_icon/buff.png", open:true}
+                {name:"Icons", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:0, icon:"assets/ui/result_icon/buff.png", open:allow_open}
             ];
             let tmp = getBuffSets(id, data, assets);
             data = tmp[0];
@@ -3034,10 +3034,10 @@ function randomLookup()
                 switch(e) // lookup at selected position
                 {
                     case "enemies":
-                        lookup("e"+keys[e][roll]);
+                        lookup("e"+keys[e][roll], false);
                         return;
                     default:
-                        lookup(keys[e][roll]);
+                        lookup(keys[e][roll], false);
                         return;
                 }
             }
