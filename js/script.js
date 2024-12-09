@@ -2138,7 +2138,7 @@ function loadAssets(id, data, target, indexed, allow_open)
             assets = [
                 {name:"Icons", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:0, icon:"assets/ui/result_icon/buff.png", open:allow_open}
             ];
-            let tmp = getBuffSets(id, data, assets);
+            let tmp = getBuffSets(id, data, assets, allow_open);
             data = tmp[0];
             assets = tmp[1];
             break;
@@ -2892,7 +2892,7 @@ function addSound(div, id, sound) // add a sound asset
     return elem;
 }
 
-function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to deal with, this is the best I can do for now
+function getBuffSets(id, data, assets, allow_open) // MESS WARNING!! buffs are a pain to deal with, this is the best I can do for now
 {
     let iid = parseInt(id);
     let tmp = data[0][0];
@@ -2919,21 +2919,21 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
         data.push([]);
         for(let i = 0; i < 31; ++i)
             data[data.length-1].push(""+iid+"_"+i);
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_1.png", open:true});
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_1.png", open:allow_open});
     }
     else if(vu1)
     {
         data.push([]);
         for(let i = 0; i < 10; ++i)
             data[data.length-1].push(""+iid+"_"+i);
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_2.png", open:true});
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_2.png", open:allow_open});
     }
     if(v1) // weird exception for satyr and siete (among maybe others)
     {
         data.push([]);
         for(let i = 0; i < 21; ++i)
             data[data.length-1].push(""+iid+""+i);
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_3.png", open:true});
+        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_3.png", open:allow_open});
     }
     if(vu10 && vu30)
     {
@@ -2980,7 +2980,7 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
             data.push([]);
             for(let i = 1; i < 21; ++i)
                 data[data.length-1].push(""+iid+"_1"+JSON.stringify(i).padStart(2, '0'));
-            assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_8.png", open:true});
+            assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_8.png", open:allow_open});
         }
     }
     if(vu0u10 && !vu1u10)
