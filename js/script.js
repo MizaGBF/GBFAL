@@ -3008,3 +3008,39 @@ function getBuffSets(id, data, assets) // MESS WARNING!! buffs are a pain to dea
     }
     return [data, assets];
 }
+
+function randomLookup()
+{
+    const targets = ["characters", "summons", "weapons", "enemies", "skins", "job", "npcs"]; // limited to these caregories
+    let total = 0;
+    let keys = {}
+    // count how many elements
+    for(let e of targets)
+    {
+        keys[e] = Object.keys(index[e]);
+        total += keys[e].length;
+    }
+    if(!isNaN(total) && total > 0)
+    {
+        let roll = Math.floor(Math.random()*total); // roll dice between 0 and total (excluded)
+        for(let e of targets) // loop over targets again
+        {
+            if(roll >= keys[e].length) // if we're outside bounds of current category
+            {
+                roll -= keys[e].length; // remove excess
+            }
+            else
+            {
+                switch(e) // lookup at selected position
+                {
+                    case "enemies":
+                        lookup("e"+keys[e][roll]);
+                        break;
+                    default:
+                        lookup(keys[e][roll]);
+                        break;
+                }
+            }
+        }
+    }
+}
