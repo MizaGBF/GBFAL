@@ -5410,6 +5410,12 @@
 "8104293":"vortex dragon tonitrus $$light",
 "8104303":"jack-o'-lantern $$dark",
 "8104313":"commander of destruction $$earth",
+"8104323":null,
+"8104333":null,
+"8104343":null,
+"8104353":null,
+"8104363":null,
+"8104373":null,
 "8200011":"wind elemental $$wind",
 "8200012":"wind elemental $$wind",
 "8200013":"boslavia tempest $$wind",
@@ -5769,5 +5775,6 @@
 "9102553":"tsuchinoko $$earth",
 "9102562":"true dragon chimera milvel collab $$wind",
 "9102563":"true dragon chimera milvel collab $$wind",
+"9102593":null,
 "9102603":"farbigrabe $$fire"
 }
