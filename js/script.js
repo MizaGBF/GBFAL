@@ -98,7 +98,7 @@ const NPCS = [
 ];
 const EVENTS = [
     ["Special", "assets/ui/icon/other.png", ""],
-    ["Year 2025 (Snake)", "assets/ui/index_icon/year_2025_(dragon).png", "25"],
+    ["Year 2025 (Snake)", "assets/ui/index_icon/year_2024_(dragon).png", "25"],
     ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", "24"],
     ["Year 2023 (Rabbit)", "assets/ui/index_icon/year_2023_(rabbit).png", "23"],
     ["Year 2022 (Tiger)", "assets/ui/index_icon/year_2022_(tiger).png", "22"],
