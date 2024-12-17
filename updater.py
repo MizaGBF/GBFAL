@@ -2645,7 +2645,7 @@ class Updater():
                                             for c in v:
                                                 looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
                                         case "_pageName":
-                                            wiki = "@@" + v.replace(' ', '_') + " "
+                                            wiki = "@@" + html.unescape(v).replace(' ', '_') + " "
                                         case "rarity":
                                             looks.append(v.lower())
                                         case "race":
@@ -2686,7 +2686,7 @@ class Updater():
                             id = str(item['id']).split('_', 1)[0]
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
-                        looks = wiki + html.unescape(html.unescape(" ".join(looks))).replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
+                        looks = wiki + html.unescape(" ".join(looks)).replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
                         # voice
                         if len(id) == 10 and self.data["npcs"].get(id, 0) != 0 and len(self.data["npcs"][id][self.NPC_SOUND]) > 0: # npc sound
                             looks += " voiced"
