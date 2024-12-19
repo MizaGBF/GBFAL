@@ -20,8 +20,8 @@ const DUMMY_SCENE = ["", "_a", "_b", "_up", "_down", "_laugh", "_wink", "_shout"
 const NO_BUBBLE_FILTER = ["b1", "b2", "b3", "speed", "line", "up", "up2", "up3", "up4", "down", "shadow", "shadow2", "shadow3", "damage", "light", "vanish", "vanish1", "vanish2", "fadein1", "blood"];
 // HTML UI indexes
 const CHARACTERS = [
-    ["Year 2025 (Snake)", "assets/ui/index_icon/year_2024_(dragon).png", [0, -1, 0, -1, 551, 999]],
-    ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", [0, -1, 0, -1, 504, 551]],
+    ["Year 2025 (Snake)", "assets/ui/index_icon/year_2024_(dragon).png", [0, -1, 0, -1, 571, 999]],
+    ["Year 2024 (Dragon)", "assets/ui/index_icon/year_2024_(dragon).png", [0, -1, 0, -1, 504, 571]],
     ["Year 2023 (Rabbit)", "assets/ui/index_icon/year_2023_(rabbit).png", [0, -1, 0, -1, 443, 504]],
     ["Year 2022 (Tiger)", "assets/ui/index_icon/year_2022_(tiger).png", [0, -1, 0, -1, 379, 443]],
     ["Year 2021 (Ox)", "assets/ui/index_icon/year_2021_(ox).png", [74, 75, 0, -1, 316, 379]],
