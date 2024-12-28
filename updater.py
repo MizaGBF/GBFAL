@@ -3360,7 +3360,7 @@ class Updater():
 
     # check for new fate chapter files
     # note: level is placeholder for later
-    async def check_fate(self, level : int = 0, check_all : bool = False, max_chapter : Optional[str] = None) -> None:
+    async def check_fate(self, level : int = 0, params : str = "") -> None:
         match level:
             case 0: # normal fates
                 prefix = "chr"
@@ -3378,16 +3378,26 @@ class Updater():
             case _:
                 return
         try:
-            max_chapter = int(max_chapter)
+            if params == "":
+                raise Exception()
+            try:
+                min_chapter = int(params)
+                max_chapter = min_chapter
+            except:
+                min_chapter, max_chapter = params.split("-")
+                min_chapter = int(min_chapter)
+                max_chapter = int(max_chapter)
         except:
             try:
                 # retrieve current last chapter from wiki
                 max_chapter = len(self.data['characters'])
             except:
                 max_chapter = 950
-        min_chapter = 0 if check_all else max(max_chapter - 10, 0)
-        max_chapter += 5
-        
+            min_chapter = 0
+            max_chapter += 5
+        min_chapter = max(0, min_chapter)
+        if max_chapter < min_chapter:
+            return
         """
             TODO:
                 check _ep relevancy
@@ -3400,14 +3410,14 @@ class Updater():
         for i in range(min_chapter, max_chapter+1):
             id = str(i).zfill(3)
             fid = str(i).zfill(4)
-            if check_all or fid not in self.data['fate'] or len(self.data['fate'][fid][index]) == 0:
-                fn = "scene_{}{}".format(prefix, i)
+            if fid not in self.data['fate'] or len(self.data['fate'][fid][index]) == 0:
+                fn = "scene_{}{}".format(prefix, id)
                 for j in range(self.STORY_UPDATE_COUNT):
                     tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
                 """for q in range(1, 6):
                     for j in range(self.STORY_UPDATE_COUNT):
                         tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))"""
-                fn = "scene_fate_{}{}".format(prefix, i)
+                fn = "scene_fate_{}{}".format(prefix, id)
                 for j in range(self.STORY_UPDATE_COUNT):
                     tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
                 for q in range(1, 6):
@@ -3415,8 +3425,7 @@ class Updater():
                         tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
         # do and update
         if len(tasks) > 0:
-            if check_all: print("Checking all fates up to {} included...".format(max_chapter))
-            else: print("Checking the {} last fates up to {} included...".format(max_chapter-min_chapter, max_chapter))
+            print("Checking fates from {} to {} included...".format(min_chapter, max_chapter))
             self.progress = Progress(self, total=len(tasks), silent=False)
             async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
                 r = task.result()
@@ -3648,7 +3657,7 @@ class Updater():
         print("-enemy       : Update data for enemies (Time consuming).")
         print("-missingnpc  : Update all missing npcs (Time consuming).")
         print("-story       : Update main story arts. Can add 'all' to update all or a number to specify the chapter.")
-        print("-fate        : Update base fate episode arts. Can add 'all' to update all or a number to specify the chapter.")
+        print("-fate        : Update base fate episode arts. Can specific a chapter or a range (MIN-MAX).")
         print("-event       : Update unique event arts (Very time consuming).")
         print("-eventedit   : Edit event data")
         print("-buff        : Update buff data")
@@ -3736,17 +3745,7 @@ class Updater():
                                     pass
                         await self.check_msq(all, cp)
                     elif "-fate" in flags:
-                        all = False
-                        cp = None
-                        for e in extras:
-                            if e.lower() == "all": all = True
-                            else:
-                                try:
-                                    e = int(e)
-                                    if e >= 0: cp = e
-                                except:
-                                    pass
-                        await self.check_fate(0, all, cp)
+                        await self.check_fate(0, " ".join(extras))
                     elif "-event" in flags: await self.check_new_event()
                     elif "-eventedit" in flags: await self.event_edit()
                     elif "-buff" in flags: await self.update_buff()
