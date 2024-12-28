@@ -388,6 +388,14 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
+        elems = makeIndexSummary(content, "Fate Episodes", false, 0, "assets/ui/icon/fate.png");
+        {
+            const tmp = elems[0];
+            elems[1].onclick = function (){
+                display(tmp, 'fate', null, null, false, true);
+                this.onclick = null;
+            };
+        }
         parents = makeIndexSummary(content, "Events", true, 0, "assets/ui/icon/events.png");
         for(let i of EVENTS)
         {
@@ -764,6 +772,10 @@ function display(node, key, argA, argB, pad, reverse, override_text = null) // g
             callback = display_story;
             image_callback = addTextImage;
             break;
+        case "fate":
+            callback = display_fate;
+            image_callback = addFateImage;
+            break;
         case "events":
             callback = display_events;
             break;
@@ -1035,6 +1047,21 @@ function display_story(id, data, unusedA = null, unusedB = null)
         return [["ms"+id, "story", "Chapter " + parseInt(id), null, null]];
 }
 
+function display_fate(id, data, unusedA = null, unusedB = null)
+{
+    if(data[0].length == 0) return null;
+    if(data[4] != null && "characters" in index && data[4] in index["characters"])
+    {
+        let ret = display_characters(data[4], index["characters"][data[4]], [0, 9999]);
+        if(ret != null)
+        {
+            ret[0][0] = "fa"+id;
+            return ret;
+        }
+    }
+    return [["fa"+id, "fate", "Fate " + id.slice(1), null, null]];
+}
+
 function display_events(id, data, idfilter = null, unusedB = null)
 {
     if(!data) return null;
@@ -1138,6 +1165,19 @@ function display_suptix(id, data, unusedA = null, unusedB = null)
     return [[id, "GBF/assets_en/img_low/sp/gacha/campaign/surprise/top_" + id + ".jpg", null, "preview", true]];
 }
 
+function addFateImage(node, p1, p2, p3, p4, p5)
+{
+    if(p1.startsWith("GBF/"))
+    {
+        let img = addIndexImage(node, p1, p2, p3, p4, p5);
+        img.classList.add("fate-image");
+    }
+    else
+    {
+        addTextImage(node, p1, p2, p3, p4, p5);
+    }
+}
+
 function addIndexImage(node, path, id, onerr, className, is_link) // add an image to an index. path must start with "GBF/" if it's not a local asset.
 {
     if(is_link) // two behavior based on is_link
@@ -1164,6 +1204,7 @@ function addIndexImage(node, path, id, onerr, className, is_link) // add an imag
         img.src = path.replace("GBF/", idToEndpoint(id));
         img.title = "Click to open: " + id;
         a.href = img.src.replace("img_low/", "img/");
+        return img;
     }
     else
     {
@@ -1198,6 +1239,7 @@ function addIndexImage(node, path, id, onerr, className, is_link) // add an imag
             };
         };
         img.src = path.replace("GBF/", idToEndpoint(id));
+        return img;
     }
 }
 
@@ -1222,6 +1264,7 @@ function addTextImage(node, className, id, string, unusedA, unusedB) // like add
     elem.title = id;
     elem.appendChild(document.createTextNode(string));
     node.appendChild(elem);
+    return elem;
 }
 
 // =================================================================================================
@@ -1284,6 +1327,10 @@ function updateList(node, elems) // update a list of elements
                 case 11:
                     res = display_story(e[0], (e[0] in index['story']) ? index['story'][e[0]] : null);
                     image_callback = addTextImage;
+                    break;
+                case 12:
+                    res = display_fate(e[0], (e[0] in index['fate']) ? index['fate'][e[0]] : null);
+                    image_callback = addFateImage;
                     break;
                 case "subskills":
                     res = display_subskills(e[0].split(':')[1], index['subskills'][e[0].split(':')[1]]);
@@ -1616,6 +1663,11 @@ function lookup(id, allow_open=true) // check element validity and either load i
                 if(id.toLowerCase().startsWith('sk') && !isNaN(id.slice(2)))
                 {
                     target = "skills";
+                    id = id.slice(2);
+                }
+                else if(id.toLowerCase().slice(0, 2) === 'fa' && id.slice(2) in index["fate"])
+                {
+                    target = "fate";
                     id = id.slice(2);
                 }
                 else if(!isNaN(id))
@@ -2116,6 +2168,17 @@ function loadAssets(id, data, target, indexed, allow_open)
                 {name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"assets/ui/result_icon/art.png", open:allow_open}
             ];
             break;
+        case "fate":
+            area_name = "Fate Episode";
+            last_id = "fa"+id;
+            search_type = 12;
+            assets = [
+                {name:"Base Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"assets/ui/result_icon/art.png", open:allow_open},
+                {name:"Uncap Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:1, icon:"assets/ui/result_icon/v_uncap.png", open:allow_open},
+                {name:"Transcendence Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:2, icon:"assets/ui/result_icon/v_uncap.png", open:allow_open},
+                {name:"Other Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:3, icon:"assets/ui/result_icon/v_recruit.png", open:allow_open}
+            ];
+            break;
         case "events":
             area_name = "Event";
             last_id = "q"+id;
@@ -2417,8 +2480,8 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             let previous = 0;
             switch(search_type)
             {
-                case 11: case 7:
-                    let si = search_type == 7 ? 2 : 0;
+                case 11: case 12: case 7: // story, fate, event
+                    let si = search_type == 7 ? 2 : 0; // event check index 2, others 0
                     let valid = false;
                     next = c;
                     while(!valid)
@@ -2479,6 +2542,13 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     if(name == "Partner")
     {
         let cid = "30" + id.slice(2);
+        if("characters" in index && cid in index["characters"])
+            lid = cid;
+    }
+    // get chara id if fate episode
+    else if(name.includes("Fate") && data[4] != null)
+    {
+        let cid = data[4].split("_")[0];
         if("characters" in index && cid in index["characters"])
             lid = cid;
     }
@@ -2677,6 +2747,24 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     else if(name == "Partner") // partner chara matching
     {
         let cid = "30" + id.slice(2);
+        if("characters" in index && cid in index["characters"])
+        {
+            if(did_lookup) div.appendChild(document.createElement('br'));
+            div.appendChild(document.createTextNode("Associated Character:"));
+            div.appendChild(document.createElement('br'));
+            let i = document.createElement('i');
+            i.classList.add("clickable");
+            i.onclick = function() {
+                lookup(cid);
+            };
+            div.appendChild(i);
+            updateList(i, [[cid, 3]]);
+        }
+    }
+    // add related character for fate episodes
+    else if(name.includes("Fate") && data[4] != null) // partner chara matching
+    {
+        let cid = data[4].split('_')[0];
         if("characters" in index && cid in index["characters"])
         {
             if(did_lookup) div.appendChild(document.createElement('br'));

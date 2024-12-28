@@ -713,7 +713,7 @@ a:active {
     font-size: 1em;
 }
 
-.story {
+.story, .fate {
     background: url(../assets/ui/event.png) no-repeat;
     background-size: 100% 100%;
     font-size: 16px;
@@ -725,6 +725,16 @@ a:active {
     margin: 0px;
     vertical-align: top;
     position: relative;
+}
+
+.fate-image {
+    border-color: #00ddff;
+    border-radius: 25px;
+    border-style: solid;
+    border-width: 2px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 .sound-file {

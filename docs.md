@@ -76,14 +76,14 @@ where:
 - `suptix`: Object of ID, integer pairs, for surprise ticket banners. The integer is unused. Simply use `sp/gacha/campaign/surprise/top_ID.jpg`.  
 - `lookup`: Object of ID, string pairs. It's used to create the tag lists on GBFAL. The ID can be found in any other index and the string is the list of tags. The element starting with `@@` corresponds to the wiki link.  
 - `events`: Object of ID, data pairs for events. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
-    - General format: A list of twenty one elements. (`[CHAPTER_COUNT, THUMBNAIL_ID, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]`).  
+    - General format: A list of twenty six elements. (`[CHAPTER_COUNT, THUMBNAIL_ID, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]`).  
     - Index 0: An integer, the estimated number of chapters in the event. Set to **-1** if no chapters is found, **0** if the number of chapters is unknown.  
     - Index 1. An integer, the event thumbnail ID. Set to **null** if not set.  
     - Index 2: Opening chapter files.  
     - Index 3: Ending chapter files.  
     - Index 4: Other files.  
-    - Index 5 to 19: Numbered chapter files (**1** to **15**).  
-    - Index 20: Skycompass files.  
+    - Index 5 to 24: Numbered chapter files (**1** to **20**).  
+    - Index 25: Skycompass files.  
 - `skills`: Object of ID (zfilled to string of length 4) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of one single list, containing file names. (`[[]]`).  
     - Index 0: One known file variation of this skill. Not all of them are stored. This index is mostly to track which skills exist.  
@@ -97,6 +97,13 @@ where:
 - `story`: Object of chapter ID (zfilled to string of length 3) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of one single list, containing file names. (`[[]]`).  
     - Index 0: The list of known files.  
+- `fate`: Object of chapter ID (zfilled to string of length 3) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
+    - General format: A list of five elements, four lists containing file names, and an optional string. (`[[], [], [], [], null]`).  
+    - Index 0: The list of known files for base fates.  
+    - Index 1: The list of known files for uncap fates.  
+    - Index 2: The list of known files for transcendence fates.  
+    - Index 3: The list of known files for other fates (cross, etc...).  
+    - Index 4: The related character id.  
 - `premium`: Object listing element IDs obtained via the gachas, along with character/weapon associations.  
 
 # Skycompass  

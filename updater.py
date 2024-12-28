@@ -83,13 +83,12 @@ class Progress():
 class Updater():
     ### CONSTANT
     # limit
-    MAX_NEW = 80
-    MAX_UPDATE = 80
-    MAX_HTTP = 90
-    MAX_UPDATEALL = MAX_HTTP+10
-    MAX_HTTP_WIKI = 20
-    MAX_SCENE_CONCURRENT = 10
-    SOUND_CONCURRENT_PER_STEP = 4
+    MAX_NEW = 100 # changelog limit
+    MAX_UPDATE = 80 # concurrent tasks
+    MAX_HTTP = 90 # concurrent requests
+    MAX_UPDATEALL = MAX_HTTP+10 # concurrent tasks/requests combo
+    MAX_SCENE_CONCURRENT = 10 # concurent scene checks
+    SOUND_CONCURRENT_PER_STEP = 4 # concurent sound checks per step
     LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
     # addition type
     ADD_JOB = 0
@@ -104,6 +103,7 @@ class Updater():
     ADD_BUFF = 9
     ADD_BG = 10
     ADD_STORY = 11
+    ADD_FATE = 12
     PREEMPTIVE_ADD = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs", "background"])
     ADD_SINGLE_ASSET = ["title", "subskills", "suptix"]
     # chara/skin/partner update
@@ -161,6 +161,12 @@ class Updater():
     # story update
     STORY_CONTENT = 0
     STORY_UPDATE_COUNT = 10
+    # fate update
+    FATE_CONTENT = 0
+    FATE_UNCAP_CONTENT = 1
+    FATE_TRANSCENDENCE_CONTENT = 2
+    FATE_OTHER_CONTENT = 3
+    FATE_LINK = 4
     # common to story, event
     SCENE_UPDATE_STEP = 5
     # job update
@@ -357,6 +363,7 @@ class Updater():
             "buffs":{},
             "eventthumb":{},
             "story":{},
+            "fate":{},
             "premium":{}
         }
         self.load() # load self.data NOW
@@ -373,7 +380,6 @@ class Updater():
         # asyncio semaphores
         self.sem = asyncio.Semaphore(self.MAX_UPDATE) # update semaphore
         self.http_sem = asyncio.Semaphore(self.MAX_HTTP) # http semaphore
-        self.wiki_sem = asyncio.Semaphore(self.MAX_HTTP_WIKI) # wiki request semaphor
         
         # others
         self.run_count = 0
@@ -808,6 +814,7 @@ class Updater():
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
             await self.check_msq()
+            await self.check_fate()
             await self.check_new_event()
             await self.update_all_event_skycompass()
             await self.update_npc_thumb()
@@ -3006,7 +3013,7 @@ class Updater():
         print("Done")
         self.save()
 
-    # update_event() and check_msq() subroutine to check for possible art pieces
+    # update_event(), check_fate() and check_msq() subroutine to check for possible art pieces
     async def check_scene_art_list(self, tup : tuple) -> tuple:
         ev, base_url, known_assets, step = tup
         is_tuto = "tuto_scene" in base_url
@@ -3324,8 +3331,6 @@ class Updater():
         for i in range(0, max_chapter+1):
             id = str(i).zfill(3)
             if check_all or id not in self.data['story']:
-                if id not in self.data['story']:
-                    self.data['story'][id] = [[]]
                 if i == 0: fn = "tuto_scene"
                 else: fn = "scene_cp{}".format(i)
                 for j in range(self.STORY_UPDATE_COUNT):
@@ -3343,9 +3348,86 @@ class Updater():
                 if r is not None:
                     id = r[0].zfill(3)
                     if len(r[1]) > 0:
+                        if id not in self.data['story']:
+                            self.data['story'][id] = [[]]
                         self.data['story'][id][self.STORY_CONTENT] += r[1]
                         self.data['story'][id][self.STORY_CONTENT].sort()
                         self.addition[id] = self.ADD_STORY
+                        self.modified = True
+            self.save()
+
+    ### Fates ####################################################################################################################
+
+    # check for new fate chapter files
+    # note: level is placeholder for later
+    async def check_fate(self, level : int = 0, check_all : bool = False, max_chapter : Optional[str] = None) -> None:
+        match level:
+            case 0: # normal fates
+                prefix = "chr"
+                index = self.FATE_CONTENT
+            case 1: # ulb
+                return # disabled
+                prefix = "ult_chr"
+                index = self.FATE_UNCAP_CONTENT
+            case 2: # transcendence
+                return # disabled
+                prefix = "ult2_chr"
+                index = self.FATE_TRANSCENDENCE_CONTENT
+            case 3: # TBD
+                return # disabled
+            case _:
+                return
+        try:
+            max_chapter = int(max_chapter)
+        except:
+            try:
+                # retrieve current last chapter from wiki
+                max_chapter = len(self.data['characters'])
+            except:
+                max_chapter = 950
+        min_chapter = 0 if check_all else max(max_chapter - 10, 0)
+        max_chapter += 5
+        
+        """
+            TODO:
+                check _ep relevancy
+                add parameters to select fate(s) to update
+                add uncap/transcendence
+        """
+        # make list to check
+        tasks = []
+        # chapters
+        for i in range(min_chapter, max_chapter+1):
+            id = str(i).zfill(3)
+            fid = str(i).zfill(4)
+            if check_all or fid not in self.data['fate'] or len(self.data['fate'][fid][index]) == 0:
+                fn = "scene_{}{}".format(prefix, i)
+                for j in range(self.STORY_UPDATE_COUNT):
+                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+                """for q in range(1, 6):
+                    for j in range(self.STORY_UPDATE_COUNT):
+                        tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))"""
+                fn = "scene_fate_{}{}".format(prefix, i)
+                for j in range(self.STORY_UPDATE_COUNT):
+                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+                for q in range(1, 6):
+                    for j in range(self.STORY_UPDATE_COUNT):
+                        tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        # do and update
+        if len(tasks) > 0:
+            if check_all: print("Checking all fates up to {} included...".format(max_chapter))
+            else: print("Checking the {} last fates up to {} included...".format(max_chapter-min_chapter, max_chapter))
+            self.progress = Progress(self, total=len(tasks), silent=False)
+            async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
+                r = task.result()
+                if r is not None:
+                    fid = r[0].zfill(4)
+                    if len(r[1]) > 0:
+                        if fid not in self.data['fate']:
+                            self.data['fate'][fid] = [[], [], [], [], None]
+                        self.data['fate'][fid][index] += r[1]
+                        self.data['fate'][fid][index].sort()
+                        self.addition[fid] = self.ADD_FATE
                         self.modified = True
             self.save()
 
@@ -3455,7 +3537,7 @@ class Updater():
                             if v[self.EVENT_THUMB] is not None: file_estimation += 1
                             for i in range(self.EVENT_OP, self.EVENT_SKY+1):
                                 file_estimation += len(v[i])
-                        case "story":
+                        case "story"|"fate":
                             if v is None or v == 0: continue
                             file_estimation += len(v[self.STORY_CONTENT])
                         case "npcs":
@@ -3566,6 +3648,7 @@ class Updater():
         print("-enemy       : Update data for enemies (Time consuming).")
         print("-missingnpc  : Update all missing npcs (Time consuming).")
         print("-story       : Update main story arts. Can add 'all' to update all or a number to specify the chapter.")
+        print("-fate        : Update base fate episode arts. Can add 'all' to update all or a number to specify the chapter.")
         print("-event       : Update unique event arts (Very time consuming).")
         print("-eventedit   : Edit event data")
         print("-buff        : Update buff data")
@@ -3574,7 +3657,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.49\n")
+                print("GBFAL updater v2.50\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
@@ -3652,6 +3735,18 @@ class Updater():
                                 except:
                                     pass
                         await self.check_msq(all, cp)
+                    elif "-fate" in flags:
+                        all = False
+                        cp = None
+                        for e in extras:
+                            if e.lower() == "all": all = True
+                            else:
+                                try:
+                                    e = int(e)
+                                    if e >= 0: cp = e
+                                except:
+                                    pass
+                        await self.check_fate(0, all, cp)
                     elif "-event" in flags: await self.check_new_event()
                     elif "-eventedit" in flags: await self.event_edit()
                     elif "-buff" in flags: await self.update_buff()
