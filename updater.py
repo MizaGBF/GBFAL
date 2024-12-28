@@ -814,7 +814,7 @@ class Updater():
         if len(self.new_elements) > 0:
             await self.manualUpdate(self.new_elements)
             await self.check_msq()
-            await self.check_fate()
+            await self.check_fate("last")
             await self.check_new_event()
             await self.update_all_event_skycompass()
             await self.update_npc_thumb()
@@ -3358,35 +3358,39 @@ class Updater():
 
     ### Fates ####################################################################################################################
 
+    # generate tasks for check_fate
+    def check_fate_sub(self, i : int, fid : str, nameA : str, nameB : str) -> list:
+        tasks = []
+        # nameA
+        for j in range(self.STORY_UPDATE_COUNT):
+            tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameA, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        for q in range(1, 6):
+            for j in range(self.STORY_UPDATE_COUNT):
+                tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        # nameB
+        for j in range(self.STORY_UPDATE_COUNT):
+            tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameB, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        for q in range(1, 6):
+            for j in range(self.STORY_UPDATE_COUNT):
+                tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        return tasks
+
     # check for new fate chapter files
-    # note: level is placeholder for later
-    async def check_fate(self, level : int = 0, params : str = "") -> None:
-        match level:
-            case 0: # normal fates
-                prefix = "chr"
-                index = self.FATE_CONTENT
-            case 1: # ulb
-                return # disabled
-                prefix = "ult_chr"
-                index = self.FATE_UNCAP_CONTENT
-            case 2: # transcendence
-                return # disabled
-                prefix = "ult2_chr"
-                index = self.FATE_TRANSCENDENCE_CONTENT
-            case 3: # TBD
-                return # disabled
-            case _:
-                return
+    async def check_fate(self, params : str) -> None:
         try:
             if params == "":
                 raise Exception()
-            try:
-                min_chapter = int(params)
-                max_chapter = min_chapter
-            except:
-                min_chapter, max_chapter = params.split("-")
-                min_chapter = int(min_chapter)
-                max_chapter = int(max_chapter)
+            elif params == "last":
+                max_chapter = len(self.data['characters'])
+                min_chapter = max_chapter - 10
+            else:
+                try:
+                    min_chapter = int(params)
+                    max_chapter = min_chapter
+                except:
+                    min_chapter, max_chapter = params.split("-")
+                    min_chapter = int(min_chapter)
+                    max_chapter = int(max_chapter)
         except:
             try:
                 # retrieve current last chapter from wiki
@@ -3410,19 +3414,22 @@ class Updater():
         for i in range(min_chapter, max_chapter+1):
             id = str(i).zfill(3)
             fid = str(i).zfill(4)
-            if fid not in self.data['fate'] or len(self.data['fate'][fid][index]) == 0:
-                fn = "scene_{}{}".format(prefix, id)
-                for j in range(self.STORY_UPDATE_COUNT):
-                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-                """for q in range(1, 6):
-                    for j in range(self.STORY_UPDATE_COUNT):
-                        tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))"""
-                fn = "scene_fate_{}{}".format(prefix, id)
-                for j in range(self.STORY_UPDATE_COUNT):
-                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-                for q in range(1, 6):
-                    for j in range(self.STORY_UPDATE_COUNT):
-                        tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+            if fid not in self.data['fate']:
+                tasks.extend(self.check_fate_sub(i, fid, "scene_chr{}".format(id), "scene_fate_chr{}".format(id)))
+                # check uncaps
+                if fid in self.data['fate'] and self.data['fate'][fid][self.FATE_LINK] is not None:
+                    cid = self.data['fate'][fid][self.FATE_LINK]
+                    if cid in self.data['characters']:
+                        uncap = 0
+                        for entry in self.data['characters'][cid][self.CHARA_GENERAL]:
+                            if entry.endswith("_03"):
+                                uncap = max(uncap, 1)
+                            elif entry.endswith("_04"):
+                                uncap = max(uncap, 2)
+                        if uncap >= 1: # uncap
+                            tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), "scene_fate_ult_chr{}".format(id)))
+                        if uncap >= 2: # transcendence
+                            tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), "scene_fate_ult2_chr{}".format(id)))
         # do and update
         if len(tasks) > 0:
             print("Checking fates from {} to {} included...".format(min_chapter, max_chapter))
@@ -3432,6 +3439,12 @@ class Updater():
                 if r is not None:
                     fid = r[0].zfill(4)
                     if len(r[1]) > 0:
+                        if "ult2" in r[1][0]:
+                            index = self.FATE_TRANSCENDENCE_CONTENT
+                        elif "ult" in r[1][0]:
+                            index = self.FATE_UNCAP_CONTENT
+                        else:
+                            index = self.FATE_CONTENT
                         if fid not in self.data['fate']:
                             self.data['fate'][fid] = [[], [], [], [], None]
                         self.data['fate'][fid][index] += r[1]
@@ -3745,7 +3758,7 @@ class Updater():
                                     pass
                         await self.check_msq(all, cp)
                     elif "-fate" in flags:
-                        await self.check_fate(0, " ".join(extras))
+                        await self.check_fate(" ".join(extras))
                     elif "-event" in flags: await self.check_new_event()
                     elif "-eventedit" in flags: await self.event_edit()
                     elif "-buff" in flags: await self.update_buff()
