@@ -2731,7 +2731,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
         {
             for(const [key, val] of Object.entries(index["fate"]))
             {
-                if(val[4] == id)
+                if(val.length > 4 && val[4] == id)
                 {
                     if(did_lookup) div.appendChild(document.createElement('br'));
                     div.appendChild(document.createTextNode("Fate Episode:"));
