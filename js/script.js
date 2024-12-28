@@ -2548,6 +2548,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     // get chara id if fate episode
     else if(name.includes("Fate") && data[4] != null)
     {
+        div.appendChild(document.createElement('br')); // space
         let cid = data[4].split("_")[0];
         if("characters" in index && cid in index["characters"])
             lid = cid;
@@ -2724,6 +2725,27 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             };
             div.appendChild(i);
             updateList(i, [[cid, 6]]);
+        }
+        // fate
+        if("fate" in index)
+        {
+            for(const [key, val] of Object.entries(index["fate"]))
+            {
+                if(val[4] == id)
+                {
+                    if(did_lookup) div.appendChild(document.createElement('br'));
+                    div.appendChild(document.createTextNode("Fate Episode:"));
+                    div.appendChild(document.createElement('br'));
+                    let i = document.createElement('i');
+                    i.classList.add("clickable");
+                    i.onclick = function() {
+                        lookup(cid);
+                    };
+                    div.appendChild(i);
+                    updateList(i, [[key, 12]]);
+                    break;
+                }
+            }
         }
     }
     // add related character for weapon
