@@ -313,6 +313,19 @@ class Updater():
     
     SCENE_BUBBLE_FILTER = set([k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0])
     
+    MSQ_RECAPS = { # list of msq recap art (new ones must be manually added)
+        "r00" : "",
+        "r01" : "_cp1-12",
+        "r02" : "_cp13-28",
+        "r03" : "_cp29-54",
+        "r04" : "_cp55-63",
+        "r05" : "_cp64-79",
+        "r06" : "_cp80-89",
+        "r07" : "_cp90-100",
+        "r08" : "_cp101-114",
+        "r09" : "_cp115-132"
+    }
+    
     def __init__(self) -> None:
         # main variables
         self.update_changelog = True # flag to enable or disable the generation of changelog.json
@@ -3300,10 +3313,19 @@ class Updater():
                 return
         # make list to check
         tasks = []
+        # add missing recaps
+        for k in self.MSQ_RECAPS:
+            if check_all or k not in self.data['story']:
+                if k not in self.data['story']:
+                    self.data['story'][k] = [[]]
+                for j in range(self.STORY_UPDATE_COUNT):
+                    tasks.append((k, self.IMG + "sp/quest/scene/character/body/scene_skip"+self.MSQ_RECAPS[k], set(self.data['story'].get(k, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        # chapters
         for i in range(0, max_chapter+1):
             id = str(i).zfill(3)
             if check_all or id not in self.data['story']:
-                self.data['story'][id] = [[]]
+                if id not in self.data['story']:
+                    self.data['story'][id] = [[]]
                 if i == 0: fn = "tuto_scene"
                 else: fn = "scene_cp{}".format(i)
                 for j in range(self.STORY_UPDATE_COUNT):
@@ -3552,7 +3574,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.48\n")
+                print("GBFAL updater v2.49\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])

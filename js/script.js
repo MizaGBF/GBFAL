@@ -1028,7 +1028,11 @@ function display_valentines(id, data = null, unusedA = null, unusedB = null)
 function display_story(id, data, unusedA = null, unusedB = null)
 {
     if(data[0].length == 0) return null;
-    return [["ms"+id, "story", "Chapter " + parseInt(id), null, null]];
+    let recap = mainStoryRecapLookup(id);
+    if(recap != null)
+        return [["ms"+id, "story", recap, null, null]];
+    else
+        return [["ms"+id, "story", "Chapter " + parseInt(id), null, null]];
 }
 
 function display_events(id, data, idfilter = null, unusedB = null)
@@ -1625,7 +1629,7 @@ function lookup(id, allow_open=true) // check element validity and either load i
                     target = "buffs";
                     id = id.slice(1);
                 }
-                else if(id.toLowerCase().slice(0, 2) === 'ms' && !isNaN(id.slice(2)))
+                else if((id.toLowerCase().slice(0, 2) === 'ms' && !isNaN(id.slice(2))) || (id.toLowerCase().slice(0, 3) === 'msr' && !isNaN(id.slice(3))))
                 {
                     target = "story";
                     id = id.slice(2);
@@ -1885,6 +1889,24 @@ function toggleSearchFilter(indice)
     updateSearchResuls(false);
 }
 
+function mainStoryRecapLookup(id) // to be manually updated
+{
+    switch(id)
+    {
+        case "r00": return "Recap";
+        case "r01": return "Recap 1-12";
+        case "r02": return "Recap 13-28";
+        case "r03": return "Recap 29-54";
+        case "r04": return "Recap 55-63";
+        case "r05": return "Recap 64-79";
+        case "r06": return "Recap 80-89";
+        case "r07": return "Recap 90-100";
+        case "r08": return "Recap 101-114";
+        case "r09": return "Recap 115-132";
+        default: return null;
+    }
+}
+
 function loadDummy(id, target, allow_open)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder
 {
     let data = null;
@@ -2086,7 +2108,8 @@ function loadAssets(id, data, target, indexed, allow_open)
             mc_skycompass = true;
             break;
         case "story":
-            area_name = "Main Story Chapter";
+            let recap = mainStoryRecapLookup(id);
+            area_name = recap != null ? recap : "Main Story Chapter";
             last_id = "ms"+id;
             search_type = 11;
             assets = [
