@@ -2739,7 +2739,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
                     let i = document.createElement('i');
                     i.classList.add("clickable");
                     i.onclick = function() {
-                        lookup(cid);
+                        lookup("fa"+key);
                     };
                     div.appendChild(i);
                     updateList(i, [[key, 12]]);
