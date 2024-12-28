@@ -3405,8 +3405,6 @@ class Updater():
         """
             TODO:
                 check _ep relevancy
-                add parameters to select fate(s) to update
-                add uncap/transcendence
         """
         # make list to check
         tasks = []
@@ -3414,22 +3412,24 @@ class Updater():
         for i in range(min_chapter, max_chapter+1):
             id = str(i).zfill(3)
             fid = str(i).zfill(4)
-            if fid not in self.data['fate']:
-                tasks.extend(self.check_fate_sub(i, fid, "scene_chr{}".format(id), "scene_fate_chr{}".format(id)))
-                # check uncaps
-                if fid in self.data['fate'] and self.data['fate'][fid][self.FATE_LINK] is not None:
-                    cid = self.data['fate'][fid][self.FATE_LINK]
-                    if cid in self.data['characters']:
-                        uncap = 0
-                        for entry in self.data['characters'][cid][self.CHARA_GENERAL]:
-                            if entry.endswith("_03"):
-                                uncap = max(uncap, 1)
-                            elif entry.endswith("_04"):
-                                uncap = max(uncap, 2)
-                        if uncap >= 1: # uncap
-                            tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), "scene_fate_ult_chr{}".format(id)))
-                        if uncap >= 2: # transcendence
-                            tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), "scene_fate_ult2_chr{}".format(id)))
+            tasks.extend(self.check_fate_sub(i, fid, "scene_chr{}".format(id), "scene_fate_chr{}".format(id)))
+            # check uncaps
+            if fid in self.data['fate'] and self.data['fate'][fid][self.FATE_LINK] is not None:
+                cid = self.data['fate'][fid][self.FATE_LINK]
+                if cid in self.data['characters']:
+                    uncap = 0
+                    for entry in self.data['characters'][cid][self.CHARA_GENERAL]:
+                        if entry.endswith("_03"):
+                            uncap = max(uncap, 1)
+                        elif entry.endswith("_04"):
+                            uncap = max(uncap, 2)
+                    if uncap >= 1: # uncap
+                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), "scene_fate_ult_chr{}".format(id)))
+                    if uncap >= 2: # transcendence
+                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), "scene_fate_ult2_chr{}".format(id)))
+            else: # simply check uncap (TEST for now)
+                tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), "scene_fate_ult_chr{}".format(id)))
+                tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), "scene_fate_ult2_chr{}".format(id)))
         # do and update
         if len(tasks) > 0:
             print("Checking fates from {} to {} included...".format(min_chapter, max_chapter))

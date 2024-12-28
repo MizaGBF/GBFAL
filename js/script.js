@@ -1049,7 +1049,7 @@ function display_story(id, data, unusedA = null, unusedB = null)
 
 function display_fate(id, data, unusedA = null, unusedB = null)
 {
-    if(data[0].length == 0) return null;
+    if(data[0].length + data[1].length + data[2].length + data[3].length == 0) return null;
     if(data[4] != null && "characters" in index && data[4] in index["characters"])
     {
         let ret = display_characters(data[4], index["characters"][data[4]], [0, 9999]);
@@ -2491,7 +2491,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
                         {
                             for(let i = si; i < index[target][keys[next]].length; ++i)
                             {
-                                if(index[target][keys[next]][i].length > 0)
+                                if(index[target][keys[next]][i].constructor === Array && index[target][keys[next]][i].length > 0)
                                 {
                                     valid = true;
                                     break;
@@ -2731,7 +2731,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
         {
             for(const [key, val] of Object.entries(index["fate"]))
             {
-                if(val.length > 4 && val[4] == id)
+                if(val.length > 4 && val[4] == id && val[0].length+val[1].length+val[2].length+val[3].length > 0)
                 {
                     if(did_lookup) div.appendChild(document.createElement('br'));
                     div.appendChild(document.createTextNode("Fate Episode:"));
