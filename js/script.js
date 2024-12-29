@@ -2508,7 +2508,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
                         {
                             for(let i = si; i < index[target][keys[previous]].length; ++i)
                             {
-                                if(index[target][keys[previous]][i].length > 0)
+                                if(index[target][keys[next]][i].constructor === Array && index[target][keys[previous]][i].length > 0)
                                 {
                                     valid = true;
                                     break;
