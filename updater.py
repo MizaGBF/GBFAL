@@ -3375,14 +3375,23 @@ class Updater():
                 tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
         return tasks
 
+    def get_latest_fate(self) -> int:
+        try:
+            return max([int(k) for k in self.data['fate']])
+        except:
+            try:
+                return len(self.data['characters'])
+            except:
+                return 990 # placeholder
+
     # check for new fate chapter files
     async def check_fate(self, params : str) -> None:
         try:
             if params == "":
                 raise Exception()
             elif params == "last":
-                max_chapter = len(self.data['characters'])
-                min_chapter = max_chapter - 10
+                max_chapter = self.get_latest_fate() + 5
+                min_chapter = max_chapter - 2
             else:
                 try:
                     min_chapter = int(params)
@@ -3392,13 +3401,8 @@ class Updater():
                     min_chapter = int(min_chapter)
                     max_chapter = int(max_chapter)
         except:
-            try:
-                # retrieve current last chapter from wiki
-                max_chapter = len(self.data['characters'])
-            except:
-                max_chapter = 950
+            max_chapter = self.get_latest_fate() + 5
             min_chapter = 0
-            max_chapter += 5
         min_chapter = max(0, min_chapter)
         if max_chapter < min_chapter:
             return
