@@ -188,7 +188,7 @@ class Updater():
     LOAD_EXCLUSION = ['version']
     QUEUE_KEY = ['uncap_queue', 'scene_queue', 'sound_queue']
     STRING_CHAR = string.ascii_lowercase + string.digits
-    MISSING_EVENTS = ["201017", "211017", "221017", "231017", "241017", "251017", "261017", "271017", "200214", "210214", "220214", "230214", "240214", "250214", "260214", "270214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "251216", "261216", "271216", "200101", "210101", "220101", "230101", "240101", "250101", "260101", "270101"] + ["131201", "140330", "160430", "161031", "161227", "170501", "170801", "171129", "180301", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181214", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304"]
+    MISSING_EVENTS = ["201017", "211017", "221017", "231017", "241017", "251017", "261017", "271017", "200214", "210214", "220214", "230214", "240214", "250214", "260214", "270214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "251216", "261216", "271216", "200101", "210101", "220101", "230101", "240101", "250101", "260101", "270101"] + ["131201", "140330", "160430", "161031", "161227", "170501", "170801", "171129", "180301", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181214", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304", "241224"]
     SPECIAL_EVENTS = {
        "221121":"221121_arcarum_maria",
        "230322":"230322_arcarum_caim",
@@ -3358,21 +3358,62 @@ class Updater():
 
     ### Fates ####################################################################################################################
 
+    def update_manual_fate(self) -> None:
+        with open("json/manual_fate.json", mode="r", encoding="utf-8") as f:
+            data = json.load(f)
+        print("Checking manual_fate.json...")
+        modified = False
+        # checking matching
+        for k, v in data.items():
+            if v is not None:
+                if k not in self.data['fate']:
+                    self.data['fate'][k] = [[], [], [], [], v]
+                    self.modified = True
+                else:
+                    if v != self.data['fate'][k][self.FATE_LINK]:
+                        print("Mismatched ID for fate", k)
+            else:
+                if k in self.data['fate'] and self.data['fate'][k][self.FATE_LINK] is not None:
+                    data[k] = self.data['fate'][k][self.FATE_LINK]
+                    modified = True
+        # checking missing slots
+        try:
+            max_id = max([int(k) for k in list(self.data['fate'].keys())])
+            for i in range(max_id+1):
+                fi = str(i).zfill(4)
+                if fi not in data:
+                    if fi in self.data['fate'] and self.data['fate'][fi][self.FATE_LINK] is not None:
+                        data[fi] = self.data['fate'][fi][self.FATE_LINK]
+                    else:
+                        data[fi] = None
+                    modified = True
+        except:
+            pass
+        if modified:
+            keys = list(data.keys())
+            keys.sort()
+            data = {k:data[k] for k in keys}
+            with open("json/manual_fate.json", mode="w", encoding="utf-8") as f:
+                json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
+            print("manual_fate.json updated")
+
     # generate tasks for check_fate
-    def check_fate_sub(self, i : int, fid : str, nameA : str, nameB : str) -> list:
+    def check_fate_sub(self, i : int, fid : str, nameA : str, epA_check : bool, nameB : str, epB_check : bool) -> list:
         tasks = []
         # nameA
         for j in range(self.STORY_UPDATE_COUNT):
             tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameA, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-        for q in range(1, 6):
-            for j in range(self.STORY_UPDATE_COUNT):
-                tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        if epA_check:
+            for q in range(1, 4):
+                for j in range(self.STORY_UPDATE_COUNT):
+                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
         # nameB
         for j in range(self.STORY_UPDATE_COUNT):
             tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameB, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-        for q in range(1, 6):
-            for j in range(self.STORY_UPDATE_COUNT):
-                tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q).zfill(2), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        if epB_check:
+            for q in range(1, 4):
+                for j in range(self.STORY_UPDATE_COUNT):
+                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
         return tasks
 
     def get_latest_fate(self) -> int:
@@ -3416,7 +3457,7 @@ class Updater():
         for i in range(min_chapter, max_chapter+1):
             id = str(i).zfill(3)
             fid = str(i).zfill(4)
-            tasks.extend(self.check_fate_sub(i, fid, "scene_chr{}".format(id), "scene_fate_chr{}".format(id)))
+            tasks.extend(self.check_fate_sub(i, fid, "scene_chr{}".format(id), False, "scene_fate_chr{}".format(id), False))
             # check uncaps
             if fid in self.data['fate'] and self.data['fate'][fid][self.FATE_LINK] is not None:
                 cid = self.data['fate'][fid][self.FATE_LINK]
@@ -3428,12 +3469,15 @@ class Updater():
                         elif entry.endswith("_04"):
                             uncap = max(uncap, 2)
                     if uncap >= 1: # uncap
-                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), "scene_fate_ult_chr{}".format(id)))
+                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), True, "scene_fate_ult_chr{}".format(id), True))
                     if uncap >= 2: # transcendence
-                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), "scene_fate_ult2_chr{}".format(id)))
+                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), True, "scene_fate_ult2_chr{}".format(id), True))
+                    # evokers
+                    if cid in ["3040160000", "3040161000", "3040162000", "3040163000", "3040164000", "3040165000", "3040166000", "3040167000", "3040168000", "3040169000"]:
+                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}_world".format(id), True, "scene_fate_ult_chr{}_world".format(id), True))
             else: # simply check uncap (TEST for now)
-                tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), "scene_fate_ult_chr{}".format(id)))
-                tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), "scene_fate_ult2_chr{}".format(id)))
+                tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), True, "scene_fate_ult_chr{}".format(id), True))
+                tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), True, "scene_fate_ult2_chr{}".format(id), True))
         # do and update
         if len(tasks) > 0:
             print("Checking fates from {} to {} included...".format(min_chapter, max_chapter))
