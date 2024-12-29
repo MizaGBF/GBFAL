@@ -181,8 +181,8 @@ class Updater():
     VOICE = SOUND + "voice/"
     # regex
     ID_REGEX = re.compile("[123][07][1234]0\\d{4}00")
-    VERSION_REGEX = re.compile("\\/assets\\/(\d+)\\/")
-    CHAPTER_REGEX = re.compile("Chapter (\d+)(-(\d+))?")
+    VERSION_REGEX = re.compile("\\/assets\\/(\\d+)\\/")
+    CHAPTER_REGEX = re.compile("Chapter (\\d+)(-(\\d+))?")
     # others
     SAVE_VERSION = 1
     LOAD_EXCLUSION = ['version']
@@ -3359,43 +3359,50 @@ class Updater():
     ### Fates ####################################################################################################################
 
     def update_manual_fate(self) -> None:
-        with open("json/manual_fate.json", mode="r", encoding="utf-8") as f:
-            data = json.load(f)
-        print("Checking manual_fate.json...")
-        modified = False
-        # checking matching
-        for k, v in data.items():
-            if v is not None:
-                if k not in self.data['fate']:
-                    self.data['fate'][k] = [[], [], [], [], v]
-                    self.modified = True
-                else:
-                    if v != self.data['fate'][k][self.FATE_LINK]:
-                        print("Mismatched ID for fate", k)
-            else:
-                if k in self.data['fate'] and self.data['fate'][k][self.FATE_LINK] is not None:
-                    data[k] = self.data['fate'][k][self.FATE_LINK]
-                    modified = True
-        # checking missing slots
         try:
-            max_id = max([int(k) for k in list(self.data['fate'].keys())])
-            for i in range(max_id+1):
-                fi = str(i).zfill(4)
-                if fi not in data:
-                    if fi in self.data['fate'] and self.data['fate'][fi][self.FATE_LINK] is not None:
-                        data[fi] = self.data['fate'][fi][self.FATE_LINK]
+            with open("json/manual_fate.json", mode="r", encoding="utf-8") as f:
+                data = json.load(f)
+            print("Checking manual_fate.json...")
+            modified = False
+            # checking matching
+            for k, v in data.items():
+                if v is not None:
+                    if k not in self.data['fate']:
+                        self.data['fate'][k] = [[], [], [], [], v]
+                        self.modified = True
+                    elif self.data['fate'][k][self.FATE_LINK] == None:
+                        self.data['fate'][k][self.FATE_LINK] = v
+                        self.modified = True
                     else:
-                        data[fi] = None
-                    modified = True
-        except:
-            pass
-        if modified:
-            keys = list(data.keys())
-            keys.sort()
-            data = {k:data[k] for k in keys}
-            with open("json/manual_fate.json", mode="w", encoding="utf-8") as f:
-                json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
-            print("manual_fate.json updated")
+                        if v != self.data['fate'][k][self.FATE_LINK]:
+                            print("Mismatched ID for fate", k)
+                else:
+                    if k in self.data['fate'] and self.data['fate'][k][self.FATE_LINK] is not None:
+                        data[k] = self.data['fate'][k][self.FATE_LINK]
+                        modified = True
+            # checking missing slots
+            try:
+                max_id = max([int(k) for k in list(self.data['fate'].keys())])
+                for i in range(1, max_id+1):
+                    fi = str(i).zfill(4)
+                    if fi not in data:
+                        if fi in self.data['fate'] and self.data['fate'][fi][self.FATE_LINK] is not None:
+                            data[fi] = self.data['fate'][fi][self.FATE_LINK]
+                        else:
+                            data[fi] = None
+                        modified = True
+            except:
+                pass
+            if modified:
+                keys = list(data.keys())
+                keys.sort()
+                data = {k:data[k] for k in keys}
+                with open("json/manual_fate.json", mode="w", encoding="utf-8") as f:
+                    json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
+                print("manual_fate.json updated")
+        except Exception as e:
+            print("Error checking manual_fate.json")
+            print("Exception:", e)
 
     # generate tasks for check_fate
     def check_fate_sub(self, i : int, fid : str, nameA : str, epA_check : bool, nameB : str, epB_check : bool) -> list:
@@ -3427,6 +3434,7 @@ class Updater():
 
     # check for new fate chapter files
     async def check_fate(self, params : str) -> None:
+        self.update_manual_fate()
         try:
             if params == "":
                 raise Exception()
@@ -3443,8 +3451,8 @@ class Updater():
                     max_chapter = int(max_chapter)
         except:
             max_chapter = self.get_latest_fate() + 5
-            min_chapter = 0
-        min_chapter = max(0, min_chapter)
+            min_chapter = 1
+        min_chapter = max(1, min_chapter)
         if max_chapter < min_chapter:
             return
         """
@@ -3482,6 +3490,10 @@ class Updater():
         if len(tasks) > 0:
             print("Checking fates from {} to {} included...".format(min_chapter, max_chapter))
             self.progress = Progress(self, total=len(tasks), silent=False)
+            # /!\ TEMP STUFF
+            tasks = tasks[20000:]
+            self.progress.current += 20000
+            raise Exception("REMOVE THE ABOVE")
             async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
                 r = task.result()
                 if r is not None:
@@ -3727,7 +3739,7 @@ class Updater():
     async def boot(self, argv : list) -> None:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.50\n")
+                print("GBFAL updater v2.51\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])

@@ -24,6 +24,7 @@ Two of the JSON files in the `json` folder are the core of the system:
 Others JSON files are used for debug or update purpose:  
 - [job_data_export.json](https://github.com/MizaGBF/GBFAL/blob/main/json/job_data_export.json) is used to quickly link some MC jobs to their weapon animations using the built-in CLI.  
 - [manual_lookup.json](https://github.com/MizaGBF/GBFAL/blob/main/json/manual_lookup.json) is used to fill lookup entries without wiki data.  
+- [manual_fate.json](https://github.com/MizaGBF/GBFAL/blob/main/json/manual_fate.json) is used to associate fate episode entries with other elements.  
   
 More JSON files not specified here might appear in this folder, for development or testing purpose.  
   
