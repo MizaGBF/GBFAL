@@ -112,7 +112,6 @@ const EVENTS = [
     ["Year 2014", "assets/ui/index_icon/year_2014.png", "14"]
 ];
 const FATES = [
-    ["Unknowns", null, false, "assets/ui/icon/other.png"],
     ["SSR Characters", "304", true, "assets/ui/icon/ssr.png"],
     ["SR Characters", "303", true, "assets/ui/icon/sr.png"],
     ["R Characters", "302", true, "assets/ui/icon/r.png"],
