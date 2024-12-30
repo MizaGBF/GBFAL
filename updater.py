@@ -3405,22 +3405,25 @@ class Updater():
             print("Exception:", e)
 
     # generate tasks for check_fate
-    def check_fate_sub(self, i : int, fid : str, nameA : str, epA_check : bool, nameB : str, epB_check : bool) -> list:
+    def check_fate_sub(self, id : str, index : int, fid : str, nameA : Optional[str], epA_check : bool, nameB : Optional[str], epB_check : bool) -> list:
         tasks = []
-        # nameA
-        for j in range(self.STORY_UPDATE_COUNT):
-            tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameA, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-        if epA_check:
-            for q in range(1, 4):
-                for j in range(self.STORY_UPDATE_COUNT):
-                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-        # nameB
-        for j in range(self.STORY_UPDATE_COUNT):
-            tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameB, set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-        if epB_check:
-            for q in range(1, 4):
-                for j in range(self.STORY_UPDATE_COUNT):
-                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q), set(self.data['fate'].get(fid, [[]])[0]), j*self.SCENE_UPDATE_STEP))
+        existing = set(self.data['fate'].get(fid, [[], [], [], [], None])[index])
+        if nameA is not None:
+            # nameA
+            for j in range(self.STORY_UPDATE_COUNT):
+                tasks.append((id, self.IMG + "sp/quest/scene/character/body/"+nameA, existing, j*self.SCENE_UPDATE_STEP))
+            if epA_check:
+                for q in range(1, 5):
+                    for j in range(self.STORY_UPDATE_COUNT):
+                        tasks.append((id, self.IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q), existing, j*self.SCENE_UPDATE_STEP))
+        if nameB is not None:
+            # nameB
+            for j in range(self.STORY_UPDATE_COUNT):
+                tasks.append((id, self.IMG + "sp/quest/scene/character/body/"+nameB, existing, j*self.SCENE_UPDATE_STEP))
+            if epB_check:
+                for q in range(1, 5):
+                    for j in range(self.STORY_UPDATE_COUNT):
+                        tasks.append((id, self.IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q), existing, j*self.SCENE_UPDATE_STEP))
         return tasks
 
     def get_latest_fate(self) -> int:
@@ -3455,17 +3458,17 @@ class Updater():
         min_chapter = max(1, min_chapter)
         if max_chapter < min_chapter:
             return
-        """
-            TODO:
-                check _ep relevancy
-        """
         # make list to check
         tasks = []
+        # check unique fates added via manual_fate.json (currently for baha and lucifer)
+        for fid, v in self.data['fate'].items():
+            if not fid.isdigit() and len(v[0])+len(v[1])+len(v[2])+len(v[3]) == 0: # id not digit and data empty
+                tasks.extend(self.check_fate_sub(fid, self.FATE_UNCAP_CONTENT, fid, "scene_ult_{}".format(fid), True, None, False)) # only check this one for now
         # chapters
         for i in range(min_chapter, max_chapter+1):
             id = str(i).zfill(3)
             fid = str(i).zfill(4)
-            tasks.extend(self.check_fate_sub(i, fid, "scene_chr{}".format(id), False, "scene_fate_chr{}".format(id), False))
+            tasks.extend(self.check_fate_sub(id, self.FATE_CONTENT, fid, "scene_chr{}".format(id), False, "scene_fate_chr{}".format(id), False))
             # check uncaps
             if fid in self.data['fate'] and self.data['fate'][fid][self.FATE_LINK] is not None:
                 cid = self.data['fate'][fid][self.FATE_LINK]
@@ -3477,23 +3480,16 @@ class Updater():
                         elif entry.endswith("_04"):
                             uncap = max(uncap, 2)
                     if uncap >= 1: # uncap
-                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), True, "scene_fate_ult_chr{}".format(id), True))
+                        tasks.extend(self.check_fate_sub(id, self.FATE_UNCAP_CONTENT, fid, "scene_ult_chr{}".format(id), True, None, False))
                     if uncap >= 2: # transcendence
-                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), True, "scene_fate_ult2_chr{}".format(id), True))
+                        tasks.extend(self.check_fate_sub(id, self.FATE_TRANSCENDENCE_CONTENT, fid, "scene_ult2_chr{}".format(id), True, None, False))
                     # evokers
                     if cid in ["3040160000", "3040161000", "3040162000", "3040163000", "3040164000", "3040165000", "3040166000", "3040167000", "3040168000", "3040169000"]:
-                        tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}_world".format(id), True, "scene_fate_ult_chr{}_world".format(id), True))
-            else: # simply check uncap (TEST for now)
-                tasks.extend(self.check_fate_sub(i, fid, "scene_ult_chr{}".format(id), True, "scene_fate_ult_chr{}".format(id), True))
-                tasks.extend(self.check_fate_sub(i, fid, "scene_ult2_chr{}".format(id), True, "scene_fate_ult2_chr{}".format(id), True))
+                        tasks.extend(self.check_fate_sub(id, self.FATE_UNCAP_CONTENT, fid, "scene_ult_chr{}_world".format(id), True, None, False))
         # do and update
         if len(tasks) > 0:
             print("Checking fates from {} to {} included...".format(min_chapter, max_chapter))
             self.progress = Progress(self, total=len(tasks), silent=False)
-            # /!\ TEMP STUFF
-            tasks = tasks[20000:]
-            self.progress.current += 20000
-            raise Exception("REMOVE THE ABOVE")
             async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
                 r = task.result()
                 if r is not None:
@@ -3619,9 +3615,15 @@ class Updater():
                             if v[self.EVENT_THUMB] is not None: file_estimation += 1
                             for i in range(self.EVENT_OP, self.EVENT_SKY+1):
                                 file_estimation += len(v[i])
-                        case "story"|"fate":
+                        case "story":
                             if v is None or v == 0: continue
                             file_estimation += len(v[self.STORY_CONTENT])
+                        case "fate":
+                            if v is None or v == 0: continue
+                            file_estimation += len(v[self.FATE_CONTENT])
+                            file_estimation += len(v[self.FATE_UNCAP_CONTENT])
+                            file_estimation += len(v[self.FATE_TRANSCENDENCE_CONTENT])
+                            file_estimation += len(v[self.FATE_OTHER_CONTENT])
                         case "npcs":
                             if v is None or v == 0: continue
                             if v[self.NPC_JOURNAL]: file_estimation += 1

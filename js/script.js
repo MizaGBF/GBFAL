@@ -111,6 +111,13 @@ const EVENTS = [
     ["Year 2015 (Sheep)", "assets/ui/index_icon/year_2015_(sheep).png", "15"],
     ["Year 2014", "assets/ui/index_icon/year_2014.png", "14"]
 ];
+const FATES = [
+    ["Unknowns", null, false, "assets/ui/icon/other.png"],
+    ["SSR Characters", "304", true, "assets/ui/icon/ssr.png"],
+    ["SR Characters", "303", true, "assets/ui/icon/sr.png"],
+    ["R Characters", "302", true, "assets/ui/icon/r.png"],
+    ["Summons", "20", true, "assets/ui/icon/summons.png"]
+];
 const SKILLS = [
     ["assets/ui/index_icon/skill1.png", [0, 250], [250, 500], [500, 750], [750, 1000]],
     ["assets/ui/index_icon/skill2.png", [1000, 1250], [1250, 1500], [1500, 1750], [1750, 2000]],
@@ -388,14 +395,18 @@ function initIndex() // build the html index. simply edit the constants above to
                 this.onclick = null;
             };
         }
-        elems = makeIndexSummary(content, "Fate Episodes", false, 0, "assets/ui/icon/fate.png");
+        parents = makeIndexSummary(content, "Fate Episodes", true, 0, "assets/ui/icon/fate.png");
+        for(let i of FATES)
         {
-            const tmp = elems[0];
+            elems = makeIndexSummary(parents[0], i[0], false, 1, i[3]);
+            const tmp = [elems[0], i[1], i[2]];
             elems[1].onclick = function (){
-                display(tmp, 'fate', null, null, false, true);
+                display(tmp[0], 'fate', tmp[1], tmp[2], false, true);
                 this.onclick = null;
             };
         }
+        
+        
         parents = makeIndexSummary(content, "Events", true, 0, "assets/ui/icon/events.png");
         for(let i of EVENTS)
         {
@@ -1047,19 +1058,27 @@ function display_story(id, data, unusedA = null, unusedB = null)
         return [["ms"+id, "story", "Chapter " + parseInt(id), null, null]];
 }
 
-function display_fate(id, data, unusedA = null, unusedB = null)
+function display_fate(id, data, prefix = null, linked = null)
 {
-    if(data[0].length + data[1].length + data[2].length + data[3].length == 0) return null;
-    if(data[4] != null && "characters" in index && data[4] in index["characters"])
+    if(data[0].length + data[1].length + data[2].length + data[3].length == 0)
+        return null;
+    if((linked === true && (data[4] == null || !data[4].startsWith(prefix))) || (linked === false && data[4] != null))
+        return null;
+    if(data[4] != null) 
     {
-        let ret = display_characters(data[4], index["characters"][data[4]], [0, 9999]);
+        let ret = null;
+        if(data[4].startsWith("30") && "characters" in index && data[4] in index["characters"])
+            ret = display_characters(data[4], index["characters"][data[4]], [0, 9999]);
+        else if(data[4].startsWith("20") && "summons" in index && data[4] in index["summons"])
+            ret = display_summons(data[4], index["summons"][data[4]], data[4][2], [0, 9999]);
         if(ret != null)
         {
-            ret[0][0] = "fa"+id;
+            ret[0][1] = ret[0][1].replace("GBF/", idToEndpoint(ret[0][0])); // update url here
+            ret[0][0] = "fa"+id; // set fate id
             return ret;
         }
     }
-    return [["fa"+id, "fate", "Fate " + id.slice(1), null, null]];
+    return [["fa"+id, "fate", "Fate " + id, null, null]];
 }
 
 function display_events(id, data, idfilter = null, unusedB = null)
@@ -1167,7 +1186,7 @@ function display_suptix(id, data, unusedA = null, unusedB = null)
 
 function addFateImage(node, p1, p2, p3, p4, p5)
 {
-    if(p1.startsWith("GBF/"))
+    if(p1.startsWith("GBF/") || p1.startsWith("http"))
     {
         let img = addIndexImage(node, p1, p2, p3, p4, p5);
         img.classList.add("fate-image");
@@ -2726,27 +2745,6 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             div.appendChild(i);
             updateList(i, [[cid, 6]]);
         }
-        // fate
-        if("fate" in index)
-        {
-            for(const [key, val] of Object.entries(index["fate"]))
-            {
-                if(val.length > 4 && val[4] == id && val[0].length+val[1].length+val[2].length+val[3].length > 0)
-                {
-                    if(did_lookup) div.appendChild(document.createElement('br'));
-                    div.appendChild(document.createTextNode("Fate Episode:"));
-                    div.appendChild(document.createElement('br'));
-                    let i = document.createElement('i');
-                    i.classList.add("clickable");
-                    i.onclick = function() {
-                        lookup("fa"+key);
-                    };
-                    div.appendChild(i);
-                    updateList(i, [[key, 12]]);
-                    break;
-                }
-            }
-        }
     }
     // add related character for weapon
     else if(name == "Weapon")
@@ -2786,11 +2784,23 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
     // add related character for fate episodes
     else if(name.includes("Fate") && data[4] != null) // partner chara matching
     {
-        let cid = data[4].split('_')[0];
-        if("characters" in index && cid in index["characters"])
+        let cid = data[4];
+        let strname = "";
+        let lindex = 0;
+        if(cid.startsWith("30") && "characters" in index && cid in index["characters"])
+        {
+            lindex = 3;
+            strname = "Associated Character:";
+        }
+        else if(cid.startsWith("20") && "summons" in index && cid in index["summons"])
+        {
+            lindex = 2;
+            strname = "Associated Summon:";
+        }
+        if(strname != "")
         {
             if(did_lookup) div.appendChild(document.createElement('br'));
-            div.appendChild(document.createTextNode("Associated Character:"));
+            div.appendChild(document.createTextNode(strname));
             div.appendChild(document.createElement('br'));
             let i = document.createElement('i');
             i.classList.add("clickable");
@@ -2798,7 +2808,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
                 lookup(cid);
             };
             div.appendChild(i);
-            updateList(i, [[cid, 3]]);
+            updateList(i, [[cid, lindex]]);
         }
     }
     // add event thumbnail
@@ -2809,6 +2819,27 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
             let img = document.createElement("img");
             img.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/archive/assets/island_m2/"+index["events"][id][1]+".png";
             div.appendChild(img);
+        }
+    }
+    // fate
+    if("fate" in index && ["Character", "Summon"].includes(name))
+    {
+        for(const [key, val] of Object.entries(index["fate"]))
+        {
+            if(val.length > 4 && val[4] == id && val[0].length+val[1].length+val[2].length+val[3].length > 0)
+            {
+                if(did_lookup) div.appendChild(document.createElement('br'));
+                div.appendChild(document.createTextNode("Fate Episode:"));
+                div.appendChild(document.createElement('br'));
+                let i = document.createElement('i');
+                i.classList.add("clickable");
+                i.onclick = function() {
+                    lookup("fa"+key);
+                };
+                div.appendChild(i);
+                updateList(i, [[key, 12]]);
+                break;
+            }
         }
     }
     // scroll to output
