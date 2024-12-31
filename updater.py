@@ -387,11 +387,6 @@ class Updater():
         self.use_wiki = True # if True, use wiki features
         
         self.client = None # will contain the aiohttp client. Is initialized at startup or must be initialized by a third party.
-        # CTRL+C signal
-        try: # unix
-            self.loop.add_signal_handler(signal.SIGINT, self.interrupt)
-        except: # windows
-            signal.signal(signal.SIGINT, self.interrupt)
 
     def interrupt(self, signum : int, frame) -> None:
         print("")
@@ -3739,9 +3734,14 @@ class Updater():
         print("-bg          : Update background data")
 
     async def boot(self, argv : list) -> None:
+        # CTRL+C signal
+        try: # unix
+            asyncio.get_event_loop().add_signal_handler(signal.SIGINT, self.interrupt)
+        except: # windows
+            signal.signal(signal.SIGINT, self.interrupt)
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.51\n")
+                print("GBFAL updater v2.52\n")
                 self.use_wiki = await self.test_wiki()
                 if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
                 start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
