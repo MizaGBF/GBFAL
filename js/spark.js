@@ -156,7 +156,6 @@ function setSparkList()
 function addImage_spark(node, path, id, onerr) // add an image to the selector
 {
     let img = document.createElement("img");
-    node.appendChild(img);
     img.title = id;
     img.classList.add("loading");
     img.classList.add("spark-image");
@@ -185,11 +184,11 @@ function addImage_spark(node, path, id, onerr) // add an image to the selector
                 beep();
                 if(!isSummon && (window.event.shiftKey || document.getElementById("moon-check").classList.contains("active"))) // add to moon
                 {
-                    addImageResult_spark(MOON, id, this.src);
+                    addImageResult_spark(MOON, id, this);
                 }
                 else
                 {
-                    addImageResult_spark(isSummon ? STONE : NPC, id, this.src); // add to npc or stone
+                    addImageResult_spark(isSummon ? STONE : NPC, id, this); // add to npc or stone
                 }
                 document.getElementById("spark-container").scrollIntoView(); // recenter view
                 saveSpark();
@@ -197,10 +196,11 @@ function addImage_spark(node, path, id, onerr) // add an image to the selector
         };
     };
     img.src = path.replace("GBF/", idToEndpoint(id));
+    node.appendChild(img);
     return img;
 }
 
-function addImageResult_spark(mode, id, path) // add image to the spark result
+function addImageResult_spark(mode, id, base_img) // add image to the spark result
 {
     let node;
     switch(mode)
@@ -246,7 +246,8 @@ function addImageResult_spark(mode, id, path) // add image to the spark result
     };
     let img = document.createElement("img");
     img.classList.add("spark-result-img");
-    img.src = path;
+    img.src = base_img.src;
+    img.onerror = base_img.onerror;
     div.appendChild(img);
     node.appendChild(div);
     lists[mode].push([id, div]);
@@ -467,7 +468,7 @@ function loadSpark() // load spark from localstorage
             {
                 if(tmp[i][j][0] in items)
                 {
-                    let div = addImageResult_spark(i, tmp[i][j][0], items[tmp[i][j][0]].src);
+                    let div = addImageResult_spark(i, tmp[i][j][0], items[tmp[i][j][0]]);
                     if(tmp[i][j][1])
                         add_spark(div);
                 }
