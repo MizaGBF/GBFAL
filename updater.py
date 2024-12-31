@@ -778,7 +778,6 @@ class Updater():
             self.newShared(errs)
             for j in range(5):
                 categories[-1].append(self.search_generic('background', j, 5, errs[-1], "{}"+i, 1, "img/sp/raid/bg/", "_1.jpg", 50))
-            break
         for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
             categories.append([])
             self.newShared(errs)
