@@ -3443,7 +3443,7 @@ class Updater():
                 raise Exception()
             elif params == "last":
                 max_chapter = self.get_latest_fate() + 5
-                min_chapter = max_chapter - 2
+                min_chapter = max_chapter - 8
             else:
                 try:
                     min_chapter = int(params)
