@@ -31,7 +31,7 @@
 <body onload="init_spark()">
     <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
     <div id="header">
-        <div>Spark v1.9</div>
+        <div>Spark v1.10</div>
         <div id="timestamp"></div>
     </div>
     <div id="issues" style="display:none">
@@ -72,7 +72,7 @@
         </div>
         <div class="spark-ui-container">
             <input type="text" class="spark-ui-element" id="spark-filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Filter...">
-            <input type="text" class="spark-ui-element" id="spark-roll-input" onkeyup="updateRate()" placeholder="Rolls" value="300">
+            <input type="text" class="spark-ui-element" id="spark-roll-input" onkeyup="updateRate(true)" placeholder="Rolls" value="300">
             <button class="spark-ui-element spark-ui-button" id="moon-check" onclick="toggle_moon(this);"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button>
             <button class="spark-ui-element spark-ui-button" id="spark-check" onclick="toggle_spark(this);"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button>
             <button class="spark-ui-element spark-ui-button" onclick="generate_image();"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button>

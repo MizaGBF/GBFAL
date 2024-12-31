@@ -226,8 +226,7 @@ function addImageResult_spark(mode, id, base_img) // add image to the spark resu
             if(window.event.shiftKey || document.getElementById("spark-check").classList.contains("active")) // toggle spark icon
             {
                 toggle_spark_state(div);
-                updateRate();
-                saveSpark();
+                updateRate(false);
             }
             else
             {
@@ -240,8 +239,8 @@ function addImageResult_spark(mode, id, base_img) // add image to the spark resu
                 }
                 this.remove();
                 update_node(cmode, false);
-                saveSpark();
             }
+            saveSpark();
         }
     };
     let img = document.createElement("img");
@@ -302,7 +301,7 @@ function update_node(mode, addition) // update spark column
         case STONE: node = document.getElementById("spark-summon"); break;
         default: return;
     }
-    updateRate(); // update rate text
+    updateRate(false); // update rate text
     if(node.childNodes.length == 0) return; // quit if empty
     // get node size
     const nw = node.offsetWidth - 5;
@@ -358,7 +357,7 @@ function update_node(mode, addition) // update spark column
     }
 }
 
-function updateRate() // update ssr rate text
+function updateRate(to_update) // update ssr rate text
 {
     if(canvasState > 0) // if canvas processing
     {
@@ -386,6 +385,7 @@ function updateRate() // update ssr rate text
             console.error("Exception thrown", err.stack);
             return;
         }
+        if(to_update) saveSpark();
     }
 }
 
@@ -421,8 +421,9 @@ function spark_clear() // clear everything
         }
         node.innerHTML = "";
     }
+    document.getElementById("spark-roll-input").value = 300;
     update_all();
-    updateRate();
+    updateRate(false);
 }
 
 function saveSpark() // save spark in localstorage
@@ -474,7 +475,7 @@ function loadSpark() // load spark from localstorage
                 }
             }
         }
-        updateRate();
+        updateRate(false);
     }
     catch(err)
     {
