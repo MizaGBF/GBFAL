@@ -373,7 +373,6 @@ class Updater():
         self.addition = {} # new elements for changelog.json
         self.job_list = None
         self.scene_strings = None # contains list of suffix
-        self.scene_strings_special = None # contains list of suffix
         self.force_partner = False # set to True by -partner
         self.shared_task_container = [] # used for -scene
         
@@ -659,7 +658,7 @@ class Updater():
             print("Couldn't retrieve job list from the game")
             return
         jkeys = [k for k in list(self.job_list.keys()) if k not in self.data['job']]
-        if len(jkeys) > 0:
+        if len(jkeys) == 0:
             job_task == 0
         # jobs
         categories.append([])
@@ -2084,7 +2083,7 @@ class Updater():
                     json.dump(keys, f)
                 print("Data exported to 'json/debug_scene_strings.json'")
 
-    # set self.scene_strings and self.scene_strings_special if needed and return them
+    # set self.scene_strings if needed and return them
     def generate_scene_file_list(self, id : str) -> tuple:
         if self.scene_strings is None:
             self.scene_strings = [{}, {}] # dict to keep order

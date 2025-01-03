@@ -721,28 +721,26 @@ function drawImage(ctx, src, x, y, w, h) // draw an image at the specified src u
     img.src = src;
 }
 
+
 function drawColumn(ctx, offset, content)
 {
     const imgcount = content.length;
     if(imgcount == 0) return []; // if no image, stop now
     const RECT_CONTENT = [offset+50, 100+50+50, 640-100, 1080-200-50];
-    let size = DEFAULT_SIZE; // default image size x2
-    size[0] *= 2;
-    size[1] *= 2;
+    let size = [RECT_CONTENT[2], RECT_CONTENT[2]*DEFAULT_SIZE[1]/DEFAULT_SIZE[0]]; // default image size (make it fit the area horizontally, keeping the aspect ratio)
     let grid = [0, 0]; // will contain the number of horizontal and vertical elements
     let sparkIcon_list = [];
     // search ideal size
     while(true)
     {
-        // max grid size
+        // calculate how many we can fit horizontally and vertically at the current size
         grid[0] = Math.floor(RECT_CONTENT[2] / size[0]);
         grid[1] = Math.floor(RECT_CONTENT[3] / size[1]);
-        if(grid[0]*grid[1] >= imgcount) // GOOD
-            break;
-        // 10% reduction
+        if(grid[0]*grid[1] >= imgcount) // if the number we can fix is greater than our current element count...
+            break; // we stop
+        // else, we reduce the size by 10% and try again
         size[0] *= 0.9;
         size[1] *= 0.9;
-        
     }
     // draw
     let pos = [0, 0];
