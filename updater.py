@@ -296,7 +296,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.0'
+    VERSION = '3.1'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -446,7 +446,7 @@ class Updater():
     # Scene string
     SCENE_SUFFIXES = {
         "default": {
-            "base": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_nalhe", "_school", "_astral", "_battle", "_off", "_race", "_cavalry", "_guardian", "_cook", "_orange", "_blue", "_green", "_nude", "_mask", "_doll", "_girl", "_cow", "_two", "_three", "_2021", "_2022", "_2023", "_2024"],
+            "base": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_nalhe", "_school", "_astral", "_battle", "_off", "_race", "_cavalry", "_guardian", "_cook", "_shadow", "_orange", "_blue", "_green", "_nude", "_mask", "_doll", "_girl", "_cow", "_two", "_three", "_2021", "_2022", "_2023", "_2024"],
             
             "main": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_10", "_up", "_laugh", "_laugh_small", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_roar", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_painful3", "_painful4", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_despair", "_despair2", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_shy3", "_shy4", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_jito", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_stance", "_hood", "_letter", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_fight", "_2021", "_2022", "_2023", "_2024", "_2025", "_all", "_all2", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_move", "_move2", "_jump", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_ghost", "_stand", "_two", "_three", "_stand", "_eyeline"],
             
@@ -524,7 +524,10 @@ class Updater():
             "unique": ["_split"]
         },
         "3993628000": { # koku
-            "main": ["_blue", "_cyan", "_yellow"]
+            "main": ["_blue", "_cyan", "_yellow", "_red", "_green", "_purple"]
+        },
+        "3040571000": { # koku
+            "main": ["_blue", "_cyan", "_yellow", "_red", "_green", "_purple"]
         }
     }
     SCENE_SUFFIXES["3990220000"] = SCENE_SUFFIXES["3990219000"] # djeeta = gran
@@ -846,8 +849,9 @@ class Updater():
         for i in range(20):
             self.tasks.add(self.search_generic, parameters=(ts, 'npcs', "399{}000", 4, [
                 "img/sp/quest/scene/character/body/{}.png",
-                "img/sp/raid/navi_face/{}.png",
+                "img/sp/quest/scene/character/body/{}_shadow.png",
                 "img/sp/quest/scene/character/body/{}_a.png",
+                "img/sp/raid/navi_face/{}.png",
                 "img/sp/assets/npc/b/{}_01.png",
                 "sound/voice/{}_v_001.mp3",
                 "sound/voice/{}_boss_v_1.mp3"
@@ -2738,14 +2742,6 @@ class Updater():
                     self.tasks.add(self.check_fate, parameters=(element_id, self.FATE_UNCAP_CONTENT, fid, "scene_ult_chr{}_world".format(element_id), True, None, False))
         await self.tasks.start()
 
-    ### Partner #################################################################################################################
-
-    # simply call update_element on each partner id
-    async def update_all_partner(self : Updater) -> None:
-        for element_id in self.data['partners']:
-            self.tasks.add(self.update_element, parameters=(element_id, ))
-        await self.tasks.start()
-
     ### Sound #################################################################################################################
 
     # the functions are similar to scene ones
@@ -2846,7 +2842,6 @@ class Updater():
         bs, os = self.get_sound_strings()
         # TaskStatus for all tasks
         ts = TaskStatus(1, 1, running=len(bs)+len(os)*len(uncaps)+1)
-        TEST = 0
         # banter files
         if self.file_is_matching("_pair_", filters): # don't start this task if it doesn't match filter
             self.tasks.add(self.update_sound_banter, parameters=(index, element_id, idx, existing, ts, filters), priority=0)
@@ -2962,7 +2957,6 @@ class Updater():
     # Gigantic function but nothing complicated
     async def lookup(self : Updater) -> None:
         if not self.use_wiki:
-            self.tasks.print("The wiki isn't available, cancelling...")
             return
         modified = set()
         # Read manual_lookup.json and update data.json
@@ -3278,6 +3272,25 @@ class Updater():
 
     ### Other #################################################################################################################
 
+    # simply call update_element on each npc id without data
+    async def search_missing_npc(self : Updater) -> None:
+        try:
+            highest : int = (max([int(k) for k in self.data['npcs'] if k.startswith('399')]) // 1000) % 10000
+        except:
+            return
+        self.tasks.print("Searching missing NPCs...")
+        for i in range(0, highest+5):
+            fid : str = "399{}000".format(str(i).zfill(4))
+            if self.data['npcs'].get(fid, 0) == 0:
+                self.tasks.add(self.update_npc, parameters=(fid, True))
+        await self.tasks.start()
+
+    # simply call update_element on each partner id
+    async def update_all_partner(self : Updater) -> None:
+        for element_id in self.data['partners']:
+            self.tasks.add(self.update_element, parameters=(element_id, ))
+        await self.tasks.start()
+
     # Update changelog.json stat string
     def make_stats(self) -> None:
         try:
@@ -3467,15 +3480,17 @@ class Updater():
             secondary.add_argument('-st', '--story', help="update story content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
             secondary.add_argument('-ft', '--fate', help="update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.", action='store', nargs='?', default="", metavar='FATES')
             secondary.add_argument('-pt', '--partner', help="update all parner content. Time consuming.", action='store_const', const=True, default=False, metavar='')
+            secondary.add_argument('-mn', '--missingnpc', help="search for missing NPCs. Time consuming.", action='store_const', const=True, default=False, metavar='')
             
             maintenance = parser.add_argument_group('maintenance', 'commands to update some specific data.')
             maintenance.add_argument('-ij', '--importjob', help="import data from job_data_export.json.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-ej', '--exportjob', help="export data to job_data_export.json.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-lk', '--lookup', help="update manual_lookup.json and fetch the wiki to update the lookup table.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-fj', '--fatejson', help="import manual_fate.json.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-lk', '--lookup', help="import and update manual_lookup.json and fetch the wiki to update the lookup table.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-fj', '--fatejson', help="import and update manual_fate.json.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-it', '--importthumb', help="import data from manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-et', '--exportthumb', help="export data to manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-mt', '--maintenance', help="basic tasks to keep the data up-to-date.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
             
             settings = parser.add_argument_group('settings', 'commands to update some specific data.')
             settings.add_argument('-au', '--adduncap', help="add elements to be updated during the next run.", nargs='*', default=None)
@@ -3517,6 +3532,7 @@ class Updater():
                 await self.update_all_sound(args.sound)
             elif args.event is not None:
                 self.tasks.print("Updating event data...")
+                await self.init_updater(wiki=True)
                 await self.update_all_event(args.event)
             elif args.newevent:
                 self.tasks.print("Searching new event data...")
@@ -3532,6 +3548,9 @@ class Updater():
             elif args.partner:
                 self.tasks.print("Updating all partner data...")
                 await self.update_all_partner()
+            elif args.missingnpc:
+                self.tasks.print("Searching for missing NPC data...")
+                await self.search_missing_npc()
             elif args.importjob:
                 await self.importjob()
             elif args.exportjob:
@@ -3548,6 +3567,10 @@ class Updater():
             elif args.maintenance:
                 self.tasks.print("Performing maintenance...")
                 await self.maintenance()
+            elif args.json:
+                await self.lookup()
+                self.update_manual_fate()
+                self.update_manual_event_thumbnail(True)
             elif run_help:
                 parser.print_help()
             # post process

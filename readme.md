@@ -35,13 +35,13 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```
-GBFAL Updater v3.0
+GBFAL Updater v3.1
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]] [-ne]
                   [-st [LIMIT]] [-ft [FATES]] [-pt] [-ij] [-ej] [-lk] [-fj]
                   [-it] [-et] [-mt] [-au [ADDUNCAP ...]] [-nc] [-nr] [-dg]
 
-Asset Updater v3.0 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.1 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -67,17 +67,19 @@ secondary:
   -st, --story [LIMIT]  update story content. Add an optional chapter to stop at.
   -ft, --fate [FATES]   update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.
   -pt, --partner        update all parner content. Time consuming.
+  -mn, --missingnpc     search for missing NPCs. Time consuming.
 
 maintenance:
   commands to update some specific data.
 
   -ij, --importjob      import data from job_data_export.json.
   -ej, --exportjob      export data to job_data_export.json.
-  -lk, --lookup         update manual_lookup.json and fetch the wiki to update the lookup table.
-  -fj, --fatejson       import manual_fate.json.
+  -lk, --lookup         import and update manual_lookup.json and fetch the wiki to update the lookup table.
+  -fj, --fatejson       import and manual_fate.json.
   -it, --importthumb    import data from manual_event_thumbnail.json.
   -et, --exportthumb    export data to manual_event_thumbnail.json.
   -mt, --maintenance    basic tasks to keep the data up-to-date.
+  -js, --json           import all manual JSON files.
 
 settings:
   commands to update some specific data.
@@ -108,8 +110,15 @@ You can pause `updater.py` with a simple `CTRL+C`. It opens a CLI letting you sa
 When you interrupt some tasks (like the ones invoked by `-sc` and `-sd`), the updater creates a `resume` file (a JSON file without the extension) in the same folder.  
 If you restart the same action at a later time, that file will be loaded and content already processed will be skipped.  
   
+### Task System  
+The Updater uses wrappers around Asyncio Tasks to execute code.  
+Tasks/Functions calls can be queued into the Task Manager. There are 5 queues available, the first one having the highest priority.  
+The Task Manager itself won't run more than 90 Tasks concurrently (The number itself can be changed in the code). In the same way, the Updater is limited to 80 concurrent requests.  
+When a Task or the Updater judges more Task are needed, they will be queued too. That's why the number of Tasks will likely grow when executing the Updater.  
+It's designed to limit the memory usage while keeping the Updater always busy, to not have idle/dead times.  
+  
 ### Additional Notes   
 - Use one of the `server` scripts to start a Python HTTP server and test the project locally, in your web browser.  
 - Or, on other OS, just run `python-m http.server` in a terminal, in the project folder.  
-- [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations.  
+- [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations. It reuses some Javascript, HTML, CSS and Python code.  
 - For developers, I documented some things in this [file](https://github.com/MizaGBF/GBFAL/blob/main/docs.md).  
