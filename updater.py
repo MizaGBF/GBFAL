@@ -1,95 +1,309 @@
+from __future__ import annotations
+from typing import Any, Callable
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 import asyncio
 import aiohttp
+import os
 import sys
 import re
-import json
 import time
+import json
 import string
 import html
-import os
-import signal
-from datetime import datetime, timezone, timedelta
 import traceback
-from typing import Optional, Callable, Collection, AsyncIterator, Any, Iterator, Union
+import signal
+import argparse
 
-# progress bar class
-class Progress():
-    def __init__(self, parent : 'Updater', *, total : int = 9999999999999, silent : bool = True, current : int = 0) -> None: # set to silent with a high total by default
-        self.silent = silent
-        self.total = total
-        self.current = current - 1
-        self.start_time = time.time()
-        self.elapsed = self.start_time
-        self.parent = parent
-        self._prev_percents_ = ("", "")
-        if self.total > 0: self.update()
+# Handle tasks
+class TaskManager():
+    CONCURRENT = 90
 
-    def progress2str(self) -> str: # convert the percentage to a valid string
-        s = "{:.2f}".format(100 * self.current / float(self.total))
-        if s == self._prev_percents_[0]: # use cached result if same string
-            return self._prev_percents_[1]
-        l = len(s)
-        while s[l-1] == '0' or s[l-1] == '.': # remove trailing 0 up to the dot (included)
-            l -= 1
-            if s[l] == '.':
-                break
-        self._prev_percents_ = (s, s[:l]) # cache the result
-        return s[:l]
+    def __init__(self : TaskManager, updater : Updater) -> None:
+        self.debug : bool = False
+        self.is_running : bool = False
+        self.updater : Updater = updater
+        self.queues : tuple[asyncio.Queue, ...] = (asyncio.Queue(), asyncio.Queue(), asyncio.Queue(), asyncio.Queue(), asyncio.Queue())
+        self.running : list[asyncio.Task] = []
+        self.total : int = 0
+        self.finished : int = 0
+        self.print_flag : bool = False
+        self.elapsed : float = 0
+        self.return_state : bool = True
+        self.written_len : int = 0
 
-    def set(self, *, total : int = 0, silent : bool = False) -> None: # to initialize it after a task start, once we know the total
-        if total >= 0:
-            self.total = total
-        self.silent = silent
-        if not self.silent and self.total > 0:
-            sys.stdout.write("\rProgress: {}%      ".format(self.progress2str()))
+    # reinitialize variables
+    def reset(self : TaskManager) -> None:
+        self.total = 0
+        self.finished = 0
+        self.is_running = False
+        self.print_flag = False
+
+    # add a task to one queue
+    def add(self : TaskManager, awaitable : Callable, *, parameters : tuple[Any, ...]|None = None, priority : int = -1) -> None:
+        if parameters is not None and not(isinstance(parameters, tuple)):
+            raise Exception("Invalid parameters")
+        if priority < 0 or priority >= len(self.queues):
+            priority = len(self.queues) - 1
+        self.queues[priority].put_nowait(Task.make(awaitable, parameters))
+        self.total += 1
+
+    # return True if all queues are empty
+    def queues_are_empty(self : TaskManager) -> bool:
+        for q in self.queues:
+            if not q.empty():
+                return False
+        return True
+
+    # run tasks in queue
+    async def run(self : TaskManager, *, skip : int = 0) -> None:
+        if self.is_running:
+            self.print("ERROR: run() is already running, ignoring...)")
+            return
+        self.is_running = True
+        start_time : float = time.time()
+        self.elapsed : float = start_time
+        to_sleep : bool = False
+        i : int
+        # loop
+        while len(self.running) > 0 or not self.queues_are_empty():
+            # remove from queue and run
+            for i in range(len(self.queues)):
+                while len(self.running) <= self.CONCURRENT and not self.queues[i].empty():
+                    try:
+                        t : Task = await self.queues[i].get()
+                        if skip <= 0:
+                            if t.parameters is not None:
+                                self.running.append(asyncio.create_task(t.awaitable(*t.parameters)))
+                            else:
+                                self.running.append(asyncio.create_task(t.awaitable()))
+                        else:
+                            skip -= 1
+                    except Exception as e:
+                        self.print("Can't start task, the following exception occured:")
+                        self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                        self.finished += 1
+                        self.return_state = False
+                        break
+            # check process flags
+            await self.updater.process_flags()
+            # remove completed tasks
+            i = 0
+            prev : int = self.finished
+            while i < len(self.running):
+                if self.running[i].done():
+                    try:
+                        self.running[i].result()
+                    except Exception as e:
+                        self.return_state = False
+                        self.print("The following exception occured:")
+                        self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    self.finished += 1
+                    self.running.pop(i)
+                else:
+                    i += 1
+            # update status
+            if prev != self.finished:
+                self.update_progress()
+                to_sleep = False
+            else:
+                to_sleep = True
+            # ... and sleep if we haven't finished tasks
+            if to_sleep:
+                await asyncio.sleep(0.1)
+            # if ALL tasks are done, check flags
+            if len(self.running) == 0 and self.queues_are_empty():
+                await self.updater.process_flags()
+        self.print("Complete")
+        # finished
+        diff : float = time.time() - start_time # elapsed time
+        # format to H:M:S
+        elapsed_s : int = int(diff)
+        h : int = elapsed_s // 3600 # hours
+        m : int = (elapsed_s % 3600) // 60 # minutes
+        s : int = elapsed_s % 60 # seconds
+        strings : list[str] = ["Run time: "]
+        if h > 0:
+            strings.append(str(h).zfill(2))
+            strings.append('h')
+        if m > 0:
+            strings.append(str(m).zfill(2))
+            strings.append('m')
+        strings.append(str(s).zfill(2))
+        strings.append('s')
+        self.reset()
+        print("".join(strings))
+
+    # start to run queued tasks
+    async def start(self : TaskManager) -> bool:
+        if self.is_running: # return if already running
+            return False
+        self.return_state = True
+        asyncio.create_task(self.run())
+        await asyncio.sleep(5)
+        while self.is_running:
+            await asyncio.sleep(1)
+        return self.return_state
+
+    # update the progression string and save if we've run for over 1h
+    def update_progress(self : TaskManager) -> None:
+        self.print_progress()
+        if time.time() - self.elapsed >= 3600:
+            self.print("Progress: {} / {} Tasks, autosaving...".format(self.finished, self.total))
+            self.updater.save()
+            self.updater.save_resume()
+            self.elapsed = time.time()
+
+    # print the progression string
+    def print_progress(self : TaskManager) -> None:
+        if self.running and self.total > 0:
+            if self.print_flag:
+                sys.stdout.write("\r")
+                if self.written_len > 0:
+                    sys.stdout.write((" " * self.written_len) + "\r")
+            else:
+                self.print_flag = True
+            if self.debug:
+                self.written_len = sys.stdout.write("P:{}/{} | R:{} | Q:{} {} {} {} {}".format(self.finished, self.total, len(self.running), self.queues[0].qsize(), self.queues[1].qsize(), self.queues[2].qsize(), self.queues[3].qsize(), self.queues[4].qsize()))
+            else:
+                self.written_len = sys.stdout.write("Progress: {} / {} Tasks".format(self.finished, self.total))
             sys.stdout.flush()
 
-    def update(self) -> None: # to call to update the progress text (if not silent and not done)
-        if self.current < self.total:
-            self.current += 1
-            if self.parent is not None and time.time() - self.elapsed >= 3600: # 1h passed, autosave (if set)
-                if self.silent:
-                    sys.stdout.write("\r")
-                else:
-                    print("\rState: {}/{} - Autosaving...".format(self.current, self.total))
-                self.elapsed = time.time()
-                self.parent.save()
-            if not self.silent:
-                sys.stdout.write("\rProgress: {}%      ".format(self.progress2str()))
-                sys.stdout.flush()
-                if self.current >= self.total:
-                    diff = time.time() - self.start_time # elapsed time
-                    # format to H:M:S
-                    x = int((diff - int(diff)) * 100)
-                    diff = int(diff)
-                    h = diff // 3600
-                    m = (diff % 3600) // 60
-                    s = diff % 60
-                    p = ""
-                    if h > 0: p += str(h).zfill(2) + "h"
-                    if m > 0 or p != "": p += str(m).zfill(2) + "m"
-                    p += str(s).zfill(2)
-                    if x > 0: p += "." + str(x).zfill(2)
-                    p += "s"
-                    print("\nRun time: {}".format(p))
+    # print whatever you want, to use instead of print to handle the \r
+    def print(self : TaskManager, *args) -> None:
+        if self.print_flag:
+            self.print_flag = False
+            sys.stdout.write("\r")
+            if self.written_len > 0:
+                sys.stdout.write((" " * self.written_len) + "\r")
+        print(*args)
+        self.print_progress()
 
-    def __enter__(self): # to use 'WITH'
-        pass
+    # called when CTRL+C is used
+    def interrupt(self : TaskManager, *args) -> None:
+        if self.total <= 0 or self.finished >= self.total:
+            return
+        if self.print_flag:
+            self.print_flag = False
+            sys.stdout.write("\r")
+            if self.written_len > 0:
+                sys.stdout.write((" " * self.written_len) + "\r")
+        print("Process PAUSED")
+        print("{} / {} Tasks completed".format(self.finished, self.total))
+        print("{} Tasks running".format(len(self.running)))
+        for i in range(len(self.queues)):
+            print("Tasks in queue lv{}: {}".format(i, self.queues[i].qsize()))
+        if self.updater.modified:
+            print("Pending Data is waiting to be saved")
+        print("Type 'help' for a command list, or a command to execute, anything else to resume")
+        while True:
+            s = input(":").lower().split(' ')
+            match s[0]:
+                case 'help':
+                    print("save    - call the save() function")
+                    print("exit    - force exit the process, changes won't be saved, but resume file will be updated if used")
+                    print("peek    - check the content of data.json. Take two parameters: the index to look at and an id")
+                    print("tchange - toggle update_changelog setting")
+                case 'save':
+                    if not self.updater.modified:
+                        print("No changes waiting to be saved")
+                    else:
+                        self.updater.save()
+                        self.updater.save_resume()
+                case 'peek':
+                    if len(s) < 3:
+                        print("missing 1 parameter: ID")
+                    elif len(s) < 2:
+                        print("missing 2 parameters: index, ID")
+                    else:
+                        try:
+                            d : Any = self.data[s[1]][s[2]]
+                            print(s[1], '-', s[2])
+                            print(d)
+                        except Exception as e:
+                            print("Can't read", s[1], '-', s[2])
+                            print(e)
+                case 'tchange':
+                    self.updater.update_changelog = not self.updater.update_changelog
+                    print("changelog.json updated list WILL be modified" if self.updater.update_changelog else "changelog.json updated list won't be modified")
+                case 'exit':
+                    print("Exiting...")
+                    self.updater.save_resume()
+                    os._exit(0)
+                case _:
+                    print("Process RESUMING...")
+                    break
 
-    def __exit__(self, type, value, traceback):
-        self.update() # updated on exit
+# A queued task
+@dataclass(frozen=True, slots=True)
+class Task():
+    awaitable : Callable
+    parameters : tuple[Any, ...]|None
 
-# main class
+    @classmethod
+    def make(cls : Task, awaitable : Callable, parameters : tuple[Any, ...]|None) -> Task:
+        return cls(awaitable, parameters)
+
+@dataclass(slots=True)
+class TaskStatus():
+    index : int
+    max_index : int
+    err : int
+    max_err : int
+    running : int
+    
+    def __init__(self : TaskStatus, max_index : int, max_err : int, *, start : int = 0, running : int = 0):
+        self.index = start
+        self.max_index = max_index
+        self.err = 0
+        self.max_err = max_err
+        self.running = running
+
+    def get_next_index(self : TaskStatus) -> int:
+        i : int = self.index
+        self.index += 1
+        return i
+
+    def good(self : TaskStatus) -> None:
+        self.err = 0
+
+    def bad(self : TaskStatus) -> None:
+        self.err += 1
+
+    @property
+    def complete(self : TaskStatus) -> bool:
+        return self.err >= self.max_err or self.index >= self.max_index
+
+    def finish(self : TaskStatus) -> None:
+        self.running -= 1
+
+    @property
+    def finished(self : TaskStatus) -> bool:
+        return self.running <= 0
+
+@dataclass(slots=True)
+class Flags():
+    _d_ : dict[str, int]
+    
+    def __init__(self : Flags) -> None:
+        self._d_ = {}
+
+    def set(self : Flags, name : str) -> None:
+        self._d_[name] = 1
+
+    def check(self : Flags, name : str) -> bool:
+        return self._d_.get(name, 0) != 0
+
 class Updater():
     ### CONSTANT
+    VERSION = '3.0'
+    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
+    SAVE_VERSION = 1
     # limit
     MAX_NEW = 100 # changelog limit
-    MAX_UPDATE = 80 # concurrent tasks
-    MAX_HTTP = 90 # concurrent requests
-    MAX_UPDATEALL = MAX_HTTP+10 # concurrent tasks/requests combo
-    MAX_SCENE_CONCURRENT = 10 # concurent scene checks
-    SOUND_CONCURRENT_PER_STEP = 4 # concurent sound checks per step
+    HTTP_CONN_LIMIT = 80
     LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
+    UPDATABLE = set(["characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job"])
     # addition type
     ADD_JOB = 0
     ADD_WEAP = 1
@@ -104,7 +318,6 @@ class Updater():
     ADD_BG = 10
     ADD_STORY = 11
     ADD_FATE = 12
-    PREEMPTIVE_ADD = set(["characters", "enemies", "summons", "skins", "weapons", "partners", "npcs", "background"])
     ADD_SINGLE_ASSET = ["title", "subskills", "suptix"]
     # chara/skin/partner update
     CHARA_SPRITE = 0
@@ -167,8 +380,10 @@ class Updater():
     FATE_TRANSCENDENCE_CONTENT = 2
     FATE_OTHER_CONTENT = 3
     FATE_LINK = 4
-    # common to story, event
-    SCENE_UPDATE_STEP = 5
+    # buff suffix list
+    BUFF_LIST_EXTENDED =  ["_1", "_10", "_11", "_101", "_110", "_111", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
+    BUFF_LIST =  BUFF_LIST_EXTENDED.copy()
+    BUFF_LIST.pop(BUFF_LIST.index("1"))
     # job update
     MAINHAND = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'] # weapon type keywords
     # CDN endpoints
@@ -180,16 +395,13 @@ class Updater():
     SOUND = ENDPOINT + "sound/"
     VOICE = SOUND + "voice/"
     # regex
-    ID_REGEX = re.compile("[123][07][1234]0\\d{4}00")
-    VERSION_REGEX = re.compile("\\/assets\\/(\\d+)\\/")
     CHAPTER_REGEX = re.compile("Chapter (\\d+)(-(\\d+))?")
     # others
-    SAVE_VERSION = 1
-    LOAD_EXCLUSION = ['version']
-    QUEUE_KEY = ['uncap_queue', 'scene_queue', 'sound_queue']
+    QUEUE_KEY = ['uncap_queue']
     STRING_CHAR = string.ascii_lowercase + string.digits
+    # event date/id
     MISSING_EVENTS = ["201017", "211017", "221017", "231017", "241017", "251017", "261017", "271017", "200214", "210214", "220214", "230214", "240214", "250214", "260214", "270214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "251216", "261216", "271216", "200101", "210101", "220101", "230101", "240101", "250101", "260101", "270101"] + ["131201", "140330", "160430", "161031", "161227", "170501", "170801", "171129", "180301", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181214", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304", "241224"]
-    SPECIAL_EVENTS = {
+    SPECIAL_EVENTS = { # special event id <-> file id
        "221121":"221121_arcarum_maria",
        "230322":"230322_arcarum_caim",
        "230515":"230515_arcarum_nier",
@@ -202,14 +414,18 @@ class Updater():
        "240322":"240322_arcarum_katzelia",
        "241017":"20241017",
        "241206":"terra_anre_feower",
+       # I made up the id on the left below
        "babyl0":"babeel_01",
        "dread0":"dreadbarrage",
        "alchm0":"kaitaku_renkin_hwop",
        "sandb0":"arcarum_sandbox"
     }
+    # for data matching during update
     CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
     SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
+    # GW skin stuff
     UNIQUE_SKIN = ["311301", "311302"]
+    # Special lookup
     SPECIAL_LOOKUP = { # special elements
         "3020065000": "R brown poppet trial",
         "3030158000": "SR blue poppet trial",
@@ -226,10 +442,8 @@ class Updater():
         "3710182000": "young cat milky white shorthair",
         "3710015000": "lina"
     }
-    MALINDA = "3030093000"
-    PARTNER_STEP = 10
-    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
-    # scene string
+    MALINDA = "3030093000" # Malinda ID
+    # Scene string
     SCENE_SUFFIXES = {
         "default": {
             "base": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_nalhe", "_school", "_astral", "_battle", "_off", "_race", "_cavalry", "_guardian", "_cook", "_orange", "_blue", "_green", "_nude", "_mask", "_doll", "_girl", "_cow", "_two", "_three", "_2021", "_2022", "_2023", "_2024"],
@@ -308,6 +522,9 @@ class Updater():
         },
         "3990454000": { # ichiro ogami
             "unique": ["_split"]
+        },
+        "3993628000": { # koku
+            "main": ["_blue", "_cyan", "_yellow"]
         }
     }
     SCENE_SUFFIXES["3990220000"] = SCENE_SUFFIXES["3990219000"] # djeeta = gran
@@ -319,7 +536,8 @@ class Updater():
     
     SCENE_BUBBLE_FILTER = set([k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0])
     
-    MSQ_RECAPS = { # list of msq recap art (new ones must be manually added)
+    # MSQ recap chapter lookup table
+    MSQ_RECAPS = { # left is a special made up id, right file_id
         "r00" : "",
         "r01" : "_cp1-12",
         "r02" : "_cp13-28",
@@ -332,16 +550,17 @@ class Updater():
         "r09" : "_cp115-132"
     }
     
-    def __init__(self) -> None:
-        # main variables
-        self.update_changelog = True # flag to enable or disable the generation of changelog.json
-        self.debug_wpn = False # for testing
-        self.debug_npc_detail = False # set to true for better detection
-        self.data = { # data structure
+    def __init__(self : Updater):
+        self.client : aiohttp.ClientSession|None = None # the http client
+        self.flags : Flags = Flags() # to contain and manage various flag values
+        self.http_sem : asyncio.Semaphore = asyncio.Semaphore(self.HTTP_CONN_LIMIT) # http semaphor to limit http connections
+        self.tasks : TaskManager = TaskManager(self) # the task manager
+        self.use_wiki : bool = False # flag to see if the wiki usable
+        self.update_changelog : bool = True # flag to enable or disable the generation of changelog.json
+        self.use_resume : bool = True # flag to use the resume file
+        self.data : dict[str, Any] = { # data structure
             "version":self.SAVE_VERSION,
             "uncap_queue":[],
-            "scene_queue":[],
-            "sound_queue":[],
             "valentines":[],
             "characters":{},
             "partners":{},
@@ -352,124 +571,83 @@ class Updater():
             "job":{},
             "job_wpn":{},
             "job_key":{},
-            "npcs":{},
+            'npcs':{},
             "background":{},
             "title":{},
             "suptix":{},
             "lookup":{},
-            "events":{},
+            'events':{},
             "skills":{},
             "subskills":{},
-            "buffs":{},
-            "eventthumb":{},
+            'buffs':{},
+            'eventthumb':{},
             "story":{},
             "fate":{},
             "premium":{}
         }
         self.load() # load self.data NOW
-        self.modified = False # if set to true, data.json will be written on the next call of save()
-        self.stat_string = None # set and updated by make_stats
-        self.new_elements = [] # new indexed element
-        self.addition = {} # new elements for changelog.json
-        self.job_list = None
-        self.scene_strings = None # contains list of suffix
-        self.force_partner = False # set to True by -partner
-        self.shared_task_container = [] # used for -scene
-        
-        # asyncio semaphores
-        self.sem = asyncio.Semaphore(self.MAX_UPDATE) # update semaphore
-        self.http_sem = asyncio.Semaphore(self.MAX_HTTP) # http semaphore
-        
-        # others
-        self.run_count = 0
-        self.progress = Progress(self) # initialized with a silent progress bar
-        self.use_wiki = True # if True, use wiki features
-        
-        self.client = None # will contain the aiohttp client. Is initialized at startup or must be initialized by a third party.
-
-    def interrupt(self, signum : int, frame) -> None:
-        print("")
-        print("Process PAUSED")
-        if self.progress is not None and self.progress.total != 9999999999999:
-            print("State: {}/{}".format(self.progress.current, self.progress.total))
-        print("Type 'help' for a command list, or a command to execute, anything else to resume")
-        while True:
-            s = input(":").lower().split(' ')
-            match s[0]:
-                case 'help':
-                    print("save    - call the save() function")
-                    print("exit    - force exit the process, changes won't be saved")
-                    print("peek    - check the content of data.json. Take two parameters: the index to look at and an id")
-                    print("tchange - toggle update_changelog setting")
-                case 'save':
-                    if not self.modified:
-                        print("No changes waiting to be saved")
-                    else:
-                        self.save()
-                case 'peek':
-                    if len(s) < 3:
-                        print("missing 1 parameter: ID")
-                    elif len(s) < 2:
-                        print("missing 2 parameters: index, ID")
-                    else:
-                        try:
-                            d = self.data[s[1]][s[2]]
-                            print(s[1], '-', s[2])
-                            print(d)
-                        except Exception as e:
-                            print("Can't read", s[1], '-', s[2])
-                            print(e)
-                case 'tchange':
-                    self.update_changelog = not self.update_changelog
-                    print("changelog.json updated list WILL be modified" if self.update_changelog else "changelog.json updated list won't be modified")
-                case 'exit':
-                    print("Exiting...")
-                    os._exit(0)
-                case _:
-                    print("Process RESUMING...")
-                    break
+        self.modified : bool = False # if set to true, data.json will be written on the next call of save()
+        self.resume : dict[str, Any] = {} # list of items completed (for the resume file)
+        self.stat_string : str|None = None # set and updated by make_stats
+        self.addition : dict[str, Any] = {} # new elements for changelog.json
+        self.updated_elements = set() # set of elements ran through update_element()
+        self.job_list : dict[str, str]|None = None # job dictionary of id string pair
+        self.scene_strings : None|tuple[dict, dict] = None # scene string containers
+        # sound strings containers
+        self.sound_base_strings : list[str, list[str], int, int, int] = []
+        self.sound_other_strings : list[str, list[str], int, int, int] = []
 
     ### Utility #################################################################################################################
 
     # Load data.json
-    def load(self) -> None:
+    def load(self : Updater) -> None:
         try:
+            # load file
             with open('json/data.json', mode='r', encoding='utf-8') as f:
-                data = json.load(f)
-                if not isinstance(data, dict): return
+                data : dict[str, Any] = json.load(f)
+                if not isinstance(data, dict):
+                    return
+            # update if old version
             data = self.retrocompatibility(data)
+            # load only expected keys
+            k : str
             for k in self.data:
-                if k in self.LOAD_EXCLUSION: continue
-                elif k in data: self.data[k] = data[k]
+                if k in data:
+                    self.data[k] = data[k]
         except OSError as e:
-            print(e)
+            self.tasks.print(e)
             if input("Continue anyway? (type 'y' to continue):").lower() != 'y':
                 os._exit(0)
         except Exception as e:
-            print("The following error occured while loading data.json:")
-            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-            print(e)
+            self.tasks.print("The following error occured while loading data.json:")
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            self.tasks.print(e)
             os._exit(0)
 
     # make older data.json compatible with newer versions
-    def retrocompatibility(self, data : dict) -> dict:
-        #version = data.get("version", 0)
-        # Does nothing for now
+    def retrocompatibility(self : Updater, data : dict[str, Any]) -> dict[str, Any]:
+        version = data.get("version", 0)
+        if version == 0:
+            self.tasks.print("This version is unsupported and might not work properly")
+        data["version"] = self.SAVE_VERSION
         return data
 
     # Save data.json and changelog.json (only if self.modified is True)
-    def save(self) -> None:
+    def save(self : Updater) -> None:
         try:
             if self.modified:
                 self.modified = False
-                # data.json
+                # remove dupes from queues
                 for k in self.QUEUE_KEY:
                     self.data[k] = list(set(self.data[k]))
                     self.data[k].sort()
+                # json.dump isn't used to keep the file small AND easily editable by hand
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
                     # custom json indentation
                     outfile.write("{\n")
-                    keys = list(self.data.keys())
+                    keys : list[str] = list(self.data.keys())
+                    k : str
+                    v : Any
                     for k, v in self.data.items():
                         outfile.write('"{}":\n'.format(k))
                         if isinstance(v, int): # INT
@@ -479,6 +657,7 @@ class Updater():
                             outfile.write("\n")
                         elif isinstance(v, list): # LIST
                             outfile.write('[\n')
+                            d : Any
                             for d in v:
                                 json.dump(d, outfile, separators=(',', ':'), ensure_ascii=False)
                                 if d is not v[-1]:
@@ -490,9 +669,11 @@ class Updater():
                             outfile.write("\n")
                         elif isinstance(v, dict): # DICT
                             outfile.write('{\n')
-                            last = list(v.keys())
+                            last : list[str] = list(v.keys())
                             if len(last) > 0:
                                 last = last[-1]
+                                i : int
+                                d : Any
                                 for i, d in v.items():
                                     outfile.write('"{}":'.format(i))
                                     json.dump(d, outfile, separators=(',', ':'), ensure_ascii=False)
@@ -505,13 +686,18 @@ class Updater():
                             outfile.write("\n")
                     outfile.write("}")
                 # changelog.json
-                try:
+                stat : str|None
+                existing : dict[str, Any]
+                issues : list[str]
+                help : bool
+                try: # load its content
                     with open('json/changelog.json', mode='r', encoding='utf-8') as f:
                         data = json.load(f)
                         stat = data.get('stat', None)
                         issues = data.get('issues', [])
                         help = data.get('help', False)
                         existing = {}
+                        e : Any
                         for e in data.get('new', []): # convert content to dict
                             existing[e[0]] = e[1]
                 except:
@@ -519,78 +705,87 @@ class Updater():
                     stat = None
                     issues = []
                     help = False
-                if self.update_changelog:
+                if self.update_changelog: # update new content
+                    k : str
+                    v : Any
                     for k, v in self.addition.items(): # merge but put updated elements last
-                        if k in existing: existing.pop(k)
+                        if k in existing:
+                            existing.pop(k)
                         existing[k] = v
                     self.addition = {} # clear self.addition
                 # updated new elements
-                new = [[k, v] for k, v in existing.items()] # convert back to list. NOTE: maybe make a cleaner way later
-                if len(new) > self.MAX_NEW: new = new[len(new)-self.MAX_NEW:]
+                new : list[Any] = [[k, v] for k, v in existing.items()] # convert back to list. NOTE: maybe make a cleaner way later
+                if len(new) > self.MAX_NEW:
+                    new = new[len(new)-self.MAX_NEW:]
                 # update stat
-                if self.stat_string is not None: stat = self.stat_string
-                with open('json/changelog.json', mode='w', encoding='utf-8') as outfile:
+                if self.stat_string is not None:
+                    stat = self.stat_string
+                with open('json/changelog.json', mode='w', encoding='utf-8') as outfile: # the timestamp is upated below
                     json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'stat':stat, 'issues':issues, 'help':help}, outfile)
-                if self.update_changelog: print("data.json and changelog.json updated")
-                else: print("data.json updated")
+                if self.update_changelog:
+                    self.tasks.print("data.json and changelog.json updated")
+                else:
+                    self.tasks.print("data.json updated")
         except Exception as e:
-            print(e)
-            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            self.tasks.print(e)
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
     # Generic GET request function
-    async def get(self, url : str, headers : dict = {}, timeout : Optional[int] = None, get_json : bool = False):
+    async def get(self : Updater, url : str) -> Any:
         async with self.http_sem:
-            response = await self.client.get(url, headers={'connection':'keep-alive'} | headers, timeout=timeout)
+            response : aiohttp.HTTPResponse = await self.client.get(url, headers={'connection':'keep-alive'})
             async with response:
-                if response.status != 200: raise Exception("HTTP error {}".format(response.status))
-                if get_json: return await response.json()
+                if response.status != 200:
+                    raise Exception("HTTP error {}".format(response.status))
                 return await response.content.read()
-    
-    # Generic HEAD request function
-    async def head(self, url : str, headers : dict = {}):
+
+    # Same as GET but for gbf.wiki
+    async def get_wiki(self : Updater, url : str, *, get_json : bool = False) -> Any:
         async with self.http_sem:
-            response = await self.client.head(url, headers={'connection':'keep-alive'} | headers)
+            response : aiohttp.HTTPResponse = await self.client.get(url, headers={'User-Agent':self.USER_AGENT}, timeout=10)
             async with response:
                 if response.status != 200: raise Exception("HTTP error {}".format(response.status))
+                if get_json:
+                    return await response.json()
+                return await response.content.read()
+
+    # Generic HEAD request function
+    async def head(self : Updater, url : str) -> Any:
+        async with self.http_sem:
+            response : aiohttp.HTTPResponse = await self.client.head(url, headers={'connection':'keep-alive'})
+            async with response:
+                if response.status != 200:
+                    raise Exception("HTTP error {}".format(response.status))
                 return response.headers
 
     # wrapper of head() if the exception isn't needed (return None in case of error instead)
-    async def head_nx(self, url : str, headers : dict = {}):
+    async def head_nx(self : Updater, url : str):
         try:
-            return await self.head(url, headers)
+            return await self.head(url)
         except:
             return None
 
-    # another wrapper to chain requests
-    async def multi_head_nx(self, urls : list, headers : dict = {}):
+    # another wrapper to chain HEAD requests, return if ONE request is successful, else return None
+    async def multi_head_nx(self : Updater, urls : list[str]):
         for url in urls:
-            r = await self.head_nx(url, headers)
+            r = await self.head_nx(url)
             if r is not None:
                 return r
         return None
 
-    # test if the wiki is usable
-    async def test_wiki(self) -> bool:
-        try:
-            t = (await self.get("https://gbf.wiki", headers={'User-Agent':self.USER_AGENT}, timeout=5)).decode('utf-8')
-            if "<p id='status'>50" in t or 'gbf.wiki unavailable' in t: return False
-            return True
-        except:
-            return False
-
-    # Create a shared container for tasks.
-    def newShared(self, errs : list) -> list:
-        errs.append([0, True, 0])
-        return errs[-1]
-
-    # Extract json data from a manifest file
+    # Extract json data from a GBF animation manifest file
     async def processManifest(self, file : str, verify_file : bool = False) -> list:
+        # request the file
         manifest = (await self.get(self.MANIFEST + file + ".js")).decode('utf-8')
+        # fine start and end of object part
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
+        # format and load as json
         data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
-        res = [src for l in data if (src := l['src'].split('?')[0].split('/')[-1])] # list all string srcs
-        if verify_file: # check if at least one file is visible
+        # list image srcs
+        res = [src for l in data if (src := l['src'].split('?')[0].split('/')[-1])]
+        # check if at least one file is accessible
+        if verify_file:
             for k in res:
                 try:
                     await self.head(self.IMG + "sp/cjs/" + k)
@@ -600,898 +795,500 @@ class Updater():
             raise Exception("Invalid Spritesheets")
         return res
 
-    # clean shared_task_container of completed tasks
-    def clean_shared_task(self) -> None:
-        self.shared_task_container = [t for t in self.shared_task_container if not t.done()]
+    # test if the wiki is usable
+    async def test_wiki(self : Updater) -> bool:
+        try:
+            t = (await self.get_wiki("https://gbf.wiki")).decode('utf-8') # request main page
+            if "<p id='status'>50" in t or 'gbf.wiki unavailable' in t: # check if down
+                return False
+            return True
+        except: # bad request or cloudflare = down/not usable
+            return False
 
-    # wait for all tasks in shared_task_container to be complete
-    async def wait_shared_task_completion(self) -> None:
-        while len(self.shared_task_container) > 0:
-            await asyncio.sleep(0.01)
-            self.clean_shared_task()
+    ### Main #################################################################################################################
 
-    # wait for free space to appear in shared_task_container
-    async def wait_shared_task_free(self, limit : int) -> None:
-        while len(self.shared_task_container) >= limit:
-            await asyncio.sleep(0.01)
-            self.clean_shared_task()
-
-    # for limited queued asyncio concurrency
-    async def map_unordered(self, func : Callable, iterable : Union[Iterator,Collection,AsyncIterator], limit : int) -> asyncio.Task:
-        aws = iter(map(func, iterable))
-
-        aws_ended = False
-        pending = set()
-
-        while pending or not aws_ended:
-            while len(pending) < limit and not aws_ended:
-                try:
-                    aw = next(aws)
-                except StopIteration:
-                    aws_ended = True
-                else:
-                    pending.add(asyncio.ensure_future(aw))
-            if not pending:
-                return
-
-            done, pending = await asyncio.wait(
-                pending, return_when=asyncio.FIRST_COMPLETED
-            )
-            while done:
-                yield done.pop()
-
-    ### Run #####################################################################################################################
-    
-    # Called by -run, update the indexed content
-    async def run(self, ids : list = []) -> None:
-        self.new_elements = ids
-        self.run_count = 0
-        categories = []
-        errs = []
-        job_task = 10
-        skill_task = 10
-        buff_series_task = 12
-        # job keys to check
-        if self.job_list is None:
-            self.job_list = await self.init_job_list()
-        if self.job_list is None:
-            print("Couldn't retrieve job list from the game")
-            return
-        jkeys = [k for k in list(self.job_list.keys()) if k not in self.data['job']]
-        if len(jkeys) == 0:
-            job_task == 0
+    # called by -run
+    async def run(self : Updater) -> None:
+        self.flags.set("run_process")
+        i : int
+        j : int
+        r : int
+        # uncap queue
+        if len(self.data['uncap_queue']) > 0:
+            for k in self.data['uncap_queue']:
+                self.tasks.add(self.update_element, parameters=(k, None))
+            self.tasks.print(len(self.data['uncap_queue']), "set to be updated, from the Uncap Queue")
+            self.data['uncap_queue'] = []
+        ts : TaskStatus
         # jobs
-        categories.append([])
-        self.newShared(errs)
-        for i in range(job_task):
-            categories[-1].append(self.search_job(i, job_task, jkeys, errs[-1]))
+        if self.job_list is not None:
+            jkeys = [k for k in list(self.job_list.keys()) if k not in self.data['job']]
+            for k in jkeys:
+                self.tasks.add(self.update_job, parameters=(k))
         # skills
-        for i in range(skill_task):
-            categories.append([self.search_skill(i, skill_task)])
+        ts = TaskStatus(10000, 12)
+        highest : int = 0
+        try:
+            highest = max([int(k) for k in self.data["skills"]])
+        except:
+            pass
+        for i in range(10):
+            self.tasks.add(self.search_skill, parameters=(ts, highest))
         # buffs
         for i in range(10):
-            for j in range(buff_series_task):
-                categories.append([self.search_buff(1000*i+j, buff_series_task)])
+            for j in range(4):
+                ts = TaskStatus(i*1000+250*(j+1), 10, start=i*1000+250*j)
+                n : int
+                for n in range(3):
+                    self.tasks.add(self.search_buff, parameters=(ts, ))
         # npc
-        categories.append([])
-        self.newShared(errs)
-        for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/quest/scene/character/body/", ".png", 70))
-        categories.append([])
-        self.newShared(errs)
-        for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/raid/navi_face/", ".png", 50))
-        categories.append([])
-        self.newShared(errs)
-        for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/quest/scene/character/body/", "_a.png", 50))
-        categories.append([])
-        self.newShared(errs)
-        for i in range(10): # assets
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "img/sp/assets/npc/b/", "_01.png", 70))
-        categories.append([])
-        self.newShared(errs)
-        for i in range(10): # sounds
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_v_001.mp3", 50))
-        categories.append([])
-        self.newShared(errs)
-        for i in range(10): # boss sounds
-            categories[-1].append(self.search_generic('npcs', i, 10, errs[-1], "399{}000", 4, "sound/voice/", "_boss_v_1.mp3", 50))
-        # special
-        categories.append([])
-        categories[-1].append(self.search_generic('npcs', 0, 1, self.newShared(errs), "305{}000", 4, "img/sp/quest/scene/character/body/", ".png", 2))
+        ts = TaskStatus(10000, 90)
+        for i in range(20):
+            self.tasks.add(self.search_generic, parameters=(ts, 'npcs', "399{}000", 4, [
+                "img/sp/quest/scene/character/body/{}.png",
+                "img/sp/raid/navi_face/{}.png",
+                "img/sp/quest/scene/character/body/{}_a.png",
+                "img/sp/assets/npc/b/{}_01.png",
+                "sound/voice/{}_v_001.mp3",
+                "sound/voice/{}_boss_v_1.mp3"
+            ]))
+        # special npc
+        ts = TaskStatus(10000, 2)
+        for i in range(10):
+            self.tasks.add(self.search_generic, parameters=(ts, 'npcs', "305{}000", 4, ["img/sp/quest/scene/character/body/{}.png"]))
         #rarity of various stuff
         for r in range(1, 5):
             # weapons
             for j in range(10):
-                categories.append([])
-                self.newShared(errs)
+                ts = TaskStatus(1000, 20)
                 for i in range(5):
-                    categories[-1].append(self.search_generic('weapons', i, 5, errs[-1], "10"+str(r)+"0{}".format(j) + "{}00", 3, "img/sp/assets/weapon/m/", ".jpg", 20))
+                    self.tasks.add(self.search_generic, parameters=(ts, 'weapons', "10"+str(r)+"0{}".format(j) + "{}00", 3, ["img/sp/assets/weapon/m/{}.jpg"]))
             # summons
-            categories.append([])
-            self.newShared(errs)
+            ts = TaskStatus(1000, 20)
             for i in range(5):
-                categories[-1].append(self.search_generic('summons', i, 5, errs[-1], "20"+str(r)+"0{}000", 3, "img/sp/assets/summon/m/", ".jpg", 20))
+                self.tasks.add(self.search_generic, parameters=(ts, 'summons', "20"+str(r)+"0{}000", 3, ["img/sp/assets/summon/m/{}.jpg"]))
             if r > 1:
                 # characters
-                categories.append([])
-                self.newShared(errs)
+                ts = TaskStatus(1000, 20)
                 for i in range(5):
-                    categories[-1].append(self.search_generic('characters', i, 5, errs[-1], "30"+str(r)+"0{}000", 3, "img/sp/assets/npc/m/", "_01.jpg", 20))
+                    self.tasks.add(self.search_generic, parameters=(ts, 'characters', "30"+str(r)+"0{}000", 3, ["img/sp/assets/npc/m/{}_01.jpg"]))
                 # partners
-                categories.append([])
-                self.newShared(errs)
+                ts = TaskStatus(1000, 20)
                 for i in range(5):
-                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img/sp/assets/npc/raid_normal/", "_01.jpg", 20))
-                categories.append([])
-                self.newShared(errs)
-                for i in range(5):
-                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js", 20))
-                categories.append([])
-                self.newShared(errs)
-                for i in range(5):
-                    categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js", 20))
+                    self.tasks.add(self.search_generic, parameters=(ts, 'partners', "38"+str(r)+"0{}000", 3, [
+                        "img/sp/assets/npc/raid_normal/{}_01.jpg",
+                        "js/model/manifest/phit_{}.js",
+                        "js/model/manifest/nsp_{}_01.js"
+                    ]))
         # other partners
         for r in range(8, 10):
-            categories.append([])
-            self.newShared(errs)
+            ts = TaskStatus(1000, 20)
             for i in range(5):
-                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "img/sp/assets/npc/raid_normal/", "_01.jpg", 20))
-            categories.append([])
-            self.newShared(errs)
-            for i in range(5):
-                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/phit_", ".js", 20))
-            categories.append([])
-            self.newShared(errs)
-            for i in range(5):
-                categories[-1].append(self.search_generic('partners', i, 5, errs[-1], "38"+str(r)+"0{}000", 3, "js/model/manifest/nsp_", "_01.js", 20))
+                self.tasks.add(self.search_generic, parameters=(ts, 'partners', "38"+str(r)+"0{}000", 3, [
+                    "img/sp/assets/npc/raid_normal/{}_01.jpg",
+                    "js/model/manifest/phit_{}.js",
+                    "js/model/manifest/nsp_{}_01.js"
+                ]))
         # skins
-        categories.append([])
-        self.newShared(errs)
+        ts = TaskStatus(1000, 20)
         for i in range(5):
-            categories[-1].append(self.search_generic('skins', i, 5, errs[-1], "3710{}000", 3, "js/model/manifest/npc_", "_01.js", 20))
+            self.tasks.add(self.search_generic, parameters=(ts, 'skins', "3710{}000", 3, ["js/model/manifest/npc_{}_01.js"]))
         # enemies
+        a : int
+        b : int
+        d : int
         for a in range(1, 10):
             for b in range(1, 4):
                 for d in [1, 2, 3]:
-                    categories.append([])
-                    self.newShared(errs)
+                    ts = TaskStatus(1000, 40)
                     for i in range(5):
-                        categories[-1].append(self.search_generic('enemies', i, 5, errs[-1], str(a) + str(b) + "{}" + str(d), 4, "img/sp/assets/enemy/s/", ".png", 50))
+                        self.tasks.add(self.search_generic, parameters=(ts, 'enemies', str(a) + str(b) + "{}" + str(d), 4, ["img/sp/assets/enemy/s/{}.png"]))
         # backgrounds
         # event & common
-        for i in ["event_{}", "common_{}"]:
-            categories.append([])
-            self.newShared(errs)
+        ev : str
+        for ev in ["event_{}", "common_{}"]:
+            ts = TaskStatus(1000, 10)
             for j in range(5):
-                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i, 3 if i.startswith("common_") else 1, "img/sp/raid/bg/", ".jpg", 10))
+                self.tasks.add(self.search_generic, parameters=(ts, 'background', ev, 3 if ev.startswith("common_") else 1, ["img/sp/raid/bg/{}.jpg"]))
         # main
-        categories.append([])
-        self.newShared(errs)
+        ts = TaskStatus(1000, 10)
         for j in range(5):
-            categories[-1].append(self.search_generic('background', j, 5, errs[-1], "main_{}", 1, "img/sp/guild/custom/bg/", ".png", 10))
+            self.tasks.add(self.search_generic, parameters=(ts, 'background', "main_{}", 1, ["img/sp/guild/custom/bg/{}.png"]))
         # others
-        for i in ["ra", "rb", "rc"]:
-            categories.append([])
-            self.newShared(errs)
+        ss : str
+        for ss in ["ra", "rb", "rc"]:
+            ts = TaskStatus(1000, 50)
             for j in range(5):
-                categories[-1].append(self.search_generic('background', j, 5, errs[-1], "{}"+i, 1, "img/sp/raid/bg/", "_1.jpg", 50))
-        for i in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
-            categories.append([])
-            self.newShared(errs)
+                self.tasks.add(self.search_generic, parameters=(ts, 'background', "{}"+ss, 1, ["img/sp/raid/bg/{}_1.jpg"]))
+        bgt : tuple[str, str]
+        for bgt in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
+            ts = TaskStatus(1000, 50)
             for j in range(5):
-                categories[-1].append(self.search_generic('background', j, 5, errs[-1], i[0]+"{}"+i[1], 3, "img/sp/raid/bg/", "_1.jpg", 50))
+                self.tasks.add(self.search_generic, parameters=(ts, 'background', bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
         # titles
-        categories.append([])
-        self.newShared(errs)
+        ts = TaskStatus(1000, 5)
         for i in range(3):
-            categories[-1].append(self.search_generic('title', i, 3, errs[-1], "{}", 1, "img/sp/top/bg/bg_", ".jpg", 5))
+            self.tasks.add(self.search_generic, parameters=(ts, 'title', "{}", 1, ["img/sp/top/bg/bg_{}.jpg"]))
         # subskills
-        categories.append([])
-        self.newShared(errs)
+        ts = TaskStatus(1000, 5)
         for i in range(3):
-            categories[-1].append(self.search_generic('subskills', i, 3, errs[-1], "{}", 1, "img/sp/assets/item/ability/s/", "_1.jpg", 5))
+            self.tasks.add(self.search_generic, parameters=(ts, 'subskills', "{}", 1, ["img/sp/assets/item/ability/s/{}_1.jpg"]))
         # suptix
-        categories.append([])
-        self.newShared(errs)
+        ts = TaskStatus(1000, 15)
         for i in range(3):
-            categories[-1].append(self.search_generic('suptix', i, 3, errs[-1], "{}", 1, "img/sp/gacha/campaign/surprise/top_", ".jpg", 15))
-        print("Starting process...")
-        self.progress = Progress(self, total=len(categories), silent=False)
-        async with asyncio.TaskGroup() as tg:
-            tasks = [tg.create_task(self.run_category(c)) for c in categories]
-        for t in tasks:
-            t.result()
-        self.save()
-        if len(self.new_elements) > 0:
-            await self.manualUpdate(self.new_elements)
-            await self.check_msq()
-            await self.check_fate("last")
-            await self.check_new_event()
-            await self.update_all_event_skycompass()
-            await self.update_npc_thumb()
-        else:
-            if len(self.data['uncap_queue']) > 0:
-                await self.manualUpdate([])
-            if len(self.data['scene_queue']) > 0:
-                await self.update_all_scene(update_pending=True)
-            if len(self.data['sound_queue']) > 0:
-                await self.update_all_sound(update_pending=True)
+            self.tasks.add(self.search_generic, parameters=(ts, 'suptix', "{}", 1, ["img/sp/gacha/campaign/surprise/top_{}.jpg"]))
+        # start the tasks
+        await self.tasks.start()
 
-    # run subroutine, process a category batch
-    async def run_category(self, coroutines : list) -> None:
-        with self.progress:
-            while True:
-                if self.run_count + len(coroutines) <= self.MAX_HTTP:
-                    self.run_count += len(coroutines)
-                    break
-                await asyncio.sleep(1)
-            try:
-                async with asyncio.TaskGroup() as tg:
-                    tasks = [tg.create_task(coroutines[i]) for i in range(len(coroutines))]
-                for t in tasks:
-                    t.result()
-            except Exception as e:
-                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-            self.run_count -= len(coroutines)
-
-    # generic asset search
-    async def search_generic(self, index : str, start : int, step : int, err : list, file : str, zfill : int, path : str, ext : str, maxerr : int) -> None:
-        i = start
-        is_js = ext.endswith('.js')
-        while err[0] < maxerr and err[1]:
-            f = file.format(str(i).zfill(zfill))
-            if f in self.data[index]:
-                if self.data[index][f] == 0 and (is_js or index in self.PREEMPTIVE_ADD):
-                    self.new_elements.append(f)
-                err[0] = 0
-                await asyncio.sleep(0.02)
+    # generic search for assets
+    async def search_generic(self : Updater, ts : TaskStatus, index : str, file : str, zfill : int, paths : list[str]) -> None:
+        while not ts.complete:
+            i : int = ts.get_next_index()
+            f : str = file.format(str(i).zfill(zfill)) # while the letter f is used to signify the file, it's also the id used in the index
+            if f in self.data[index]: # if indexed
+                if self.data[index][f] == 0 and index in self.UPDATABLE: # set to update if no data and it's updatable
+                    self.tasks.print("In need of update:", f, "for index:", index)
+                    self.tasks.add(self.update_element, parameters=(f, index), priority=3)
+                ts.good()
             else:
-                try:
-                    await self.head(self.ENDPOINT + path + f + ext)
-                    err[0] = 0
-                    self.data[index][f] = 0
-                    if index in self.ADD_SINGLE_ASSET:
-                        self.addition[index+":"+f] = index
-                    self.modified = True
-                    self.new_elements.append(f)
-                    break
-                except:
-                    err[0] += 1
-                    if err[0] >= maxerr:
-                        err[1] = False
-                        return
-            i += step
+                j : int
+                path : str
+                for j, path in enumerate(paths): # request for each path
+                    try:
+                        await self.head(self.ENDPOINT + path.format(f))
+                        ts.good()
+                        self.tasks.print("Found:", f, "for index:", index)
+                        self.data[index][f] = 0 # set data to 0 (until it's updated)
+                        if index in self.ADD_SINGLE_ASSET: # these index don't have changelog ID
+                            self.addition[index+":"+f] = index
+                        self.modified = True
+                        self.tasks.add(self.update_element, parameters=(f, index), priority=3) # call update task for that element
+                        break
+                    except: # request failed
+                        if j == len(paths) - 1: # if it was the last path
+                            ts.bad()
 
-    # -run subroutine to search for new skills
-    async def search_skill(self, start : int, step : int) -> None: # skill search
-        err = 0
-        i = start
-        tmp_c = ("0" if start < 1000 else str(start)[0])
-        tmp = [k for k in list(self.data["skills"].keys()) if k[0] == tmp_c]
-        tmp.sort()
-        try:
-            highest = int(tmp[-1])
-        except:
-            highest = i - 1
-        tmp = None
-        highest = start
-        while err < 12:
-            fi = str(i).zfill(4)
-            if fi in self.data["skills"]:
-                i += step
-                err = 0
+    # Search for new skills
+    async def search_skill(self, ts : TaskStatus, highest : int) -> None: # skill search
+        # highest is the highest registered id
+        # it's used to keep going if we know there are further ID to be found later
+        # this way, is there are large gaps of unused skills, we can still keep going
+        while not ts.complete:
+            i : int = ts.get_next_index()
+            fi = str(i).zfill(4) # formatted id
+            if fi in self.data["skills"]: # already indexed
+                ts.good()
+            else:
+                found : bool = False
+                s : str
+                for s in ["_1.png", "_2.png", "_3.png", "_4.png", "_5.png", ".png"]: # request for each (we only need one good one), ".png" is last because it's rarely used nowadays
+                    try:
+                        headers : Any = await self.head(self.IMG + "sp/ui/icon/ability/m/" + str(i) + s)
+                        if 'content-length' in headers and int(headers['content-length']) < 200:
+                            raise Exception()
+                        ts.good()
+                        found = True
+                        self.data["skills"][fi] = [[str(i) + s.split('.')[0]]]
+                        self.addition[fi] = self.ADD_SKILL
+                        self.modified = True
+                        break
+                    except:
+                        pass
+                if not found and i > highest:
+                    ts.bad()
+
+    # Search for new buffs
+    async def search_buff(self, ts : TaskStatus) -> None:
+        while not ts.complete:
+            fi = str(ts.get_next_index()).zfill(4) # formatted id
+            if fi in self.data['buffs']: # already indexed
+                ts.good()
                 continue
-            found = False
-            for s in [".png", "_1.png", "_2.png", "_3.png", "_4.png", "_5.png"]:
-                try:
-                    headers = await self.head(self.IMG + "sp/ui/icon/ability/m/" + str(i) + s)
-                    if 'content-length' in headers and int(headers['content-length']) < 200: raise Exception()
-                    found = True
-                    err = 0
-                    self.data["skills"][fi] = [[str(i) + s.split('.')[0]]]
-                    self.addition[fi] = self.ADD_SKILL
-                    self.modified = True
-                    break
-                except:
-                    pass
-            i += step
-            if not found and i > highest: err += 1
-
-    # -run subroutine to search for new buffs
-    async def search_buff(self, start : int, step : int, full : bool = False) -> None: # buff search
-        err = 0
-        i = start
-        end = (start // 1000) * 1000 + 1000
-        tmp_c = ("0" if start < 1000 else str(start)[0])
-        tmp = [k for k in list(self.data["buffs"].keys()) if k[0] == tmp_c]
-        tmp.sort()
-        try:
-            highest = int(tmp[-1])
-        except:
-            highest = i - 1
-        tmp = None
-        highest = start
-        # suffix list
-        slist = ["_1", "_10", "_11", "_101", "_110", "_111", "_30"] + (["1"] if start >= 1000 else []) + ["_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
-        known = set()
-        while err < 10 and i < end:
-            fi = str(i).zfill(4)
-            data = [[], []]
-            if not full:
-                if fi in self.data["buffs"]:
-                    i += step
-                    err = 0
-                    continue
+            # attempt to update
+            if await self.update_buff(fi):
+                ts.good()
             else:
-                try:
-                    data[0] = self.data["buffs"][fi][0].copy()
-                    data[1] = self.data["buffs"][fi][1].copy()
-                    known = set(data[1])
-                    if '_' not in data[0] and len(data[0]) < 5:
-                        known.add("")
-                except:
-                    known = set()
-            found = False
-            modified = False
-            # check no suffix
+                ts.bad()
+
+    # Update a buff data
+    async def update_buff(self : Updater, element_id : str) -> bool: # return bool until other update functions
+        i : int = int(element_id)
+        known : set[str]
+        data : list[list[str]] = [[], []] # prepare container
+        # the list of files to check changes slightly depending on if the ID is lesser than 1000
+        slist = self.BUFF_LIST_EXTENDED if i >= 1000 else self.BUFF_LIST
+        # retrieve known data from the index (if any)
+        try:
+            data[0] = self.data['buffs'][element_id][0]
+            data[1] = self.data['buffs'][element_id][1]
+            known = set(data[1])
+            if '_' not in data[0] and len(data[0]) < 5:
+                known.add("")
+        except:
+            data = [[], []]
+            known = set()
+        found = False
+        modified = False
+        # first search just the file matching the id
+        try:
+            if len(data[0]) == 0:
+                headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + ".png")
+                if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
+                data[0] = [str(i)]
+                modified = True
+            found = True
+        except:
+            pass
+        # next search with each file suffix, keep track of all of them
+        for s in slist:
             try:
-                if len(data[0]) == 0 or (len(data[0]) > 0 and data[0][0] != str(i)):
-                    headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + ".png")
+                if s not in known:
+                    headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
                     if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
-                    data[0] = [str(i)]
+                    if len(data[0]) == 0:
+                        data[0] = [str(i)+s]
+                    if s != "":
+                        data[1].append(s)
                     modified = True
                 found = True
             except:
                 pass
-            # check suffixes
-            for s in slist:
-                try:
-                    if s not in known:
-                        headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
-                        if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
-                        if len(data[0]) == 0:
-                            data[0] = [str(i)+s]
-                        if s != "":
-                            data[1].append(s)
-                        modified = True
-                    found = True
-                except:
-                    pass
-            if not found:
-                if i > highest:
-                    err += 1
-            else:
-                err = 0
-                if modified:
-                    try:
-                        if len(data[1]) != len(self.data["buffs"][fi][1]):
-                            self.addition[fi] = self.ADD_BUFF
-                    except:
-                        self.addition[fi] = self.ADD_BUFF
-                    self.data["buffs"][fi] = data
-                    self.modified = True
-            i += step
+        # save if positive result
+        if not found:
+            return False
+        else:
+            if modified:
+                self.addition[element_id] = self.ADD_BUFF
+                self.data['buffs'][element_id] = data
+                self.modified = True
+                self.flags.set("found_buff")
+                self.tasks.print("Updated:", element_id, "for index:", 'buffs')
+            return True
 
-    ### Job #####################################################################################################################
-    
-    # To be called once when needed
-    async def init_job_list(self) -> dict:
-        print("Initializing job list...")
-        # existing classes
-        try: job_list = (await self.get(self.JS + "constant/job.js")).decode('utf-8') # contain a list of all classes. it misses the id of the outfits however.
-        except Exception as ee:
-            print(ee)
+    ### Update #################################################################################################################
+
+    # Attempt to update all given element ids
+    async def update_all(self : Updater, elements : list[str]) -> None:
+        element_id : str
+        for element_id in elements:
+            self.tasks.add(self.update_element, parameters=(element_id, None))
+        if await self.tasks.start():
+            if len(self.addition) > 0: # update lookup
+                await self.lookup()
+
+    # Update element data by calling the corresponding function
+    async def update_element(self : Updater, element_id : str, index : str|None) -> None:
+        # Check if it has already been updated by the current instance, then skip if it's the case
+        if element_id in self.updated_elements:
             return
-        a = job_list.find("var a={")
-        if a == -1: return
-        a+=len("var a={")
-        b = job_list.find("};", a)
-        if b == -b: return
-        job_list = job_list[a:b].split(',')
-        temp = {}
-        for j in job_list:
-            e = j.split(':')
-            temp[e[1]] = set()
-            for c in e[0].replace('_', ''):
-                temp[e[1]].add(c)
-            temp[e[1]] = "".join(list(temp[e[1]])).lower()
-        job_list = temp
-        # old skins
-        for e in [("125001","snt"), ("165001","stf"), ("185001", "idl")]:
-            job_list[e[0]] = e[1]
-        # new skins
-        async with asyncio.TaskGroup() as tg:
-            tasks = []
-            for i in range(31, 41):
-                for j in range(0, 20):
-                    if str(i * 100 + j)+"01" in job_list: continue
-                    tasks.append(tg.create_task(self.init_job_list_sub(str(i * 100 + j)+"01")))
-        for t in tasks:
-            r = t.result()
-            if r is not None:
-                job_list[r] = self.STRING_CHAR
-        print("Done")
-        return job_list
+        self.updated_elements.add(element_id)
+        # No index provided, deduce index
+        if index is None: 
+            if element_id in self.data.get('background', {}):
+                index = 'background'
+            elif len(element_id) >= 10:
+                if element_id[0] == '2':
+                    index = 'summons'
+                elif element_id[0] == '1':
+                    index = 'weapons'
+                elif element_id.startswith('39') or element_id.startswith('305'):
+                    index = 'npcs'
+                elif element_id.startswith('38'):
+                    index = 'partners'
+                elif element_id.startswith('371'):
+                    index = 'skins'
+                elif element_id.startswith('3'):
+                    index = 'characters'
+            elif len(element_id) >= 7:
+                index = 'enemies'
+            elif len(element_id) == 6:
+                index = 'job'
+        # Call function corresponding the index
+        match index:
+            case 'background':
+                self.tasks.add(self.update_background, parameters=(element_id,))
+            case 'summons':
+                self.tasks.add(self.update_summon, parameters=(element_id,))
+            case 'weapons':
+                self.tasks.add(self.update_weapon, parameters=(element_id,))
+            case 'npcs':
+                self.tasks.add(self.update_npc, parameters=(element_id,))
+            case 'partners':
+                ts : TaskStatus = TaskStatus(1000, -1) # partner is separated in ten, because of the heavy load
+                for i in range(10):
+                    self.tasks.add(self.update_partner, parameters=(ts, element_id))
+            case 'characters'|'skins':
+                self.tasks.add(self.update_character, parameters=(element_id,))
+            case 'enemies':
+                self.tasks.add(self.update_enemy, parameters=(element_id,))
+            case 'job':
+                self.tasks.add(self.update_job, parameters=(element_id,))
+            case _:
+                pass
 
-    # Subroutine for init_job_list
-    async def init_job_list_sub(self, id : str) -> Optional[str]:
+    # Update Enemy data
+    async def update_enemy(self : Updater, element_id : str) -> None:
+        # Make empty container
+        data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
+        # icon
         try:
-            await self.head(self.IMG + "sp/assets/leader/m/{}_01.jpg".format(id))
-            return id
+            await self.head(self.IMG + "sp/assets/enemy/s/{}.png".format(element_id))
+            data[self.BOSS_GENERAL].append("{}".format(element_id))
         except:
-            return None
-
-    # run subroutine to search for new jobs
-    async def search_job(self, start : int, step : int, keys : list, shared : list) -> None:
-        i = start
-        while i < len(keys):
-            if keys[i] in self.data['job']: continue
-            await self.search_job_content(keys[i])
-            i += step
-        if shared[1]:
-            shared[1] = False
-
-    async def search_job_content(self, jid : str) -> None:
-        cmh = []
-        colors = [int(jid[-1])]
-        alts = []
-        # mh check
-        for mh in self.MAINHAND:
             try:
-                await self.head(self.IMG + "sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(jid, mh))
-                cmh.append(mh)
+                await self.head(self.IMG + "sp/assets/enemy/m/{}.png".format(element_id))
+                data[self.BOSS_GENERAL].append("{}".format(element_id))
             except:
-                continue
-        if len(cmh) > 0:
-            # alt check
-            if colors[0] == 1:
-                for j in [2, 3, 4, 5, 80]:
-                    try:
-                        await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(jid[:-2]+str(j).zfill(2), cmh[0]))
-                        if jid in self.UNIQUE_SKIN:
-                            await self.search_job_content(jid[:-2]+str(j).zfill(2))
-                        else:
-                            colors.append(j)
-                            if j >= 80:
-                                alts.append(j)
-                    except:
-                        continue
-            # set data
-            data = [[jid], [jid+"_01"], [], [], [], [], cmh, [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
-            
-            data[self.JOB_ALT] = [jid+"_01"] + [jid[:-2]+str(j).zfill(2)+"_01" for j in alts]
-            data[self.JOB_DETAIL] = [jid+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
-            for j in [int(jid[-1])]+alts:
-                for k in range(2):
-                    data[self.JOB_DETAIL_ALT].append(jid[:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
-            for j in colors:
-                for k in range(2):
-                    data[self.JOB_DETAIL_ALL].append(jid[:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
-            for j in colors:
-                data[self.JOB_SD].append(jid[:-2]+str(j).zfill(2))
-            for h in data[self.JOB_ALT]:
-                for j in range(2):
-                    try: data[self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(h.split('_', 1)[0], j))
-                    except: pass
-            self.data['job'][jid] = data
-            self.modified = True
-            self.addition[jid] = self.ADD_JOB
-
-
-    # Used by -job, more specific but also slower job detection system
-    async def search_job_detail(self, params : list) -> None:
-        if self.job_list is None:
-            self.job_list = await self.init_job_list()
-        if self.job_list is None:
-            print("Couldn't retrieve job list from the game")
-            return
-        print("Searching additional job data...")
-        to_search = []
-        full_key_search = len(params) > 0
-        # key search
-        for k, v in self.data['job'].items():
-            if len(v[self.JOB_SPRITE]) == 0:
-                if self.job_list[k] != self.STRING_CHAR:
-                    to_search.append((0, self.job_list[k], k)) # keyword search type, letters, class id
-                else:
-                    full_key_search = True
-        # class weapon search
-        for i in range(0, 999):
-            err = 0
-            for j in range(10):
-                wid = "1040{}{}00".format(j, i)
-                if wid in self.data['weapons'] or wid in self.data["job_wpn"]:
-                    err = 0
-                    continue
-                to_search.append((1, wid)) # skin weapon search, id
-                err += 1
-                if err > 15: break
-        tasks = []
-        for v in to_search:
-            if v[0] == 0:
-                tasks.append(self.detail_job_search(v[1], v[2]))
-            elif v[0] == 1:
-                tasks.append(self.detail_job_weapon_search(v[1]))
-        # full key search
-        if full_key_search:
-            for a in self.STRING_CHAR:
-                for b in self.STRING_CHAR:
-                    for c in self.STRING_CHAR:
-                        d = a+b+c
-                        if d in self.data["job_key"]: continue
-                        tasks.append(self.detail_job_search_single(d))
-        self.progress = Progress(self, total=len(tasks), silent=False)
-        async for result in self.map_unordered(self.search_job_detail_task, tasks, self.MAX_UPDATEALL):
-            pass
-        print("Done")
-        self.save()
-
-    # search_job_detail() subroutine
-    async def search_job_detail_task(self, task) -> None:
-        await task
-
-    # search_job_detail() subroutine
-    async def detail_job_search(self, key : str, job : str) -> None:
-        with self.progress:
-            cmh = self.data['job'][job][self.JOB_MH]
-            a = key[0]
-            for b in key:
-                for c in key:
-                    d = a+b+c
-                    if d in self.data["job_key"] and self.data["job_key"][d] is not None: continue
-                    passed = True
-                    for mh in cmh:
-                        try:
-                            await self.head(self.MANIFEST + "{}_{}_0_01.js".format(d, mh))
-                        except:
-                            passed = False
-                            break
-                    if passed:
-                        self.data["job_key"][d] = job
-                        self.modified = True
-                        print("\nSet", job, "to", d)
-
-    # search_job_detail() subroutine
-    async def detail_job_weapon_search(self, wid : str) -> None:
-        with self.progress:
-            try:
-                await self.head(self.IMG + '_low/sp/assets/weapon/m/' + wid + ".jpg")
                 return
+        # sprite
+        try:
+            fn = "enemy_{}".format(element_id)
+            data[self.BOSS_SPRITE] += await self.processManifest(fn)
+        except:
+            pass
+        # appear
+        for k in ["", "_2", "_3", "_shade"]:
+            try:
+                fn = "raid_appear_{}{}".format(element_id, k)
+                data[self.BOSS_APPEAR] += await self.processManifest(fn)
             except:
                 pass
-            for k in [["phit_", ""], ["phit_", "_2"], ["phit_", "_3"], ["sp_", "_s2"], ["sp_", ""]]:
-                for g in ["", "_0"]:
-                    try:
-                        await self.head(self.MANIFEST + k[0] + wid + g + k[1] + ".js")
-                        self.data["job_wpn"][wid] = None
-                        self.modified = True
-                        print("\nPossible job skin related weapon:", wid)
-                        return
-                    except:
-                        pass
+        # ehit
+        try:
+            fn = "ehit_{}".format(element_id)
+            data[self.BOSS_HIT] += await self.processManifest(fn)
+        except:
+            pass
+        # esp
+        for i in range(0, 20):
+            try:
+                fn = "esp_{}_{}".format(element_id, str(i).zfill(2))
+                data[self.BOSS_SP] += await self.processManifest(fn)
+            except:
+                pass
+            try:
+                fn = "esp_{}_{}_all".format(element_id, str(i).zfill(2))
+                data[self.BOSS_SP_ALL] += await self.processManifest(fn)
+            except:
+                pass
+        self.modified = True
+        self.data['enemies'][element_id] = data
+        self.addition[element_id] = self.ADD_BOSS
+        self.tasks.print("Updated:", element_id, "for index:", 'enemies')
 
-    # search_job_detail() subroutine
-    async def detail_job_search_single(self, key : str) -> None:
-        with self.progress:
-            for mh in self.MAINHAND:
+    # Update Background data
+    async def update_background(self : Updater, element_id : str) -> None:
+        modified : bool = False
+        data : list[list[str]]
+        try: # retrieve container if it exists or make new one
+            if isinstance(self.data['background'][element_id], list):
+                data = self.data['background'][element_id]
+            else:
+                data = [[]]
+        except: # it shouldn't fail, but just in case
+            data = [[]]
+        # 2 paths depending on the background file name (aka element_id)
+        if element_id.startswith("event_") or element_id.startswith("main_") or element_id.startswith("common_"):
+            path : str
+            # set path
+            if element_id.startswith("main_"):
+                path = "sp/guild/custom/bg/{}.png"
+            else:
+                path = "sp/raid/bg/{}.jpg"
+            s : str
+            # for each suffix
+            for s in ["", "_a", "_b", "_c"]:
+                f : str = element_id + s
+                if f in data[0]: # known, we skip
+                    continue
+                elif s == "": # empty, we know it probably exists (this function is likely called from run() or from existing data)
+                    data[0].append(f)
+                    modified = True
+                    self.addition[f] = self.ADD_BG # set to changelog
+                else: # request for given suffix
+                    try:
+                        await self.head(self.IMG + path.format(f))
+                        data[0].append(f)
+                        modified = True
+                        self.addition[f] = self.ADD_BG # set to changelog for each successful one
+                    except:
+                        break
+        else: # type 2, these backgrouns always come 3 per 3 usually, no need to check
+            if len(data[0]) != 3:
+                data[0] = [element_id+"_1",element_id+"_2",element_id+"_3"]
+                modified = True
+                for f in data[0]: # set to changelog for each
+                    self.addition[f] = self.ADD_BG
+        if modified:
+            data[0].sort()
+            self.modified = True
+            self.data['background'][element_id] = data
+            self.tasks.print("Updated:", element_id, "for index:", 'background')
+
+    # Update Summon data
+    async def update_summon(self, element_id : str) -> None:
+        # Set container
+        data : list[list[str]] = [[], [], []] # general, call, damage
+        uncaps : list[str] = []
+        fn : str
+        # main sheet
+        uncap : str
+        for uncap in ["", "_02", "_03", "_04"]:
+            try:
+                fn = "{}_{}".format(element_id, uncap)
+                await self.head(self.IMG + "sp/assets/summon/m/{}{}.jpg".format(element_id, uncap))
+                data[self.SUM_GENERAL].append("{}{}".format(element_id, uncap))
+                uncaps.append("_"+uncap if uncap != "" else "")
+                if uncap == "":
+                    uncaps.append("_01")
+            except:
+                break
+        if len(uncaps) == 0 and element_id not in self.CUT_CONTENT:
+            return
+        if len(data[self.SUM_GENERAL]) == 0 and element_id in self.CUT_CONTENT:
+            data[self.SUM_GENERAL].append(element_id)
+            uncaps = ["", "_01"]
+        # attack
+        u : str
+        m : str
+        for u in uncaps:
+            for m in ["", "_a", "_b", "_c", "_d", "_e"]:
                 try:
-                    await self.head(self.MANIFEST + "{}_{}_0_01.js".format(key, mh))
-                    self.data["job_key"][key] = None
-                    self.modified = True
-                    print("\nUnknown job key", key, "for mh", mh)
-                    break
+                    fn = "summon_{}{}{}_attack".format(element_id, u, m)
+                    data[self.SUM_CALL] += await self.processManifest(fn)
                 except:
                     pass
-
-    # -jobedit CLI
-    async def edit_job(self) -> None:
-        while True:
-            print("")
-            print("[EDIT JOB MENU]")
-            print("[0] Set job data")
-            print("[1] List Unset Job Weapons")
-            print("[2] List Unset Job Keys")
-            print("[3] List Uncomplete Job")
-            print("[4] Check unlock animations")
-            print("[5] Export Data")
-            print("[6] Import Data")
-            print("[Any] Exit")
-            match input():
-                case "0":
-                    while True:
-                        s = input("Input job ID (leave blank to cancel):")
-                        if s == "":
-                            break
-                        elif s not in self.data['job']:
-                            print("Unknown ID")
-                        else:
-                            jid = s
-                            for k, v in self.data['job_wpn'].items():
-                                if v == jid:
-                                    print(jid,"is set to weapon",k)
-                            for k, v in self.data['job_key'].items():
-                                if v == jid:
-                                    print(jid,"is set to key",k)
-                            while True:
-                                print("Input a valid weapon ID or a job key to set to this class (leave blank to cancel)")
-                                s = input().lower()
-                                if s in self.data['job_key']:
-                                    sheets = []
-                                    for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
-                                        try:
-                                            sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
-                                        except:
-                                            pass
-                                    self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
-                                    self.data['job_key'][s] = jid
-                                    self.modified = True
-                                    print(len(sheets),"sprites set to job", jid)
-                                elif s in self.data['job_wpn']:
-                                    # phit
-                                    sheets = []
-                                    for u in ["", "_1", "_2", "_3"]:
-                                        for g in ["", "_0", "_1"]:
-                                            try:
-                                                sheets += await self.processManifest("phit_{}{}{}".format(s, u, g))
-                                            except:
-                                                if g == "_0":
-                                                    break
-                                    sheets = list(set(sheets))
-                                    sheets.sort()
-                                    self.data['job'][jid][self.JOB_PHIT] = sheets
-                                    # ougi
-                                    sheets = []
-                                    for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
-                                        try:
-                                            sheets += await self.processManifest("sp_{}{}".format(s, u))
-                                        except:
-                                            pass
-                                    sheets = list(set(sheets))
-                                    sheets.sort()
-                                    self.data['job'][jid][self.JOB_SP] = sheets
-                                    print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
-                                    self.data['job_wpn'][s] = jid
-                                    self.modified = True
-                                elif s == "":
-                                    break
-                                else:
-                                    print("Unknown element", s)
-                case "1":
-                    tmp = [k for k, v in self.data['job_wpn'].items() if v is None]
-                    if len(tmp) == 0:
-                        print("No unset weapon in memory")
-                    else:
-                        print("\n".join(tmp))
-                case "2":
-                    tmp = [k for k, v in self.data['job_key'].items() if v is None]
-                    if len(tmp) == 0:
-                        print("No free key in memory")
-                    else:
-                        print("\n".join(tmp))
-                case "3":
-                    tmp = 0
-                    for k, v in self.data['job'].items():
-                        if len(v[self.JOB_MH]) == 0:
-                            print(k, "has no sprites")
-                            tmp += 1
-                        elif len(v[self.JOB_PHIT]) + len(v[self.JOB_SP]) == 0 and 4100 > int(k[:4]) > 3100:
-                            print(k, "might be an uncomplete skin")
-                            tmp += 1
-                        if v is None: tmp.append(k)
-                    if tmp == 0:
-                        print("Everything seems complete")
-                case "4":
-                    print("Checking for unlock animations...")
-                    tasks = [self.edit_job_unlock_task(k) for k in self.data["job"]]
-                    await asyncio.gather(*tasks)
-                    print("Done")
-                case "5":
-                    tmp = {"lookup":{}, "weapon":{}, "unset_key":[], "unset_wpn":[]}
-                    for k in self.data['job']:
-                        tmp['lookup'][k] = None
-                    for k in self.data['job_key']:
-                        if self.data['job_key'][k] is None:
-                            tmp['unset_key'].append(k)
-                        else:
-                            tmp['lookup'][self.data['job_key'][k]] = k
-                    for k in self.data['job_wpn']:
-                        if self.data['job_wpn'][k] is None:
-                            tmp['unset_wpn'].append(k)
-                        else:
-                            tmp['weapon'][self.data['job_wpn'][k]] = k
-                    with open("json/job_data_export.json", mode="w", encoding="ascii") as f:
-                        json.dump(tmp, f, ensure_ascii=True, indent=4)
-                        print("Data exported to json/job_data_export.json")
-                case "6":
-                    try:
-                        with open("json/job_data_export.json", mode="r", encoding="ascii") as f:
-                            tmp = json.load(f)
-                            if 'lookup' not in tmp or 'weapon' not in tmp:
-                                raise Exception()
-                    except OSError as e:
-                        print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                        print("Couldn't open json/job_data_export.json")
-                        tmp = None
-                    except Exception as e:
-                        print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                        print("Couldn't load json/job_data_export.json")
-                        tmp = None
-                    if tmp is not None and input("Are you sure? Press 'y' to continue:").lower() == 'y':
-                        print("Importing data...")
-                        try:
-                            tasks = []
-                            for jid, s in tmp["lookup"].items():
-                                # add job if needed
-                                if jid not in self.data['job']:
-                                    await self.search_job(0, 1, [jid], self.newShared([]))
-                                if s is not None:
-                                    tasks.append(self.edit_job_import_task(jid, s, 0))
-                            for jid, s in tmp["weapon"].items():
-                                if s is not None:
-                                    tasks.append(self.edit_job_import_task(jid, s, 1))
-                            res = True
-                            for l in await asyncio.gather(*tasks):
-                                res = res and l
-                            if not res:
-                                raise Exception("Check the log for details")
-                            print("Job Data Import finished with success")
-                        except Exception as e:
-                            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                            print("An error occured during the import")
-                            return
-                case _:
-                    break
-            self.save()
-
-    async def edit_job_unlock_task(self, jid : str) -> None:
-        if isinstance(self.data["job"][jid], list):
-            if len(self.data["job"][jid]) == self.JOB_UNLOCK:
-                self.data["job"][jid].append([])
-                self.modified = True
-            self.data["job"][jid][self.JOB_UNLOCK] = []
-            for j in self.data["job"][jid][self.JOB_ALT]:
-                for i in range(2):
-                    try:
-                        self.data["job"][jid][self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(j.split('_', 1)[0], i))
-                        self.modified = True
-                    except:
-                        pass
-            if len(self.data["job"][jid][self.JOB_UNLOCK]) > 0:
-                print(len(self.data["job"][jid][self.JOB_UNLOCK]), "sheets for", jid)
-
-    async def edit_job_import_task(self, jid : str, s : Any, mode : int) -> None:
+        # damage
         try:
-            match mode:
-                case 0:
-                    # set key
-                    sheets = []
-                    for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
-                        try:
-                            if jid in self.UNIQUE_SKIN:
-                                sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_01")
-                            else:
-                                sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
-                        except:
-                            pass
-                    self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
-                    self.data['job_key'][s] = jid
-                    self.modified = True
-                    print(len(sheets),"sprites set to job", jid)
-                case 1:
-                    # phit
-                    sheets = []
-                    for u in ["", "_1", "_2", "_3"]:
-                        for g in ["", "_0", "_1"]:
-                            try:
-                                sheets += await self.processManifest("phit_{}{}{}".format(s, u, g))
-                            except:
-                                if g == "_0":
-                                    break
-                    if jid == "360101": # special exception for racing suit
-                        try:
-                            sheets += await self.processManifest("phit_racer")
-                        except:
-                            pass
-                    sheets = list(set(sheets))
-                    sheets.sort()
-                    self.data['job'][jid][self.JOB_PHIT] = sheets
-                    # ougi
-                    sheets = []
-                    for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
-                        try:
-                            sheets += await self.processManifest("sp_{}{}".format(s, u))
-                        except:
-                            pass
-                    sheets = list(set(sheets))
-                    sheets.sort()
-                    self.data['job'][jid][self.JOB_SP] = sheets
-                    print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
-                    self.data['job_wpn'][s] = jid
-                    self.modified = True
-            return True
+            data[self.SUM_DAMAGE] += await self.processManifest("summon_{}".format(element_id)) # old summons
         except:
-            return False
-
-    ### Update ##################################################################################################################
-
-    # Called by -update or other function when new content is detected
-    async def manualUpdate(self, ids : list, skip : int = 0) -> None: # skip is only used for the -partner resume feature
-        if len(self.data["uncap_queue"]) > 0:
-            ids += self.data["uncap_queue"]
-            self.data["uncap_queue"] = []
-        if len(ids) == 0:
-            return
-        ids = list(set(ids)) # remove dupes
-        ids.sort()
-        start_index = skip
-        async with asyncio.TaskGroup() as tg:
-            tasks = []
-            remaining = 0
-            self.progress = Progress(self, current=start_index)
-            for id in ids:
-                if id in self.data.get('background', {}):
-                    if skip > 0: skip -= 1
-                    else: tasks.append(tg.create_task(self.bgUpdate(id)))
-                    remaining += 1
-                elif len(id) >= 10:
-                    if id.startswith('2'):
-                        if skip > 0: skip -= 1
-                        else: tasks.append(tg.create_task(self.sumUpdate(id)))
-                    elif id.startswith('10'):
-                        if skip > 0: skip -= 1
-                        else: tasks.append(tg.create_task(self.weapUpdate(id)))
-                    elif id.startswith('39') or id.startswith('305'):
-                        if skip > 0: skip -= 1
-                        else: tasks.append(tg.create_task(self.npcUpdate(id)))
-                    elif id.startswith('38'):
-                        try:
-                            pid = int(id)
-                            for i in range(self.PARTNER_STEP):
-                                if skip > 0: skip -= 1
-                                else: tasks.append(tg.create_task(self.partnerUpdate(str(pid+i), self.PARTNER_STEP))) # separate in multiple threads to speed up
-                        except:
-                            continue
-                    elif id.startswith('3'):
-                        if id == "3040114000": continue # cut content
-                        if skip > 0: skip -= 1
-                        else: tasks.append(tg.create_task(self.charaUpdate(id)))
-                    else:
-                        continue
-                    remaining += 1
-                elif len(id) == 7:
-                    if skip > 0: skip -= 1
-                    else: tasks.append(tg.create_task(self.mobUpdate(id)))
-                    remaining += 1
-            print("Attempting to update", remaining, "element(s)")
-            self.progress.set(total=len(tasks)+start_index, silent=False)
-        tsuccess = 0
-        for t in tasks:
-            if t.result():
-                tsuccess += 1
-        print(tsuccess, "positive result(s)")
-        self.make_stats(silent=True)
-        self.save()
-        if len(self.data['scene_queue']) > 0:
-            await self.update_all_scene(update_pending=True)
-        if len(self.data['sound_queue']) > 0:
-            await self.update_all_sound(update_pending=True)
+            pass
+        for u in uncaps:
+            for m in ["", "_a", "_b", "_c", "_d", "_e"]:
+                try:
+                    fn = "summon_{}{}{}_damage".format(element_id, u, m)
+                    data[self.SUM_DAMAGE] += await self.processManifest(fn)
+                except:
+                    pass
+        self.modified = True
+        self.data['summons'][element_id] = data
+        self.addition[element_id] = self.ADD_SUMM
+        self.tasks.print("Updated:", element_id, "for index:", 'summons')
 
     # Art check system for characters. Detect gendered arts, etc...
-    async def artCheck(self, id : str, style : str, uncaps : list) -> dict:
+    async def artCheck(self : Updater, element_id : str, style : str, uncaps : list[str]) -> dict[str, list[bool]]:
         tasks = {}
-        if id.startswith("38"):
+        if element_id.startswith("38"):
             uncaps = ["01", "02", "03", "04"]
         else:
             uncaps = uncaps + ["81", "82", "83", "91", "92", "93"]
-        async with asyncio.TaskGroup() as tg:
+        async with asyncio.TaskGroup() as tg: # not pretty but we use a taskgroup to speed things here
             for uncap in uncaps:
                 for g in ["_1", ""]:
                     for m in ["_101", ""]:
                         for n in ["_01", ""]:
                             s = "_" + uncap + style + g + m + n
-                            tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(self.IMG + "sp/assets/npc/raid_normal/{}{}.jpg".format(id, s)))
+                            tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(self.IMG + "sp/assets/npc/raid_normal/{}{}.jpg".format(element_id, s)))
         flags = {}
         for s, t in tasks.items():
             if t.result() is not None:
@@ -1504,587 +1301,697 @@ class Updater():
         return flags
 
     # Update character and skin data
-    async def charaUpdate(self, id : str) -> bool:
-        with self.progress:
-            async with self.sem:
-                index = "skins" if id.startswith("371") else "characters"
-                data = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
-                if id in self.data[index] and self.data[index][id] != 0:
-                    data[self.CHARA_SCENE] = self.data[index][id][self.CHARA_SCENE]
-                    data[self.CHARA_SOUND] = self.data[index][id][self.CHARA_SOUND]
-                for style in ["", "_st2"]:
-                    uncaps = []
-                    sheets = []
-                    altForm = False
-                    if index == "skins" and style != "": # skin & style check
-                        break
-                    # # # Main sheets
-                    tid = self.CHARA_SPECIAL_REUSE.get(id, id) # special substitution (mostly for bobobo)
-                    for uncap in ["01", "02", "03", "04"]:
-                        for gender in ["", "_0", "_1"]:
-                            for ftype in ["", "_s2", "_0", "_1"]:
-                                for form in ["", "_f", "_f1", "_f2"]:
-                                    try:
-                                        fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
-                                        sheets += await self.processManifest(fn)
-                                        if form == "": uncaps.append(uncap)
-                                        else: altForm = True
-                                    except:
-                                        if form == "":
-                                            break
-                    data[self.CHARA_SPRITE] += sheets
-                    if len(uncaps) == 0:
-                        if style == "": return False
-                        continue
-                    # # # Assets
-                    # arts
-                    flags = await self.artCheck(id, style, uncaps)
-                    targets = []
-                    sd = []
-                    for uncap in flags:
-                        base_fn = "{}_{}{}".format(id, uncap, style)
-                        # sprites
-                        sd.append(base_fn)
-                        # other portraits
-                        uf = flags[uncap]
-                        for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                            for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
-                                for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
-                                    for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                        targets.append(base_fn + af + g + m + n)
-                            # different sprites
-                            if g != "":
+    async def update_character(self : Updater, element_id : str) -> None:
+        index : str = "skins" if element_id.startswith("371") else "characters"
+        data : list[list[str]] = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
+        if element_id in self.data[index] and self.data[index][element_id] != 0:
+            data[self.CHARA_SCENE] = self.data[index][element_id][self.CHARA_SCENE]
+            data[self.CHARA_SOUND] = self.data[index][element_id][self.CHARA_SOUND]
+        for style in ["", "_st2"]:
+            uncaps = []
+            sheets = []
+            altForm = False
+            if index == "skins" and style != "": # skin & style check
+                break
+            # # # Main sheets
+            tid : str = self.CHARA_SPECIAL_REUSE.get(element_id, element_id) # special substitution (mostly for bobobo)
+            for uncap in ["01", "02", "03", "04"]:
+                for gender in ["", "_0", "_1"]:
+                    for ftype in ["", "_s2", "_0", "_1"]:
+                        for form in ["", "_f", "_f1", "_f2"]:
+                            try:
+                                fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
+                                sheets += await self.processManifest(fn)
+                                if form == "": uncaps.append(uncap)
+                                else: altForm = True
+                            except:
+                                if form == "":
+                                    break
+            data[self.CHARA_SPRITE] += sheets
+            if len(uncaps) == 0:
+                if style == "":
+                    return False
+                continue
+            # # # Assets
+            # arts
+            flags : dict[str, list[bool]] = await self.artCheck(element_id, style, uncaps)
+            targets : list[str] = []
+            sd : list[str] = []
+            for uncap in flags:
+                base_fn = "{}_{}{}".format(element_id, uncap, style)
+                # sprites
+                sd.append(base_fn)
+                # other portraits
+                uf = flags[uncap]
+                for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                    for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
+                        for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
+                            for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                                targets.append(base_fn + af + g + m + n)
+                    # different sprites
+                    if g != "":
+                        try:
+                            await self.head(self.IMG + "/sp/assets/npc/sd/" + base_fn + g + ".png")
+                            sd.append(base_fn + g)
+                        except:
+                            pass
+            data[self.CHARA_GENERAL] += targets
+            data[self.CHARA_SD] += sd
+            if len(targets) == 0:
+                if style == "":
+                    return False
+                continue
+            # # # Other sheets
+            # attack
+            targets = [""]
+            for i in range(1, len(uncaps)):
+                targets.append("_" + uncaps[i])
+            attacks = []
+            if tid == self.MALINDA:
+                for i in range(0, 7):
+                    mid = tid[:-1] + str(i)
+                    for t in targets:
+                        for u in ["", "_2", "_3", "_4"]:
+                            for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
                                 try:
-                                    await self.head(self.IMG + "/sp/assets/npc/sd/" + base_fn + g + ".png")
-                                    sd.append(base_fn + g)
+                                    fn = "phit_{}{}{}{}{}".format(mid, t, style, u, form)
+                                    attacks += await self.processManifest(fn)
                                 except:
                                     pass
-                    data[self.CHARA_GENERAL] += targets
-                    data[self.CHARA_SD] += sd
-                    if len(targets) == 0:
-                        if style == "": return False
-                        continue
-                    # # # Other sheets
-                    # attack
-                    targets = [""]
-                    for i in range(1, len(uncaps)):
-                        targets.append("_" + uncaps[i])
-                    attacks = []
-                    if tid == self.MALINDA:
-                        for i in range(0, 7):
-                            mid = tid[:-1] + str(i)
-                            for t in targets:
-                                for u in ["", "_2", "_3", "_4"]:
-                                    for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                        try:
-                                            fn = "phit_{}{}{}{}{}".format(mid, t, style, u, form)
-                                            attacks += await self.processManifest(fn)
-                                        except:
-                                            pass
-                    else:
-                        for t in targets:
-                            for u in ["", "_2", "_3", "_4"]:
-                                for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+            else:
+                for t in targets:
+                    for u in ["", "_2", "_3", "_4"]:
+                        for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                            try:
+                                fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                                attacks += await self.processManifest(fn)
+                            except:
+                                pass
+            data[self.CHARA_PHIT] += attacks
+            # ougi
+            attacks = []
+            for uncap in uncaps:
+                if uncap not in flags:
+                    self.tasks.print("")
+                    self.tasks.print("Warning: Missing uncap art", uncap, "for character:", id)
+                    continue
+                uf = flags[uncap]
+                found = False
+                for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                    for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                        for catype in ["", "_s2", "_s3"]:
+                            for sub in ([""] if tid == self.MALINDA else ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]):
+                                for ex in (["", "_1", "_2", "_3", "_4", "_5", "_6"] if tid == self.MALINDA else [""]):
                                     try:
-                                        fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                                        fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
                                         attacks += await self.processManifest(fn)
+                                        found = True
                                     except:
                                         pass
-                    data[self.CHARA_PHIT] += attacks
-                    # ougi
-                    attacks = []
-                    for uncap in uncaps:
-                        if uncap not in flags:
-                            print("")
-                            print("Warning: Missing uncap art", uncap, "for character:", id)
-                            continue
-                        uf = flags[uncap]
-                        found = False
-                        for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                            for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                for catype in ["", "_s2", "_s3"]:
-                                    for sub in ([""] if tid == self.MALINDA else ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]):
-                                        for ex in (["", "_1", "_2", "_3", "_4", "_5", "_6"] if tid == self.MALINDA else [""]):
-                                            try:
-                                                fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
-                                                attacks += await self.processManifest(fn)
-                                                found = True
-                                            except:
-                                                pass
-                                    if found: break
-                    data[self.CHARA_SP] += attacks
-                    # skills
-                    attacks = []
-                    for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-                        try:
-                            fn = "ab_all_{}{}_{}".format(tid, style, el)
-                            attacks += await self.processManifest(fn)
-                        except:
-                            pass
-                    data[self.CHARA_AB_ALL] += attacks
-                    attacks = []
-                    for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-                        try:
-                            fn = "ab_{}{}_{}".format(tid, style, el)
-                            attacks += await self.processManifest(fn)
-                        except:
-                            pass
-                    data[self.CHARA_AB] += attacks
-                self.modified = True
-                self.data[index][id] = data
-                self.data['scene_queue'].append(id)
-                self.data['sound_queue'].append(id)
-                self.addition[id] = self.ADD_CHAR
-            return True
+                            if found: break
+            data[self.CHARA_SP] += attacks
+            # skills
+            attacks = []
+            for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                try:
+                    fn = "ab_all_{}{}_{}".format(tid, style, el)
+                    attacks += await self.processManifest(fn)
+                except:
+                    pass
+            data[self.CHARA_AB_ALL] += attacks
+            attacks = []
+            for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                try:
+                    fn = "ab_{}{}_{}".format(tid, style, el)
+                    attacks += await self.processManifest(fn)
+                except:
+                    pass
+            data[self.CHARA_AB] += attacks
+        self.modified = True
+        self.data[index][element_id] = data
+        self.tasks.add(self.update_scenes_of, parameters=(element_id, index))
+        self.tasks.add(self.update_sound_of, parameters=(element_id, index))
+        self.addition[element_id] = self.ADD_CHAR
+        self.flags.set("found_character")
+        # updating corresponding fate episode
+        if index == 'characters':
+            for k, v in self.data['fate'].items():
+                if v[self.FATE_LINK] == element_id:
+                    self.tasks.add(self.update_all_fate, parameters=(k,), priority=0)
+                    break
+        self.tasks.print("Updated:", element_id, "for index:", index, "(Queuing secondary updates...)")
 
     # Update partner data. Note: It's based on charaUpdate and is terribly inefficient
-    async def partnerUpdate(self, id : str, step : int) -> bool:
-        with self.progress:
-            async with self.sem:
-                is_mc = id.startswith("389")
-                lookup = []
-                try:
-                    data = self.data['partners'][str((int(id) // 1000) * 1000)]
-                    if data == 0: raise Exception()
-                    # build set of existing ids to avoid looking for them again
-                    for i in data[self.CHARA_SPRITE]:
-                        if i.startswith("npc_"):
-                            lookup.append(i.split('_')[1])
-                    for i in data[self.CHARA_PHIT]:
-                        if i.startswith("phit_"):
-                            lookup.append(i.split('_')[1])
-                    for i in data[self.CHARA_SP]:
-                        if i.startswith("nsp_"):
-                            lookup.append(i.split('_')[1])
-                    for i in data[self.CHARA_AB_ALL]:
-                        if i.startswith("ab_all_"):
-                            lookup.append(i.split('_')[2])
-                    for i in data[self.CHARA_AB]:
-                        if i.startswith("ab_"):
-                            lookup.append(i.split('_')[1])
-                    for i in data[self.CHARA_GENERAL]:
-                        lookup.append(i.split('_')[0])
-                except:
-                    pass
-                lookup = set(lookup)
-                # ready empty container and set id
-                data = [[], [], [], [], [], []] # sprite, phit, sp, aoe, single, general
-                tid = id
-                id = str((int(id) // 1000) * 1000)
-                style = "" # placeholder
-                max_err = 15 if id == "3890005000" else max(5, step // 3)  # placeholder
-                edited = False
-                err = 0
-                # search loop
-                while err < max_err:
-                    if not self.force_partner and tid in lookup:
-                        err = 0
-                    else:
-                        tmp = [[], [], [], [], [], []]
-                        uncaps = []
-                        sheets = []
-                        altForm = False
-                        # # # Assets
-                        # arts
-                        flags = await self.artCheck(tid, style, [])
-                        targets = []
-                        for uncap in flags:
-                            # main
-                            base_fn = "{}_{}{}".format(tid, uncap, style)
-                            uf = flags[uncap]
-                            for g in (["_0", "_1"] if (uf[0] is True) else [""]):
-                                for m in (["_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
-                                    for n in (["_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
-                                        for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                            targets.append(base_fn + af + g + m + n)
-                        tmp[self.CHARA_GENERAL] = targets
-                        # # # Main sheets
-                        for uncap in (["0_01", "1_01", "0_02", "1_02"] if is_mc else ["01", "02", "03", "04"]):
-                            for gender in ["", "_0", "_1"]:
-                                for ftype in ["", "_s2", "_0", "_1"]:
-                                    for form in ["", "_f", "_f1", "_f2"]:
-                                        try:
-                                            fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
-                                            if fn not in lookup: sheets += await self.processManifest(fn, True)
-                                            if form == "": uncaps.append(uncap)
-                                            else: altForm = True
-                                        except:
-                                            if form == "":
-                                                break
-                        tmp[self.CHARA_SPRITE] = sheets
-                        if is_mc: uncaps = ["01", "02"]
-                        # # # Other sheets
-                        # attack
-                        targets = [""]
-                        for i in range(2, len(uncaps)):
-                            targets.append("_" + uncaps[i])
-                        attacks = []
-                        for t in targets:
-                            for u in ["", "_2", "_3", "_4"]:
-                                for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+    async def update_partner(self : Updater, ts : TaskStatus, element_id : str) -> None:
+        is_mc : bool = element_id.startswith("389")
+        lookup : set[str] = set()
+        i : int
+        try:
+            data = self.data['partners'][element_id]
+            # build set of existing ids to avoid looking for them again
+            for i in data[self.CHARA_SPRITE]:
+                if i.startswith("npc_"):
+                    lookup.add(i.split('_')[1])
+            for i in data[self.CHARA_PHIT]:
+                if i.startswith("phit_"):
+                    lookup.add(i.split('_')[1])
+            for i in data[self.CHARA_SP]:
+                if i.startswith("nsp_"):
+                    lookup.add(i.split('_')[1])
+            for i in data[self.CHARA_AB_ALL]:
+                if i.startswith("ab_all_"):
+                    lookup.add(i.split('_')[2])
+            for i in data[self.CHARA_AB]:
+                if i.startswith("ab_"):
+                    lookup.add(i.split('_')[1])
+            for i in data[self.CHARA_GENERAL]:
+                lookup.add(i.split('_')[0])
+        except:
+            data = [[], [], [], [], [], []] # sprite, phit, sp, aoe, single, general
+            lookup = set()
+        style = "" # placeholder, unused
+        # set error
+        if ts.max_err == -1:
+            ts.max_err = 15 if element_id == "3890005000" else 5 # special one
+        edited : bool = False
+        while not ts.complete:
+            tid : str = str(int(element_id) + ts.get_next_index())
+            if tid in lookup:
+                ts.good()
+            else:
+                tmp : list[list[str]] = [[], [], [], [], [], []]
+                uncaps : list[str] = []
+                sheets : list[str] = []
+                altForm : bool = False
+                # # # Assets
+                # arts
+                flags : dict[str, list[bool]] = await self.artCheck(tid, style, [])
+                targets = []
+                for uncap in flags:
+                    # main
+                    base_fn = "{}_{}{}".format(tid, uncap, style)
+                    uf = flags[uncap]
+                    for g in (["_0", "_1"] if (uf[0] is True) else [""]):
+                        for m in (["_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
+                            for n in (["_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
+                                for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                                    targets.append(base_fn + af + g + m + n)
+                tmp[self.CHARA_GENERAL] = targets
+                # # # Main sheets
+                for uncap in (["0_01", "1_01", "0_02", "1_02"] if is_mc else ["01", "02", "03", "04"]):
+                    for gender in ["", "_0", "_1"]:
+                        for ftype in ["", "_s2", "_0", "_1"]:
+                            for form in ["", "_f", "_f1", "_f2"]:
+                                try:
+                                    fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
+                                    if fn not in lookup: sheets += await self.processManifest(fn, True)
+                                    if form == "": uncaps.append(uncap)
+                                    else: altForm = True
+                                except:
+                                    if form == "":
+                                        break
+                tmp[self.CHARA_SPRITE] = sheets
+                if is_mc: uncaps = ["01", "02"]
+                # # # Other sheets
+                # attack
+                targets = [""]
+                for i in range(2, len(uncaps)):
+                    targets.append("_" + uncaps[i])
+                attacks = []
+                for t in targets:
+                    for u in ["", "_2", "_3", "_4"]:
+                        for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                            try:
+                                fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                                if fn not in lookup: attacks += await self.processManifest(fn, True)
+                            except:
+                                pass
+                tmp[self.CHARA_PHIT] = attacks
+                # ougi
+                attacks = []
+                for uncap in uncaps:
+                    try: uf = flags[uncap.split('_')[-1]]
+                    except: uf = [False]
+                    found = False
+                    for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
+                        for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                            for catype in ["", "_s2", "_s3"]:
+                                for sub in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]:
                                     try:
-                                        fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
+                                        fn = "nsp_{}_{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub)
                                         if fn not in lookup: attacks += await self.processManifest(fn, True)
+                                        found = True
                                     except:
                                         pass
-                        tmp[self.CHARA_PHIT] = attacks
-                        # ougi
-                        attacks = []
-                        for uncap in uncaps:
-                            try: uf = flags[uncap.split('_')[-1]]
-                            except: uf = [False]
-                            found = False
-                            for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                                for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                    for catype in ["", "_s2", "_s3"]:
-                                        for sub in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]:
-                                            try:
-                                                fn = "nsp_{}_{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub)
-                                                if fn not in lookup: attacks += await self.processManifest(fn, True)
-                                                found = True
-                                            except:
-                                                pass
-                                        if found: break
-                        tmp[self.CHARA_SP] = attacks
-                        # skills
-                        attacks = []
-                        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-                            try:
-                                fn = "ab_all_{}{}_{}".format(tid, style, el)
-                                if fn not in lookup: attacks += await self.processManifest(fn, True)
-                            except:
-                                pass
-                        tmp[self.CHARA_AB_ALL] = attacks
-                        attacks = []
-                        for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
-                            try:
-                                fn = "ab_{}{}_{}".format(tid, style, el)
-                                if fn not in lookup: attacks += await self.processManifest(fn, True)
-                            except:
-                                pass
-                        tmp[self.CHARA_AB] = attacks
-                        # verification
-                        l = 0
-                        for i, e in enumerate(tmp):
-                            if len(e) > 0:
-                                l += len(e)
-                                data[i] += e
-                        if l == 0:
-                            err += 1
-                        else:
-                            err = 0
-                            edited = True
-                    tid = str(int(tid) + step)
-                    if tid[-4] != id[-4]: # end if we reached 1000 or more
-                        break
-                if not edited:
-                    return False
-                self.modified = True
-                if id not in self.data['partners'] or self.data['partners'][id] == 0:
-                    self.data['partners'][id] = data
+                                if found: break
+                tmp[self.CHARA_SP] = attacks
+                # skills
+                attacks = []
+                for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                    try:
+                        fn = "ab_all_{}{}_{}".format(tid, style, el)
+                        if fn not in lookup: attacks += await self.processManifest(fn, True)
+                    except:
+                        pass
+                tmp[self.CHARA_AB_ALL] = attacks
+                attacks = []
+                for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                    try:
+                        fn = "ab_{}{}_{}".format(tid, style, el)
+                        if fn not in lookup: attacks += await self.processManifest(fn, True)
+                    except:
+                        pass
+                tmp[self.CHARA_AB] = attacks
+                # verification
+                l = 0
+                for i, e in enumerate(tmp):
+                    if len(e) > 0:
+                        l += len(e)
+                        data[i] += e
+                if l == 0:
+                    ts.bad()
                 else:
-                    for i in range(len(data)):
-                        self.data['partners'][id][i] = list(set(self.data['partners'][id][i] + data[i]))
-                        self.data['partners'][id][i].sort()
-                self.addition[id] = self.ADD_PARTNER
-            return True
+                    ts.good()
+                    edited = True
+        if edited:
+            self.data['partners'][element_id] = data
+            for i in range(len(data)):
+                self.data['partners'][element_id][i] = list(set(self.data['partners'][element_id][i] + data[i]))
+                self.data['partners'][element_id][i].sort()
+            self.addition[element_id] = self.ADD_PARTNER
+            self.flags.set("found_character")
+            self.tasks.print("Updated:", element_id, "for index:", 'partners')
 
     # Update NPC data
-    async def npcUpdate(self, id : str) -> bool:
-        with self.progress:
-            async with self.sem:
-                data = [False, [], []] # journal flag, npc, voice
-                if id in self.data["npcs"] and self.data["npcs"][id] != 0:
-                    data[self.NPC_SCENE] = self.data["npcs"][id][self.NPC_SCENE]
-                    data[self.NPC_SOUND] = self.data["npcs"][id][self.NPC_SOUND]
-                exist = False
-                try:
-                    await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(id))
-                    data[self.NPC_JOURNAL] = True
-                    exist = True
-                except:
-                    if id.startswith("305"): return False # don't continue for special npcs
-                if not exist:
-                    # base scene
-                    base_target, main_x, uncap_x = self.generate_scene_file_list(id)
-                    if self.debug_npc_detail:
-                        base_target = list(set(base_target + main_x))
-                    for u in ["", "_02", "_03"]:
-                        for f in base_target:
-                            if f != "" and u != "": break
-                            try:
-                                if f not in data[self.NPC_SCENE]:
-                                    if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}{}.png".format(id, u, f), self.IMG + "sp/raid/navi_face/{}{}{}.png".format(id, u, f)])) is not None:
-                                        data[self.NPC_SCENE].append(u+f)
-                                        exist = True
-                                        break
-                                else:
-                                    exist = True
-                                    break
-                            except:
-                                pass
-                    # base sound
-                    if not exist:
-                        base_target = (["_v_" + str(i).zfill(3) for i in range(5, 200, 5)] + ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_3", "_boss_v_4", "_boss_v_5", "_boss_v_10", "_boss_v_15", "_boss_v_20", "_boss_v_25", "_boss_v_30", "_boss_v_35", "_boss_v_45", "_boss_v_50", "_boss_v_55", "_boss_v_60", "_boss_v_65", "_boss_v_70", "_boss_v_75", "d_boss_v_1"]) if self.debug_npc_detail else ["_v_001", "_boss_v_1", "_boss_v_2"]
-                        for k in base_target:
-                            try:
-                                f = "{}{}".format(id, k)
-                                if f not in data[self.NPC_SOUND]:
-                                    await self.head(self.SOUND + "voice/" + f + ".mp3")
-                                    data[self.NPC_SOUND].append(k)
-                                    exist = True
-                                else:
-                                    exist = True
-                                break
-                            except:
-                                pass
-                if exist:
-                    self.modified = True
-                    self.data['npcs'][id] = data
-                    self.data['scene_queue'].append(id)
-                    self.data['sound_queue'].append(id)
-                    self.addition[id] = self.ADD_NPC
-                return exist
-
-    # Update Summon data
-    async def sumUpdate(self, id : str) -> bool:
-        with self.progress:
-            async with self.sem:
-                data = [[], [], []] # general, call, damage
-                uncaps = []
-                # main sheet
-                for uncap in ["", "_02", "_03", "_04"]:
+    async def update_npc(self, element_id : str, detailed_check : bool = False) -> None:
+        data : list[list[str]|None] = [False, [], []] # journal flag, npc, voice
+        if element_id in self.data['npcs'] and self.data['npcs'][element_id] != 0:
+            data[self.NPC_SCENE] = self.data['npcs'][element_id][self.NPC_SCENE]
+            data[self.NPC_SOUND] = self.data['npcs'][element_id][self.NPC_SOUND]
+        exist : bool = False
+        try:
+            await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(element_id))
+            data[self.NPC_JOURNAL] = True
+            exist = True
+        except:
+            if element_id.startswith("305"):
+                return # don't continue for special npcs
+        if not exist:
+            # base scene
+            base_target, main_x, uncap_x = self.generate_scene_file_list(element_id)
+            if detailed_check:
+                base_target = list(set(base_target + main_x))
+            for u in ["", "_02", "_03"]:
+                for f in base_target:
+                    if f != "" and u != "": break
                     try:
-                        fn = "{}_{}".format(id, uncap)
-                        await self.head(self.IMG + "sp/assets/summon/m/{}{}.jpg".format(id, uncap))
-                        data[self.SUM_GENERAL].append("{}{}".format(id, uncap))
-                        uncaps.append("_"+uncap if uncap != "" else "")
-                        if uncap == "": uncaps.append("_01")
+                        if f not in data[self.NPC_SCENE]:
+                            if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}{}.png".format(element_id, u, f), self.IMG + "sp/raid/navi_face/{}{}{}.png".format(element_id, u, f)])) is not None:
+                                data[self.NPC_SCENE].append(u+f)
+                                exist = True
+                                break
+                        else:
+                            exist = True
+                            break
                     except:
+                        pass
+            # base sound
+            if not exist:
+                base_target = (["_v_" + str(i).zfill(3) for i in range(5, 200, 5)] + ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_3", "_boss_v_4", "_boss_v_5", "_boss_v_10", "_boss_v_15", "_boss_v_20", "_boss_v_25", "_boss_v_30", "_boss_v_35", "_boss_v_45", "_boss_v_50", "_boss_v_55", "_boss_v_60", "_boss_v_65", "_boss_v_70", "_boss_v_75", "d_boss_v_1"]) if detailed_check else ["_v_001", "_boss_v_1", "_boss_v_2"]
+                for k in base_target:
+                    try:
+                        f = "{}{}".format(element_id, k)
+                        if f not in data[self.NPC_SOUND]:
+                            await self.head(self.SOUND + "voice/" + f + ".mp3")
+                            data[self.NPC_SOUND].append(k)
+                            exist = True
+                        else:
+                            exist = True
                         break
-                if len(uncaps) == 0 and id not in self.CUT_CONTENT:
-                    return False
-                if len(data[self.SUM_GENERAL]) == 0 and id in self.CUT_CONTENT:
-                    data[self.SUM_GENERAL].append(id)
-                    uncaps = ["", "_01"]
-                # attack
-                for u in uncaps:
-                    for m in ["", "_a", "_b", "_c", "_d", "_e"]:
-                        try:
-                            fn = "summon_{}{}{}_attack".format(id, u, m)
-                            data[self.SUM_CALL] += await self.processManifest(fn)
-                        except:
-                            pass
-                # damage
-                try:
-                    data[self.SUM_DAMAGE] += await self.processManifest("summon_{}".format(id)) # old summons
-                except:
-                    pass
-                for u in uncaps:
-                    for m in ["", "_a", "_b", "_c", "_d", "_e"]:
-                        try:
-                            fn = "summon_{}{}{}_damage".format(id, u, m)
-                            data[self.SUM_DAMAGE] += await self.processManifest(fn)
-                        except:
-                            pass
-                self.modified = True
-                self.data['summons'][id] = data
-                self.addition[id] = self.ADD_SUMM
-            return True
+                    except:
+                        pass
+        if exist:
+            self.modified = True
+            self.data['npcs'][element_id] = data
+            self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
+            self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
+            self.addition[element_id] = self.ADD_NPC
+            self.flags.set("found_character")
+            self.tasks.print("Updated:", element_id, "for index:", 'npcs', "(Queuing secondary updates...)")
 
     # Update Weapon data
-    async def weapUpdate(self, id : str) -> bool:
-        with self.progress:
-            async with self.sem:
-                data = [[], [], []] # general, phit, sp
-                for s in ["", "_02", "_03"]:
-                    # art
-                    try:
-                        await self.head(self.IMG + "sp/assets/weapon/m/{}{}.jpg".format(id, s))
-                        data[self.WEAP_GENERAL].append("{}{}".format(id, s))
-                    except:
-                        if s == "":
-                            if self.debug_wpn: data[self.WEAP_GENERAL].append("{}{}".format(id, s))
-                            else: return False
-                        else:
-                            break
-                    # attack
-                    for u in ["", "_2", "_3", "_4"]:
-                        for g in ["", "_0", "_1"]:
-                            try:
-                                fn = "phit_{}{}{}{}".format(id, s, g, u)
-                                data[self.WEAP_PHIT] += await self.processManifest(fn)
-                            except:
-                                if g == '_0':
-                                    break
-                    # ougi
-                    for u in ["", "_0", "_1", "_2", "_3"]:
-                        for t in ["", "_s2", "_s3"]:
-                            for g in ["", "_0", "_1"]:
-                                try:
-                                    fn = "sp_{}{}{}{}{}".format(id, s, g, u, t)
-                                    data[self.WEAP_SP] += await self.processManifest(fn)
-                                except:
-                                    if g == '_0':
-                                        break
-                if self.debug_wpn and len(data[self.WEAP_PHIT]) == 0 and len(data[self.WEAP_SP]) == 0:
-                    return False
-                data[self.WEAP_PHIT] = list(set(data[self.WEAP_PHIT]))
-                data[self.WEAP_PHIT].sort()
-                data[self.WEAP_SP] = list(set(data[self.WEAP_SP]))
-                data[self.WEAP_SP].sort()
-                self.modified = True
-                self.data['weapons'][id] = data
-                self.addition[id] = self.ADD_WEAP
-            return True
-
-    # Update Enemy data
-    async def mobUpdate(self, id : str) -> bool:
-        with self.progress:
-            async with self.sem:
-                data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
-                # icon
-                try:
-                    await self.head(self.IMG + "sp/assets/enemy/s/{}.png".format(id))
-                    data[self.BOSS_GENERAL].append("{}".format(id))
-                except:
-                    try:
-                        await self.head(self.IMG + "sp/assets/enemy/m/{}.png".format(id))
-                        data[self.BOSS_GENERAL].append("{}".format(id))
-                    except:
-                        return False
-                # sprite
-                try:
-                    fn = "enemy_{}".format(id)
-                    data[self.BOSS_SPRITE] += await self.processManifest(fn)
-                except:
-                    pass
-                # appear
-                for k in ["", "_2", "_3", "_shade"]:
-                    try:
-                        fn = "raid_appear_{}{}".format(id, k)
-                        data[self.BOSS_APPEAR] += await self.processManifest(fn)
-                    except:
-                        pass
-                # ehit
-                try:
-                    fn = "ehit_{}".format(id)
-                    data[self.BOSS_HIT] += await self.processManifest(fn)
-                except:
-                    pass
-                # esp
-                for i in range(0, 20):
-                    try:
-                        fn = "esp_{}_{}".format(id, str(i).zfill(2))
-                        data[self.BOSS_SP] += await self.processManifest(fn)
-                    except:
-                        pass
-                    try:
-                        fn = "esp_{}_{}_all".format(id, str(i).zfill(2))
-                        data[self.BOSS_SP_ALL] += await self.processManifest(fn)
-                    except:
-                        pass
-                self.modified = True
-                self.data['enemies'][id] = data
-                self.addition[id] = self.ADD_BOSS
-            return True
-
-    # Update Background data
-    async def bgUpdate(self, id : str) -> bool:
-        with self.progress:
-            async with self.sem:
-                modified = False
-                try:
-                    if isinstance(self.data['background'][id], list):
-                        data = self.data['background'][id]
-                    else:
-                        data = [[]]
-                except:
-                    data = [[]]
-                if id.startswith("event_") or id.startswith("main_") or id.startswith("common_"):
-                    if id.startswith("main_"): path = "sp/guild/custom/bg/{}.png"
-                    else: path = "sp/raid/bg/{}.jpg"
-                    for s in ["", "_a", "_b", "_c"]:
-                        f = id + s
-                        if f in data[0]:
-                            continue
-                        elif s == "":
-                            data[0].append(f)
-                            modified = True
-                            self.addition[f] = self.ADD_BG
-                        else:
-                            try:
-                                await self.head(self.IMG + path.format(f))
-                                data[0].append(f)
-                                modified = True
-                                self.addition[f] = self.ADD_BG
-                            except:
-                                break
+    async def update_weapon(self, element_id : str) -> None:
+        data : list[list[str]] = [[], [], []] # general, phit, sp
+        s : str
+        for s in ["", "_02", "_03"]:
+            # art
+            try:
+                await self.head(self.IMG + "sp/assets/weapon/m/{}{}.jpg".format(element_id, s))
+                data[self.WEAP_GENERAL].append("{}{}".format(element_id, s))
+            except:
+                if s == "":
+                    return
                 else:
-                    if len(data[0]) != 3:
-                        data[0] = [id+"_1",id+"_2",id+"_3"]
-                        modified = True
-                        for f in data[0]:
-                            self.addition[f] = self.ADD_BG
-                if modified:
-                    data[0].sort()
+                    break
+            # attack
+            u : str
+            g : str
+            for u in ["", "_2", "_3", "_4"]:
+                for g in ["", "_0", "_1"]:
+                    try:
+                        fn = "phit_{}{}{}{}".format(element_id, s, g, u)
+                        data[self.WEAP_PHIT] += await self.processManifest(fn)
+                    except:
+                        if g == '_0':
+                            break
+            # ougi
+            t : str
+            for u in ["", "_0", "_1", "_2", "_3"]:
+                for t in ["", "_s2", "_s3"]:
+                    for g in ["", "_0", "_1"]:
+                        try:
+                            fn = "sp_{}{}{}{}{}".format(element_id, s, g, u, t)
+                            data[self.WEAP_SP] += await self.processManifest(fn)
+                        except:
+                            if g == '_0':
+                                break
+        data[self.WEAP_PHIT] = list(set(data[self.WEAP_PHIT]))
+        data[self.WEAP_PHIT].sort()
+        data[self.WEAP_SP] = list(set(data[self.WEAP_SP]))
+        data[self.WEAP_SP].sort()
+        self.modified = True
+        self.data['weapons'][element_id] = data
+        self.addition[element_id] = self.ADD_WEAP
+        self.tasks.print("Updated:", element_id, "for index:", 'weapons')
+
+    # Update Job data
+    async def update_job(self, element_id : str) -> None:
+        cmh = []
+        colors = [int(element_id[-1])]
+        alts = []
+        # mh check
+        for mh in self.MAINHAND:
+            try:
+                await self.head(self.IMG + "sp/assets/leader/raid_normal/{}_{}_0_01.jpg".format(element_id, mh))
+                cmh.append(mh)
+            except:
+                continue
+        if len(cmh) > 0:
+            # alt check
+            if colors[0] == 1:
+                for j in [2, 3, 4, 5, 80]:
+                    try:
+                        await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(element_id[:-2]+str(j).zfill(2), cmh[0]))
+                        if element_id in self.UNIQUE_SKIN:
+                            await self.update_job(element_id[:-2]+str(j).zfill(2))
+                        else:
+                            colors.append(j)
+                            if j >= 80:
+                                alts.append(j)
+                    except:
+                        continue
+            # set data
+            data = [[element_id], [element_id+"_01"], [], [], [], [], cmh, [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
+            
+            data[self.JOB_ALT] = [element_id+"_01"] + [element_id[:-2]+str(j).zfill(2)+"_01" for j in alts]
+            data[self.JOB_DETAIL] = [element_id+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
+            for j in [int(element_id[-1])]+alts:
+                for k in range(2):
+                    data[self.JOB_DETAIL_ALT].append(element_id[:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+            for j in colors:
+                for k in range(2):
+                    data[self.JOB_DETAIL_ALL].append(element_id[:-2]+str(j).zfill(2)+"_"+cmh[0]+"_"+str(k)+"_01")
+            for j in colors:
+                data[self.JOB_SD].append(element_id[:-2]+str(j).zfill(2))
+            for h in data[self.JOB_ALT]:
+                for j in range(2):
+                    try: data[self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(h.split('_', 1)[0], j))
+                    except: pass
+            self.data['job'][element_id] = data
+            self.modified = True
+            self.addition[element_id] = self.ADD_JOB
+            self.tasks.print("Updated:", element_id, "for index:", 'job')
+
+    ### Job #################################################################################################################
+    
+    # To be called once when needed
+    async def init_job_list(self : Updater) -> None:
+        if self.job_list is not None:
+            return
+        # get existing classes
+        try:
+            job_list : dict[str, str] = json.loads((await self.get(self.JS + "constant/job.js")).decode('utf-8').split("var a=", 1)[1].split(";return", 1)[0].replace('{', '{"').replace(',', '","').replace(':', '":"').replace('}', '"}')) # contain a list of all classes. it misses the id of the outfits however.
+        except Exception as ee:
+            self.tasks.print("Couldn't initialize the job list:", ee)
+            return
+        # invert pairs (+ format characters)
+        job_list = {v : "".join(set(k.lower())) for k, v in job_list.items()}
+        # old skins
+        for e in [("125001","snt"), ("165001","stf"), ("185001", "idl")]:
+            job_list[e[0]] = e[1]
+        # new skins
+        async with asyncio.TaskGroup() as tg:
+            tasks = []
+            for i in range(31, 41):
+                for j in range(0, 20):
+                    if str(i * 100 + j)+"01" in job_list: continue
+                    tasks.append(tg.create_task(self.init_job_list_check(str(i * 100 + j)+"01")))
+        for t in tasks:
+            r = t.result()
+            if r is not None:
+                job_list[r] = self.STRING_CHAR
+        self.job_list = job_list
+
+    # Subroutine for init_job_list
+    async def init_job_list_check(self, id : str) -> str|None:
+        try:
+            await self.head(self.IMG + "sp/assets/leader/m/{}_01.jpg".format(id))
+            return id
+        except:
+            return None
+
+    # Used by --job, more specific but also slower job detection system
+    async def search_job_detail(self, full_key_search : bool) -> None: # even slower with full_key_search but sure to find something
+        if self.job_list is None:
+            self.tasks.print("Couldn't retrieve job list from the game")
+            return
+        to_search = []
+        # key search
+        for k, v in self.data['job'].items():
+            if len(v[self.JOB_SPRITE]) == 0:
+                if self.job_list[k] != self.STRING_CHAR:
+                    to_search.append((0, self.job_list[k], k)) # keyword search type, letters, class id
+                else:
+                    full_key_search = True
+        # class weapon search
+        for i in range(0, 999):
+            err = 0
+            for j in range(10):
+                wid = "1040{}{}00".format(j, i) # class weapons always use SSR, afaik
+                if wid in self.data['weapons'] or wid in self.data["job_wpn"]:
+                    err = 0
+                    continue
+                to_search.append((1, wid)) # skin weapon search, id
+                err += 1
+                if err > 15: break
+        # add tasks
+        for v in to_search:
+            if v[0] == 0:
+                self.tasks.add(self.detail_job_search, parameters=(v[1], v[2]))
+            elif v[0] == 1:
+                self.tasks.add(self.detail_job_weapon_search, parameters=(v[1], ))
+        # full key search
+        if full_key_search:
+            for a in self.STRING_CHAR:
+                for b in self.STRING_CHAR:
+                    for c in self.STRING_CHAR:
+                        d = a+b+c
+                        if d in self.data["job_key"]:
+                            continue
+                        self.tasks.add(self.detail_job_search_single, parameters=(d, ))
+        await self.tasks.start()
+
+    # test a job mh
+    async def detail_job_search(self : Updater, key : str, job : str) -> None:
+        cmh = self.data['job'][job][self.JOB_MH]
+        a = key[0]
+        for b in key:
+            for c in key:
+                d = a+b+c
+                if d in self.data["job_key"] and self.data["job_key"][d] is not None: continue
+                passed = True
+                for mh in cmh:
+                    try:
+                        await self.head(self.MANIFEST + "{}_{}_0_01.js".format(d, mh))
+                    except:
+                        passed = False
+                        break
+                if passed:
+                    self.data["job_key"][d] = job
                     self.modified = True
-                    self.data['background'][id] = data
-                return modified
+                    self.tasks.print("Set", job, "to", d)
 
-    ### Scene ###################################################################################################################
-
-    # list known scene strings along with errors encountered along the way
-    def list_known_scene_strings(self) -> tuple:
-        keys = set()
-        errs = []
-        for x in ["characters", "skins"]:
-            d = self.data[x]
-            for k, v in d.items():
+    # search for job weapon
+    async def detail_job_weapon_search(self: Updater, wid : str) -> None:
+        try:
+            await self.head(self.IMG + '_low/sp/assets/weapon/m/' + wid + ".jpg")
+            return
+        except:
+            pass
+        for k in [["phit_", ""], ["phit_", "_2"], ["phit_", "_3"], ["sp_", "_s2"], ["sp_", ""]]:
+            for g in ["", "_0"]:
                 try:
-                    if isinstance(v, list) and isinstance(v[self.CHARA_SCENE], list):
-                        for e in v[7]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
-                            else: keys.add(e)
+                    await self.head(self.MANIFEST + k[0] + wid + g + k[1] + ".js")
+                    self.data["job_wpn"][wid] = None
+                    self.modified = True
+                    self.tasks.print("Possible job skin related weapon:", wid)
+                    return
                 except:
-                    errs.append(k)
-        for x in ["npcs"]:
-            for k, v in self.data[x].items():
+                    pass
+
+    # test a job key
+    async def detail_job_search_single(self, key : str) -> None:
+        with self.progress:
+            for mh in self.MAINHAND:
                 try:
-                    if isinstance(v, list) and isinstance(v[self.NPC_SCENE], list):
-                        for e in v[1]:
-                            if e[:3] in ["_02", "_03", "_04", "_05"]: keys.add(e[3:])
-                            else: keys.add(e)
+                    await self.head(self.MANIFEST + "{}_{}_0_01.js".format(key, mh))
+                    self.data["job_key"][key] = None
+                    self.modified = True
+                    self.tasks.print("\nUnknown job key", key, "for mh", mh)
+                    break
                 except:
-                    errs.append(k)
-        keys = list(keys)
-        keys.sort()
-        return keys, errs
+                    pass
 
-    # output known scene strings in a JSON file. For debugging purpose
-    async def debug_output_scene_strings(self, out_return : bool = False, recur : bool = False) -> None:
-        print("Exporting all scene file suffixes...")
-        keys, errs = self.list_known_scene_strings()
-        if len(errs) > 0: # refresh elements with errors
-            if recur:
-                print("Still", len(errs), "elements incorrectly formed, manual debugging is necessary")
+    # import job_data_export data
+    async def importjob(self : Updater) -> None:
+        try:
+            with open("json/job_data_export.json", mode="r", encoding="ascii") as f:
+                tmp = json.load(f)
+                if 'lookup' not in tmp or 'weapon' not in tmp:
+                    raise Exception()
+        except OSError as e:
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            self.tasks.print("Couldn't open json/job_data_export.json")
+            return
+        except Exception as e:
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            self.tasks.print("Couldn't load json/job_data_export.json")
+            return
+        self.tasks.print("Import the data from json/job_data_export.json? (y/Y)")
+        if input().lower() == 'y':
+            self.tasks.print("Importing data...")
+            for jid, s in tmp["lookup"].items():
+                # add job if needed
+                if jid not in self.data['job']:
+                    self.tasks.add(self.update_job, parameters=(jid,))
+                if s is not None:
+                    self.tasks.add(self.job_import_task, parameters=(jid, s, 0))
+            for jid, s in tmp["weapon"].items():
+                if s is not None:
+                    self.tasks.add(self.job_import_task, parameters=(jid, s, 1))
+            if await self.tasks.start():
+                self.tasks.print("Job Data Import finished with success")
             else:
-                tmp = self.update_changelog
-                self.update_changelog = False
-                print(len(errs), "elements incorrectly formed, attempting to update")
-                await self.manualUpdate(errs)
-                await self.debug_output_scene_strings(out_return, True)
-                self.update_changelog = tmp
-        else:
-            if out_return:
-                return keys
-            else:
-                with open("json/debug_scene_strings.json", mode="w", encoding="utf-8") as f:
-                    json.dump(keys, f)
-                print("Data exported to 'json/debug_scene_strings.json'")
+                self.tasks.print("An error occured, exiting to not compromise the data")
+                exit(0)
 
-    # set self.scene_strings if needed and return them
-    def generate_scene_file_list(self, id : str) -> tuple:
+    # task to verify job_data_export data and import it
+    async def job_import_task(self : Updater, jid : str, s : Any, mode : int) -> None:
+        match mode:
+            case 0:
+                # set key
+                sheets = []
+                for v in self.data['job'][jid][self.JOB_DETAIL_ALL]:
+                    try:
+                        if jid in self.UNIQUE_SKIN:
+                            sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_01")
+                        else:
+                            sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
+                    except:
+                        pass
+                self.data['job'][jid][self.JOB_SPRITE] = list(dict.fromkeys(sheets))
+                self.data['job_key'][s] = jid
+                self.modified = True
+                self.tasks.print(len(sheets),"sprites set to job", jid)
+            case 1:
+                # phit
+                sheets = []
+                for u in ["", "_1", "_2", "_3"]:
+                    for g in ["", "_0", "_1"]:
+                        try:
+                            sheets += await self.processManifest("phit_{}{}{}".format(s, u, g))
+                        except:
+                            if g == "_0":
+                                break
+                if jid == "360101": # special exception for racing suit
+                    try:
+                        sheets += await self.processManifest("phit_racer")
+                    except:
+                        pass
+                sheets = list(set(sheets))
+                sheets.sort()
+                self.data['job'][jid][self.JOB_PHIT] = sheets
+                # ougi
+                sheets = []
+                for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
+                    try:
+                        sheets += await self.processManifest("sp_{}{}".format(s, u))
+                    except:
+                        pass
+                sheets = list(set(sheets))
+                sheets.sort()
+                self.data['job'][jid][self.JOB_SP] = sheets
+                self.tasks.print(len(self.data['job'][jid][self.JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][self.JOB_SP]),"ougi sprites set to job", jid)
+                self.data['job_wpn'][s] = jid
+                self.modified = True
+
+    # export job_data_export data
+    async def exportjob(self : Updater) -> None:
+        self.tasks.print("Export the data to json/job_data_export.json? (y/Y)")
+        if input().lower() == 'y':
+            tmp = {"lookup":{}, "weapon":{}, "unset_key":[], "unset_wpn":[]}
+            for k in self.data['job']:
+                tmp['lookup'][k] = None
+            for k in self.data['job_key']:
+                if self.data['job_key'][k] is None:
+                    tmp['unset_key'].append(k)
+                else:
+                    tmp['lookup'][self.data['job_key'][k]] = k
+            for k in self.data['job_wpn']:
+                if self.data['job_wpn'][k] is None:
+                    tmp['unset_wpn'].append(k)
+                else:
+                    tmp['weapon'][self.data['job_wpn'][k]] = k
+            with open("json/job_data_export.json", mode="w", encoding="ascii") as f:
+                json.dump(tmp, f, ensure_ascii=True, indent=4)
+                self.tasks.print("Job Data exported to json/job_data_export.json")
+
+    ### Scene #################################################################################################################
+
+    # update ALL npc/character/skin scene files, time consuming, can be resumed, can be filtered
+    async def update_all_scene(self : Updater, filters : list[str] = []) -> None:
+        self.flags.set("use_resume")
+        self.flags.set("scene_update")
+        self.load_resume("scene")
+        if len(self.resume.get('done', {})) != 0:
+            self.tasks.print("Note: Resuming the previous run...")
+        if len(filters) > 0:
+            self.tasks.print("Note: {} filter(s) in use. Not matching filenames will be ignored.".format(len(filters)))
+        if 'name' not in self.resume:
+            self.resume['name'] = "scene"
+        if 'done' not in self.resume:
+            self.resume['done'] = {}
+        for index in ["characters", "skins", 'npcs']:
+            for element_id in self.data[index]:
+                self.tasks.add(self.update_scenes_of, parameters=(element_id, index, filters))
+        self.tasks.print("Updating scenes for {} elements...".format(self.tasks.total))
+        await self.tasks.start()
+        self.clear_resume()
+    
+    # set self.scene_strings if needed and return them along with base strings
+    def generate_scene_file_list(self, element_id : str) -> tuple[list[str], list[str], list[str]]:
+        # set scene strings
+        # it's mostly a concatenation work
         if self.scene_strings is None:
             self.scene_strings = [{}, {}] # dict to keep order
             for main in self.SCENE_SUFFIXES["default"]["main"]:
@@ -2101,20 +2008,20 @@ class Updater():
                     self.scene_strings[0][f] = None
             self.scene_strings[0] = list(self.scene_strings[0].keys())
         
-        if id in self.SCENE_SUFFIXES:
-            if "base" in self.SCENE_SUFFIXES[id]:
-                base = self.SCENE_SUFFIXES["default"]["base"] + self.SCENE_SUFFIXES[id]["base"]
+        if element_id in self.SCENE_SUFFIXES: # this part is similar to the above but for special elements with dedicated strings
+            if "base" in self.SCENE_SUFFIXES[element_id]:
+                base = self.SCENE_SUFFIXES["default"]["base"] + self.SCENE_SUFFIXES[element_id]["base"]
             else:
                 base = self.SCENE_SUFFIXES["default"]["base"]
-            if "main" in self.SCENE_SUFFIXES[id] or "end" in self.SCENE_SUFFIXES[id] or "unique" in self.SCENE_SUFFIXES[id]:
+            if "main" in self.SCENE_SUFFIXES[element_id] or "end" in self.SCENE_SUFFIXES[element_id] or "unique" in self.SCENE_SUFFIXES[element_id]:
                 d = {}
                 for k in ["main", "unique", "end"]:
-                    if k not in self.SCENE_SUFFIXES[id]:
+                    if k not in self.SCENE_SUFFIXES[element_id]:
                         d[k] = self.SCENE_SUFFIXES["default"][k]
                     else:
                         s = set()
                         d[k] = []
-                        for f in (self.SCENE_SUFFIXES["default"][k] + self.SCENE_SUFFIXES[id].get(k, [])):
+                        for f in (self.SCENE_SUFFIXES["default"][k] + self.SCENE_SUFFIXES[element_id].get(k, [])):
                             if f not in s:
                                 s.add(f)
                                 d[k].append(f)
@@ -2139,241 +2046,738 @@ class Updater():
         else:
             return self.SCENE_SUFFIXES["default"]["base"], self.scene_strings[0], self.scene_strings[1]
 
-    # Called by -scene, update all npc and character scene datas. parameters can be a specific index to start from (in case you are resuming an aborted operation) or a list of string suffix or both (with the index first)
-    async def update_all_scene(self, target_index : Optional[str] = None, params : list = [], update_pending : bool = False) -> None:
-        target_list = []
-        if update_pending:
-            for k in self.data['scene_queue']:
-                if k not in target_list:
-                    target_list.append(k)
-        else:
-            if target_index is None:
-                target_index = ["characters", "skins", "npcs"]
-            elif not isinstance(target_index, list):
-                target_index = [target_index]
-            for k in target_index:
-                target_list += list(self.data[k].keys())
-        if len(target_list) == 0:
+    # Execution flow
+    #
+    #   update_scenes_of
+    #       v
+    #   update_scene (for each uncap)
+    #       v
+    #   update_scene_continue & (multiples) update_scene_check  (for each uncap)
+    #       v
+    #   update_scene_end & (multiples) update_scene_check  (for each uncap)
+    #
+    
+    # update the scene files of one element
+    async def update_scenes_of(self : Updater, element_id : str, index : str, filters : list[str] = []) -> None:
+        u : str
+        uncaps : list[str]
+        idx : int
+        # retrieve infos (index, index in the data, uncaps) and create existing set of file
+        try:
+            data : list[Any] = self.data[index][element_id]
+            match index:
+                case 'characters'|'skins':
+                    idx = self.CHARA_SCENE
+                    uncaps= []
+                    for u in data[self.CHARA_GENERAL]:
+                        uu = u.replace(element_id+"_", "")
+                        if "_" not in uu and uu.startswith("0"):
+                            uncaps.append(uu)
+                case 'npcs':
+                    idx = self.NPC_SCENE
+                    uncaps = ["", "02", "03"]
+                case _:
+                    return
+            existing : set[str] = set(data[idx])
+        except:
             return
-        print("Updating scene data for {} element(s)".format(len(target_list)))
-        start_index = 0
-        filter = None
-        if len(params) > 0:
-            try:
-                start_index = int(params[0])
-                params = params[1:]
-            except:
-                pass
-            finally:
-                if len(params) > 0:
-                    filter = params
-                    print("The process will only check matches with", len(filter), "filter(s)")
-        sk = start_index
-        elements = []
-        for id in target_list:
-            if id[:3] in ['399', '305']:
-                uncaps = ["", "02", "03"]
-                idx = self.NPC_SCENE
-                k = 'npcs'
+        # retrieve strings
+        base_target, main_x, uncap_x = self.generate_scene_file_list(element_id) # we save memory this way as most elements share the same strings, instead of building them on the spot
+        # for each uncap...
+        for u in uncaps:
+            if u in ["", "01"]:
+                u = ""
             else:
-                uncaps = []
-                idx = self.CHARA_SCENE
-                k = 'characters' if id.startswith('30') else 'skins'
-                for u in self.data[k][id][self.CHARA_GENERAL]:
-                    uu = u.replace(id+"_", "")
-                    if "_" not in uu and uu.startswith("0"):
-                        uncaps.append(uu)
-            for u in uncaps: # split per uncap
-                if sk > 0:
-                    sk -= 1
+                u = "_" + u
+            if self.flags.check('scene_update') and u in self.resume.get('done', {}).get(element_id, []): # skip if in resume file
+                continue
+            # start update_scene
+            self.tasks.add(self.update_scene, parameters=(index, element_id, idx, u, existing, base_target, main_x if u == "" else uncap_x, filters), priority=2)
+
+    # update character/NPC scene data
+    async def update_scene(self : Updater, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str], filters : list[str]) -> None:
+        ts : TaskStatus
+        # check if uncap string exists
+        if uncap not in existing:
+            await self.update_scene_check(TaskStatus(1, 1, running=1), element_id, uncap, existing)
+        # quit if npc and no uncap string existing beyond base one
+        if index == 'npcs' and uncap != "" and uncap not in existing:
+            return
+        # check other base strings
+        base : str
+        f : str # file
+        files : list[str] = []
+        # list all files to test
+        for base in bases:
+            f = uncap + base
+            if f in existing or base == "": # exists OR empty (later is already tested by run() and update())
+                continue
+            files.append(f)
+        if len(files) > 0: # for each file
+            ts = TaskStatus(1, 1, running=len(files))
+            for i in range(len(files)): # make ONE check task
+                self.tasks.add(self.update_scene_check, parameters=(ts, element_id, files[i], existing), priority=1)
+            # and queue next step
+            self.tasks.add(self.update_scene_continue, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes, filters), priority=1)
+        else:
+            # no file, directly go to next step
+            await self.update_scene_continue(TaskStatus(0, 1), index, element_id, idx, uncap, existing, bases, suffixes, filters)
+
+    # part 2 of the function, wait for TaskStatus completion
+    async def update_scene_continue(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str], filters : list[str]) -> None:
+        # wait previous tasks completion
+        while not ts.finished:
+            await asyncio.sleep(1)
+        files : list[str] = []
+        suffix : str
+        # search variations now, make a list of file again
+        for base in bases:
+            f : str = uncap + base
+            if base != "" and f not in existing:
+                continue
+            for suffix in suffixes:
+                g : str = f + suffix
+                if suffix == "" or g in existing or not self.file_is_matching(g, filters):
                     continue
-                elements.append((k, id, idx, u, filter))
-        if start_index > 0:
-            print("(Skipping the first {} tasks(s) )".format(start_index))
-        # start
-        if len(elements) > 0:
-            self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
-            self.shared_task_container = []
-            async for result in self.map_unordered(self.update_all_scene_sub, elements, self.MAX_SCENE_CONCURRENT):
-                pass
-            await self.wait_shared_task_completion()
-            if update_pending: self.data['scene_queue'] = []
-            print("Done")
-            self.sort_all_scene()
-            self.save()
+                files.append(g)
+        if len(files) > 0: # for each file
+            ts = TaskStatus(1, 1, running=len(files))
+            for i in range(len(files)): # make ONE check task
+                self.tasks.add(self.update_scene_check, parameters=(ts, element_id, files[i], existing), priority=1)
+            # and queue final step
+            self.tasks.add(self.update_scene_end, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes), priority=1)
+        else: # else go to end
+            await self.update_scene_end(TaskStatus(0, 1), index, element_id, idx, uncap, existing, bases, suffixes)
 
-    # used in update_all_scene_sub
-    def scene_suffix_is_matching(self, name : str, filters : list) -> bool:
-        for f in filters:
-            if f in name:
-                return True
-        return False
-
-    # update_all_scene() subroutine
-    async def update_all_scene_sub(self, tup : tuple) -> None:
-        with self.progress:
-            k, id, idx, uncap, filter = tup
-            try: existing = set(self.data[k][id][idx])
-            except: return
-            us = "" if uncap in ["", "01"] else "_"+uncap
-            
-            base_target, main_x, uncap_x = self.generate_scene_file_list(id)
-            suffixes = main_x if us == "" else uncap_x
-            
-            # search bare base suffix
-            if us not in existing:
-                await self.update_all_scene_sub_req(k, id, idx, us, False)
-                if us in self.data[k][id][idx]:
-                    existing.add(us)
-            
-            # opti for npcs: quit if no base _03 file
-            if k == "npcs" and us != "" and us not in existing: return
-            
-            # search other base suffixes
-            tasks = []
-            for s in base_target:
-                f = us+s
-                if f in existing or s == "": continue
-                tasks.append(self.update_all_scene_sub_req(k, id, idx, f, False))
-            if len(tasks) > 0: await asyncio.gather(*tasks)
-            existing = set(self.data[k][id][idx])
-            # search variations
-            tasks = []
-            for s in base_target:
-                f = us+s
-                if (s != "" and f not in existing): continue
-                for ss in suffixes:
-                    g = f + ss
-                    if ss == "" or g in existing or (filter is not None and not self.scene_suffix_is_matching(g, filter)): continue
-                    no_bubble = (g != "" and g.split("_")[-1] in self.SCENE_BUBBLE_FILTER)
-                    await self.wait_shared_task_free(self.MAX_UPDATEALL)
-                    self.shared_task_container.append(asyncio.create_task(self.update_all_scene_sub_req(k, id, idx, g, no_bubble)))
-
-    # request used just above
-    async def update_all_scene_sub_req(self, k : str, id : str, idx : int, g : str, no_bubble : bool) -> None:
-        if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, g)] if no_bubble else [self.IMG + "sp/quest/scene/character/body/{}{}.png".format(id, g), self.IMG + "sp/raid/navi_face/{}{}.png".format(id, g)])) is not None:
-            self.data[k][id][idx].append(g)
+    # part 3 of the function, wait for TaskStatus completion
+    async def update_scene_end(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str]) -> None:
+        # wait previous tasks completion
+        while not ts.finished:
+            await asyncio.sleep(1)
+        # check if the data has new strings
+        if len(existing) > len(self.data[index][element_id][idx]):
+            self.data[index][element_id][idx] = list(existing) # set it
+            self.data[index][element_id][idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e))) # and sort it
             self.modified = True
+            # valentine check
+            if "_white" in existing or "_valentine" in existing and element_id not in self.data['valentines']:
+                self.data['valentines'].append(element_id)
+        # add element id and uncap to resume save
+        if self.flags.check("scene_update"):
+            if element_id not in self.resume['done']:
+                self.resume['done'][element_id] = []
+            self.resume['done'][element_id].append(uncap)
 
-    # Sort scene data by string suffix order, to keep some sort of coherency on the web page
-    def sort_all_scene(self) -> None:
-        print("Sorting scene data...")
-        valentines = self.data['valentines'].copy()
-        for t in ["characters", "skins", "npcs"]:
-            if t == "npcs": idx = self.NPC_SCENE
-            else: idx = self.CHARA_SCENE
-            for id, v in self.data[t].items():
-                if not isinstance(v, list): continue
-                new = v[idx].copy()
-                new.sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e)))
-                if new != v[idx]:
-                    self.modified = True
-                    self.data[t][id][idx] = new
-                if id not in valentines:
-                    snew = str(new)
-                    if "_white" in snew or "_valentine" in snew:
-                        valentines[id] = 0
-        if str(valentines) != str(self.data['valentines']):
-            self.data['valentines'] = valentines
-            self.modified = True
-        print("Done")
-        self.save()
+    # request scene assets
+    async def update_scene_check(self : Updater, ts : TaskStatus, element_id : str, f : str, existing : set[str]) -> None:
+        if await self.head_nx(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(element_id, f)) is not None: # check if scene file exists
+            existing.add(f)
+        elif (f == "" or f.split("_")[-1] not in self.SCENE_BUBBLE_FILTER) and await self.head_nx(self.IMG + "sp/raid/navi_face/{}{}.png".format(element_id, f)) is not None: # or check navi_face is the file name matches the SCENE_BUBBLE_FILTER
+            existing.add(f)
+        ts.finish() # task ended
 
-    ### Sound ###################################################################################################################
+    ### Generic Chapter Update #################################################################################################################
 
-    # Called by -sound, update all npc and character sound datas
-    async def update_all_sound(self, parameters : list = [], update_pending : bool = False) -> None:
-        start_index = 0
-        if len(parameters) > 0 and len(parameters[0]) < 10:
+    # generic function to update: A story chapter, a fate episode scene or an event chapter
+    # horrible but can't find a better way
+    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str]) -> tuple:
+        is_tuto = "tuto_scene" in base_url # check for MSQ tutorial
+        Z = 1 if is_tuto else 2 # zfill value used in the filename, for MSQ tutorial
+        while not ts.complete:
+            i : int = ts.get_next_index() # next ID to check
+            url : str = base_url + "_" + str(i).zfill(Z) # prepare url
+            good : bool = False # flag to determine if we have at least a positive match
+            flag : bool = False # flag used along the way
+            # Check base ones
+            for k in ["", "_up", "_shadow"]: # there are likely more variations but I don't want to add pointless files to slow it down further
+                try:
+                    if url.split("/")[-1]+k not in existing:
+                        await self.head(url + k + ".png")
+                        existing.add(url.split("/")[-1]+k)
+                    flag = True
+                    good = True
+                except:
+                    pass
+            # Check the variations (yes, it's slow)
+            for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                found = False
+                try:
+                    if url.split("/")[-1]+k not in existing:
+                        await self.head(url + k + ".png")
+                        existing.add(url.split("/")[-1]+k)
+                    flag = True
+                    found = True
+                    good = True
+                except:
+                    pass
+                # and sub variations (yes, it's VERY slow)
+                for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
+                    for kkk in ss:
+                        try:
+                            if url.split("/")[-1]+k+kkk not in existing:
+                                await self.head(url + k + kkk + ".png")
+                                existing.add(url.split("/")[-1]+k+kkk)
+                            flag = True
+                            found = True
+                            good = True
+                        except:
+                            break
+                if not found: # stop if no files found for this particular variation
+                    break
+            # if NOTHING found until now OR we're in the MSQ tutorial
+            if not flag or is_tuto:
+                # we test another filename format
+                try:
+                    if url.split("/")[-1]+"_00" not in existing:
+                        await self.head(url + "_00.png")
+                        existing.add(url.split("/")[-1]+"_00")
+                    good = True
+                except:
+                    pass
+                # some variations
+                for k in ["_up", "_shadow"]:
+                    try:
+                        if url.split("/")[-1]+"_00"+k not in existing:
+                            await self.head(url + "_00" + k + ".png")
+                            existing.add(url.split("/")[-1]+"_00"+k)
+                        good = True
+                    except:
+                        pass
+                err = 0
+                i = 1
+                # now test ALL numbered variations
+                while i < 100 and err < 10: # they are in sequence usually, I check until 100 or if we go 10 in a row without a single match
+                    k = str(i).zfill(Z)
+                    try:
+                        if url.split("/")[-1]+"_"+k not in existing:
+                            await self.head(url + "_" + k + ".png")
+                            existing.add(url.split("/")[-1]+"_"+k)
+                        good = True
+                        err = 0
+                        # these variations are only possible if the above file exists (in theory)
+                        for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                            found = False
+                            try:
+                                if url.split("/")[-1]+"_"+k+kk not in existing:
+                                    await self.head(url + "_" + k + kk + ".png")
+                                    existing.add(url.split("/")[-1]+"_"+k+kk)
+                                found = True
+                            except:
+                                pass
+                            for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
+                                for kkk in ss:
+                                    try:
+                                        if url.split("/")[-1]+"_"+k+kk+kkk not in existing:
+                                            await self.head(url + "_" + k + kk + kkk + ".png")
+                                            existing.add(url.split("/")[-1]+"_"+k+kk+kkk)
+                                        found = True
+                                    except:
+                                        break
+                            if not found:
+                                break
+                    except:
+                        err += 1
+                    i += 1
+            # check if we found at least ONE file
+            if good:
+                ts.good()
+            else:
+                ts.bad()
+        ts.finish()
+        # all tasks for this chapter finished
+        # the last one is in charge of cleaning it up
+        if ts.finished and len(existing) > 0:
+            # if data has changed (or we have matches and no data in index)
+            if (len(existing) > 0 and element_id not in self.data[index]) or (element_id in self.data[index] and len(existing) > len(self.data[index][element_id][idx])):
+                # create data if not initialized
+                if element_id not in self.data[index]:
+                    match index:
+                        case 'events':
+                            self.data[index][element_id] = self.create_event_container()
+                        case 'story':
+                            self.data[index][element_id] = [[]]
+                        case 'fate':
+                            self.data[index][element_id] = [[],[],[],[],None]
+                # set data
+                self.data[index][element_id][idx] = list(existing)
+                # and sort
+                self.data[index][element_id][idx].sort()
+                # add to changelog (and set flag) if not done yet (using self.addition to check)
+                if element_id not in self.addition:
+                    match index:
+                        case 'events':
+                            self.addition[element_id] = self.ADD_EVENT
+                            self.flags.set("found_event")
+                        case 'story':
+                            self.addition[element_id] = self.ADD_STORY
+                        case 'fate':
+                            self.addition[element_id] = self.ADD_FATE
+                            self.flags.set("found_fate")
+                    self.tasks.print("Updated:", element_id, "for index:", index)
+                # raise modified flag
+                self.modified = True
+
+    ### Event #################################################################################################################
+    
+    # Use the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
+    async def get_event_list(self : Updater) -> list[str]:
+        try:
+            l = self.MISSING_EVENTS # missing events
+            # add our special events
+            for k in self.SPECIAL_EVENTS:
+                l.append(k)
+            # try to access the wiki
+            if not self.use_wiki:
+                raise Exception()
+            data = await self.get_wiki("https://gbf.wiki/index.php?title=Special:CargoExport&tables=event_history&fields=time_start,name&format=json&limit=20000", get_json=True)
+            # retrieve the start date from each event
+            for e in data:
+                t = e['time start'].split(' ', 1)[0].split('-')
+                t = t[0][2:] + t[1].zfill(2) + t[2].zfill(2) # and create a date from it
+                l.append(t)
+        except:
+            pass
+        # remove dupes and sort
+        l = list(set(l))
+        l.sort()
+        return l
+    
+    # convert event id string to day count integer ((year x 12 + month) x 31 + day), used for comparison purposes
+    def ev2daycount(self : Updater, ev : str) -> int:
+        return (int(ev[:2]) * 12 + int(ev[2:4])) * 31 + int(ev[4:6])
+    
+    # create the array containing the event data
+    # the one for events is quite big, so I'm using a function to not miss a list somewhere
+    def create_event_container(self : Updater) -> list:
+        l = [-1, None]
+        while len(l) < self.EVENT_CHAPTER_START:
+            l.append([])
+        for i in range(self.EVENT_MAX_CHAPTER):
+            l.append([])
+        l.append([])
+        return l
+    
+    # exactly what the name implies. A specific list of events can also be provided to only update those
+    async def update_all_event(self : Updater, events : list[str]) -> None:
+        if len(events) == 0:
+            events = [ev for ev in self.data['events'] if (self.data['events'][ev][self.EVENT_CHAPTER_COUNT] >= 0 or self.data['events'][ev][self.EVENT_THUMB] is not None)]
+        self.tasks.print("Updating", len(events), "event(s)...")
+        for ev in events:
+            self.tasks.add(self.update_event, parameters=(ev,))
+        await self.tasks.start()
+
+    # also a pretty implicit name
+    async def check_new_event(self : Updater) -> None:
+        self.flags.set("checking_event")
+        # get today date
+        nowd : datetime = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400)
+        now : int = int(str(nowd.year)[2:] + str(nowd.month).zfill(2) + str(nowd.day).zfill(2))
+        now_day = self.ev2daycount(str(now))
+        # and the event list
+        known_events : list[str] = await self.get_event_list()
+        # go over that list
+        for ev in known_events:
+            if not ev.isdigit(): # our special ids (such as babyl0)
+                if ev not in self.data['events']: # not set, update this event
+                    self.tasks.print("Checking special event:", ev)
+                    self.tasks.add(self.update_event, parameters=(ev,), priority=3)
+            elif ev in self.data['events']: # this event already exists
+                if now >= int(ev) and now_day - self.ev2daycount(ev) <= 14: # if happened in the last 14 days, we try to update again (mostly for daily skits)
+                    self.tasks.print("Checking existing event:", ev)
+                    self.tasks.add(self.update_event, parameters=(ev,), priority=3)
+            else: # if the date is in the past, update, we skip anything else
+                if now >= int(ev):
+                    self.tasks.print("Checking new event:", ev)
+                    self.tasks.add(self.check_event_exist, parameters=(ev,), priority=3)
+        await self.tasks.start()
+
+    # we check if we can access voice lines to detect if an event is accessible and its number of chapters. This solution isn't perfect
+    async def check_event_exist(self : Updater, element_id : str) -> None:
+        new_format = (element_id.isdigit() and int(element_id) == 241017) # bandaid for this particular event
+        ts : TaskStatus = TaskStatus(-1, 1, running=self.EVENT_MAX_CHAPTER*2*2*(2 if new_format else 1)) # used to share the highest number of chapter found
+        for i in range(0, self.EVENT_MAX_CHAPTER): # create takes for each chapter and possible sub episode and quest
+            for j in range(1, 3):
+                for k in range(1, 3):
+                    self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, self.VOICE + "scene_evt{}_cp{}_q{}_s{}0".format(element_id, i, j, k)), priority=2)
+                    if new_format: # bandaid
+                        self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, self.VOICE + "scene_evt20{}_cp{}_q{}_s{}0".format(element_id, i, j, k)), priority=2)
+
+    # check voice line existence
+    async def check_event_voice_line(self : Updater, ts : TaskStatus, element_id : str, cp : int, uri : str) -> None:
+        # we look over the 20 first lines to check if one exists
+        for m in range(1, 20):
+            if cp <= ts.index:
+                break
             try:
-                start_index = int(parameters[0])
-                parameters = parameters[1:]
+                await self.head(uri + "_{}.mp3".format(m)) # note: we don't bother checking for variations, this function is simply trying to find ONE file
+                if cp > ts.index:
+                    ts.index = cp # we use the TaskStatus index variable to store the highest chapter we encountered
+                break
             except:
                 pass
-        target_list = list(set(self.data['sound_queue'])) if update_pending else []
-        if len(parameters) > 0:
-            target_list += [id for id in parameters if id not in target_list]
-        elif len(target_list) == 0:
-            target_list = []
-            for k in ["characters", "skins", "npcs"]:
-                target_list += list(self.data[k].keys())
-            target_list = set(list(target_list))
-        print("Updating sound data for {} element(s)".format(len(target_list)))
-        if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
-        si = start_index
-        elements = []
-        for id in target_list:
-            if len(id) != 10: continue
-            if id[:3] in ['399', '305']:
-                uncaps = ["01"]
-                idx = self.NPC_SOUND
-                k = "npcs"
-            else:
-                uncaps = []
-                idx = self.CHARA_SOUND
-                k = 'characters' if id.startswith('30') else 'skins'
-                for u in self.data[k][id][self.CHARA_GENERAL]:
-                    uu = u.replace(id+"_", "")
-                    if "_" not in uu and uu.startswith("0") and uu != "02":
-                        uncaps.append(uu)
-            try: voices = set(self.data[k][id][idx])
-            except: voices = set()
-            if si > 0:
-                si -= 1
-            else:
-                elements.append((k, id, idx, uncaps, voices))
-        # start
-        self.progress = Progress(self, total=len(elements)+start_index, silent=False, current=start_index)
-        self.shared_task_container = []
-        async for result in self.map_unordered(self.update_all_sound_sub, elements, self.MAX_UPDATEALL):
-            pass
-        await self.wait_shared_task_completion()
-        print("Done")
-        if update_pending and len(self.data['sound_queue']) > 0:
-            self.data['sound_queue'] = []
-            self.modified = True
-        self.save()
-        print("Cleaning...")
-        for id in target_list: # removing dupes if any
-            if len(id) != 10: continue
-            if id[:3] in ['399', '305']:
-                uncaps = ["01"]
-                idx = self.NPC_SOUND
-                k = "npcs"
-            else:
-                uncaps = []
-                idx = self.CHARA_SOUND
-                k = 'characters' if id.startswith('30') else 'skins'
-            if not isinstance(self.data[k].get(id, None), list): continue
-            voices = list(set(self.data[k][id][idx]))
-            if len(voices) != len(self.data[k][id][idx]):
-                self.data[k][id][idx] = voices
-                self.modified = True
-        print("Done")
-        self.save()
+        ts.finish()
+        # the very last task is in charge of cleaning up
+        if ts.finished:
+            if element_id not in self.data['events']: # add container in index if it doesn't exist yet
+                self.data['events'][element_id] = self.create_event_container()
+            if ts.index != -1: # if index not -1, we found a chapter
+                self.data['events'][element_id][self.EVENT_CHAPTER_COUNT] = ts.index + 1 # set it
+                self.tasks.add(self.update_event, parameters=(element_id,), priority=3)
 
-    # update_all_sound() subroutine
-    async def update_all_sound_sub(self, tup : tuple) -> None:
-        with self.progress:
-            index, id, idx, uncaps, existing = tup
-            # banter
-            await self.wait_shared_task_free(self.MAX_UPDATEALL)
-            self.shared_task_container.append(asyncio.create_task(self.update_chara_sound_file_sub_banter(index, id, idx, existing)))
-            prep = self.update_chara_sound_file_prep(id, uncaps, existing)
-            # finish
-            for i in range(0, len(prep), self.SOUND_CONCURRENT_PER_STEP):
-                for kk in prep[i:i + self.SOUND_CONCURRENT_PER_STEP]:
-                    await self.wait_shared_task_free(self.MAX_UPDATEALL)
-                    self.shared_task_container.append(asyncio.create_task(self.update_chara_sound_file_sub(index, id, idx, existing, kk)))
+    # Update an event data
+    async def update_event(self : Updater, element_id : str) -> None:
+        if element_id not in self.data["events"]: # add container to index if not set
+            self.data["events"][element_id] = self.create_event_container()
+        # we must have a valid chapter count (==0 : undefined but valid event, >=0 : chapter count)
+        if self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] >= 0:
+            name : str = self.SPECIAL_EVENTS.get(element_id, element_id) # retrieve file name id if special event
+            prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
+            existings : list[set[str]] = [set(self.data["events"][element_id][i]) for i in range(self.EVENT_OP, len(self.data["events"][element_id]))] # make set of existing files
+            ch_count = self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] if self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] > 0 else self.EVENT_MAX_CHAPTER # get the number of chapter to check
+            ts : TaskStatus
+            # chapters
+            for i in range(1, ch_count+1):
+                fn = "scene_{}{}_cp{}".format(prefix, name, str(i).zfill(2))
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_CHAPTER_START+i-1, self.IMG + "sp/quest/scene/character/body/"+fn, existings[i-1+self.EVENT_CHAPTER_START-self.EVENT_OP]), priority=2)
+                if i < 10:
+                    fn = "scene_{}{}_cp{}".format(prefix, name, i)
+                    ts = TaskStatus(200, 5, running=10)
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_CHAPTER_START+i-1, self.IMG + "sp/quest/scene/character/body/"+fn, existings[i-1+self.EVENT_CHAPTER_START-self.EVENT_OP]), priority=2)
+            # opening
+            fn = "scene_{}{}_op".format(prefix, name)
+            ts = TaskStatus(200, 5, running=10)
+            for n in range(10):
+                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_OP, self.IMG + "sp/quest/scene/character/body/"+fn, existings[self.EVENT_OP-self.EVENT_OP]), priority=2)
+            # ending
+            fn = "scene_{}{}_ed".format(prefix, name)
+            ts = TaskStatus(200, 5, running=10)
+            for n in range(10):
+                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_ED, self.IMG + "sp/quest/scene/character/body/"+fn, existings[self.EVENT_ED-self.EVENT_OP]), priority=2)
+            if element_id == "babyl0": # special exception (only for babyl right now)
+                for ss in range(1, 30):
+                    fn = "scene_babeel_01_ed{}".format(ss)
+                    ts = TaskStatus(200, 5, running=10)
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_ED, self.IMG + "sp/quest/scene/character/body/"+fn, existings[self.EVENT_ED-self.EVENT_OP]), priority=2)
+                    fn = "scene_babeel_ed{}".format(ss)
+                    ts = TaskStatus(200, 5, running=10)
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_ED, self.IMG + "sp/quest/scene/character/body/"+fn, existings[self.EVENT_ED-self.EVENT_OP]), priority=2)
+            # others
+            fn = "scene_{}{}".format(prefix, name)
+            ts = TaskStatus(200, 5, running=10)
+            for n in range(10):
+                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_INT, self.IMG + "sp/quest/scene/character/body/"+fn, existings[self.EVENT_INT-self.EVENT_OP]), priority=2)
 
-    # prep work for update_chara_sound_file
-    def update_chara_sound_file_prep(self, id : str, uncaps : Optional[list] = None, existing : set = set()) -> list:
-        elements = []
-        # standard stuff
-        for uncap in uncaps:
-            if uncap == "01": uncap = ""
-            elif uncap == "02": continue # seems unused
-            elif uncap != "": uncap = "_" + uncap
+    ### Event Thumbnail #################################################################################################################
+
+    async def update_all_event_thumbnail(self : Updater) -> None:
+        # might need a revamp later as GBF is running out of space
+        ts : TaskStatus = TaskStatus(2000, 50)
+        for i in range(20):
+            self.tasks.add(self.update_event_thumbnail, parameters=(7001, ts)) # 70000 range
+        ts = TaskStatus(1000, 50)
+        for i in range(20):
+            self.tasks.add(self.update_event_thumbnail, parameters=(9001, ts)) # 90000 range
+
+    async def update_event_thumbnail(self : Updater, start : int, ts : TaskStatus) -> None:
+        while not ts.complete:
+            try:
+                i : int = start+ts.get_next_index() # get next id
+                f : str = "{}0".format(i) # make filename/id
+                if f not in self.data['eventthumb']:
+                    await self.head(self.IMG + "sp/archive/assets/island_m2/{}.png".format(f)) # try to request
+                    self.data['eventthumb'][f] = 0 # set it in memory
+                    self.modified = True
+                    self.tasks.print("New event thumbnail", f)
+                ts.good()
+            except:
+                ts.bad()
+
+    # function to import or export (controlled by in_or_out) manual_event_thumbnail.json
+    def update_manual_event_thumbnail(self : Updater, in_or_out : bool = False) -> None:
+        if in_or_out: # import
+            try:
+                with open("json/manual_event_thumbnail.json", mode="r", encoding="utf-8") as f:
+                    data = json.load(f)
+                rdata = {}
+                for k, v in data.items():
+                    for ev in v:
+                        rdata[ev] = k
+                for element_id in self.data['events']:
+                    tid = self.data['events'][element_id][self.EVENT_THUMB]
+                    if tid is None:
+                        if element_id in rdata:
+                            self.data['events'][element_id][self.EVENT_THUMB] = rdata[element_id]
+                            self.modified = True
+                    else:
+                        if element_id not in rdata:
+                            self.data['events'][element_id][self.EVENT_THUMB] = None
+                            self.modified = True
+                        elif rdata[element_id] != self.data['events'][element_id][self.EVENT_THUMB]:
+                            self.data['events'][element_id][self.EVENT_THUMB] = None
+                            self.modified = True
+                self.tasks.print("json/manual_event_thumbnail.json imported")
+            except Exception as e:
+                self.tasks.print("Failed to import json/manual_event_thumbnail.json")
+                self.tasks.print("Exception:", e)
+        else: # export
+            try:
+                data = {k:[] for k in self.data['eventthumb']}
+                for element_id, evdata in self.data['events'].items():
+                    if evdata[self.EVENT_THUMB] is not None:
+                        data[str(evdata[self.EVENT_THUMB])].append(element_id)
+                keys = list(data.keys())
+                keys.sort()
+                data = {k:data[k] for k in keys}
+                with open("json/manual_event_thumbnail.json", mode="w", encoding="utf-8") as f:
+                    json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
+                self.tasks.print("json/manual_event_thumbnail.json exported")
+            except Exception as e:
+                self.tasks.print("Failed to export json/manual_event_thumbnail.json")
+                self.tasks.print("Exception:", e)
+
+    ### Story #################################################################################################################
+
+    # Update every (unset) story chapters
+    async def update_all_story(self : Updater, limit : int|None = None) -> None:
+        if limit is None or limit < 1: # upate limit accordingly
+            if not self.use_wiki:
+                self.tasks.print("Can't access the wiki to update the story")
+                return
+            try:
+                # retrieve current last chapter from wiki
+                m = self.CHAPTER_REGEX.findall((await self.get_wiki("https://gbf.wiki/Main_Quest")).decode('utf-8'))
+                s = set()
+                for i in m:
+                    for j in i:
+                        if j != "": s.add(int(j.replace('-', '')))
+                limit = max(s)
+            except:
+                self.tasks.print("An error occured while attempting to retrieve the MSQ Chapter count from gbf.wiki")
+                return
+        existing : set[str]
+        ts : TaskStatus
+        # special recap chapters
+        for k in self.MSQ_RECAPS:
+            if k not in self.data['story']:
+                if k not in self.data['story']:
+                    self.data['story'][k] = [[]]
+                ts = TaskStatus(200, 5, running=10)
+                existing = set(self.data['story'][k][self.STORY_CONTENT])
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, self.STORY_CONTENT, self.IMG + "sp/quest/scene/character/body/scene_skip"+self.MSQ_RECAPS[k], existing), priority=2)
+        # chapters
+        for i in range(0, limit+1):
+            element_id = str(i).zfill(3)
+            if element_id not in self.data['story']:
+                self.data['story'][element_id] = [[]]
+                # set file name
+                if i == 0:
+                    fn = "tuto_scene"
+                else:
+                    fn = "scene_cp{}".format(i)
+                ts = TaskStatus(200, 5, running=10)
+                existing = set(self.data['story'][element_id][self.STORY_CONTENT])
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'story', element_id, self.STORY_CONTENT, self.IMG + "sp/quest/scene/character/body/" + fn, existing), priority=2)
+                for q in range(1, 6):
+                    ts = TaskStatus(200, 5, running=10)
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'story', element_id, self.STORY_CONTENT, self.IMG + "sp/quest/scene/character/body/" + fn + "_q" + str(q), existing), priority=2)
+        await self.tasks.start()
+
+    ### Fate #################################################################################################################
+
+    # load manual_fate.json, update it if needed and load/use its content if needed
+    def update_manual_fate(self : Updater) -> None:
+        try:
+            with open("json/manual_fate.json", mode="r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.tasks.print("Checking manual_fate.json...")
+            modified = False
+            # checking matching
+            for k, v in data.items():
+                if v is not None:
+                    if k not in self.data['fate']:
+                        self.data['fate'][k] = [[], [], [], [], v]
+                        self.modified = True
+                    elif self.data['fate'][k][self.FATE_LINK] == None:
+                        self.data['fate'][k][self.FATE_LINK] = v
+                        self.modified = True
+                    else:
+                        if v != self.data['fate'][k][self.FATE_LINK]:
+                            self.tasks.print("Mismatched ID for fate", k)
+                else:
+                    if k in self.data['fate'] and self.data['fate'][k][self.FATE_LINK] is not None:
+                        data[k] = self.data['fate'][k][self.FATE_LINK]
+                        modified = True
+            # checking missing slots
+            try:
+                max_id = max([int(k) for k in list(self.data['fate'].keys())])
+                for i in range(1, max_id+1):
+                    fi = str(i).zfill(4)
+                    if fi not in data:
+                        if fi in self.data['fate'] and self.data['fate'][fi][self.FATE_LINK] is not None:
+                            data[fi] = self.data['fate'][fi][self.FATE_LINK]
+                        else:
+                            data[fi] = None
+                        modified = True
+            except:
+                pass
+            if modified:
+                keys = list(data.keys())
+                keys.sort()
+                data = {k:data[k] for k in keys}
+                with open("json/manual_fate.json", mode="w", encoding="utf-8") as f:
+                    json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
+                self.tasks.print("manual_fate.json updated")
+        except Exception as e:
+            self.tasks.print("Error checking manual_fate.json")
+            self.tasks.print("Exception:", e)
+
+    # get the latest/highest fate id
+    def get_latest_fate(self : Updater) -> int:
+        try:
+            return max([int(k) for k in self.data['fate']]) # highest id in the index
+        except:
+            try:
+                return len(self.data['characters']) # else the number of characters
+            except:
+                return 999 # else a placeholder
+
+    # start tasks to check for a fate content
+    # can set up to two file names to check, for an uncap level (see update_all_fate)
+    async def check_fate(self : Updater, element_id : str, index : int, fid : str, nameA : str|None, epA_check : bool, nameB : str|None, epB_check : bool) -> None:
+        ts : TaskStatus
+        existing = set(self.data['fate'].get(fid, [[], [], [], [], None])[index])
+        if nameA is not None:
+            # nameA
+            ts = TaskStatus(200, 5, running=10)
+            for n in range(10):
+                self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, self.IMG + "sp/quest/scene/character/body/"+nameA, existing), priority=2)
+            if epA_check:
+                for q in range(1, 5):
+                    ts = TaskStatus(200, 5, running=10)
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, self.IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q), existing), priority=2)
+        if nameB is not None:
+            # nameB
+            ts = TaskStatus(200, 5, running=10)
+            for n in range(10):
+                self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, self.IMG + "sp/quest/scene/character/body/"+nameB, existing), priority=2)
+            if epB_check:
+                for q in range(1, 5):
+                    ts = TaskStatus(200, 5, running=10)
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, self.IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q), existing), priority=2)
+
+    # Update all fate data (or the ones specified)
+    # param can be:
+    # None : Every fates are checked
+    # a number : The corresponding fate is checked
+    # a range (START-END included, format) : To check multiple episodes
+    # last (a string) : To check most recent fates
+    async def update_all_fate(self : Updater, param : str|None = None) -> None:
+        # parse param
+        try:
+            if param is None or param == "":
+                raise Exception()
+            elif param == "last":
+                self.flags.set("checking_event")
+                max_chapter = self.get_latest_fate() + 5
+                min_chapter = max_chapter - 8
+            else:
+                try:
+                    min_chapter = int(param)
+                    max_chapter = min_chapter
+                except:
+                    min_chapter, max_chapter = param.split("-")
+                    min_chapter = int(min_chapter)
+                    max_chapter = int(max_chapter)
+        except:
+            max_chapter = self.get_latest_fate() + 5
+            min_chapter = 1
+        min_chapter = max(1, min_chapter)
+        if max_chapter < min_chapter:
+            return
+        if max_chapter == min_chapter:
+            self.tasks.print("Checking fate episode:", min_chapter)
+        else:
+            self.tasks.print("Checking fate episode", min_chapter, "to", max_chapter)
+        # check unique fates added via manual_fate.json (currently for baha and lucifer)
+        for fid, v in self.data['fate'].items():
+            if not fid.isdigit() and len(v[0])+len(v[1])+len(v[2])+len(v[3]) == 0: # id not digit and data empty
+                self.tasks.add(self.check_fate, parameters=(fid, self.FATE_UNCAP_CONTENT, fid, "scene_ult_{}".format(fid), True, None, False)) # only check this one for now
+        # chapters
+        for i in range(min_chapter, max_chapter+1):
+            element_id = str(i).zfill(3)
+            fid = str(i).zfill(4)
+            # check base level
+            self.tasks.add(self.check_fate, parameters=(element_id, self.FATE_CONTENT, fid, "scene_chr{}".format(element_id), False, "scene_fate_chr{}".format(element_id), False))
+            # check uncaps (only if corresponding chara exists in memory and is set via manual_fate.json)
+            if fid in self.data['fate'] and self.data['fate'][fid][self.FATE_LINK] is not None:
+                cid = self.data['fate'][fid][self.FATE_LINK]
+                if cid in self.data['characters']:
+                    uncap = 0
+                    # calculate uncap
+                    for entry in self.data['characters'][cid][self.CHARA_GENERAL]:
+                        if entry.endswith("_03"):
+                            uncap = max(uncap, 1)
+                        elif entry.endswith("_04"):
+                            uncap = max(uncap, 2)
+                    if uncap >= 1: # uncap
+                        self.tasks.add(self.check_fate, parameters=(element_id, self.FATE_UNCAP_CONTENT, fid, "scene_ult_chr{}".format(element_id), True, None, False))
+                    if uncap >= 2: # transcendence
+                        self.tasks.add(self.check_fate, parameters=(element_id, self.FATE_TRANSCENDENCE_CONTENT, fid, "scene_ult2_chr{}".format(element_id), True, None, False))
+                # evokers
+                if cid in ["3040160000", "3040161000", "3040162000", "3040163000", "3040164000", "3040165000", "3040166000", "3040167000", "3040168000", "3040169000"]:
+                    self.tasks.add(self.check_fate, parameters=(element_id, self.FATE_UNCAP_CONTENT, fid, "scene_ult_chr{}_world".format(element_id), True, None, False))
+        await self.tasks.start()
+
+    ### Partner #################################################################################################################
+
+    # simply call update_element on each partner id
+    async def update_all_partner(self : Updater) -> None:
+        for element_id in self.data['partners']:
+            self.tasks.add(self.update_element, parameters=(element_id, ))
+        await self.tasks.start()
+
+    ### Sound #################################################################################################################
+
+    # the functions are similar to scene ones
+    # this one update the sound data of all elements and support resuming and filtering
+    async def update_all_sound(self : Updater, filters : list[str] = []) -> None:
+        self.flags.set("use_resume")
+        self.flags.set("sound_update")
+        self.load_resume("sound")
+        if len(self.resume.get('done', {})) != 0:
+            self.tasks.print("Note: Resuming the previous run...")
+        if len(filters) > 0:
+            self.tasks.print("Note: {} filter(s) in use. Not matching filenames will be ignored.".format(len(filters)))
+        if 'name' not in self.resume:
+            self.resume['name'] = "sound"
+        if 'done' not in self.resume:
+            self.resume['done'] = {}
+        for index in ["characters", "skins", 'npcs']:
+            for element_id in self.data[index]:
+                self.tasks.add(self.update_sound_of, parameters=(element_id, index, filters))
+        self.tasks.print("Updating sounds for {} elements...".format(self.tasks.total))
+        await self.tasks.start()
+        self.clear_resume()
+
+    # cache sound strings if needed and return them
+    def get_sound_strings(self : Updater) -> tuple[list[tuple[str, list[str], int, int, int]], list[tuple[str, list[str], int, int, int]]]:
+        if len(self.sound_base_strings) == 0 or len(self.sound_other_strings) == 0:
+            self.sound_base_strings = []
+            self.sound_other_strings = []
+        
+            suffixes : list[str]
+            A : int
+            max_err : int
             for mid, Z in [("_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_zenith_lankup", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("d_boss_v_", 1)]:
                 match mid: # opti
                     case "_":
@@ -2388,34 +2792,100 @@ class Updater():
                         suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
                         A = 0 if mid == "_cutin" else 1
                         max_err = 2
-                elements.append((uncap + mid + "{}", suffixes, A, Z, max_err))
+                self.sound_other_strings.append((mid + "{}", suffixes, A, Z, max_err))
             for i in range(0, 10): # break down _navi for speed, up to 100
-                elements.append((uncap + "_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 0, 1, 6))
+                self.sound_other_strings.append(("_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 0, 1, 6))
             for i in range(0, 65): # break down _v_ for speed, up to 650
-                elements.append((uncap + "_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 0, 1, 6))
-        # chain burst
-        elements.append(("_chain_start", [], None, None, None))
-        for A in range(2, 5):
-            elements.append(("_chain{}_"+str(A), [], 1, 1, 1))
-        # seasonal A
-        for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_Whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
-            elements.append((mid + "{}", [], 1, Z, 5))
-        for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
-            for s in range(1, 6):
-                elements.append(("_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
-        return elements
+                self.sound_other_strings.append(("_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 0, 1, 6))
+            # chain burst
+            self.sound_base_strings.append(("_chain_start", [], None, None, None))
+            for A in range(2, 5):
+                self.sound_base_strings.append(("_chain{}_"+str(A), [], 1, 1, 1))
+            # seasonal A
+            for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_Whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
+                self.sound_base_strings.append((mid + "{}", [], 1, Z, 5))
+            for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
+                for s in range(1, 6):
+                    self.sound_base_strings.append(("_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
+        return self.sound_base_strings, self.sound_other_strings
 
-    # generic sound subroutine
-    async def update_chara_sound_file_sub(self, index : str, id : str, idx : int, existing : set, element : tuple) -> None:
-        result = []
-        (suffix, post, current, zfill, max_err) = element
-        if len(post) == 0: post = [""]
-        if current is None: # single mode
+    # Execution flow
+    #
+    #   update_sound_of
+    #       v
+    #   update_sound_end & update_sound_banter (one) & update_sound (for each string and uncap)
+    #
+
+    async def update_sound_of(self : Updater, element_id : str, index : str, filters : list[str] = []) -> None:
+        if self.flags.check('sound_update') and element_id in self.resume.get('done', {}):
+            return
+        u : str
+        uncaps : list[str]
+        idx : int
+        try: # first retrieve index, index in data, uncaps and existing strings
+            data : list[Any] = self.data[index][element_id]
+            match index:
+                case 'characters'|'skins':
+                    idx = self.CHARA_SOUND
+                    uncaps= []
+                    for u in data[self.CHARA_GENERAL]:
+                        uu = u.replace(element_id+"_", "")
+                        if "_" not in uu and uu.startswith("0") and uu != "02": # 02 unused(?)
+                            uncaps.append(uu)
+                    if len(uncaps) == 0:
+                        uncaps.append("")
+                case 'npcs':
+                    idx = self.NPC_SOUND
+                    uncaps = [""]
+                case _:
+                    return
+            existing : set[str] = set(data[idx])
+        except:
+            return
+        # retrieve suffix strings to be used
+        bs, os = self.get_sound_strings()
+        # TaskStatus for all tasks
+        ts = TaskStatus(1, 1, running=len(bs)+len(os)*len(uncaps)+1)
+        TEST = 0
+        # banter files
+        if self.file_is_matching("_pair_", filters): # don't start this task if it doesn't match filter
+            self.tasks.add(self.update_sound_banter, parameters=(index, element_id, idx, existing, ts, filters), priority=0)
+        else:
+            ts.finish()
+        # other files (per uncap)
+        for u in uncaps:
+            if u in ["", "01"]:
+                u = ""
+            else:
+                u = "_" + u
+            if u == "":
+                for sound_string in bs: # for each string for base uncap
+                    if self.file_is_matching(sound_string[0], filters): # don't start this task if it doesn't match filter
+                        self.tasks.add(self.update_sound, parameters=(index, element_id, idx, existing, ts, u, sound_string), priority=0)
+                    else:
+                        ts.finish()
+            for sound_string in os: # for each string for uncap
+                if self.file_is_matching(sound_string[0], filters): # don't start this task if it doesn't match filter
+                    self.tasks.add(self.update_sound, parameters=(index, element_id, idx, existing, ts, u, sound_string), priority=0)
+                else:
+                    ts.finish()
+        # call final step (if needed)
+        if not ts.finished:
+            self.tasks.add(self.update_sound_end, parameters=(index, element_id, idx, existing, ts), priority=0)
+
+    # Updae sound data for given suffix and uncap
+    async def update_sound(self : Updater, index : str, element_id : str, idx : int, existing : set[str], ts : TaskStatus, uncap : str, sound_string : tuple[str, list[str], int, int, int]) -> None:
+        # unpack sound_string
+        suffix, post, current, zfill, max_err = sound_string
+        if len(post) == 0: # post suffix not set
+            post = [""]
+        # there are two possible mode, used depending on the file
+        if current is None: # simple mode
             for p in post:
                 f = suffix + p
-                if f in existing or (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
-                    result.append(f)
-        else:
+                if f in existing or (await self.head_nx(self.VOICE + "{}{}{}.mp3".format(element_id, uncap, f))) is not None:
+                    existing.add(uncap+f)
+        else: # complex mode
             err = 0
             is_z_limited = suffix.startswith('_v_') or suffix.startswith('_boss_v_')
             while not is_z_limited or (is_z_limited and len(str(current)) <= zfill):
@@ -2427,18 +2897,14 @@ class Updater():
                         err = 0
                         break
                 if not found: # if not
-                    tasks = []
                     for p in post:
                         f = suffix.format(str(current).zfill(zfill)) + p
                         if f not in existing:
-                            tasks.append(self.update_chara_sound_file_sub_req(id, f))
+                            if await self.head_nx(self.VOICE + "{}{}{}.mp3".format(element_id, uncap, f)) is not None:
+                                found = True
+                                existing.add(uncap+f)
                         else:
                             found = True
-                    if len(tasks) > 0:
-                        for r in await asyncio.gather(*tasks):
-                            if r is not None:
-                                result.append(r)
-                                found = True
                     if not found:
                         err += 1
                         if err >= max_err and current > 0:
@@ -2446,29 +2912,22 @@ class Updater():
                     else:
                         err = 0
                 current += 1
-        if len(result) > 0:
-            self.data[index][id][idx] += result
-            self.modified = True
+        ts.finish()
 
-    async def update_chara_sound_file_sub_req(self, id : str, f : str) -> Optional[str]: # used above for asyncio gather
-        if (await self.head_nx(self.VOICE + "{}{}.mp3".format(id, f))) is not None:
-            return f
-        return None
-
-    # banter sound subroutine
-    async def update_chara_sound_file_sub_banter(self, index : str, id : str, idx : int, existing : set) -> None:
-        result = []
-        A = 1
-        B = 1
-        Z = None
+    # special one for banter files
+    async def update_sound_banter(self : Updater, index : str, element_id : str, idx : int, existing : set, ts : TaskStatus, filters : list[str] = []) -> None:
+        A : int = 1
+        B : int = 1
+        Z : int|None = None
         while True:
             success = False
             for i in range(1, 3):
                 if Z is None or Z == i:
                     try:
                         f = "_pair_{}_{}".format(A, str(B).zfill(i))
-                        if f not in existing: await self.head(self.VOICE + "{}{}.mp3".format(id, f))
-                        result.append(f)
+                        if f not in existing:
+                            await self.head(self.VOICE + "{}{}.mp3".format(element_id, f))
+                        existing.add(f)
                         success = True
                         Z = i
                         break
@@ -2482,25 +2941,38 @@ class Updater():
                 else:
                     A += 1
                     B = 1
-        if len(result) > 0:
-            self.data[index][id][idx] += result
+        ts.finish()
+
+    # final step
+    async def update_sound_end(self : Updater, index : str, element_id : str, idx : int, existing : set[str], ts : TaskStatus) -> None:
+        # Wait tasks to finish
+        while not ts.finished:
+            await asyncio.sleep(1)
+        # If modified
+        if len(existing) > len(self.data[index][element_id][idx]):
+            self.data[index][element_id][idx] = list(existing) # no need to sort
             self.modified = True
+        # Add to resume file
+        if self.flags.check("sound_update"):
+            self.resume['done'][element_id] = 0
 
     ### Lookup ##################################################################################################################
 
     # Check for new elements to lookup on the wiki, to update the lookup list
-    async def buildLookup(self) -> None:
-        if not self.use_wiki: return
+    # Gigantic function but nothing complicated
+    async def lookup(self : Updater) -> None:
+        if not self.use_wiki:
+            self.tasks.print("The wiki isn't available, cancelling...")
+            return
         modified = set()
-        # manual npcs
-        
+        # Read manual_lookup.json and update data.json
         try:
-            print("Importing manual_lookup.json ...")
+            self.tasks.print("Importing manual_lookup.json ...")
             with open("json/manual_lookup.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
             # check entries
             to_save = False
-            for t in ["npcs", "enemies"]:
+            for t in ['npcs', "enemies"]:
                 for k in self.data[t]:
                     s = self.data['lookup'].get(k, None)
                     valid = s is not None and s != "" and not s.startswith("missing-help-wanted")
@@ -2527,21 +2999,21 @@ class Updater():
                 data = {k : data[k] for k in keys}
                 with open("json/manual_lookup.json", mode="w", encoding="utf-8") as f:
                     json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
-                print("json/manual_lookup.json updated with new entries")
+                self.tasks.print("json/manual_lookup.json updated with new entries")
         except OSError as e:
-            print("Couldn't open json/manual_lookup.json")
-            print(e)
+            self.tasks.print("Couldn't open json/manual_lookup.json")
+            self.tasks.print(e)
             data = {}
         except Exception as e:
-            print("Couldn't load json/manual_lookup.json")
-            print(e)
+            self.tasks.print("Couldn't load json/manual_lookup.json")
+            self.tasks.print(e)
             data = {}
+        # Fill manual_lookup.json
         try:
-            # fill the lookup table
             for k, v in data.items():
                 try:
-                    voice = (len(k) == 10 and self.data["npcs"].get(k, 0) != 0 and len(self.data["npcs"][k][self.NPC_SOUND]) > 0)
-                    voice_only = voice and not self.data["npcs"][k][self.NPC_JOURNAL] and len(self.data["npcs"][k][self.NPC_SCENE]) == 0
+                    voice = (len(k) == 10 and self.data['npcs'].get(k, 0) != 0 and len(self.data['npcs'][k][self.NPC_SOUND]) > 0)
+                    voice_only = voice and not self.data['npcs'][k][self.NPC_JOURNAL] and len(self.data['npcs'][k][self.NPC_SCENE]) == 0
                     if v is None or v == "":
                         if self.data["lookup"].get(k, "missing-help-wanted").startswith("missing-help-wanted"):
                             l = "missing-help-wanted"
@@ -2553,7 +3025,7 @@ class Updater():
                                 self.data["lookup"][k] = l
                                 modified.add(k)
                         continue
-                    if "$$" not in v and "$" in v: print("Missing $ Warning for", k, "in manual_lookup.json")
+                    if "$$" not in v and "$" in v: self.tasks.print("Missing $ Warning for", k, "in manual_lookup.json")
                     match len(k):
                         case 10: # npc
                             if "@@" in self.data["lookup"].get(k, ""): continue
@@ -2563,10 +3035,10 @@ class Updater():
                         case 7: # enemy
                             if "$$" in v:
                                 vs = v.split("$$")
-                                if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null"]: print("Element Warning for", k, "in manual_lookup.json")
+                                if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null"]: self.tasks.print("Element Warning for", k, "in manual_lookup.json")
                                 v = vs[1] + " " + vs[0]
                             else:
-                                print("Element Warning for", k, "in manual_lookup.json")
+                                self.tasks.print("Element Warning for", k, "in manual_lookup.json")
                             match k[:2]:
                                 case "11":
                                     append = " flying-boss"
@@ -2625,19 +3097,22 @@ class Updater():
                 except:
                     pass
         except Exception as e:
-            print("An error occured while updating the lookup table with json/manual_lookup.json", e)
-        # first pass
+            self.tasks.print("An error occured while updating the lookup table with json/manual_lookup.json", e)
+        # Wiki stuff
         premium_lookup = {}
         weapon_associations = {}
-        tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']}
+        tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']} # table of data index == wiki cargo tables
         fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date,obtain,join_weapon', 'weapons':'id,element,type,rarity,name,series,jpname,release_date,character_unlock', 'summons':'id,element,rarity,name,series,jpname,release_date,obtain', 'classes':'id,name,jpname,release_date', 'mc_outfits':'outfit_id,outfit_name,release_date', 'character_outfits':'outfit_id,outfit_name,character_name,release_date', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'}
+        # above are the cargo table to access and the fields we want for each of them
         for t in self.LOOKUP_TYPES:
             for table in tables.get(t, [t]):
                 try:
-                    print("Checking", table, "wiki cargo table for", t, "lookup...")
-                    data = (await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables={}&fields=_pageName,{}&format=json&limit=20000".format(table, fields.get(table)), headers={'User-Agent':self.USER_AGENT}, get_json=True))
+                    self.tasks.print("Checking", table, "wiki cargo table for", t, "lookup...")
+                    data = (await self.get_wiki("https://gbf.wiki/index.php?title=Special:CargoExport&tables={}&fields=_pageName,{}&format=json&limit=20000".format(table, fields.get(table)), get_json=True))
                     await asyncio.sleep(0.2)
+                    # read items in the table
                     for item in data:
+                        # check main infos
                         match table:
                             case "classes"|"mc_outfits":
                                 looks = ["gran", "djeeta"]
@@ -2645,6 +3120,7 @@ class Updater():
                                 looks = []
                         if item.get('element', '') == 'any':
                             continue
+                        # read all infos
                         wiki = ""
                         for k, v in item.items():
                             match v:
@@ -2699,24 +3175,26 @@ class Updater():
                             id = str(item['id']).split('_', 1)[0]
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
+                        # prepare lookup string
                         looks = wiki + html.unescape(" ".join(looks)).replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
                         # voice
-                        if len(id) == 10 and self.data["npcs"].get(id, 0) != 0 and len(self.data["npcs"][id][self.NPC_SOUND]) > 0: # npc sound
+                        if len(id) == 10 and self.data['npcs'].get(id, 0) != 0 and len(self.data['npcs'][id][self.NPC_SOUND]) > 0: # npc sound
                             looks += " voiced"
-                            if not self.data["npcs"][id][self.NPC_JOURNAL] and len(self.data["npcs"][id][self.NPC_SCENE]) == 0:
+                            if not self.data['npcs'][id][self.NPC_JOURNAL] and len(self.data['npcs'][id][self.NPC_SCENE]) == 0:
                                 looks += " voice-only"
                         if id not in self.data['lookup'] or self.data['lookup'][id] != looks:
                             self.data['lookup'][id] = looks
                             modified.add(id)
                 except Exception as e:
-                    print(e)
+                    self.tasks.print(e)
                     pass
+        # update premium table if different
         if premium_lookup != self.data['premium']:
             self.data['premium'] = premium_lookup
             self.modified = True
-        # second pass
+        # Second pass, correcting stuff
         if len(modified) > 0:
-            print(len(modified), "element lookup(s) added/updated")
+            self.tasks.print(len(modified), "element lookup(s) added/updated")
             self.modified = True
             count = 0
             # second pass
@@ -2742,361 +3220,40 @@ class Updater():
                                 break
                     if not check_shared:
                         count += 1
-            print(count, "element(s) remaining without lookup data")
+            self.tasks.print(count, "element(s) remaining without lookup data")
         self.save()
-        print("Done")
+        self.tasks.print("Done")
 
-    # called by -lookupfix, to manually edit missing data in case of system failure
-    async def manualLookup(self) -> None:
-        print("Checking the lookup...")
-        count = 0
-        for t in self.LOOKUP_TYPES:
-            for k in self.data[t]:
-                if k not in self.data['lookup'] or self.data['lookup'][k] is None:
-                    if k in self.SPECIAL_LOOKUP:
-                        self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
-                        self.modified = True
-                    else:
-                        print("Input the lookup string for", k, "(leave blank to skip")
-                        s = input()
-                        if s == "":
-                            count += 1
-                        else:
-                            self.data['lookup'][k] = s
-                            self.modified = True
-                elif k in self.SPECIAL_LOOKUP and self.data['lookup'][k] != self.SPECIAL_LOOKUP[k]:
-                    self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
-                    self.modified = True
-        print(count, "element(s) remaining without lookup data")
-        self.save()
-        print("Done")
+    ### Maintenance #################################################################################################################
 
-    ### Thumbnail ###############################################################################################################
+    # Call some functions to perform some updating (buff, npc, thumbnail...)
+    async def maintenance(self : Updater) -> None:
+        self.flags.set("maintenance")
+        self.tasks.print("Starting tasks to update known Buffs...")
+        for element_id in self.data['buffs']:
+            self.tasks.add(self.update_buff, parameters=(element_id,))
+        self.tasks.print("Starting tasks to update known NPC thumbnails...")
+        for element_id in self.data['npcs']:
+            if not isinstance(self.data['npcs'][element_id], int) and not self.data['npcs'][element_id][self.NPC_JOURNAL]:
+                self.tasks.add(self.update_npc_thumb, parameters=(element_id,))
+        self.tasks.print("Starting tasks to update known Events Skycompass Arts...")
+        for ev in self.data['events']:
+            if self.data['events'][ev][self.EVENT_THUMB] is not None:
+                self.tasks.add(self.update_event_skycompass, parameters=(ev,))
+        self.tasks.add(self.update_all_event_thumbnail)
+        await self.tasks.start()
 
-    # Check the NPC list for npc with new thumbnails.
-    async def update_npc_thumb(self) -> None:
-        print("Updating NPC thumbnail data...")
-        tasks = []
-        async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(self)
-            for id in self.data["npcs"]:
-                if not isinstance(self.data["npcs"][id], int) and not self.data["npcs"][id][self.NPC_JOURNAL]:
-                    tasks.append(tg.create_task(self.update_npc_thumb_sub(id)))
-            self.progress.set(total=len(tasks), silent=False)
-        for t in tasks:
-            t.result()
-        print("Done")
-        self.save()
-
-    # update_npc_thumb() subroutine
-    async def update_npc_thumb_sub(self, id : str) -> None: # subroutine
-        with self.progress:
-            try:
-                await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(id))
-                self.data["npcs"][id][self.NPC_JOURNAL] = True
-                self.modified = True
-            except:
-                pass
-
-    ### Events ##################################################################################################################
-
-    # Ask the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
-    async def get_event_list(self) -> list:
+    # Called by maintenance
+    async def update_npc_thumb(self : Updater, element_id : str) -> None: # subroutine
         try:
-            l = self.MISSING_EVENTS
-            if not self.use_wiki: raise Exception()
-            data = await self.get("https://gbf.wiki/index.php?title=Special:CargoExport&tables=event_history&fields=time_start,name&format=json&limit=20000", headers={'User-Agent':self.USER_AGENT}, get_json=True)
-            for e in data:
-                t = e['time start'].split(' ', 1)[0].split('-')
-                t = t[0][2:] + t[1] + t[2]
-                l.append(t)
-            # add special events
-            for k in self.SPECIAL_EVENTS:
-                l.append(k)
+            await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(element_id))
+            self.data['npcs'][id][self.NPC_JOURNAL] = True
+            self.modified = True
         except:
             pass
-        l = list(set(l))
-        l.sort()
-        return l
-
-    # convert event id string to day count integer
-    def ev2daycount(self, ev : str) -> int:
-        return (int(ev[:2]) * 12 + int(ev[2:4])) * 31 + int(ev[4:6])
-
-    # update old event entries
-    def update_event_container(self, old : list) -> list:
-        if len(old) != self.EVENT_CHAPTER_START + self.EVENT_MAX_CHAPTER + 1:
-            l = [old[self.EVENT_CHAPTER_COUNT], old[self.EVENT_THUMB], old[self.EVENT_OP], old[self.EVENT_ED], old[self.EVENT_INT]]
-            for i in range(self.EVENT_MAX_CHAPTER):
-                if i + self.EVENT_CHAPTER_START < len(old) - 1:
-                    l.append(old[i + self.EVENT_CHAPTER_START])
-                else:
-                    l.append([])
-            l.append(old[-1])
-            return l
-        else:
-            return old
-
-    # create the array containing the event data
-    def create_event_container(self) -> list:
-        l = [-1, None]
-        while len(l) < self.EVENT_CHAPTER_START:
-            l.append([])
-        for i in range(self.EVENT_MAX_CHAPTER):
-            l.append([])
-        l.append([])
-        return l
-
-    # Call get_event_list() and check the current time to determine if new events have been added. If so, check if they got voice lines to determine if they got chapters, and then call update_event()
-    async def check_new_event(self, init_list : Optional[list] = None) -> None:
-        now = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400)
-        nyear = now.year
-        nmonth = now.month
-        nday = now.day
-        now = int(str(nyear)[2:] + str(nmonth).zfill(2) + str(nday).zfill(2))
-        now_day = self.ev2daycount(str(now))
-        if init_list is None:
-            known_events = await self.get_event_list()
-        else:
-            init_list = list(set(init_list))
-            known_events = init_list
-        # check
-        print("Checking for new events...")
-        thumbnail_check = []
-        tasks = []
-        async with asyncio.TaskGroup() as tg:
-            check = {}
-            self.progress = Progress(self)
-            for ev in known_events:
-                if not ev.isdigit():
-                    if ev not in self.data["events"]:
-                        check[ev] = 0
-                elif ev in self.data["events"]: # event already registered
-                    if now >= int(ev) and now_day - self.ev2daycount(ev) <= 14: # if event is recent (2 weeks)
-                        check[ev] = self.data["events"][ev][self.EVENT_CHAPTER_COUNT] # add to check list
-                        if self.data["events"][ev][self.EVENT_THUMB] is None: # if no thumbnail, force thumbnail check
-                            thumbnail_check.append(ev)
-                elif now >= int(ev): # new event
-                    check[ev] = -1
-                    new_format = int(ev) == 241017 # bandaid
-                    for i in range(0, self.EVENT_MAX_CHAPTER):
-                        for j in range(1, 2):
-                            for k in range(1, 2):
-                               tasks.append(tg.create_task(self.update_event_sub(ev, self.VOICE + "scene_evt{}_cp{}_q{}_s{}0".format(ev, i, j, k))))
-                               if new_format: # bandaid
-                                   tasks.append(tg.create_task(self.update_event_sub(ev, self.VOICE + "scene_evt20{}_cp{}_q{}_s{}0".format(ev, i, j, k))))
-                               thumbnail_check.append(ev)
-            self.progress.set(total=len(tasks), silent=False)
-        if len(tasks) > 0: # processing tasks
-            print(len(check.keys()), "potential new event(s), checking...")
-            for t in tasks:
-                r = t.result()
-                ev = r[0]
-                if r[1] is not None:
-                    check[ev] = max(check[ev], int(r[1].split('_')[2][2:]))
-            for ev in check:
-                if ev not in self.data["events"]:
-                    if check[ev] >= 0:
-                        print("Event", ev, "has been added (", check[ev], "chapters )")
-                    self.data["events"][ev] = self.create_event_container()
-                    self.data["events"][ev][0] = check[ev]
-                    self.modified = True
-        # check thumbnail
-        if len(thumbnail_check) > 0:
-            thumbnail_check.sort()
-            await self.event_thumbnail_association(thumbnail_check)
-        # update content
-        if init_list is None:
-            await self.update_event(list(check.keys()))
-        else:
-            await self.update_event(init_list, full=True)
-
-    # check_new_event() subroutine to request sound files
-    async def update_event_sub(self, ev : str, url : str) -> tuple:
-        with self.progress:
-            for m in range(1, 20):
-                try:
-                    await self.head(url + "_{}.mp3".format(m))
-                    return ev, url.split('/')[-1]
-                except:
-                    pass
-            return ev, None
-
-    # Check the given event list for potential art pieces
-    async def update_event(self, events : list, full : bool = False, skip : int = 0) -> None:
-        print("Checking for content of", len(events), "event(s)")
-        if skip > 0:
-            print("(Skipping the first {} tasks(s) )".format(skip))
-        tasks = []
-        ec = 0
-        self.progress = Progress(self)
-        for ev in events:
-            if full and ev not in self.data["events"]:
-                self.data["events"][ev] = self.create_event_container()
-            if ev in self.data["events"] and (full or (not full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0)):
-                name = self.SPECIAL_EVENTS.get(ev, ev)
-                prefix = "evt" if name.isdigit() else ""
-                known_assets = set()
-                for i in range(self.EVENT_OP, len(self.data["events"][ev])):
-                    for e in self.data["events"][ev][i]:
-                        known_assets.add(e)
-                ec += 1
-                if full: ch_count = self.EVENT_MAX_CHAPTER
-                else: ch_count = self.data["events"][ev][self.EVENT_CHAPTER_COUNT]
-                for j in range(self.EVENT_UPDATE_COUNT):
-                    for i in range(1, ch_count+1):
-                        fn = "scene_{}{}_cp{}".format(prefix, name, str(i).zfill(2))
-                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                        if i < 10:
-                            fn = "scene_{}{}_cp{}".format(prefix, name, i)
-                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    for ch in ["op", "ed"]:
-                        fn = "scene_{}{}_{}".format(prefix, name, ch)
-                        tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    fn = "{}{}".format(prefix, name)
-                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    fn = "scene_{}{}".format(prefix, name)
-                    tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                    if ev == "babyl0": # special exception
-                        for ss in range(1, 30):
-                            fn = "scene_babeel_01_ed{}".format(ss)
-                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-                            fn = "scene_babeel_ed{}".format(ss)
-                            tasks.append((ev, self.IMG + "sp/quest/scene/character/body/"+fn, known_assets, j*self.SCENE_UPDATE_STEP))
-        self.progress = Progress(self, total=len(tasks), silent=False, current=skip)
-        if skip > 0:
-            tasks = tasks[skip:]
-        modified = False
-        if len(tasks) > 0:
-            async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
-                r = task.result()
-                if r is not None:
-                    ev = r[0]
-                    if len(r[1])  > 0:
-                        for e in r[1]:
-                            if "op_" in e:
-                                target = self.EVENT_OP
-                            elif "ed_" in e or "_ed" in e:
-                                target = self.EVENT_ED
-                            elif "osarai" in e:
-                                target = self.EVENT_INT
-                            elif "_cp" in e:
-                                try:
-                                    target = self.EVENT_CHAPTER_START-1+int(e.split('_cp', 1)[1].split('_', 1)[0])
-                                except Exception as test:
-                                    print(test)
-                                    target = self.EVENT_INT
-                            else:
-                                target = self.EVENT_INT
-                            if e not in self.data["events"][ev][target]:
-                                self.data["events"][ev][target].append(e)
-                        if full and self.data["events"][ev][self.EVENT_CHAPTER_COUNT] == -1: self.data["events"][ev][self.EVENT_CHAPTER_COUNT] = 0
-                        modified = True
-                        self.modified = True
-                        self.addition[ev] = self.ADD_EVENT
-        if modified:
-            print("Sorting event scene data...")
-            for ev in self.data["events"]:
-                for i in range(self.EVENT_OP , len(self.data["events"][ev])):
-                    before = str(self.data["events"][ev][i])
-                    self.data["events"][ev][i].sort()
-                    if str(before) != str(self.data["events"][ev][i]):
-                        self.modified = True
-                        self.addition[ev] = self.ADD_EVENT
-        print("Done")
-        self.save()
-
-    # update_event(), check_fate() and check_msq() subroutine to check for possible art pieces
-    async def check_scene_art_list(self, tup : tuple) -> tuple:
-        ev, base_url, known_assets, step = tup
-        is_tuto = "tuto_scene" in base_url
-        Z = 1 if is_tuto else 2 # zfill value, for msq tutorial
-        l = []
-        with self.progress:
-            for j in range(step, step+self.SCENE_UPDATE_STEP):
-                url = base_url + "_" + str(j).zfill(Z)
-                flag = False
-                # base check
-                for k in ["", "_up", "_shadow"]:
-                    try:
-                        if url.split("/")[-1]+k not in known_assets:
-                            await self.head(url + k + ".png")
-                            l.append(url.split("/")[-1]+k)
-                        flag = True
-                    except:
-                        pass
-                for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                    found = False
-                    try:
-                        if url.split("/")[-1]+k not in known_assets:
-                            await self.head(url + k + ".png")
-                            l.append(url.split("/")[-1]+k)
-                        flag = True
-                        found = True
-                    except:
-                        pass
-                    for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
-                        for kkk in ss:
-                            try:
-                                if url.split("/")[-1]+k+kkk not in known_assets:
-                                    await self.head(url + k + kkk + ".png")
-                                    l.append(url.split("/")[-1]+k+kkk)
-                                flag = True
-                                found = True
-                            except:
-                                break
-                    if not found:
-                        break
-                if not flag or is_tuto: # check for extras
-                    try: # alternative filename format
-                        if url.split("/")[-1]+"_00" not in known_assets:
-                            await self.head(url + "_00.png")
-                            l.append(url.split("/")[-1]+"_00")
-                    except:
-                        pass
-                    for k in ["_up", "_shadow"]:
-                        try:
-                            if url.split("/")[-1]+"_00"+k not in known_assets:
-                                await self.head(url + "_00" + k + ".png")
-                                l.append(url.split("/")[-1]+"_00"+k)
-                        except:
-                            pass
-                    err = 0
-                    i = 1
-                    while i < 100 and err < 10:
-                        k = str(i).zfill(Z)
-                        try:
-                            if url.split("/")[-1]+"_"+k not in known_assets:
-                                await self.head(url + "_" + k + ".png")
-                                l.append(url.split("/")[-1]+"_"+k)
-                            err = 0
-                            for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
-                                found = False
-                                try:
-                                    if url.split("/")[-1]+"_"+k+kk not in known_assets:
-                                        await self.head(url + "_" + k + kk + ".png")
-                                        l.append(url.split("/")[-1]+"_"+k+kk)
-                                    found = True
-                                except:
-                                    pass
-                                for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
-                                    for kkk in ss:
-                                        try:
-                                            if url.split("/")[-1]+"_"+k+kk+kkk not in known_assets:
-                                                await self.head(url + "_" + k + kk + kkk + ".png")
-                                                l.append(url.split("/")[-1]+"_"+k+kk+kkk)
-                                            found = True
-                                        except:
-                                            break
-                                if not found:
-                                    break
-                        except:
-                            err += 1
-                        i += 1
-        return ev, l
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
-    async def update_event_sky(self, ev : str) -> None:
+    async def update_event_skycompass(self : Updater, ev : str) -> None:
         known = set(self.data['events'][ev][self.EVENT_SKY])
         evid = self.data['events'][ev][self.EVENT_THUMB]
         try:
@@ -3119,441 +3276,16 @@ class Updater():
             known.sort()
             self.data['events'][ev][self.EVENT_SKY] = known
 
-    # -eventedit CLI
-    async def event_edit(self) -> None:
-        while True:
-            print("\n[EDIT EVENT MENU]")
-            print("[0] Stats")
-            print("[1] Set Thumbnails")
-            print("[2] Update Events")
-            print("[3] Update All Valid Events")
-            print("[4] Update SkyCompass")
-            print("[5] Add Events")
-            print("[6] Check new thumbnails")
-            print("[7] Update event containers")
-            print("[Any] Quit")
-            s = input().lower()
-            match s:
-                case "0":
-                    s = [0, 0, 0, 0]
-                    for ev in self.data["events"]:
-                        s[0] += 1
-                        if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
-                            s[1] += 1
-                            c = 0
-                            for i in range(self.EVENT_OP, len(self.data["events"][ev])):
-                                c += len(self.data["events"][ev][i])
-                            if c > 0:
-                                s[2] += 1
-                                if self.data["events"][ev][self.EVENT_THUMB] is not None:
-                                    s[3] += 1
-                    print(s[0], "events in the data")
-                    print(s[1], "are valid events")
-                    print(s[2], "got exclusive arts")
-                    print(s[3], "got thumbnail")
-                case "1":
-                    for ev in self.data["events"]:
-                        if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
-                            if self.data["events"][ev][self.EVENT_THUMB] is None:
-                                c = 0
-                                for i in range(self.EVENT_OP, len(self.data["events"][ev])):
-                                    c += len(self.data["events"][ev][i])
-                                if c > 0:
-                                    s = input("Input a thumbnail ID or URL for Event "+ev+" (Leave blank to skip):")
-                                    if s != "":
-                                        try:
-                                            if s.startswith("http"):
-                                                self.data["events"][ev][self.EVENT_THUMB] = int(s.split('/')[-1].split('.')[0])
-                                            else:
-                                                self.data["events"][ev][self.EVENT_THUMB] = int(s)
-                                            self.data["eventthumb"][str(self.data["events"][ev][self.EVENT_THUMB])] = 1
-                                            self.modified = True
-                                            await self.update_event_sky(ev)
-                                        except:
-                                            pass
-                    self.save()
-                case "2":
-                    s = input("Input a list of Event date (Leave blank to cancel):")
-                    if s != "":
-                        await self.update_event(s.split(" "), full=True)
-                case "3":
-                    l = []
-                    for ev in self.data["events"]:
-                        if self.data["events"][ev][self.EVENT_CHAPTER_COUNT] >= 0:
-                            l.append(ev)
-                    try:
-                        skip = int(input("Input a number to resume a previous update (Leave blank to ignore):"))
-                    except:
-                        skip = 0
-                    await self.update_event(l, skip=skip)
-                case "4":
-                    await self.update_all_event_skycompass()
-                case "5":
-                    while True:
-                        s = input("Input a list of Event ID or a combo ID:thumbnail (Leave blank to cancel):")
-                        if s != "":
-                            th = None
-                            if ":" in s:
-                                s = s.split(':')
-                                th = s[1]
-                                s = s[0]
-                            if s not in self.data["events"]:
-                                self.data["events"][s] = [-1, th, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]
-                                self.modified = True
-                            elif th is not None:
-                                self.data["events"][s][self.EVENT_THUMB] = th
-                                self.modified = True
-                            print("Event added")
-                        else:
-                            break
-                    self.save()
-                case "6":
-                    s = input("Input a list of Event ID to associate (Leave blank to continue):")
-                    await self.event_thumbnail_association(s.split(" "))
-                case "7":
-                    for ev in self.data["events"]:
-                        l = self.update_event_container(self.data["events"][ev])
-                        if len(l) != len(self.data["events"][ev]):
-                            self.data["events"][ev] = l
-                            self.modified = True
-                    self.save()
-                case _:
-                    break
+    ### Other #################################################################################################################
 
-    # Check skycompass for all events
-    async def update_all_event_skycompass(self) -> None:
-        tasks = []
-        async with asyncio.TaskGroup() as tg:
-            for ev in self.data["events"]:
-                if self.data["events"][ev][self.EVENT_THUMB] is not None:
-                    tasks.append(tg.create_task(self.update_event_sky(ev)))
-            print("Checking", len(tasks), "event(s)...")
-        for t in tasks: t.result()
-        print("Done")
-        self.save()
-
-    # Attempt to automatically associate new event thumbnails to events
-    async def event_thumbnail_association(self, events : list) -> None:
-        tmp = []
-        for ev in events:
-            if ev == "" or ev not in self.data["events"]: continue
-            if self.data["events"][ev][self.EVENT_THUMB] is None:
-                tmp.append(ev)
-        events = tmp
-        print("Checking event thumbnails...")
-        in_use = set()
-        for eid, ev in self.data["events"].items():
-            if ev[self.EVENT_THUMB] is not None: in_use.add(str(ev[self.EVENT_THUMB]))
-        in_use = list(in_use)
-        in_use.sort()
-        for eid in in_use:
-            if eid not in self.data["eventthumb"] or self.data["eventthumb"][eid] == 0:
-                self.modified = True
-                self.data["eventthumb"][eid] = 1
-        tasks = []
-        async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(self, total=40, silent=False)
-            for i in range(20):
-                tasks.append(tg.create_task(self.event_thumbnail_association_sub(7001+i, 9000, 20)))
-                tasks.append(tg.create_task(self.event_thumbnail_association_sub(9001+i, 10000, 20)))
-        for t in tasks:
-            t.result()
-        new = []
-        for eid, ev in self.data["eventthumb"].items():
-            if ev == 0: new.append(int(eid))
-        new.sort()
-        if len(new) > 0:
-            print(len(new), "event thumbnails")
-            if len(new) == len(events):
-                print("Matching to new events...")
-                for i in range(len(new)):
-                    self.data["events"][str(events[i])][self.EVENT_THUMB] = new[i]
-                    self.data["eventthumb"][str(new[i])] = 1
-                    self.modified = True
-                print("Please make sure they have been set to their correct events")
-            else:
-                print("Can't match new events to new thumbnails with certainty, -eventedit is required")
-        self.save()
-
-    # event_thumbnail_association subroutine()
-    async def event_thumbnail_association_sub(self, start : int, end : int, step : int) -> None:
-        with self.progress:
-            err = 0
-            i = start
-            while err < 50 and i < end:
-                try:
-                    f = "{}0".format(i)
-                    if f not in self.data["eventthumb"]:
-                        await self.head(self.IMG + "sp/archive/assets/island_m2/{}.png".format(f))
-                        self.data["eventthumb"][f] = 0
-                        self.modified = True
-                    err = 0
-                except:
-                    err += 1
-                i += step
-
-    ### MSQ ####################################################################################################################
-
-    # check for new story chapter files
-    async def check_msq(self, check_all : bool = False, max_chapter : Optional[str] = None) -> None:
-        if not self.use_wiki: return
-        try:
-            max_chapter = int(max_chapter)
-        except:
-            try:
-                # retrieve current last chapter from wiki
-                m = self.CHAPTER_REGEX.findall((await self.get("https://gbf.wiki/Main_Quest", headers={'User-Agent':self.USER_AGENT})).decode('utf-8'))
-                s = set()
-                for i in m:
-                    for j in i:
-                        if j != "": s.add(int(j.replace('-', '')))
-                max_chapter = max(s)
-            except:
-                print("An error occured while attempting to retrieve the MSQ Chapter count from gbf.wiki")
-                return
-        # make list to check
-        tasks = []
-        # add missing recaps
-        for k in self.MSQ_RECAPS:
-            if check_all or k not in self.data['story']:
-                if k not in self.data['story']:
-                    self.data['story'][k] = [[]]
-                for j in range(self.STORY_UPDATE_COUNT):
-                    tasks.append((k, self.IMG + "sp/quest/scene/character/body/scene_skip"+self.MSQ_RECAPS[k], set(self.data['story'].get(k, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-        # chapters
-        for i in range(0, max_chapter+1):
-            id = str(i).zfill(3)
-            if check_all or id not in self.data['story']:
-                if i == 0: fn = "tuto_scene"
-                else: fn = "scene_cp{}".format(i)
-                for j in range(self.STORY_UPDATE_COUNT):
-                    tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn, set(self.data['story'].get(id, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-                for q in range(1, 6):
-                    for j in range(self.STORY_UPDATE_COUNT):
-                        tasks.append((str(i), self.IMG + "sp/quest/scene/character/body/"+fn+"_q"+str(q), set(self.data['story'].get(id, [[]])[0]), j*self.SCENE_UPDATE_STEP))
-        # do and update
-        if len(tasks) > 0:
-            if check_all: print("Checking all chapters up to {} included...".format(max_chapter))
-            else: print("Checking new story chapters up to {} included...".format(max_chapter))
-            self.progress = Progress(self, total=len(tasks), silent=False)
-            async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
-                r = task.result()
-                if r is not None:
-                    id = r[0].zfill(3)
-                    if len(r[1]) > 0:
-                        if id not in self.data['story']:
-                            self.data['story'][id] = [[]]
-                        self.data['story'][id][self.STORY_CONTENT] += r[1]
-                        self.data['story'][id][self.STORY_CONTENT].sort()
-                        self.addition[id] = self.ADD_STORY
-                        self.modified = True
-            self.save()
-
-    ### Fates ####################################################################################################################
-
-    def update_manual_fate(self) -> None:
-        try:
-            with open("json/manual_fate.json", mode="r", encoding="utf-8") as f:
-                data = json.load(f)
-            print("Checking manual_fate.json...")
-            modified = False
-            # checking matching
-            for k, v in data.items():
-                if v is not None:
-                    if k not in self.data['fate']:
-                        self.data['fate'][k] = [[], [], [], [], v]
-                        self.modified = True
-                    elif self.data['fate'][k][self.FATE_LINK] == None:
-                        self.data['fate'][k][self.FATE_LINK] = v
-                        self.modified = True
-                    else:
-                        if v != self.data['fate'][k][self.FATE_LINK]:
-                            print("Mismatched ID for fate", k)
-                else:
-                    if k in self.data['fate'] and self.data['fate'][k][self.FATE_LINK] is not None:
-                        data[k] = self.data['fate'][k][self.FATE_LINK]
-                        modified = True
-            # checking missing slots
-            try:
-                max_id = max([int(k) for k in list(self.data['fate'].keys())])
-                for i in range(1, max_id+1):
-                    fi = str(i).zfill(4)
-                    if fi not in data:
-                        if fi in self.data['fate'] and self.data['fate'][fi][self.FATE_LINK] is not None:
-                            data[fi] = self.data['fate'][fi][self.FATE_LINK]
-                        else:
-                            data[fi] = None
-                        modified = True
-            except:
-                pass
-            if modified:
-                keys = list(data.keys())
-                keys.sort()
-                data = {k:data[k] for k in keys}
-                with open("json/manual_fate.json", mode="w", encoding="utf-8") as f:
-                    json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
-                print("manual_fate.json updated")
-        except Exception as e:
-            print("Error checking manual_fate.json")
-            print("Exception:", e)
-
-    # generate tasks for check_fate
-    def check_fate_sub(self, id : str, index : int, fid : str, nameA : Optional[str], epA_check : bool, nameB : Optional[str], epB_check : bool) -> list:
-        tasks = []
-        existing = set(self.data['fate'].get(fid, [[], [], [], [], None])[index])
-        if nameA is not None:
-            # nameA
-            for j in range(self.STORY_UPDATE_COUNT):
-                tasks.append((id, self.IMG + "sp/quest/scene/character/body/"+nameA, existing, j*self.SCENE_UPDATE_STEP))
-            if epA_check:
-                for q in range(1, 5):
-                    for j in range(self.STORY_UPDATE_COUNT):
-                        tasks.append((id, self.IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q), existing, j*self.SCENE_UPDATE_STEP))
-        if nameB is not None:
-            # nameB
-            for j in range(self.STORY_UPDATE_COUNT):
-                tasks.append((id, self.IMG + "sp/quest/scene/character/body/"+nameB, existing, j*self.SCENE_UPDATE_STEP))
-            if epB_check:
-                for q in range(1, 5):
-                    for j in range(self.STORY_UPDATE_COUNT):
-                        tasks.append((id, self.IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q), existing, j*self.SCENE_UPDATE_STEP))
-        return tasks
-
-    def get_latest_fate(self) -> int:
-        try:
-            return max([int(k) for k in self.data['fate']])
-        except:
-            try:
-                return len(self.data['characters'])
-            except:
-                return 990 # placeholder
-
-    # check for new fate chapter files
-    async def check_fate(self, params : str) -> None:
-        self.update_manual_fate()
-        try:
-            if params == "":
-                raise Exception()
-            elif params == "last":
-                max_chapter = self.get_latest_fate() + 5
-                min_chapter = max_chapter - 8
-            else:
-                try:
-                    min_chapter = int(params)
-                    max_chapter = min_chapter
-                except:
-                    min_chapter, max_chapter = params.split("-")
-                    min_chapter = int(min_chapter)
-                    max_chapter = int(max_chapter)
-        except:
-            max_chapter = self.get_latest_fate() + 5
-            min_chapter = 1
-        min_chapter = max(1, min_chapter)
-        if max_chapter < min_chapter:
-            return
-        # make list to check
-        tasks = []
-        # check unique fates added via manual_fate.json (currently for baha and lucifer)
-        for fid, v in self.data['fate'].items():
-            if not fid.isdigit() and len(v[0])+len(v[1])+len(v[2])+len(v[3]) == 0: # id not digit and data empty
-                tasks.extend(self.check_fate_sub(fid, self.FATE_UNCAP_CONTENT, fid, "scene_ult_{}".format(fid), True, None, False)) # only check this one for now
-        # chapters
-        for i in range(min_chapter, max_chapter+1):
-            id = str(i).zfill(3)
-            fid = str(i).zfill(4)
-            tasks.extend(self.check_fate_sub(id, self.FATE_CONTENT, fid, "scene_chr{}".format(id), False, "scene_fate_chr{}".format(id), False))
-            # check uncaps
-            if fid in self.data['fate'] and self.data['fate'][fid][self.FATE_LINK] is not None:
-                cid = self.data['fate'][fid][self.FATE_LINK]
-                if cid in self.data['characters']:
-                    uncap = 0
-                    for entry in self.data['characters'][cid][self.CHARA_GENERAL]:
-                        if entry.endswith("_03"):
-                            uncap = max(uncap, 1)
-                        elif entry.endswith("_04"):
-                            uncap = max(uncap, 2)
-                    if uncap >= 1: # uncap
-                        tasks.extend(self.check_fate_sub(id, self.FATE_UNCAP_CONTENT, fid, "scene_ult_chr{}".format(id), True, None, False))
-                    if uncap >= 2: # transcendence
-                        tasks.extend(self.check_fate_sub(id, self.FATE_TRANSCENDENCE_CONTENT, fid, "scene_ult2_chr{}".format(id), True, None, False))
-                    # evokers
-                    if cid in ["3040160000", "3040161000", "3040162000", "3040163000", "3040164000", "3040165000", "3040166000", "3040167000", "3040168000", "3040169000"]:
-                        tasks.extend(self.check_fate_sub(id, self.FATE_UNCAP_CONTENT, fid, "scene_ult_chr{}_world".format(id), True, None, False))
-        # do and update
-        if len(tasks) > 0:
-            print("Checking fates from {} to {} included...".format(min_chapter, max_chapter))
-            self.progress = Progress(self, total=len(tasks), silent=False)
-            async for task in self.map_unordered(self.check_scene_art_list, tasks, self.MAX_UPDATEALL):
-                r = task.result()
-                if r is not None:
-                    fid = r[0].zfill(4)
-                    if len(r[1]) > 0:
-                        if "ult2" in r[1][0]:
-                            index = self.FATE_TRANSCENDENCE_CONTENT
-                        elif "ult" in r[1][0]:
-                            index = self.FATE_UNCAP_CONTENT
-                        else:
-                            index = self.FATE_CONTENT
-                        if fid not in self.data['fate']:
-                            self.data['fate'][fid] = [[], [], [], [], None]
-                        self.data['fate'][fid][index] += r[1]
-                        self.data['fate'][fid][index].sort()
-                        self.addition[fid] = self.ADD_FATE
-                        self.modified = True
-            self.save()
-
-    ### Partners ################################################################################################################
-
-    # Called by -partner. Make a list of partners and potential partners to update. VERY slow.
-    async def update_all_partner(self, parameters : list = []) -> None:
-        self.force_partner = True
-        start_index = 0
-        if len(parameters) > 0:
-            try:
-                start_index = int(parameters[0])
-            except:
-                pass
-        if start_index > 0: print("(Skipping the first {} tasks(s) )".format(start_index))
-        t = self.update_changelog
-        self.update_changelog = False
-        ids = list(self.data.get('partners', {}).keys())
-        for id in self.data.get('characters', {}):
-            if 'st' in id: continue
-            ids.append("38" + id[2:])
-        await self.manualUpdate(ids, start_index)
-        self.update_changelog = t
-        self.force_partner = False
-
-    ### Buffs ###################################################################################################################
-
-    # Check buff data for new icons
-    async def update_buff(self) -> None:
-        tasks = []
-        task_count = 20
-        async with asyncio.TaskGroup() as tg:
-            self.progress = Progress(self, total=10*task_count, silent=False)
-            for i in range(10):
-                for j in range(task_count):
-                    tasks.append(tg.create_task(self.update_buff_sub(1000*i+j, task_count, True)))
-        for t in tasks:
-            t.result()
-        print("Done")
-        self.save()
-
-    # search_buff() wrapper to track the progress
-    async def update_buff_sub(self, start : int, step : int, full : bool = False) -> None:
-        with self.progress:
-            await self.search_buff(start, step, full)
-
-    ### Others ##################################################################################################################
-
-    def make_stats(self, silent=False) -> None:
+    # Update changelog.json stat string
+    def make_stats(self) -> None:
         try:
             entity_count = 0
             scene_count = 0
             sound_count = 0
             file_estimation = 0
-            for t in ["characters", "partners", "summons", "weapons", "enemies", "skins", "job", "npcs", "title", "suptix", "events", "skills", "subskills", "buffs", "story"]:
+            for t in ["characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "title", "suptix", 'events', "skills", "subskills", 'buffs', "story"]:
                 ref = self.data.get(t, {})
                 entity_count += len(ref.keys())
                 for k, v in ref.items():
@@ -3603,7 +3335,7 @@ class Updater():
                             file_estimation += len(v[self.BOSS_HIT])
                             file_estimation += len(v[self.BOSS_SP])
                             file_estimation += len(v[self.BOSS_SP_ALL])
-                        case "events":
+                        case 'events':
                             if v is None or v == 0: continue
                             if v[self.EVENT_THUMB] is not None: file_estimation += 1
                             for i in range(self.EVENT_OP, self.EVENT_SKY+1):
@@ -3617,7 +3349,7 @@ class Updater():
                             file_estimation += len(v[self.FATE_UNCAP_CONTENT])
                             file_estimation += len(v[self.FATE_TRANSCENDENCE_CONTENT])
                             file_estimation += len(v[self.FATE_OTHER_CONTENT])
-                        case "npcs":
+                        case 'npcs':
                             if v is None or v == 0: continue
                             if v[self.NPC_JOURNAL]: file_estimation += 1
                             file_estimation += len(v[self.NPC_SCENE])
@@ -3625,219 +3357,210 @@ class Updater():
                             
                             scene_count += len(v[self.NPC_SCENE])
                             sound_count += len(v[self.NPC_SOUND])
-                        case "buffs":
+                        case 'buffs':
                             if v is None or v == 0: continue
                             if len(v[0][0].split('_')) == 1: file_estimation += 1
                             file_estimation += len(v[1])
                         case _:
                             file_estimation += 2
-            if not silent:
-                print("")
-                print("==== Indexation Stats ====")
-                print(entity_count, "indexed elements")
-                print(scene_count, "scene files" + ("" if file_estimation == 0 else " ({:.1f}%)".format(100*scene_count/file_estimation)))
-                print(sound_count, "sound files" + ("" if file_estimation == 0 else " ({:.1f}%)".format(100*sound_count/file_estimation)))
-                print("Approximately", file_estimation, "files total")
             self.stat_string = "{:,} indexed elements, for ~{:.1f}K files".format(entity_count, file_estimation / 1000).replace(".0K", "K")
         except Exception as e:
-            print("An unexpected error occured, can't produce stats")
-            print(e)
+            self.tasks.print("An unexpected error occured, can't update stats")
+            self.tasks.print(e)
 
-    async def missing_npcs(self) -> None: # check for missing npc
+    # load resume file
+    def load_resume(self : Updater, name : str) -> None:
         try:
-            keys = list(self.data['npcs'].keys())
-            keys.sort()
-            max_id = int(keys[-1][3:7])
-            ids = [id for i in range(0, max_id) if (id := "399" + str(i).zfill(4) + "000") not in self.data['npcs']] # list of all npc without data
-            if len(ids) > 0:
-                print("Checking for", len(ids), "missing NPCs...")
-                self.debug_npc_detail = True
-                await self.manualUpdate(ids)
-                self.debug_npc_detail = False
+            if not self.use_resume:
+                raise Exception()
+            with open("resume", mode="r", encoding="utf-8") as f:
+                self.resume = json.load(f)
+                if name != self.resume['name'] or not isinstance(self.resume, dict):
+                    raise Exception()
+                self.flags.set("resume_loaded")
+        except:
+            self.resume = {}
+
+    # save resume file
+    def save_resume(self : Updater) -> None:
+        try:
+            if not self.use_resume:
+                return
+            if self.flags.check("use_resume"):
+                with open("resume", mode="w", encoding="utf-8") as f:
+                    json.dump(self.resume, f)
         except:
             pass
 
-    # Request the current GBF version or possible maintenance state
-    async def gbfversion(self) -> Optional[int]:
+    # clear resume file
+    def clear_resume(self : Updater) -> None:
         try:
-            res = await self.get('https://game.granbluefantasy.jp/', headers={'User-Agent':self.USER_AGENT, 'Accept-Language':'en', 'Host':'game.granbluefantasy.jp', 'Connection':'keep-alive'})
-            res = res.decode('utf-8')
-            return int(self.VERSION_REGEX.findall(res)[0])
+            if not self.use_resume:
+                return
+            if self.flags.check("resume_loaded"):
+                with open("resume", mode="r", encoding="utf-8") as f:
+                    json.dump({}, f)
         except:
-            try:
-                if 'maintenance' in res.lower(): return "maintenance"
-            except:
-                pass
-            return None
+            pass
 
-    # Wait for an update to occur
-    async def wait(self) -> bool:
-        v = await self.gbfversion()
-        if v is None:
-            print("Impossible to currently access the game.\nWait and try again.")
-            return False
-        elif v == "maintenance":
-            print("Game is in maintenance")
-            return False
-        print("Waiting an update, ctrl+C to cancel...")
-        try:
-            while True:
-                t = int(datetime.now(timezone.utc).replace(tzinfo=None).timestamp()) % 300
-                if 300 - t > 10:
-                    await asyncio.sleep(10)
-                else:
-                    await asyncio.sleep(310 - t)
-                    n = await self.gbfversion()
-                    if isinstance(n, int) and n != v:
-                        print("Update detected.")
-                        return True
-        except:
-            print("Cancelled...")
-            return False
+    # called by TaskManager, check raised flags and start tasks accordingly
+    async def process_flags(self : Updater) -> None:
+        if self.flags.check("run_process"):
+            if self.flags.check("found_character") and not self.flags.check("checking_event"):
+                self.flags.set("checking_event")
+                self.tasks.print("Adding tasks to check for new events and fate episodes...")
+                self.tasks.add(self.check_new_event)
+                self.tasks.add(self.update_all_fate, parameters=('last',))
+            if (self.flags.check("found_buff") or self.flags.check("found_event")) and not self.flags.check("maintenance"):
+                self.flags.set("maintenance")
+                self.tasks.print("Adding the maintenance task...")
+                self.tasks.add(self.maintenance)
 
-    # Print the help
-    def print_help(self) -> None:
-        print("Usage: python updater.py [START] [MODE]")
-        print("")
-        print("START parameters (Optional):")
-        print("-wait        : Wait an in-game update before running.")
-        print("-nochange    : Disable the update of changelog.json.")
-        print("-stats       : Display data.json stats before quitting.")
-        print("")
-        print("MODE parameters (One at a time):")
-        print("-run         : Update the data with new content (Followed by IDs to check if needed).")
-        print("-update      : Manual data update (Followed by IDs to check).")
-        print("-job         : Search for MC jobs (Time consuming).")
-        print("-jobedit     : Job CLI.")
-        print("-lookup      : Force update the lookup table (Time Consuming).")
-        print("-lookupfix   : Lookup CLI.")
-        print("-scenenpc    : Update scene index for every npcs (Time consuming).")
-        print("-scenechara  : Update scene index for every characters (Time consuming).")
-        print("-sceneskin   : Update scene index for every skins (Time consuming).")
-        print("-scenefull   : Update scene index for every characters/skins/npcs (Very time consuming).")
-        print("-scenesort   : Sort indexed scene data  for every characters/npcs.")
-        print("-thumb       : Update npc thumbnail data.")
-        print("-sound       : Update sound index for characters (Very time consuming).")
-        print("-partner     : Update data for partner characters (Very time consuming).")
-        print("-adduncap    : Add a list of element ID and they will automatically be checked the next time -run or -update is used.")
-        print("-addpending  : Add a list of character/skin/npc ID to the pending list for scene/sound updates.")
-        print("-runpending  : Run scene/sound updates for the pending lists of character/skin/npc IDs (Time consuming).")
-        print("-enemy       : Update data for enemies (Time consuming).")
-        print("-missingnpc  : Update all missing npcs (Time consuming).")
-        print("-story       : Update main story arts. Can add 'all' to update all or a number to specify the chapter.")
-        print("-fate        : Update base fate episode arts. Can specific a chapter or a range (MIN-MAX).")
-        print("-event       : Update unique event arts (Very time consuming).")
-        print("-eventedit   : Edit event data")
-        print("-buff        : Update buff data")
-        print("-bg          : Update background data")
+    # return True if the file name passes the  filters
+    def file_is_matching(self : Updater, name : str, filters : list[str]) -> bool:
+        if len(filters) == 0:
+            return True
+        f : str
+        for f in filters:
+            if f in name:
+                return True
+        return False
 
-    async def boot(self, argv : list) -> None:
-        # CTRL+C signal
-        try: # unix
-            asyncio.get_event_loop().add_signal_handler(signal.SIGINT, self.interrupt)
-        except: # windows
-            signal.signal(signal.SIGINT, self.interrupt)
-        try:
-            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
-                print("GBFAL updater v2.52\n")
-                self.use_wiki = await self.test_wiki()
-                if not self.use_wiki: print("Use of gbf.wiki is currently impossible")
-                start_flags = set(["-debug_scene", "-debug_wpn", "-wait", "-nochange", "-stats"])
-                flags = set()
-                extras = []
-                for i, k in enumerate(argv):
-                    if k in start_flags:
-                        flags.add(k) # continue...
-                    elif k.startswith("-"):
-                        flags.add(k)
-                        extras = argv[i+1:]
-                        break
-                    else:
-                        print("Unknown parameter:", k)
-                        return
-                ran = False
-                forced_stop = False
-                if "-debug_scene" in flags:
-                    ran = True
-                    await self.debug_output_scene_strings()
-                if "-debug_wpn" in flags: self.debug_wpn = True
-                if "-wait" in flags: forced_stop = not (await self.wait())
-                if "-nochange" in flags: self.update_changelog = False
-                run_stats = "-stats" in flags
-                
-                if not forced_stop:
-                    if len(flags) == 0:
-                        self.print_help()
-                    elif "-run" in flags:
-                        await self.run(extras)
-                        await self.buildLookup()
-                    elif "-update" in flags:
-                        await self.manualUpdate(extras)
-                        await self.buildLookup()
-                    elif "-job" in flags: await self.search_job_detail(extras)
-                    elif "-jobedit" in flags: await self.edit_job()
-                    elif "-lookup" in flags: await self.buildLookup()
-                    elif "-lookupfix" in flags: await self.manualLookup()
-                    elif "-scenenpc" in flags: await self.update_all_scene("npcs", extras)
-                    elif "-scenechara" in flags: await self.update_all_scene("characters", extras)
-                    elif "-sceneskin" in flags: await self.update_all_scene("skins", extras)
-                    elif "-scenefull" in flags: await self.update_all_scene(None, extras)
-                    elif "-scenesort" in flags: self.sort_all_scene()
-                    elif "-thumb" in flags: await self.update_npc_thumb()
-                    elif "-sound" in flags: await self.update_all_sound(extras)
-                    elif "-partner" in flags: await self.update_all_partner(extras)
-                    elif "-enemy" in flags: await self.manualUpdate(list(self.data['enemies'].keys()))
-                    elif "-missingnpc" in flags:
-                        await self.missing_npcs()
-                    elif "-adduncap" in flags:
-                        self.data['uncap_queue'] += extras
-                        self.modified = True
-                        self.save()
-                    elif "-addpending" in flags:
-                        for id in extras:
-                            if len(id) == 10 and id.startswith('3'):
-                                self.data['scene_queue'].append(id)
-                                self.data['sound_queue'].append(id)
-                                self.modified = True
-                        self.save()
-                    elif "-runpending" in flags:
-                        if len(self.data['scene_queue']) > 0:
-                            await self.update_all_scene(update_pending=True)
-                        if len(self.data['sound_queue']) > 0:
-                            await self.update_all_sound(update_pending=True)
-                    elif "-story" in flags:
-                        all = False
-                        cp = None
-                        for e in extras:
-                            if e.lower() == "all": all = True
-                            else:
-                                try:
-                                    e = int(e)
-                                    if e >= 0: cp = e
-                                except:
-                                    pass
-                        await self.check_msq(all, cp)
-                    elif "-fate" in flags:
-                        await self.check_fate(" ".join(extras))
-                    elif "-event" in flags: await self.check_new_event()
-                    elif "-eventedit" in flags: await self.event_edit()
-                    elif "-buff" in flags: await self.update_buff()
-                    elif "-bg" in flags: await self.manualUpdate(list(self.data.get('background', {}).keys()))
-                    elif run_stats:
-                        self.make_stats()
-                        run_stats = False
-                    elif not ran:
-                        self.print_help()
-                        print("")
-                        print("Unknown parameter:", k)
-                self.save()
-                if run_stats:
-                    self.make_stats()
-        except Exception as e:
-            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+    ### Entry Point #################################################################################################################
 
-    def start(self, argv : list):
-        asyncio.run(self.boot(argv))
+    # To be called before running anything
+    async def init_updater(self : Updater, *, wiki : bool = False, job : bool = False) -> None:
+        if wiki:
+            # test wiki
+            self.use_wiki = await self.test_wiki()
+            if not self.use_wiki:
+                self.tasks.print("WARNING: Use of gbf.wiki is currently impossible")
+        if job:
+            # update job list
+            await self.init_job_list()
+
+    # Start function
+    async def start(self : Updater) -> None:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
+            self.tasks.print("GBFAL Updater v{}".format(self.VERSION))
+            # set Ctrl+C
+            try: # unix
+                asyncio.get_event_loop().add_signal_handler(signal.SIGINT, self.tasks.interrupt)
+            except: # windows fallback
+                signal.signal(signal.SIGINT, self.tasks.interrupt)
+            # parse parameters
+            prog_name : str
+            try: prog_name = sys.argv[0].replace('\\', '/').split('/')[-1]
+            except: prog_name = "updater.py" # fallback to default
+            # Set Argument Parser
+            parser : argparse.ArgumentParser = argparse.ArgumentParser(prog=prog_name, description="Asset Updater v{} for GBFAL https://mizagbf.github.io/GBFAL/".format(self.VERSION))
+            primary = parser.add_argument_group('primary', 'main commands to update the data.')
+            primary.add_argument('-r', '--run', help="search for new content.", action='store_const', const=True, default=False, metavar='')
+            primary.add_argument('-u', '--update', help="update given elements.", nargs='+', default=None)
+            primary.add_argument('-j', '--job', help="detailed job search. Add something to trigger a full search.", action='store', nargs='?', default=False, metavar='FULL')
+            
+            secondary = parser.add_argument_group('secondary', 'commands to update some specific data.')
+            secondary.add_argument('-sc', '--scene', help="update scene content. Add optional strings to match.", nargs='*', default=None)
+            secondary.add_argument('-sd', '--sound', help="update sound content. Add optional strings to match.", nargs='*', default=None)
+            secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
+            secondary.add_argument('-ne', '--newevent', help="check new event content.", action='store_const', const=True, default=False, metavar='')
+            secondary.add_argument('-st', '--story', help="update story content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
+            secondary.add_argument('-ft', '--fate', help="update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.", action='store', nargs='?', default="", metavar='FATES')
+            secondary.add_argument('-pt', '--partner', help="update all parner content. Time consuming.", action='store_const', const=True, default=False, metavar='')
+            
+            maintenance = parser.add_argument_group('maintenance', 'commands to update some specific data.')
+            maintenance.add_argument('-ij', '--importjob', help="import data from job_data_export.json.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-ej', '--exportjob', help="export data to job_data_export.json.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-lk', '--lookup', help="update manual_lookup.json and fetch the wiki to update the lookup table.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-fj', '--fatejson', help="import manual_fate.json.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-it', '--importthumb', help="import data from manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-et', '--exportthumb', help="export data to manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-mt', '--maintenance', help="basic tasks to keep the data up-to-date.", action='store_const', const=True, default=False, metavar='')
+            
+            settings = parser.add_argument_group('settings', 'commands to update some specific data.')
+            settings.add_argument('-au', '--adduncap', help="add elements to be updated during the next run.", nargs='*', default=None)
+            settings.add_argument('-nc', '--nochange', help="disable update of the New category of changelog.json.", action='store_const', const=True, default=False, metavar='')
+            settings.add_argument('-nr', '--noresume', help="disable the use of the resume file.", action='store_const', const=True, default=False, metavar='')
+            settings.add_argument('-dg', '--debug', help="enable the debug infos in the progress string.", action='store_const', const=True, default=False, metavar='')
+            args : argparse.Namespace = parser.parse_args()
+            # settings
+            run_help : bool = True
+            if args.nochange:
+                self.update_changelog = False
+            if args.noresume:
+                self.use_resume = False
+            if args.adduncap is not None:
+                for k in args.adduncap:
+                    self.data['uncap_queue'].append(k)
+                    self.modified = True
+                run_help = False
+            if args.debug:
+                self.tasks.debug = True
+            # run
+            if args.run:
+                self.tasks.print("Searching for new elements...")
+                await self.init_updater(wiki=True, job=True)
+                await self.run()
+            elif args.update is not None and len(args.update) > 0:
+                self.tasks.print("Updating", len(args.update), "element(s)...")
+                await self.init_updater(wiki=True)
+                await self.update_all(args.update)
+            elif args.job is not False:
+                self.tasks.print("Searching detailed job data...")
+                await self.init_updater(wiki=False, job=True)
+                await self.search_job_detail(args.job is not None)
+            elif args.scene is not None:
+                self.tasks.print("Updating scene data...")
+                await self.update_all_scene(args.scene)
+            elif args.sound is not None:
+                self.tasks.print("Updating sound data...")
+                await self.update_all_sound(args.sound)
+            elif args.event is not None:
+                self.tasks.print("Updating event data...")
+                await self.update_all_event(args.event)
+            elif args.newevent:
+                self.tasks.print("Searching new event data...")
+                await self.init_updater(wiki=True)
+                await self.check_new_event()
+            elif args.story is None or args.story > 0:
+                self.tasks.print("Searching new story data...")
+                await self.init_updater(wiki=True)
+                await self.update_all_story(args.story)
+            elif args.fate is None or args.fate != "":
+                self.tasks.print("Searching fate episode data...")
+                await self.update_all_fate(args.fate)
+            elif args.partner:
+                self.tasks.print("Updating all partner data...")
+                await self.update_all_partner()
+            elif args.importjob:
+                await self.importjob()
+            elif args.exportjob:
+                await self.exportjob()
+            elif args.lookup:
+                await self.init_updater(wiki=True)
+                await self.lookup()
+            elif args.fatejson:
+                self.update_manual_fate()
+            elif args.importthumb:
+                self.update_manual_event_thumbnail(True)
+            elif args.exportthumb:
+                self.update_manual_event_thumbnail(False)
+            elif args.maintenance:
+                self.tasks.print("Performing maintenance...")
+                await self.maintenance()
+            elif run_help:
+                parser.print_help()
+            # post process
+            if len(self.addition) > 0: # we found stuff
+                await self.lookup() # update the lookup
+                # update other manual json files if needed
+                if self.flags.check("found_event"):
+                    self.update_manual_event_thumbnail(False)
+                if self.flags.check("found_fate"):
+                    self.update_manual_fate()
+            if self.modified:
+                self.make_stats()
+            self.save()
 
 if __name__ == "__main__":
-    Updater().start(sys.argv[1:])
+    asyncio.run(Updater().start())

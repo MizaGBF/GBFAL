@@ -3,11 +3,6 @@
 Web page to search for Granblue Fantasy assets.  
 Click [Here](https://mizagbf.github.io/GBFAL) to access it.  
   
-### Updater Requirements  
-* Python 3.11.
-* Run `pip install -r requirements.txt` in a command prompt.
-* See [requirements.txt](https://github.com/MizaGBF/GBFAP/blob/master/requirements.txt) for a list of third-party modules.  
-  
 # Front-End  
 There are two pages:  
 - The Asset Lookup, to search assets, consisting of one HTML, one javascript and one css files.  
@@ -28,71 +23,92 @@ Others JSON files are used for debug or update purpose:
   
 More JSON files not specified here might appear in this folder, for development or testing purpose.  
   
-# [updater.py](https://github.com/MizaGBF/GBFAL/blob/main/updater.py)  
+## [updater.py](https://github.com/MizaGBF/GBFAL/blob/main/updater.py)  
 This script is in charge of updating the JSON files.  
 > [!CAUTION]  
 > Using it can be time and bandwidth consuming.  
   
-Running `python updater.py` without any parameters will give you an up-to-date list of parameters, but here's a description of them at the time of writing this README:
-Start parameters:
-- `-wait`: Wait for GBF to update before running.  
-- `-nochange`: Disable changes to [changelog.json](https://github.com/MizaGBF/GBFAL/blob/main/json/changelog.json) "new" list.  
-- `-stats`: Display `data.json` statistics before quitting.  
+### Updater Requirements  
+* Python 3.13.
+* Run `pip install -r requirements.txt` in a command prompt.
+* See [requirements.txt](https://github.com/MizaGBF/GBFAP/blob/master/requirements.txt) for a list of third-party modules.  
   
-Action parameters (Only one of those can be used at a time):
-- `-run`: Look for new content. If new content is found, it will automatically run `-update`, `-event`, `-thumb`, `-relation` and `-lookup`. Can append a list of element to `-update`.  
-- `-update`: Update the content for specified IDs. Example usage: `python updater.py-update 3040000000 3040001000` to update those two characters. Usable with all ten digit IDs, boss IDs and indexed background IDs. It will run `-lookup` after.  
-- `-job`: Check for new MC jobs. Time consuming and not always accurate.  
-- `-jobedit`: Open the `JOB EDIT` CLI, allowing you to manually edit the job data.  
-- `-lookup`: Force update the lookup table. Time consuming.  
-- `-lookupfix`: Open a CLI to manually add lookup data to elements without any. Last resort option.  
-- `-scenenpc`: Update scene datas for NPCs. Very time consuming.  
-- `-scenechara`: Update scene datas for characters. Very time consuming.  
-- `-sceneskin`: Update scene datas for outfits. Very time consuming.  
-- `-scenefull`: Update scene datas for characters, outfits and NPCs. Very time consuming.  
-- `-scenesort`: Sort scene datas for every elements. It's called automatically in most cases but this is a way to trigger it manually.  
-- `-thumb`: Check thumbnail data for NPCs.  
-- `-sound`: Update sound datas for characters, outfits and NPCs. Very time consuming.  
-- `-partner`: Update all partner datas. Very time consuming.  
-- `-enemy`: Update all enemy datas. Time consuming.  
-- `-missingnpc`: Update all missing npc datas. Time consuming.  
-- `-adduncap`: Add a list of element ID and they will automatically be checked the next time `-run` or `-update` is used.  
-- `-addpending`: Add a list of character/skin/npc ID to the pending list for scene/sound updates.  
-- `-runpending`: Run scene/sound updates for the pending lists of character/skin/npc IDs. Can be Time consuming.  
-- `-story`: Update main story datas. Can add `all` to update existing chapters and/or a number to limit set manually the last chapter number.  
-- `-fate`: Update base fate episode datas. Can specific a chapter or a range (`MIN-MAX`).  
-- `-event`: Update event datas. Time consuming.  
-- `-eventedit`: Open the `EVENT EDIT` CLI, allowing you to add event thumbnail, update skycompass arts and more.  
-- `-buff`: Update all buff datas. Time consuming.  
-- `-bg`: Update all background datas. Time consuming.  
+### Usage
+```
+GBFAL Updater v3.0
+usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
+                  [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]] [-ne]
+                  [-st [LIMIT]] [-ft [FATES]] [-pt] [-ij] [-ej] [-lk] [-fj]
+                  [-it] [-et] [-mt] [-au [ADDUNCAP ...]] [-nc] [-nr] [-dg]
+
+Asset Updater v3.0 for GBFAL https://mizagbf.github.io/GBFAL/
+
+options:
+  -h, --help            show this help message and exit
+
+primary:
+  main commands to update the data.
+
+  -r, --run             search for new content.
+  -u, --update UPDATE [UPDATE ...]
+                        update given elements.
+  -j, --job [FULL]      detailed job search. Add something to trigger a full search.
+
+secondary:
+  commands to update some specific data.
+
+  -sc, --scene [SCENE ...]
+                        update scene content. Add optional strings to match.
+  -sd, --sound [SOUND ...]
+                        update sound content. Add optional strings to match.
+  -ev, --event [EVENT ...]
+                        update event content. Add optional event IDs to update specific events.
+  -ne, --newevent       check new event content.
+  -st, --story [LIMIT]  update story content. Add an optional chapter to stop at.
+  -ft, --fate [FATES]   update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.
+  -pt, --partner        update all parner content. Time consuming.
+
+maintenance:
+  commands to update some specific data.
+
+  -ij, --importjob      import data from job_data_export.json.
+  -ej, --exportjob      export data to job_data_export.json.
+  -lk, --lookup         update manual_lookup.json and fetch the wiki to update the lookup table.
+  -fj, --fatejson       import manual_fate.json.
+  -it, --importthumb    import data from manual_event_thumbnail.json.
+  -et, --exportthumb    export data to manual_event_thumbnail.json.
+  -mt, --maintenance    basic tasks to keep the data up-to-date.
+
+settings:
+  commands to update some specific data.
+
+  -au, --adduncap [ADDUNCAP ...]
+                        add elements to be updated during the next run.
+  -nc, --nochange       disable update of the New category of changelog.json.
+  -nr, --noresume       disable the use of the resume file.
+  -dg, --debug          enable the debug infos in the progress string.
+
+
+```  
   
 > [!TIP]  
 > For an **"every day" use case**, you'll only need to:  
-> Use `-run` after game updates.  
-> Use `-update` for element uncaps or if an older NPC got new arts, with their IDs.  
-> Use `-eventedit` if a new event didn't get its thumbnail automatically set.  
-> Use `-job` and `-jobedit` when new MC classes or skins are released to find and set their datas.  
+> Use `-r` after game updates.  
+> Use `-u` for element uncaps or if an older NPC got new arts, with their IDs.  
+> Use `-j`, `-ej` and `-ij` when new MC classes or skins are released, to find and set their datas and export then import `json/job_data_export.json`.  
+> Use `-lk` to update the string lookup and import `json/manual_lookup.json`.  
+> Use `-fj` to force import of `json/manual_fate.json`.  
+> Use `-it` to force import of `json/manual_event_thumbnail.json`.  
+> Use `-mt` to force an update of some element (this is usually automatically used by `-r`).  
   
-> [!TIP]  
-> For **maintenance purpose**, you might need, once in a while, to:  
-> Use `-lookup` to manually update the lookup table. It's usually called automatically after `-update`.  
-> Use `-scenefull` or its variants to update specific scene files. For example, if a new file name has been noticed to be missing, you can add the related suffixes in `updater.py` to `SCENE_SUFFIXES` and then run `-scenefull` followed by the suffix to only search for those files and save on time and bandwidth. This commands supports resuming.  
-> Use `-sound` to update sound files. Unlike `-scenefull`, you can't search for specific files but you can set IDs to update. Or you can `update_chara_sound_file_prep` in `updater.py` to reduce the scope to certain files and save time.  This commands supports resuming.  
-> Use `-buff` to update old buffs with their new variants.  
-  
-# Pause  
+### Pause  
 You can pause `updater.py` with a simple `CTRL+C`. It opens a CLI letting you save, exit or resume with text commands.  
-It'll also show you the current number of cleared tasks.  
-This number can be provided to some commands (like `-scenefull` and `-sound`) to resume later.  
   
-> [!NOTE] 
-> For example, let's say you must stop `-scenefull`.
-> Do `CTRL+C`. Type `save` to save any pending changes.  
-> Take note of the current State shown. For our example, let's say it's 3547/11763.  
-> If you wish to resume this command later, you can do `python updater.py -scenefull 3500`, plus whatever other parameters you used for that command.  
-> Due to the asynchronous nature of the script, always use a slightly lower number (3500 for 3547 in this example) to be sure to catch any non completed tasks.  
+### Resume file  
+When you interrupt some tasks (like the ones invoked by `-sc` and `-sd`), the updater creates a `resume` file (a JSON file without the extension) in the same folder.  
+If you restart the same action at a later time, that file will be loaded and content already processed will be skipped.  
   
-# Additional Notes   
+### Additional Notes   
 - Use one of the `server` scripts to start a Python HTTP server and test the project locally, in your web browser.  
 - Or, on other OS, just run `python-m http.server` in a terminal, in the project folder.  
 - [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations.  

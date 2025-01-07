@@ -18,9 +18,7 @@ where:
 - `PATH`: The remaining path towards the resource. For example: [img/sp/assets/npc/zoom/3040068000_01.png](https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/zoom/3040068000_01.png).  
   
 ### json/data.json content  
-- `version`: Integer, the file version. Currently **1**.
-- `scene_queue`: Array, the list of elements to be updated with new scene files (Note: A scene file refers to an image used during fate episodes/cutscenes/etc...). For internal use only.  
-- `sound_queue`: Array, the list of elements to be updated with new sound files. For internal use only.  
+- `version`: Integer, the file version. Currently **2**.
 - `valentines`: Object of ID, integer pairs, for elements with (possibly) white day or valentine scene files. The integer is unused. Elements are always from the `characters`, `skins` or `npcs` indexes.  
 - `characters`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of nine lists, each containing file names. (`[[], [], [], [], [], [], [], [], []]`).
@@ -78,7 +76,7 @@ where:
 - `events`: Object of ID, data pairs for events. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of twenty six elements. (`[CHAPTER_COUNT, THUMBNAIL_ID, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]`).  
     - Index 0: An integer, the estimated number of chapters in the event. Set to **-1** if no chapters is found, **0** if the number of chapters is unknown.  
-    - Index 1. An integer, the event thumbnail ID. Set to **null** if not set.  
+    - Index 1. A string, the event thumbnail ID. Set to **null** if not set.  
     - Index 2: Opening chapter files.  
     - Index 3: Ending chapter files.  
     - Index 4: Other files.  
