@@ -296,7 +296,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.1'
+    VERSION = '3.2'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -561,6 +561,7 @@ class Updater():
         self.use_wiki : bool = False # flag to see if the wiki usable
         self.update_changelog : bool = True # flag to enable or disable the generation of changelog.json
         self.use_resume : bool = True # flag to use the resume file
+        self.ignore_file_count : bool = False # flag to control the count_file function behavior
         self.data : dict[str, Any] = { # data structure
             "version":self.SAVE_VERSION,
             "uncap_queue":[],
@@ -816,12 +817,6 @@ class Updater():
         i : int
         j : int
         r : int
-        # uncap queue
-        if len(self.data['uncap_queue']) > 0:
-            for k in self.data['uncap_queue']:
-                self.tasks.add(self.update_element, parameters=(k, None))
-            self.tasks.print(len(self.data['uncap_queue']), "set to be updated, from the Uncap Queue")
-            self.data['uncap_queue'] = []
         ts : TaskStatus
         # jobs
         if self.job_list is not None:
@@ -1132,6 +1127,12 @@ class Updater():
 
     # Update Enemy data
     async def update_enemy(self : Updater, element_id : str) -> None:
+        # get existing file_count
+        try:
+            if self.ignore_file_count: raise Exception()
+            file_count = self.count_file(self.data['enemies'][element_id])
+        except:
+            file_count = 0
         # Make empty container
         data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
         # icon
@@ -1175,10 +1176,12 @@ class Updater():
                 data[self.BOSS_SP_ALL] += await self.processManifest(fn)
             except:
                 pass
-        self.modified = True
-        self.data['enemies'][element_id] = data
-        self.addition[element_id] = self.ADD_BOSS
-        self.tasks.print("Updated:", element_id, "for index:", 'enemies')
+        if self.count_file(data) > file_count:
+            self.modified = True
+            self.data['enemies'][element_id] = data
+            self.addition[element_id] = self.ADD_BOSS
+            self.tasks.print("Updated:", element_id, "for index:", 'enemies')
+            self.remove_from_uncap_queue(element_id)
 
     # Update Background data
     async def update_background(self : Updater, element_id : str) -> None:
@@ -1228,9 +1231,16 @@ class Updater():
             self.modified = True
             self.data['background'][element_id] = data
             self.tasks.print("Updated:", element_id, "for index:", 'background')
+            self.remove_from_uncap_queue(element_id)
 
     # Update Summon data
     async def update_summon(self, element_id : str) -> None:
+        # get existing file_count
+        try:
+            if self.ignore_file_count: raise Exception()
+            file_count = self.count_file(self.data['summons'][element_id])
+        except:
+            file_count = 0
         # Set container
         data : list[list[str]] = [[], [], []] # general, call, damage
         uncaps : list[str] = []
@@ -1274,10 +1284,12 @@ class Updater():
                     data[self.SUM_DAMAGE] += await self.processManifest(fn)
                 except:
                     pass
-        self.modified = True
-        self.data['summons'][element_id] = data
-        self.addition[element_id] = self.ADD_SUMM
-        self.tasks.print("Updated:", element_id, "for index:", 'summons')
+        if self.count_file(data) > file_count:
+            self.modified = True
+            self.data['summons'][element_id] = data
+            self.addition[element_id] = self.ADD_SUMM
+            self.tasks.print("Updated:", element_id, "for index:", 'summons')
+            self.remove_from_uncap_queue(element_id)
 
     # Art check system for characters. Detect gendered arts, etc...
     async def artCheck(self : Updater, element_id : str, style : str, uncaps : list[str]) -> dict[str, list[bool]]:
@@ -1306,6 +1318,13 @@ class Updater():
 
     # Update character and skin data
     async def update_character(self : Updater, element_id : str) -> None:
+        # get existing file_count
+        try:
+            if self.ignore_file_count: raise Exception()
+            file_count = self.count_file(self.data['characters'][element_id])
+        except:
+            file_count = 0
+        # init
         index : str = "skins" if element_id.startswith("371") else "characters"
         data : list[list[str]] = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
         if element_id in self.data[index] and self.data[index][element_id] != 0:
@@ -1431,19 +1450,21 @@ class Updater():
                 except:
                     pass
             data[self.CHARA_AB] += attacks
-        self.modified = True
-        self.data[index][element_id] = data
-        self.tasks.add(self.update_scenes_of, parameters=(element_id, index))
-        self.tasks.add(self.update_sound_of, parameters=(element_id, index))
-        self.addition[element_id] = self.ADD_CHAR
-        self.flags.set("found_character")
-        # updating corresponding fate episode
-        if index == 'characters':
-            for k, v in self.data['fate'].items():
-                if v[self.FATE_LINK] == element_id:
-                    self.tasks.add(self.update_all_fate, parameters=(k,), priority=0)
-                    break
-        self.tasks.print("Updated:", element_id, "for index:", index, "(Queuing secondary updates...)")
+        if self.count_file(data) > file_count:
+            self.modified = True
+            self.data[index][element_id] = data
+            self.tasks.add(self.update_scenes_of, parameters=(element_id, index))
+            self.tasks.add(self.update_sound_of, parameters=(element_id, index))
+            self.addition[element_id] = self.ADD_CHAR
+            self.flags.set("found_character")
+            # updating corresponding fate episode
+            if index == 'characters':
+                for k, v in self.data['fate'].items():
+                    if v[self.FATE_LINK] == element_id:
+                        self.tasks.add(self.update_all_fate, parameters=(k,), priority=0)
+                        break
+            self.tasks.print("Updated:", element_id, "for index:", index, "(Queuing secondary updates...)")
+            self.remove_from_uncap_queue(element_id)
 
     # Update partner data. Note: It's based on charaUpdate and is terribly inefficient
     async def update_partner(self : Updater, ts : TaskStatus, element_id : str) -> None:
@@ -1585,9 +1606,11 @@ class Updater():
             self.addition[element_id] = self.ADD_PARTNER
             self.flags.set("found_character")
             self.tasks.print("Updated:", element_id, "for index:", 'partners')
+            self.remove_from_uncap_queue(element_id)
 
     # Update NPC data
     async def update_npc(self, element_id : str, detailed_check : bool = False) -> None:
+        # init
         data : list[list[str]|None] = [False, [], []] # journal flag, npc, voice
         if element_id in self.data['npcs'] and self.data['npcs'][element_id] != 0:
             data[self.NPC_SCENE] = self.data['npcs'][element_id][self.NPC_SCENE]
@@ -1642,9 +1665,17 @@ class Updater():
             self.addition[element_id] = self.ADD_NPC
             self.flags.set("found_character")
             self.tasks.print("Updated:", element_id, "for index:", 'npcs', "(Queuing secondary updates...)")
+            self.remove_from_uncap_queue(element_id)
 
     # Update Weapon data
     async def update_weapon(self, element_id : str) -> None:
+        # get existing file_count
+        try:
+            if self.ignore_file_count: raise Exception()
+            file_count = self.count_file(self.data['weapons'][element_id])
+        except:
+            file_count = 0
+        # init
         data : list[list[str]] = [[], [], []] # general, phit, sp
         s : str
         for s in ["", "_02", "_03"]:
@@ -1679,17 +1710,26 @@ class Updater():
                         except:
                             if g == '_0':
                                 break
-        data[self.WEAP_PHIT] = list(set(data[self.WEAP_PHIT]))
-        data[self.WEAP_PHIT].sort()
-        data[self.WEAP_SP] = list(set(data[self.WEAP_SP]))
-        data[self.WEAP_SP].sort()
-        self.modified = True
-        self.data['weapons'][element_id] = data
-        self.addition[element_id] = self.ADD_WEAP
-        self.tasks.print("Updated:", element_id, "for index:", 'weapons')
+        if self.count_file(data) > file_count:
+            data[self.WEAP_PHIT] = list(set(data[self.WEAP_PHIT]))
+            data[self.WEAP_PHIT].sort()
+            data[self.WEAP_SP] = list(set(data[self.WEAP_SP]))
+            data[self.WEAP_SP].sort()
+            self.modified = True
+            self.data['weapons'][element_id] = data
+            self.addition[element_id] = self.ADD_WEAP
+            self.tasks.print("Updated:", element_id, "for index:", 'weapons')
+            self.remove_from_uncap_queue(element_id)
 
     # Update Job data
     async def update_job(self, element_id : str) -> None:
+        # get existing file_count
+        try:
+            if self.ignore_file_count: raise Exception()
+            file_count = self.count_file(self.data['job'][element_id])
+        except:
+            file_count = 0
+        # init
         cmh = []
         colors = [int(element_id[-1])]
         alts = []
@@ -1731,10 +1771,12 @@ class Updater():
                 for j in range(2):
                     try: data[self.JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(h.split('_', 1)[0], j))
                     except: pass
-            self.data['job'][element_id] = data
-            self.modified = True
-            self.addition[element_id] = self.ADD_JOB
-            self.tasks.print("Updated:", element_id, "for index:", 'job')
+            if self.count_file(data) > file_count:
+                self.data['job'][element_id] = data
+                self.modified = True
+                self.addition[element_id] = self.ADD_JOB
+                self.tasks.print("Updated:", element_id, "for index:", 'job')
+                self.remove_from_uncap_queue(element_id)
 
     ### Job #################################################################################################################
     
@@ -3439,6 +3481,28 @@ class Updater():
                 return True
         return False
 
+    # count file in data container
+    def count_file(self : Updater, data : list[Any]) -> Any:
+        c : int = 0
+        for sub in data:
+            if isinstance(sub, list):
+                c += len(sub)
+        return c
+
+    def load_uncap_queue(self : Updater) -> None:
+        if len(self.data['uncap_queue']) > 0:
+            for k in self.data['uncap_queue']:
+                self.tasks.add(self.update_element, parameters=(k, None))
+            self.tasks.print("Note:", len(self.data['uncap_queue']), "element(s) set to be updated, from the Uncap Queue")
+
+    def remove_from_uncap_queue(self : Updater, element_id : str) -> None:
+        i : int = 0
+        while i < len(self.data['uncap_queue']):
+            if self.data['uncap_queue'][i] == element_id:
+                self.data['uncap_queue'].pop(i)
+            else:
+                i += 1
+
     ### Entry Point #################################################################################################################
 
     # To be called before running anything
@@ -3496,6 +3560,7 @@ class Updater():
             settings.add_argument('-au', '--adduncap', help="add elements to be updated during the next run.", nargs='*', default=None)
             settings.add_argument('-nc', '--nochange', help="disable update of the New category of changelog.json.", action='store_const', const=True, default=False, metavar='')
             settings.add_argument('-nr', '--noresume', help="disable the use of the resume file.", action='store_const', const=True, default=False, metavar='')
+            settings.add_argument('-if', '--ignorefilecount', help="ignore known file count when updating elements.", action='store_const', const=True, default=False, metavar='')
             settings.add_argument('-dg', '--debug', help="enable the debug infos in the progress string.", action='store_const', const=True, default=False, metavar='')
             args : argparse.Namespace = parser.parse_args()
             # settings
@@ -3504,6 +3569,8 @@ class Updater():
                 self.update_changelog = False
             if args.noresume:
                 self.use_resume = False
+            if args.ignorefilecount:
+                self.ignore_file_count = True
             if args.adduncap is not None:
                 for k in args.adduncap:
                     self.data['uncap_queue'].append(k)
@@ -3515,10 +3582,12 @@ class Updater():
             if args.run:
                 self.tasks.print("Searching for new elements...")
                 await self.init_updater(wiki=True, job=True)
+                self.load_uncap_queue()
                 await self.run()
             elif args.update is not None and len(args.update) > 0:
-                self.tasks.print("Updating", len(args.update), "element(s)...")
+                self.tasks.print("Updating", len(args.update)+len(self.data['uncap_queue']), "element(s)...")
                 await self.init_updater(wiki=True)
+                self.load_uncap_queue()
                 await self.update_all(args.update)
             elif args.job is not False:
                 self.tasks.print("Searching detailed job data...")
