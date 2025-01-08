@@ -149,7 +149,8 @@ class TaskManager():
     def update_progress(self : TaskManager) -> None:
         self.print_progress()
         if time.time() - self.elapsed >= 3600:
-            self.print("Progress: {} / {} Tasks, autosaving...".format(self.finished, self.total))
+            if self.updater.modified:
+                self.print("Progress: {} / {} Tasks, autosaving...".format(self.finished, self.total))
             self.updater.save()
             self.updater.save_resume()
             self.elapsed = time.time()
@@ -296,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.2'
+    VERSION = '3.3'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -1609,7 +1610,7 @@ class Updater():
             self.remove_from_uncap_queue(element_id)
 
     # Update NPC data
-    async def update_npc(self, element_id : str, detailed_check : bool = False) -> None:
+    async def update_npc(self, element_id : str) -> None:
         # init
         data : list[list[str]|None] = [False, [], []] # journal flag, npc, voice
         if element_id in self.data['npcs'] and self.data['npcs'][element_id] != 0:
@@ -1626,8 +1627,6 @@ class Updater():
         if not exist:
             # base scene
             base_target, main_x, uncap_x = self.generate_scene_file_list(element_id)
-            if detailed_check:
-                base_target = list(set(base_target + main_x))
             for u in ["", "_02", "_03"]:
                 for f in base_target:
                     if f != "" and u != "": break
@@ -1644,7 +1643,7 @@ class Updater():
                         pass
             # base sound
             if not exist:
-                base_target = (["_v_" + str(i).zfill(3) for i in range(5, 200, 5)] + ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_3", "_boss_v_4", "_boss_v_5", "_boss_v_10", "_boss_v_15", "_boss_v_20", "_boss_v_25", "_boss_v_30", "_boss_v_35", "_boss_v_45", "_boss_v_50", "_boss_v_55", "_boss_v_60", "_boss_v_65", "_boss_v_70", "_boss_v_75", "d_boss_v_1"]) if detailed_check else ["_v_001", "_boss_v_1", "_boss_v_2"]
+                base_target = ["_v_001", "_boss_v_1", "_boss_v_2"]
                 for k in base_target:
                     try:
                         f = "{}{}".format(element_id, k)
@@ -2035,7 +2034,7 @@ class Updater():
         self.clear_resume()
     
     # set self.scene_strings if needed and return them along with base strings
-    def generate_scene_file_list(self, element_id : str) -> tuple[list[str], list[str], list[str]]:
+    def generate_scene_file_list(self, element_id : str = "") -> tuple[list[str], list[str], list[str]]:
         # set scene strings
         # it's mostly a concatenation work
         if self.scene_strings is None:
@@ -3314,18 +3313,56 @@ class Updater():
 
     ### Other #################################################################################################################
 
-    # simply call update_element on each npc id without data
+    # check file existence for npcs ids without any data
     async def search_missing_npc(self : Updater) -> None:
         try:
             highest : int = (max([int(k) for k in self.data['npcs'] if k.startswith('399')]) // 1000) % 10000
         except:
             return
+        # scene
+        base_target, main_x, uncap_x = self.generate_scene_file_list()
+        scene_strings : list[str] = base_target + main_x
+        # sound
+        sound_strings : list[str] = (["_v_" + str(i).zfill(3) for i in range(5, 200, 5)] + ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_3", "_boss_v_4", "_boss_v_5", "_boss_v_10", "_boss_v_15", "_boss_v_20", "_boss_v_25", "_boss_v_30", "_boss_v_35", "_boss_v_45", "_boss_v_50", "_boss_v_55", "_boss_v_60", "_boss_v_65", "_boss_v_70", "_boss_v_75", "d_boss_v_1"])
+        # concat
+        uris : list[tuple[str, int]] = []
+        # other
+        count : int = 0
+        for s in scene_strings:
+            for u in ["", "_02", "_03"]:
+                uris.append((self.IMG + "sp/quest/scene/character/body/{}" + "{}{}.png".format(u, s), self.NPC_SCENE))
+                uris.append((self.IMG + "sp/raid/navi_face/{}" + "{}{}.png".format(u, s), self.NPC_SCENE))
+        for s in sound_strings:
+            uris.append((self.SOUND + "voice/{}" + "{}.mp3".format(s), self.NPC_SOUND))
         for i in range(0, highest+5):
             fid : str = "399{}000".format(str(i).zfill(4))
             if self.data['npcs'].get(fid, 0) == 0:
-                self.tasks.add(self.update_npc, parameters=(fid, True))
-        self.tasks.print("Testing", self.tasks.total, "NPCs...")
+                count += 1
+                ts : TaskStatus = TaskStatus(len(uris), 1)
+                for j in range(20):
+                    self.tasks.add(self.test_missing_npc, parameters=(fid, ts, uris))
+        self.tasks.print("Testing", count, "NPCs...")
         await self.tasks.start()
+
+    async def test_missing_npc(self : Updater, element_id : str, ts : TaskStatus, uris : list[str]) -> None:
+        while not ts.complete:
+            url, idx = uris[ts.get_next_index()]
+            try:
+                await self.head(url.format(element_id))
+                if element_id not in self.data['npcs']:
+                    self.modified = True
+                    self.data['npcs'][element_id] = [False, [], []]
+                    self.data['npcs'][element_id][idx].append(url.format(element_id).split('/')[-1].split('.')[0])
+                    self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
+                    self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
+                    self.addition[element_id] = self.ADD_NPC
+                    self.flags.set("found_character")
+                    self.tasks.print("Found NPC:", element_id, "(Queuing secondary updates...)")
+                    ts.bad() # to force stop the other tasks
+            except Exception as e:
+                if str(e) != "HTTP error 404":
+                    self.tasks.print(url.format(element_id))
+                    self.tasks.print(e)
 
     # simply call update_element on each partner id
     async def update_all_partner(self : Updater) -> None:
