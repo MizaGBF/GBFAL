@@ -69,7 +69,7 @@ class TaskManager():
         while len(self.running) > 0 or not self.queues_are_empty():
             # remove from queue and run
             for i in range(len(self.queues)):
-                while len(self.running) <= self.CONCURRENT and not self.queues[i].empty():
+                while len(self.running) < self.CONCURRENT and not self.queues[i].empty():
                     try:
                         t : Task = await self.queues[i].get()
                         if skip <= 0:
@@ -3320,11 +3320,11 @@ class Updater():
             highest : int = (max([int(k) for k in self.data['npcs'] if k.startswith('399')]) // 1000) % 10000
         except:
             return
-        self.tasks.print("Searching missing NPCs...")
         for i in range(0, highest+5):
             fid : str = "399{}000".format(str(i).zfill(4))
             if self.data['npcs'].get(fid, 0) == 0:
                 self.tasks.add(self.update_npc, parameters=(fid, True))
+        self.tasks.print("Testing", self.tasks.total, "NPCs...")
         await self.tasks.start()
 
     # simply call update_element on each partner id
