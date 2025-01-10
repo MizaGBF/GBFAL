@@ -873,7 +873,7 @@ function display_characters(id, data, range, unused = null)
             switch(u)
             {
                 case 3: case 4: case 5: case 6:
-                    if(u > uncap || (uncap_string.length == 3 && f.length > 13))
+                    if(u > uncap || (uncap_string.length == 3 && f.length == 13))
                     {
                         uncap = u;
                         uncap_string = f.slice(10);
