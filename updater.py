@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.3'
+    VERSION = '3.4'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -821,7 +821,7 @@ class Updater():
         ts : TaskStatus
         # jobs
         if self.job_list is not None:
-            jkeys = [k for k in list(self.job_list.keys()) if k not in self.data['job']]
+            jkeys = [k for k in list(self.job_list.keys()) if (k not in self.data['job'] or self.data['job'][k] == 0)]
             for k in jkeys:
                 self.tasks.add(self.update_job, parameters=(k))
         # skills
@@ -894,15 +894,14 @@ class Updater():
         for i in range(5):
             self.tasks.add(self.search_generic, parameters=(ts, 'skins', "3710{}000", 3, ["js/model/manifest/npc_{}_01.js"]))
         # enemies
-        a : int
-        b : int
-        d : int
-        for a in range(1, 10):
-            for b in range(1, 4):
-                for d in [1, 2, 3]:
-                    ts = TaskStatus(1000, 40)
-                    for i in range(5):
-                        self.tasks.add(self.search_generic, parameters=(ts, 'enemies', str(a) + str(b) + "{}" + str(d), 4, ["img/sp/assets/enemy/s/{}.png"]))
+        main : int
+        sub : int
+        for main in range(1, 10):
+            for sub in range(1, 4):
+                ts = TaskStatus(1000, 40)
+                prefix : str = str(main) + str(sub)
+                for i in range(10):
+                    self.tasks.add(self.search_enemy, parameters=(ts, prefix))
         # backgrounds
         # event & common
         ev : str
@@ -967,6 +966,37 @@ class Updater():
                     except: # request failed
                         if j == len(paths) - 1: # if it was the last path
                             ts.bad()
+
+    # goal 8102532
+
+    # Search for enemies
+    async def search_enemy(self : Updater, ts : TaskStatus, prefix : str) -> None:
+        while not ts.complete:
+            i : int = ts.get_next_index()
+            fi : str = prefix + str(i).zfill(4)
+            found : bool = False
+            for n in range(1, 4):
+                sfi : str = fi + str(n)
+                if sfi in self.data['enemies']:
+                    if self.data['enemies'][sfi] == 0:
+                        self.tasks.print("In need of update:", sfi, "for index:", 'enemies')
+                        self.tasks.add(self.update_element, parameters=(sfi, 'enemies'), priority=3)
+                    found = True
+                else:
+                    #Note: 6200483 has no icons and raid_appear must be checked instead
+                    try:
+                        await self.head(self.ENDPOINT + "img/sp/assets/enemy/s/{}.png".format(sfi))
+                        self.tasks.print("Found:", sfi, "for index:", 'enemies')
+                        self.data['enemies'][sfi] = 0 # set data to 0 (until it's updated)
+                        self.modified = True
+                        self.tasks.add(self.update_element, parameters=(sfi, 'enemies'), priority=3) # call update task for that element
+                        found = True
+                    except: # request failed
+                        pass
+            if found:
+                ts.good()
+            else:
+                ts.bad()
 
     # Search for new skills
     async def search_skill(self, ts : TaskStatus, highest : int) -> None: # skill search
@@ -1145,7 +1175,7 @@ class Updater():
                 await self.head(self.IMG + "sp/assets/enemy/m/{}.png".format(element_id))
                 data[self.BOSS_GENERAL].append("{}".format(element_id))
             except:
-                return
+                pass
         # sprite
         try:
             fn = "enemy_{}".format(element_id)
@@ -1159,6 +1189,8 @@ class Updater():
                 data[self.BOSS_APPEAR] += await self.processManifest(fn)
             except:
                 pass
+        if self.count_file(data) == 0:
+            return
         # ehit
         try:
             fn = "ehit_{}".format(element_id)
@@ -2997,8 +3029,9 @@ class Updater():
     # Check for new elements to lookup on the wiki, to update the lookup list
     # Gigantic function but nothing complicated
     async def lookup(self : Updater) -> None:
-        if not self.use_wiki:
+        if not self.use_wiki or self.flags.check('lookup_updated'):
             return
+        self.flags.set('lookup_updated')
         modified = set()
         # Read manual_lookup.json and update data.json
         try:
@@ -3070,7 +3103,7 @@ class Updater():
                         case 7: # enemy
                             if "$$" in v:
                                 vs = v.split("$$")
-                                if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null"]: self.tasks.print("Element Warning for", k, "in manual_lookup.json")
+                                if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null", "unknown-element"]: self.tasks.print("Element Warning for", k, "in manual_lookup.json")
                                 v = vs[1] + " " + vs[0]
                             else:
                                 self.tasks.print("Element Warning for", k, "in manual_lookup.json")
@@ -3540,6 +3573,64 @@ class Updater():
             else:
                 i += 1
 
+    def import_gbfdaio(self : Updater, path : str) -> None:
+        if not path.endswith('index.json'):
+            if not path.endswith('/'):
+                path += '/'
+            path += 'index.json'
+        try:
+            with open(path, mode="r", encoding="utf-8") as f:
+                data : dict[str, Any] = json.load(f)
+            i : int
+            fi : str
+            s : str
+            a : int
+            b : int
+            count : int = 0
+            for s in data['classes']:
+                if s not in self.data['job']:
+                    self.data['job'][s] = 0
+                    count += 1
+            for i in data['npc']:
+                fi = "399{}000".format(str(i).zfill(4))
+                if fi not in self.data['npcs']:
+                    self.data['npcs'][fi] = 0
+                    count += 1
+            for a in range(1, 10):
+                for b in range(1, 4):
+                    k : str = 'enemy'+str(a)+str(b)
+                    for i in data[k]:
+                        fi = str(a)+str(b)+str(i).zfill(5)
+                        if fi not in self.data['enemies']:
+                            self.data['enemies'][fi] = 0
+                            count += 1
+            for e in [('r', '2'), ('sr', '3'), ('ssr', '4')]:
+                k : str = e[0]+'char'
+                if k in data:
+                    for i in data[k]:
+                        fi = "30"+e[1]+str(i).zfill(4)+"000"
+                        if fi not in self.data['characters']:
+                            self.data['characters'][fi] = 0
+                            count += 1
+                k : str = e[0]+'sumn'
+                if k in data:
+                    for i in data[k]:
+                        fi = "20"+e[1]+str(i).zfill(4)+"000"
+                        if fi not in self.data['summons']:
+                            self.data['summons'][fi] = 0
+                            count += 1
+            for i in data['skin']:
+                fi = "371"+str(i).zfill(4)+"000"
+                if fi not in self.data['skins']:
+                    self.data['skins'][fi] = 0
+                    count += 1
+            if count > 0:
+                print(count, "element(s) imported from GBFDAIO. Use -r/--run to update them")
+                self.modified = True
+        except Exception as e:
+            print("Couldn't import GBFDAIO index.json, verify the path is correct")
+            print("Exception:", e)
+
     ### Entry Point #################################################################################################################
 
     # To be called before running anything
@@ -3598,6 +3689,7 @@ class Updater():
             settings.add_argument('-nc', '--nochange', help="disable update of the New category of changelog.json.", action='store_const', const=True, default=False, metavar='')
             settings.add_argument('-nr', '--noresume', help="disable the use of the resume file.", action='store_const', const=True, default=False, metavar='')
             settings.add_argument('-if', '--ignorefilecount', help="ignore known file count when updating elements.", action='store_const', const=True, default=False, metavar='')
+            settings.add_argument('-da', '--gbfdaio', help="import index.json from GBFDAIO.", action='store', nargs=1, type=str, metavar='PATH')
             settings.add_argument('-dg', '--debug', help="enable the debug infos in the progress string.", action='store_const', const=True, default=False, metavar='')
             args : argparse.Namespace = parser.parse_args()
             # settings
@@ -3615,6 +3707,9 @@ class Updater():
                 run_help = False
             if args.debug:
                 self.tasks.debug = True
+            if args.gbfdaio is not None:
+                self.import_gbfdaio(args.gbfdaio[0])
+                run_help = False
             # run
             if args.run:
                 self.tasks.print("Searching for new elements...")

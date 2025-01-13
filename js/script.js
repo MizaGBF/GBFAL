@@ -2648,7 +2648,7 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
                 case "missing-help-wanted": missing = true; i.classList.add("tag-gold"); break;
                 case "sr": case "militis": case "voiced": case "voice-only": i.classList.add("tag-silver"); break;
                 case "r": i.classList.add("tag-bronze"); break;
-                case "n": case "gran": case "djeeta": case "null": case "unknown-boss": i.classList.add("tag-normal"); break;
+                case "n": case "gran": case "djeeta": case "null": case "unknown-element": case "unknown-boss": i.classList.add("tag-normal"); break;
                 case "fire": case "dragon-boss": case "elemental-boss": case "other-boss": i.classList.add("tag-fire"); break;
                 case "water": case "fish-boss": case "core-boss": case "aberration-boss": i.classList.add("tag-water"); break;
                 case "earth": case "beast-boss": case "golem-boss": case "machine-boss": case "goblin-boss": i.classList.add("tag-earth"); break;

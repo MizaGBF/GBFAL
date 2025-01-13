@@ -35,13 +35,13 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```
-GBFAL Updater v3.3
+GBFAL Updater v3.4
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]] [-ne]
                   [-st [LIMIT]] [-ft [FATES]] [-pt] [-ij] [-ej] [-lk] [-fj]
                   [-it] [-et] [-mt] [-au [ADDUNCAP ...]] [-nc] [-nr] [-dg]
 
-Asset Updater v3.3 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.4 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -90,6 +90,7 @@ settings:
   -nr, --noresume       disable the use of the resume file.
   -if, --ignorefilecount
                         ignore known file count when updating elements.
+  -da, --gbfdaio PATH   import index.json from GBFDAIO.
   -dg, --debug          enable the debug infos in the progress string.
 ```  
   
