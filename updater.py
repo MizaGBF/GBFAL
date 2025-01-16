@@ -1817,7 +1817,7 @@ class Updater():
             return
         # get existing classes
         try:
-            job_list : dict[str, str] = json.loads((await self.get(self.JS + "constant/job.js")).decode('utf-8').split("var a=", 1)[1].split(";return", 1)[0].replace('{', '{"').replace(',', '","').replace(':', '":"').replace('}', '"}')) # contain a list of all classes. it misses the id of the outfits however.
+            job_list : dict[str, str] = json.loads((await self.get(self.JS + "constant/job.js")).decode('utf-8').split("=", 1)[1].split(";return", 1)[0].replace('{', '{"').replace(',', '","').replace(':', '":"').replace('}', '"}')) # contain a list of all classes. it misses the id of the outfits however.
         except Exception as ee:
             self.tasks.print("Couldn't initialize the job list:", ee)
             return
