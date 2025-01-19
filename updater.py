@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.4'
+    VERSION = '3.5'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -485,7 +485,7 @@ class Updater():
             "base": ["_cigarette"]
         },
         "3991849000": { # shadowverse cards
-            "unique": ["_03", "_06", "_09", "_10", "_11", "_12", "_19", "_20", "_21", "_22", "_25", "_30", "_31", "_32", "_37", "_40"]
+            "unique": ["_03", "_06", "_09", "_10", "_11", "_12", "_19", "_20", "_21", "_22", "_25", "_30", "_31", "_32", "_37", "_40", "_life_00_red_big", "_life_01_red_big", "_life_02_red_big", "_life_03_red_big", "_life_04_red_big", "_life_05_red_big", "_life_06_red_big", "_life_07_red_big", "_life_08_red_big", "_life_09_red_big", "_life_10_red_big", "_life_11_red_big", "_life_12_red_big", "_life_13_red_big", "_life_14_red_big", "_life_15_red_big", "_life_16_red_big", "_life_17_red_big", "_life_18_red_big", "_life_19_red_big", "_life_00_red", "_life_01_red", "_life_02_red", "_life_03_red", "_life_04_red", "_life_05_red", "_life_06_red", "_life_07_red", "_life_08_red", "_life_09_red", "_life_10_red", "_life_11_red", "_life_12_red", "_life_13_red", "_life_14_red", "_life_15_red", "_life_16_red", "_life_17_red", "_life_18_red", "_life_19_red", "_life_01_big", "_life_02_big", "_life_03_big", "_life_04_big", "_life_05_big", "_life_06_big", "_life_07_big", "_life_08_big", "_life_09_big", "_life_10_big", "_life_11_big", "_life_12_big", "_life_13_big", "_life_14_big", "_life_15_big", "_life_16_big", "_life_17_big", "_life_18_big", "_life_19_big", "_life_20", "_life_01", "_life_02", "_life_03", "_life_04", "_life_05", "_life_06", "_life_07", "_life_08", "_life_09", "_life_10", "_life_11", "_life_12", "_life_13", "_life_14", "_life_15", "_life_16", "_life_17", "_life_18", "_life_19", "_life_20", "_life_gauge_20_PP_10"]
         },
         "3993542000": { # marks
             "unique": ["_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10"]
@@ -588,7 +588,8 @@ class Updater():
             'eventthumb':{},
             "story":{},
             "fate":{},
-            "premium":{}
+            "premium":{},
+            "npc_replace":{}
         }
         self.load() # load self.data NOW
         self.modified : bool = False # if set to true, data.json will be written on the next call of save()
@@ -628,6 +629,17 @@ class Updater():
             self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
             self.tasks.print(e)
             os._exit(0)
+        try:
+            with open('json/manual_npc_replace.json', mode='r', encoding='utf-8') as f:
+                data : dict[str, str] = json.load(f)
+                if not isinstance(data, dict):
+                    raise Exception("Not a dictionary")
+            if self.data["npc_replace"] != data:
+                self.data["npc_replace"] = data
+                self.modified = True
+        except Exception as e:
+            self.tasks.print("Failed to import manual_npc_replace.json")
+            self.tasks.print("Exception:", e)
 
     # make older data.json compatible with newer versions
     def retrocompatibility(self : Updater, data : dict[str, Any]) -> dict[str, Any]:
@@ -2174,9 +2186,10 @@ class Updater():
     # update character/NPC scene data
     async def update_scene(self : Updater, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str], filters : list[str]) -> None:
         ts : TaskStatus
+        file_id : str = self.data['npc_replace'].get(element_id, element_id)
         # check if uncap string exists
         if uncap not in existing:
-            await self.update_scene_check(TaskStatus(1, 1, running=1), element_id, uncap, existing)
+            await self.update_scene_check(TaskStatus(1, 1, running=1), file_id, uncap, existing)
         # quit if npc and no uncap string existing beyond base one
         if index == 'npcs' and uncap != "" and uncap not in existing:
             return
@@ -2193,7 +2206,7 @@ class Updater():
         if len(files) > 0: # for each file
             ts = TaskStatus(1, 1, running=len(files))
             for i in range(len(files)): # make ONE check task
-                self.tasks.add(self.update_scene_check, parameters=(ts, element_id, files[i], existing), priority=1)
+                self.tasks.add(self.update_scene_check, parameters=(ts, file_id, files[i], existing), priority=1)
             # and queue next step
             self.tasks.add(self.update_scene_continue, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes, filters), priority=1)
         else:
@@ -2205,6 +2218,7 @@ class Updater():
         # wait previous tasks completion
         while not ts.finished:
             await asyncio.sleep(1)
+        file_id : str = self.data['npc_replace'].get(element_id, element_id)
         files : list[str] = []
         suffix : str
         # search variations now, make a list of file again
@@ -2220,7 +2234,7 @@ class Updater():
         if len(files) > 0: # for each file
             ts = TaskStatus(1, 1, running=len(files))
             for i in range(len(files)): # make ONE check task
-                self.tasks.add(self.update_scene_check, parameters=(ts, element_id, files[i], existing), priority=1)
+                self.tasks.add(self.update_scene_check, parameters=(ts, file_id, files[i], existing), priority=1)
             # and queue final step
             self.tasks.add(self.update_scene_end, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes), priority=1)
         else: # else go to end
@@ -2231,6 +2245,7 @@ class Updater():
         # wait previous tasks completion
         while not ts.finished:
             await asyncio.sleep(1)
+        file_id : str = self.data['npc_replace'].get(element_id, element_id)
         # check if the data has new strings
         if len(existing) > len(self.data[index][element_id][idx]):
             self.data[index][element_id][idx] = list(existing) # set it
@@ -2246,10 +2261,10 @@ class Updater():
             self.resume['done'][element_id].append(uncap)
 
     # request scene assets
-    async def update_scene_check(self : Updater, ts : TaskStatus, element_id : str, f : str, existing : set[str]) -> None:
-        if await self.head_nx(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(element_id, f)) is not None: # check if scene file exists
+    async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str]) -> None:
+        if await self.head_nx(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(file_id, f)) is not None: # check if scene file exists
             existing.add(f)
-        elif (f == "" or f.split("_")[-1] not in self.SCENE_BUBBLE_FILTER) and await self.head_nx(self.IMG + "sp/raid/navi_face/{}{}.png".format(element_id, f)) is not None: # or check navi_face is the file name matches the SCENE_BUBBLE_FILTER
+        elif (f == "" or f.split("_")[-1] not in self.SCENE_BUBBLE_FILTER) and await self.head_nx(self.IMG + "sp/raid/navi_face/{}{}.png".format(file_id, f)) is not None: # or check navi_face is the file name matches the SCENE_BUBBLE_FILTER
             existing.add(f)
         ts.finish() # task ended
 

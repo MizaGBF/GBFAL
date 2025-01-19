@@ -20,6 +20,7 @@ Others JSON files are used for debug or update purpose:
 - [job_data_export.json](https://github.com/MizaGBF/GBFAL/blob/main/json/job_data_export.json) is used to quickly link some MC jobs to their weapon animations using the built-in CLI.  
 - [manual_lookup.json](https://github.com/MizaGBF/GBFAL/blob/main/json/manual_lookup.json) is used to fill lookup entries without wiki data.  
 - [manual_fate.json](https://github.com/MizaGBF/GBFAL/blob/main/json/manual_fate.json) is used to associate fate episode entries with other elements.  
+- [manual_npc_replace.json](https://github.com/MizaGBF/GBFAL/blob/main/json/manual_npc_replace.json) is used to manually update the internal npc id subtitution list (Used for a handful of collab NPCs).  
   
 More JSON files not specified here might appear in this folder, for development or testing purpose.  
   
@@ -35,13 +36,13 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```
-GBFAL Updater v3.4
+GBFAL Updater v3.5
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]] [-ne]
                   [-st [LIMIT]] [-ft [FATES]] [-pt] [-ij] [-ej] [-lk] [-fj]
                   [-it] [-et] [-mt] [-au [ADDUNCAP ...]] [-nc] [-nr] [-dg]
 
-Asset Updater v3.4 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.5 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit

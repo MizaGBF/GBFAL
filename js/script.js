@@ -2383,6 +2383,8 @@ function loadAssets_main(id, data, target, indexed, asset, files, mc_skycompass,
 
 function loadAssets_scene(id, npcdata, indexed, openscene)
 {
+    if(id in index["npc_replace"]) // manual_npc_replace.json
+        id = index["npc_replace"][id];
     let assets = [
         {name:"Raid Bubble Arts", path:["sp/raid/navi_face/", "png"], icon:"assets/ui/result_icon/bubble.png"},
         {name:"Scene Arts", path:["sp/quest/scene/character/body/", "png"], icon:"assets/ui/result_icon/scene.png"}
