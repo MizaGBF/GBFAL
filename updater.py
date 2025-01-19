@@ -484,6 +484,9 @@ class Updater():
         "3991542000": { # rackam
             "base": ["_cigarette"]
         },
+        "3991105000": {
+            "base": ["_d_all"]
+        },
         "3991849000": { # shadowverse cards
             "unique": ["_03", "_06", "_09", "_10", "_11", "_12", "_19", "_20", "_21", "_22", "_25", "_30", "_31", "_32", "_37", "_40", "_life_00_red_big", "_life_01_red_big", "_life_02_red_big", "_life_03_red_big", "_life_04_red_big", "_life_05_red_big", "_life_06_red_big", "_life_07_red_big", "_life_08_red_big", "_life_09_red_big", "_life_10_red_big", "_life_11_red_big", "_life_12_red_big", "_life_13_red_big", "_life_14_red_big", "_life_15_red_big", "_life_16_red_big", "_life_17_red_big", "_life_18_red_big", "_life_19_red_big", "_life_00_red", "_life_01_red", "_life_02_red", "_life_03_red", "_life_04_red", "_life_05_red", "_life_06_red", "_life_07_red", "_life_08_red", "_life_09_red", "_life_10_red", "_life_11_red", "_life_12_red", "_life_13_red", "_life_14_red", "_life_15_red", "_life_16_red", "_life_17_red", "_life_18_red", "_life_19_red", "_life_01_big", "_life_02_big", "_life_03_big", "_life_04_big", "_life_05_big", "_life_06_big", "_life_07_big", "_life_08_big", "_life_09_big", "_life_10_big", "_life_11_big", "_life_12_big", "_life_13_big", "_life_14_big", "_life_15_big", "_life_16_big", "_life_17_big", "_life_18_big", "_life_19_big", "_life_20", "_life_01", "_life_02", "_life_03", "_life_04", "_life_05", "_life_06", "_life_07", "_life_08", "_life_09", "_life_10", "_life_11", "_life_12", "_life_13", "_life_14", "_life_15", "_life_16", "_life_17", "_life_18", "_life_19", "_life_20", "_life_gauge_20_PP_10"]
         },
