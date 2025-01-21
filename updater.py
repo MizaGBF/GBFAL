@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.6'
+    VERSION = '3.7'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -400,164 +400,23 @@ class Updater():
     # others
     QUEUE_KEY = ['uncap_queue']
     STRING_CHAR = string.ascii_lowercase + string.digits
-    # event date/id
-    MISSING_EVENTS = ["201017", "211017", "221017", "231017", "241017", "251017", "261017", "271017", "200214", "210214", "220214", "230214", "240214", "250214", "260214", "270214", "200314", "210316", "220304", "220313", "230303", "230314", "240305", "240312", "201216", "211216", "221216", "231216", "241216", "251216", "261216", "271216", "200101", "210101", "220101", "230101", "240101", "250101", "260101", "270101"] + ["131201", "140330", "160430", "161031", "161227", "170501", "170801", "171129", "180301", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181214", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304", "241224"]
-    SPECIAL_EVENTS = { # special event id <-> file id
-       "221121":"221121_arcarum_maria",
-       "230322":"230322_arcarum_caim",
-       "230515":"230515_arcarum_nier",
-       "230607":"230607_arcarum_estarriola",
-       "230723":"230723_arcarum_fraux",
-       "230816":"230816_arcarum_lobelia",
-       "231007":"231007_arcarum_geisenborger",
-       "231114":"231114_arcarum_haaselia",
-       "240122":"240122_arcarum_alanaan",
-       "240322":"240322_arcarum_katzelia",
-       "241017":"20241017",
-       "241206":"terra_anre_feower",
-       # I made up the id on the left below
-       "babyl0":"babeel_01",
-       "dread0":"dreadbarrage",
-       "alchm0":"kaitaku_renkin_hwop",
-       "sandb0":"arcarum_sandbox"
-    }
-    # for data matching during update
-    CUT_CONTENT = ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"] # beta arcarum ids
-    SHARED_NAMES = [["2030081000", "2030082000", "2030083000", "2030084000"], ["2030085000", "2030086000", "2030087000", "2030088000"], ["2030089000", "2030090000", "2030091000", "2030092000"], ["2030093000", "2030094000", "2030095000", "2030096000"], ["2030097000", "2030098000", "2030099000", "2030100000"], ["2030101000", "2030102000", "2030103000", "2030104000"], ["2030105000", "2030106000", "2030107000", "2030108000"], ["2030109000", "2030110000", "2030111000", "2030112000"], ["2030113000", "2030114000", "2030115000", "2030116000"], ["2030117000", "2030118000", "2030119000", "2030120000"], ["2040236000", "2040313000", "2040145000"], ["2040237000", "2040314000", "2040146000"], ["2040238000", "2040315000", "2040147000"], ["2040239000", "2040316000", "2040148000"], ["2040240000", "2040317000", "2040149000"], ["2040241000", "2040318000", "2040150000"], ["2040242000", "2040319000", "2040151000"], ["2040243000", "2040320000", "2040152000"], ["2040244000", "2040321000", "2040153000"], ["2040245000", "2040322000", "2040154000"], ["1040019500", '1040008000', '1040008100', '1040008200', '1040008300', '1040008400'], ["1040112400", '1040107300', '1040107400', '1040107500', '1040107600', '1040107700'], ["1040213500", '1040206000', '1040206100', '1040206200', '1040206300', '1040206400'], ["1040311500", '1040304900', '1040305000', '1040305100', '1040305200', '1040305300'], ["1040416400", '1040407600', '1040407700', '1040407800', '1040407900', '1040408000'], ["1040511800", '1040505100', '1040505200', '1040505300', '1040505400', '1040505500'], ["1040612300", '1040605000', '1040605100', '1040605200', '1040605300', '1040605400'], ["1040709500", '1040704300', '1040704400', '1040704500', '1040704600', '1040704700'], ["1040811500", '1040804400', '1040804500', '1040804600', '1040804700', '1040804800'], ["1040911800", '1040905000', '1040905100', '1040905200', '1040905300', '1040905400'], ["2040306000","2040200000"]]
-    # GW skin stuff
-    UNIQUE_SKIN = ["311301", "311302"]
-    # Special lookup
-    SPECIAL_LOOKUP = { # special elements
-        "3020065000": "R brown poppet trial",
-        "3030158000": "SR blue poppet trial",
-        "3040097000": "SSR sierokarte trial",
-        "2030004000": "fire SR cut-content",
-        "2030014000": "dark SR cut-content",
-        "2020001000": "earth SR goblin cut-content",
-        "3040114000": "SSR cut-content",
-        # missing skins
-        "3710196000": "cassius parasol and hakama of prosperity",
-        "3710117000": "meteon a comet's calm",
-        "3710183000": "young cat black with golden eyes",
-        "3710184000": "young cat ginger tabby",
-        "3710182000": "young cat milky white shorthair",
-        "3710015000": "lina"
-    }
-    MALINDA = "3030093000" # Malinda ID
-    # Scene string
-    SCENE_SUFFIXES = {
-        "default": {
-            "base": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_nalhe", "_school", "_astral", "_battle", "_off", "_race", "_cavalry", "_guardian", "_cook", "_shadow", "_orange", "_blue", "_green", "_nude", "_mask", "_doll", "_girl", "_cow", "_two", "_three", "_2021", "_2022", "_2023", "_2024"],
-            
-            "main": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_10", "_up", "_laugh", "_laugh_small", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_roar", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_painful3", "_painful4", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_despair", "_despair2", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_shy3", "_shy4", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_jito", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_stance", "_hood", "_letter", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_fight", "_2021", "_2022", "_2023", "_2024", "_2025", "_all", "_all2", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_move", "_move2", "_jump", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_ghost", "_stand", "_two", "_three", "_stand", "_eyeline"],
-            
-            "unique": ["_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3", "_summer", "_summer2", "_halloween", "_sturm", "_rabbit"],
-            
-            "end": ["", "_a", "_b", "_b1", "_b2", "_b3", "_speed", "_line", "_up", "_up_speed", "_up_damage", "_up_line", "_up2", "_up3", "_up4", "_down", "_shadow", "_shadow2", "_shadow3", "_damage", "_damage_up", "_light", "_up_light", "_light_speed", "_vanish", "_vanish1", "_vanish2", "_fadein1", "_blood", "_up_blood"]
-        },
-        "3050000000": { # lyria
-            "base": ["_muffler", "_swim"],
-            "unique": ["_jewel", "_jewel2", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5"]
-        },
-        "3050001000": { # vyrn
-            "unique": ["_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5"]
-        },
-        "3992852000": { # gold slime
-            "unique": ["_jewel"]
-        },
-        "3990219000": { # mc (gran)
-            "base": ["_dancer", "_mechanic", "_glory", "_kengo", "_monk", "_lumberjack", "_robinhood", "_horse", "_paladin", "_panakeia", "_manadiver", "_king", "_sumou", "_eternals", "_eternals2"]
-        },
-        "3990002000": { # bk
-            "base": ["_m"],
-            "main": ["_off"]
-        },
-        "3030280000": { # sr joi
-            "main": ["_off"]
-        },
-        "3030006000": { # sr io
-            "base": ["_new"]
-        },
-        "3990326000": { # veight
-            "base": ["_knife"]
-        },
-        "3991542000": { # rackam
-            "base": ["_cigarette"]
-        },
-        "3991105000": {
-            "base": ["_d_all"]
-        },
-        "3991849000": { # shadowverse cards
-            "unique": ["_03", "_06", "_09", "_10", "_11", "_12", "_19", "_20", "_21", "_22", "_25", "_30", "_31", "_32", "_37", "_40", "_life_00_red_big", "_life_01_red_big", "_life_02_red_big", "_life_03_red_big", "_life_04_red_big", "_life_05_red_big", "_life_06_red_big", "_life_07_red_big", "_life_08_red_big", "_life_09_red_big", "_life_10_red_big", "_life_11_red_big", "_life_12_red_big", "_life_13_red_big", "_life_14_red_big", "_life_15_red_big", "_life_16_red_big", "_life_17_red_big", "_life_18_red_big", "_life_19_red_big", "_life_00_red", "_life_01_red", "_life_02_red", "_life_03_red", "_life_04_red", "_life_05_red", "_life_06_red", "_life_07_red", "_life_08_red", "_life_09_red", "_life_10_red", "_life_11_red", "_life_12_red", "_life_13_red", "_life_14_red", "_life_15_red", "_life_16_red", "_life_17_red", "_life_18_red", "_life_19_red", "_life_01_big", "_life_02_big", "_life_03_big", "_life_04_big", "_life_05_big", "_life_06_big", "_life_07_big", "_life_08_big", "_life_09_big", "_life_10_big", "_life_11_big", "_life_12_big", "_life_13_big", "_life_14_big", "_life_15_big", "_life_16_big", "_life_17_big", "_life_18_big", "_life_19_big", "_life_20", "_life_01", "_life_02", "_life_03", "_life_04", "_life_05", "_life_06", "_life_07", "_life_08", "_life_09", "_life_10", "_life_11", "_life_12", "_life_13", "_life_14", "_life_15", "_life_16", "_life_17", "_life_18", "_life_19", "_life_20", "_life_gauge_20_PP_10"]
-        },
-        "3993542000": { # marks
-            "unique": ["_02", "_03", "_04", "_05", "_06", "_07", "_08", "_09", "_10"]
-        },
-        "3990135000": { # thug
-            "base": ["_town"],
-            "main": ["_thug"]
-        },
-        "3990162000": { # gastalga
-            "main": ["_child1", "_child2"]
-        },
-        "3990465000": { # teepo
-            "main": ["_chara"]
-        },
-        "3992265000": { # teepo
-            "base": ["_helicopter"]
-        },
-        "3991666000": { # seox
-            "base": ["_mask", "_halfmask"]
-        },
-        "3991829000": { # anthony
-            "unique": ["_narrator"]
-        },
-        "3992169000": { # tsubasa
-            "unique": ["_skin", "_skin_01", "_skin_02", "_skin_03"]
-        },
-        "3992888000": { # makura
-            "unique": ["_rabbit1", "_rabbit2", "_rabbit3", "_rabbit4"]
-        },
-        "3993539000": { # miss heaty
-            "unique": ["_uncontroll"]
-        },
-        "3040073000": { # ferry
-            "unique": ["_beppo", "_beppo_jiji", "_jiji", "_foogee", "_foogee_nicola", "_nicola", "_momo"]
-        },
-        "3990454000": { # ichiro ogami
-            "unique": ["_split"]
-        },
-        "3993628000": { # koku
-            "main": ["_blue", "_cyan", "_yellow", "_red", "_green", "_purple"]
-        },
-        "3040571000": { # koku
-            "main": ["_blue", "_cyan", "_yellow", "_red", "_green", "_purple"]
-        }
-    }
-    SCENE_SUFFIXES["3990220000"] = SCENE_SUFFIXES["3990219000"] # djeeta = gran
-    SCENE_SUFFIXES["3990024000"] = SCENE_SUFFIXES["3990135000"] # thug 2 = thug
-    SCENE_SUFFIXES["3990031000"] = SCENE_SUFFIXES["3990135000"] # thug 3 = thug
-    SCENE_SUFFIXES["3992257000"] = SCENE_SUFFIXES["3992265000"] # helicopter (auguste of the dead)
-    SCENE_SUFFIXES["3040209000"] = SCENE_SUFFIXES["3040073000"] # ferry
-    SCENE_SUFFIXES["3991804000"] = SCENE_SUFFIXES["3040073000"] # ferry
-    
-    SCENE_BUBBLE_FILTER = set([k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0])
-    
-    # MSQ recap chapter lookup table
-    MSQ_RECAPS = { # left is a special made up id, right file_id
-        "r00" : "",
-        "r01" : "_cp1-12",
-        "r02" : "_cp13-28",
-        "r03" : "_cp29-54",
-        "r04" : "_cp55-63",
-        "r05" : "_cp64-79",
-        "r06" : "_cp80-89",
-        "r07" : "_cp90-100",
-        "r08" : "_cp101-114",
-        "r09" : "_cp115-132"
-    }
     
     def __init__(self : Updater):
+        # load constants
+        try:
+            with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
+                data : dict[str, Any] = json.load(f)
+                k : str
+                for k, v in data.items():
+                    setattr(self, k, v)
+            # extra, SCENE_BUBBLE_FILTER for performance
+            setattr(self, 'SCENE_BUBBLE_FILTER', set([k[1:] for k in self.SCENE_SUFFIXES["default"]["end"] if len(k) > 0]))
+        except Exception as e:
+            print("Failed to load and set json/manual_constants.json")
+            print("Please fix the file content and try again")
+            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            os._exit(0)
+        # other init
         self.client : aiohttp.ClientSession|None = None # the http client
         self.flags : Flags = Flags() # to contain and manage various flag values
         self.http_sem : asyncio.Semaphore = asyncio.Semaphore(self.HTTP_CONN_LIMIT) # http semaphor to limit http connections
@@ -1656,6 +1515,7 @@ class Updater():
                     ts.good()
                     edited = True
         if edited:
+            self.modified = True
             self.data['partners'][element_id] = data
             for i in range(len(data)):
                 self.data['partners'][element_id][i] = list(set(self.data['partners'][element_id][i] + data[i]))
@@ -1994,7 +1854,7 @@ class Updater():
                 self.tasks.print("Job Data Import finished with success")
             else:
                 self.tasks.print("An error occured, exiting to not compromise the data")
-                exit(0)
+                os._exit(0)
 
     # task to verify job_data_export data and import it
     async def job_import_task(self : Updater, jid : str, s : Any, mode : int) -> None:
@@ -3305,7 +3165,7 @@ class Updater():
                             self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
                         check_shared = True
                     if check_shared:
-                        for l in self.SHARED_NAMES:
+                        for l in self.SHARED_LOOKUP:
                             if k not in l: continue
                             for m in l:
                                 if m != k and m in self.data['lookup'] and m is not None and self.data['lookup'][m] is not None:
@@ -3426,7 +3286,7 @@ class Updater():
     # simply call update_element on each partner id
     async def update_all_partner(self : Updater) -> None:
         for element_id in self.data['partners']:
-            self.tasks.add(self.update_element, parameters=(element_id, ))
+            self.tasks.add(self.update_element, parameters=(element_id, None))
         await self.tasks.start()
 
     # Update changelog.json stat string
