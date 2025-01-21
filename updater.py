@@ -3560,7 +3560,7 @@ class Updater():
             secondary.add_argument('-pt', '--partner', help="update all parner content. Time consuming.", action='store_const', const=True, default=False, metavar='')
             secondary.add_argument('-mn', '--missingnpc', help="search for missing NPCs. Time consuming.", action='store_const', const=True, default=False, metavar='')
             
-            maintenance = parser.add_argument_group('maintenance', 'commands to update some specific data.')
+            maintenance = parser.add_argument_group('maintenance', 'commands to perform specific maintenance tasks.')
             maintenance.add_argument('-ij', '--importjob', help="import data from job_data_export.json.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-ej', '--exportjob', help="export data to job_data_export.json.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-lk', '--lookup', help="import and update manual_lookup.json and fetch the wiki to update the lookup table.", action='store_const', const=True, default=False, metavar='')
@@ -3570,7 +3570,7 @@ class Updater():
             maintenance.add_argument('-mt', '--maintenance', help="basic tasks to keep the data up-to-date.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
             
-            settings = parser.add_argument_group('settings', 'commands to update some specific data.')
+            settings = parser.add_argument_group('settings', 'commands to alter the update behavior.')
             settings.add_argument('-au', '--adduncap', help="add elements to be updated during the next run.", nargs='*', default=None)
             settings.add_argument('-nc', '--nochange', help="disable update of the New category of changelog.json.", action='store_const', const=True, default=False, metavar='')
             settings.add_argument('-nr', '--noresume', help="disable the use of the resume file.", action='store_const', const=True, default=False, metavar='')

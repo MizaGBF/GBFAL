@@ -72,7 +72,7 @@ secondary:
   -mn, --missingnpc     search for missing NPCs. Time consuming.
 
 maintenance:
-  commands to update some specific data.
+  commands to perform specific maintenance tasks.
 
   -ij, --importjob      import data from job_data_export.json.
   -ej, --exportjob      export data to job_data_export.json.
@@ -84,7 +84,7 @@ maintenance:
   -js, --json           import all manual JSON files.
 
 settings:
-  commands to update some specific data.
+  commands to alter the update behavior.
 
   -au, --adduncap [ADDUNCAP ...]
                         add elements to be updated during the next run.
