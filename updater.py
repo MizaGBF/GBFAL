@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.5'
+    VERSION = '3.6'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -741,7 +741,7 @@ class Updater():
                 if self.stat_string is not None:
                     stat = self.stat_string
                 with open('json/changelog.json', mode='w', encoding='utf-8') as outfile: # the timestamp is upated below
-                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'stat':stat, 'issues':issues, 'help':help}, outfile)
+                    json.dump({'timestamp':int(datetime.now(timezone.utc).timestamp()*1000), 'new':new, 'stat':stat, 'issues':issues, 'help':help}, outfile, indent=2, separators=(',', ':'), ensure_ascii=False)
                 if self.update_changelog:
                     self.tasks.print("data.json and changelog.json updated")
                 else:
@@ -982,8 +982,6 @@ class Updater():
                         if j == len(paths) - 1: # if it was the last path
                             ts.bad()
 
-    # goal 8102532
-
     # Search for enemies
     async def search_enemy(self : Updater, ts : TaskStatus, prefix : str) -> None:
         while not ts.complete:
@@ -1151,23 +1149,23 @@ class Updater():
         # Call function corresponding the index
         match index:
             case 'background':
-                self.tasks.add(self.update_background, parameters=(element_id,))
+                await self.update_background(element_id)
             case 'summons':
-                self.tasks.add(self.update_summon, parameters=(element_id,))
+                await self.update_summon(element_id)
             case 'weapons':
-                self.tasks.add(self.update_weapon, parameters=(element_id,))
+                await self.update_weapon(element_id)
             case 'npcs':
-                self.tasks.add(self.update_npc, parameters=(element_id,))
+                await self.update_npc(element_id)
             case 'partners':
                 ts : TaskStatus = TaskStatus(1000, -1) # partner is separated in ten, because of the heavy load
                 for i in range(10):
                     self.tasks.add(self.update_partner, parameters=(ts, element_id))
             case 'characters'|'skins':
-                self.tasks.add(self.update_character, parameters=(element_id,))
+                await self.update_character(element_id)
             case 'enemies':
-                self.tasks.add(self.update_enemy, parameters=(element_id,))
+                await self.update_enemy(element_id)
             case 'job':
-                self.tasks.add(self.update_job, parameters=(element_id,))
+                await self.update_job(element_id)
             case _:
                 pass
 
@@ -1341,27 +1339,38 @@ class Updater():
 
     # Art check system for characters. Detect gendered arts, etc...
     async def artCheck(self : Updater, element_id : str, style : str, uncaps : list[str]) -> dict[str, list[bool]]:
-        tasks = {}
         if element_id.startswith("38"):
             uncaps = ["01", "02", "03", "04"]
-        else:
-            uncaps = uncaps + ["81", "82", "83", "84", "85"] + (["86", "87", "88", "89"] if element_id == "3030280000" else []) + ["91", "92", "93", "94"]
-        async with asyncio.TaskGroup() as tg: # not pretty but we use a taskgroup to speed things here
-            for uncap in uncaps:
-                for g in ["_1", ""]:
-                    for m in ["_101", ""]:
-                        for n in ["_01", ""]:
-                            s = "_" + uncap + style + g + m + n
-                            tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(self.IMG + "sp/assets/npc/raid_normal/{}{}.jpg".format(element_id, s)))
-        flags = {}
-        for s, t in tasks.items():
-            if t.result() is not None:
-                uncap, g, m, n = s
-                if uncap not in flags:
-                    flags[uncap] = [False, False, False]
-                flags[uncap][0] = flags[uncap][0] or (g == "_1")
-                flags[uncap][1] = flags[uncap][1] or (m == "_101")
-                flags[uncap][2] = flags[uncap][2] or (n == "_01")
+        flags : dict[str, list[bool]] = {}
+        i : int
+        for i in [0, 80, 90]:
+            j : int = 1
+            while j < 9:
+                uncap : str = str(i + j).zfill(2)
+                if (uncap[0] == "0" and uncap not in uncaps) or (uncap[0] != "0" and element_id.startswith("38")):
+                    break
+                tasks : dict[tuple[str, str, str, str], asyncio.Task] = {}
+                g : str
+                m : str
+                n : str
+                async with asyncio.TaskGroup() as tg:
+                    for g in ["_1", ""]: # gender
+                        for m in ["_101", ""]: # multi
+                            for n in ["_01", ""]: # null
+                                tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(self.IMG + "sp/assets/npc/raid_normal/{}_{}{}{}{}{}.jpg".format(element_id, uncap, style, g, m, n)))
+                positive : bool = False
+                for tup, task in tasks.items():
+                    if task.result() is not None:
+                        positive = True
+                        uncap, g, m, n = tup
+                        if uncap not in flags:
+                            flags[uncap] = [False, False, False]
+                        flags[uncap][0] = flags[uncap][0] or (g == "_1")
+                        flags[uncap][1] = flags[uncap][1] or (m == "_101")
+                        flags[uncap][2] = flags[uncap][2] or (n == "_01")
+                if not positive:
+                    break
+                j += 1
         return flags
 
     # Update character and skin data
