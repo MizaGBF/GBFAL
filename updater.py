@@ -1345,7 +1345,7 @@ class Updater():
         if element_id.startswith("38"):
             uncaps = ["01", "02", "03", "04"]
         else:
-            uncaps = uncaps + ["81", "82", "83", "91", "92", "93"]
+            uncaps = uncaps + ["81", "82", "83", "84", "85"] + (["86", "87", "88", "89"] if element_id == "3030280000" else []) + ["91", "92", "93", "94"]
         async with asyncio.TaskGroup() as tg: # not pretty but we use a taskgroup to speed things here
             for uncap in uncaps:
                 for g in ["_1", ""]:
@@ -2248,7 +2248,6 @@ class Updater():
         # wait previous tasks completion
         while not ts.finished:
             await asyncio.sleep(1)
-        file_id : str = self.data['npc_replace'].get(element_id, element_id)
         # check if the data has new strings
         if len(existing) > len(self.data[index][element_id][idx]):
             self.data[index][element_id][idx] = list(existing) # set it
