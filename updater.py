@@ -3570,7 +3570,7 @@ class Updater():
             maintenance.add_argument('-mt', '--maintenance', help="basic tasks to keep the data up-to-date.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
             
-            settings = parser.add_argument_group('settings', 'commands to alter the update behavior.')
+            settings = parser.add_argument_group('settings', 'commands to alter the updater behavior.')
             settings.add_argument('-au', '--adduncap', help="add elements to be updated during the next run.", nargs='*', default=None)
             settings.add_argument('-nc', '--nochange', help="disable update of the New category of changelog.json.", action='store_const', const=True, default=False, metavar='')
             settings.add_argument('-nr', '--noresume', help="disable the use of the resume file.", action='store_const', const=True, default=False, metavar='')
