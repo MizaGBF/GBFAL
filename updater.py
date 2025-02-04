@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.7'
+    VERSION = '3.8'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -382,7 +382,7 @@ class Updater():
     FATE_OTHER_CONTENT = 3
     FATE_LINK = 4
     # buff suffix list
-    BUFF_LIST_EXTENDED =  ["_1", "_10", "_11", "_101", "_110", "_111", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
+    BUFF_LIST_EXTENDED =  ["_1", "_2", "_10", "_11", "_101", "_110", "_111", "_20", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
     BUFF_LIST =  BUFF_LIST_EXTENDED.copy()
     BUFF_LIST.pop(BUFF_LIST.index("1"))
     # job update

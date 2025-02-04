@@ -3070,11 +3070,13 @@ function getBuffSets(id, data, assets, allow_open) // MESS WARNING!! buffs are a
         data[0].push(""+parseInt(id));
     let v1 = variations.includes("1");
     let vu1 = variations.includes("_1");
+    let vu2 = variations.includes("_2");
     let vu10 = variations.includes("_10");
     let vu11 = variations.includes("_11");
     let vu101 = variations.includes("_101");
     let vu110 = variations.includes("_110");
     let vu111 = variations.includes("_111");
+    let vu20 = variations.includes("_20");
     let vu30 = variations.includes("_30");
     let vu1u1 = variations.includes("_1_1");
     let vu2u1 = variations.includes("_2_1");
@@ -3089,7 +3091,7 @@ function getBuffSets(id, data, assets, allow_open) // MESS WARNING!! buffs are a
             data[data.length-1].push(""+iid+"_"+i);
         assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_1.png", open:allow_open});
     }
-    else if(vu1)
+    else if(vu1 || vu2)
     {
         data.push([]);
         for(let i = 0; i < 10; ++i)
@@ -3142,6 +3144,13 @@ function getBuffSets(id, data, assets, allow_open) // MESS WARNING!! buffs are a
                     data[data.length-1].push(""+iid+"_"+i);
                 assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_7.png"});
             }
+        }
+        else if(vu20)
+        {
+            data.push([]);
+            for(let i = 10; i < 21; ++i)
+                data[data.length-1].push(""+iid+"_"+i);
+            assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_4.png"});
         }
         else if(vu101)
         {
