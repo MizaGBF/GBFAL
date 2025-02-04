@@ -3515,8 +3515,8 @@
 "2100163":"pidri $$earth",
 "2100172":"rhyreeth $$water",
 "2100181":"fog fungus $$earth",
-"2100182":null,
-"2100183":"fog fungus $$earth",
+"2100182":"racoonashroom $$earth",
+"2100183":"fog fungus racoonashroom $$earth",
 "2100193":"custos citrullus $$earth",
 "2100203":"old treant $$wind",
 "2100213":"flameshroom $$fire",
@@ -3556,8 +3556,8 @@
 "2100543":"bella donna $$wind",
 "2100553":"cursed treant $$wind",
 "2100563":"cursed treant $$dark",
-"2100572":null,
-"2100583":null,
+"2100572":"nopal $$earth",
+"2100583":"racoonashroom $$earth",
 "2200011":"air devil $$wind",
 "2200012":"spearsting $$wind",
 "2200013":"pursuer $$wind",
@@ -5927,8 +5927,8 @@
 "9102562":"true dragon chimera milvel collab $$wind",
 "9102563":"true dragon chimera milvel collab $$wind",
 "9102573":"the last kingmaker $$earth",
-"9102583":null,
+"9102583":"fate averruncus $$earth",
 "9102593":"phoenix $$null",
 "9102603":"farbigrabe $$fire",
-"9102613":null
+"9102613":"chimera flock $$earth"
 }
