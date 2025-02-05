@@ -37,13 +37,13 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```
-GBFAL Updater v3.9
+GBFAL Updater v3.10
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]] [-ne]
                   [-st [LIMIT]] [-ft [FATES]] [-pt] [-ij] [-ej] [-lk] [-fj]
                   [-it] [-et] [-mt] [-au [ADDUNCAP ...]] [-nc] [-nr] [-dg]
 
-Asset Updater v3.9 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.10 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -80,7 +80,13 @@ maintenance:
   -fj, --fatejson       import and manual_fate.json.
   -it, --importthumb    import data from manual_event_thumbnail.json.
   -et, --exportthumb    export data to manual_event_thumbnail.json.
-  -mt, --maintenance    basic tasks to keep the data up-to-date.
+  -mt, --maintenance    run all existing maintenance tasks.
+  -mb, --maintenancebuff
+                        maintenance task to check existing buffs for new icons.
+  -ms, --maintenancesky
+                        maintenance task to check sky compass arts for existing events.
+  -mu, --maintenancenpcthumbnail
+                        maintenance task to check NPC thumbnails for existing NPCs.
   -js, --json           import all manual JSON files.
 
 settings:
@@ -104,7 +110,7 @@ settings:
 > Use `-lk` to update the string lookup and import `json/manual_lookup.json`.  
 > Use `-fj` to force import of `json/manual_fate.json`.  
 > Use `-it` to force import of `json/manual_event_thumbnail.json`.  
-> Use `-mt` to force an update of some element (this is usually automatically used by `-r`).  
+> Use `-mt` to check for updates of existing elements (An equivalent is usually automatically run by `-r` except for buff icons, so it shouldn't be needed. You can just run `-mb` once in a while for the buffs.).  
   
 ### Pause  
 You can pause `updater.py` with a simple `CTRL+C`. It opens a CLI letting you save, exit or resume with text commands.  

@@ -2010,7 +2010,7 @@ function loadDummy(id, target, allow_open)// minimal load of an element not inde
             data = [[JSON.stringify(parseInt(id))]];
             break;
         case "buffs":
-            data = [[JSON.stringify(parseInt(id))],["_1","_10"]];
+            data = [[JSON.stringify(parseInt(id))],["","_1","_2","_10","_11","_101","_110","_111","_20", "_30","1","_1_1", "_2_1","_0_10","_1_10","_1_20","_2_10"]];
             break;
         default:
             break;

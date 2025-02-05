@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.9'
+    VERSION = '3.10'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -382,7 +382,7 @@ class Updater():
     FATE_OTHER_CONTENT = 3
     FATE_LINK = 4
     # buff suffix list
-    BUFF_LIST_EXTENDED =  ["", "_1", "_2", "_10", "_11", "_101", "_110", "_111", "_20", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
+    BUFF_LIST_EXTENDED =  ["", "_1", "_2", "_10", "_11", "_101", "_110", "_111", "_20", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10", "_1_20", "_2_10"]
     BUFF_LIST =  BUFF_LIST_EXTENDED.copy()
     BUFF_LIST.pop(BUFF_LIST.index("1"))
     # job update
@@ -660,14 +660,16 @@ class Updater():
         st = manifest.find('manifest:') + len('manifest:')
         ed = manifest.find(']', st) + 1
         # format and load as json
-        data = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
+        data : dict[str, str] = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
         # list image srcs
-        res = [src for l in data if (src := l['src'].split('?')[0].split('/')[-1])]
+        res : list[str] = [src for l in data if (src := l['src'].split('?')[0].split('/')[-1])]
         # check if at least one file is accessible
         if verify_file:
+            path : list[str] = [self.IMG, "sp/cjs/", ""]
             for k in res:
+                path[2] = k
                 try:
-                    await self.head(self.IMG + "sp/cjs/" + k)
+                    await self.head("".join(path))
                     return res
                 except:
                     pass
@@ -677,7 +679,7 @@ class Updater():
     # test if the wiki is usable
     async def test_wiki(self : Updater) -> bool:
         try:
-            t = (await self.get_wiki("https://gbf.wiki")).decode('utf-8') # request main page
+            t : str = (await self.get_wiki("https://gbf.wiki")).decode('utf-8') # request main page
             if "<p id='status'>50" in t or 'gbf.wiki unavailable' in t: # check if down
                 return False
             return True
@@ -904,95 +906,137 @@ class Updater():
         while not ts.complete:
             i : int = ts.get_next_index()
             fi : str = str(i).zfill(4) # formatted id
-            if False:#fi in self.data['buffs']: # already indexed
+            if fi in self.data['buffs']: # already indexed
                 ts.good()
                 continue
             found : bool = False
-            slist = self.BUFF_LIST_EXTENDED if i >= 1000 else self.BUFF_LIST
+            slist : list[str] = self.BUFF_LIST_EXTENDED if i >= 1000 else self.BUFF_LIST
+            path : list[str] = [self.IMG, "sp/ui/icon/status/x64/status_", str(i), "", ".png"]
             for s in slist:
-                if await self.update_buff_check(str(i) + s):
+                path[3] = s
+                headers = await self.head_nx("".join(path))
+                if headers is not None and 'content-length' in headers and int(headers['content-length']) >= 200:
+                    self.data['buffs'][fi] = [[path[2]], [s]]
                     found = True
                     break
             if found:
                 ts.good()
                 self.tasks.print("Found:", fi, "for index:", "buffs")
-                self.tasks.add(self.update_buff, parameters=(fi,), priority=4) # call update task for that element
+                self.prepare_update_buff(fi, priority=3) # call update task for that element
             else:
                 ts.bad()
 
-    # Update a buff data
-    async def update_buff(self : Updater, element_id : str) -> None:
+    # Prepare the update_buff tasks
+    def prepare_update_buff(self : Updater, element_id : str, *, priority : int = -1) -> None:
         i : int = int(element_id)
         fi : str = str(i)
-        known : set[str]
-        data : list[list[str]] = self.data['buffs'].get(element_id, [[], []]) # prepare container
-        known : set[str] = set(data[1])
-        modified : bool = False
+        known : set[str] = set(self.data['buffs'].get(element_id, [[], []])[1])
+        path : list[str] = [self.IMG, "sp/ui/icon/status/x64/status_", fi, "", ".png"]
+        ts : TaskStatus = TaskStatus(1, 1, running=12)
         
-        if "" not in known:
-            if await self.update_buff_check(fi):
-                data[1].append("")
-                known.add("")
-                modified = True
-        
+        # add tasks to verify variations
+        for mode in range(12):
+            if mode == 2 and i < 1000: # skip this one for this ID
+                ts.finish()
+                continue
+            self.tasks.add(self.update_buff, parameters=(mode, ts, path, element_id, fi, known), priority=priority)
+
+    # Subroutine of prepare_update_buff to check for varitions
+    # Mode control which variation to check
+    # Mode 2 is only for IDs lesser than 1000
+    async def update_buff(self : Updater, mode : int, ts : TaskStatus, path : list[str], element_id : str, fi : str, known : set[str]) -> None:
         err : int = 0
         n : int = 0
         m : int
-        suffix : str
-        # _1, _2...
-        while err < 3 and n < 10:
-            suffix = "_" + str(n)
-            if suffix in known:
-                err = 0
-            else:
-                if await self.update_buff_check(fi + suffix):
-                    data[1].append(suffix)
-                    known.add(suffix)
-                    modified = True
-                    err = 0
-                else:
-                    err += 1
-            n += 1
-        
-        if i > 1000:
-            # 1, 2...
-            n = 0
-            err = 0
-            while err < 3:
-                suffix = str(n)
-                if suffix in known:
-                    err = 0
-                else:
-                    if await self.update_buff_check(fi + suffix):
-                        data[1].append(suffix)
-                        known.add(suffix)
-                        modified = True
+        match mode:
+            case 0:
+                # default:
+                if "" not in known:
+                    path[3] = ""
+                    if await self.head_nx("".join(path)) is not None:
+                        known.add("")
+            case 1:
+                # _1, _2...
+                while err < 3 and n < 10:
+                    path[3] = "_" + str(n)
+                    if path[3] in known:
                         err = 0
                     else:
-                        err += 1
-                n += 1
-        
-        for x in range(1, 10):
-            # _10, _11, _20, _30...
-            start : int = 10 * x
-            n = 10 * x
-            m = n + 10
-            err = 0
-            while err < 3 and n < m:
-                suffix = "_" + str(n)
-                if suffix in known:
-                    err = 0
-                else:
-                    if await self.update_buff_check(fi + suffix):
-                        data[1].append(suffix)
-                        known.add(suffix)
-                        modified = True
+                        if await self.head_nx("".join(path)) is not None:
+                            known.add(path[3])
+                            err = 0
+                        else:
+                            err += 1
+                    n += 1
+            case 2:
+                # 1, 2...
+                while err < 3:
+                    path[3] = str(n)
+                    if path[3] in known:
                         err = 0
                     else:
-                        err += 1
-                n += 1
-            
-            if x < 6: # might increase this limit later if needed
+                        if await self.head_nx("".join(path)) is not None:
+                            known.add(path[3])
+                            err = 0
+                        else:
+                            err += 1
+                    n += 1
+            case 3:
+                errlimit : int = 10 if element_id in ["3000", "1008"] else 2
+                for x in range(1, 10):
+                    # _10, _11, _20, _30...
+                    start : int = 10 * x
+                    n = 10 * x
+                    m = n + 10
+                    err = 0
+                    while err < errlimit and n < m:
+                        path[3] = "_" + str(n)
+                        if path[3] in known:
+                            err = 0
+                        else:
+                            if await self.head_nx("".join(path)) is not None:
+                                known.add(path[3])
+                                err = 0
+                            else:
+                                err += 1
+                        n += 1
+            case 4:
+                for x in range(1, 5): # stopping at _4XX included
+                    # _101, _102...
+                    n = 0
+                    err = 0
+                    while err < 3:
+                        path[3] = "_" + str(x) + str(n).zfill(2)
+                        if path[3] in known:
+                            err = 0
+                        else:
+                            if await self.head_nx("".join(path)) is not None:
+                                known.add(path[3])
+                                err = 0
+                            else:
+                                err += 1
+                        n += 1
+            case 5:
+                errlimit : int = 6 if element_id in ["1019"] else 3
+                for x in range(0, 7):
+                    #_0_1, _0_2...
+                    n = 0
+                    err = 0
+                    while err < errlimit:
+                        path[3] = "_" + str(x) + "_" + str(n)
+                        if path[3] in known:
+                            err = 0
+                        else:
+                            if await self.head_nx("".join(path)) is not None:
+                                known.add(path[3])
+                                err = 0
+                            else:
+                                err += 1
+                        n += 1
+                    if x >= 2 and n == 6: # force stop for later stages to gain time
+                        break
+            case 6|7|8|9|10|11:
+                x : int = mode - 5
                 # _11, _12...
                 for y in range(1, 7):
                     start = 10 * y
@@ -1000,69 +1044,24 @@ class Updater():
                     m = n + 10
                     err = 0
                     while err < 3 and n < m:
-                        suffix = "_" + str(x) + str(n)
-                        if suffix in known:
+                        path[3] = "_" + str(x) + str(n)
+                        if path[3] in known:
                             err = 0
                         else:
-                            if await self.update_buff_check(fi + suffix):
-                                data[1].append(suffix)
-                                known.add(suffix)
-                                modified = True
+                            if await self.head_nx("".join(path)) is not None:
+                                known.add(path[3])
                                 err = 0
                             else:
                                 err += 1
                         n += 1
-                
-                # _101, _102...
-                n = 0
-                err = 0
-                while err < 3:
-                    suffix = "_" + str(x) + str(n).zfill(2)
-                    if suffix in known:
-                        err = 0
-                    else:
-                        if await self.update_buff_check(fi + suffix):
-                            data[1].append(suffix)
-                            known.add(suffix)
-                            modified = True
-                            err = 0
-                        else:
-                            err += 1
-                    n += 1
-                
-        for x in range(0, 7):
-            #_0_1, _0_2...
-            n = 0
-            err = 0
-            while err < 6:
-                suffix = "_" + str(x) + "_" + str(n)
-                if suffix in known:
-                    err = 0
-                else:
-                    if await self.update_buff_check(fi + suffix):
-                        data[1].append(suffix)
-                        known.add(suffix)
-                        err = 0
-                    else:
-                        err += 1
-                n += 1
-        if modified:
-            data[1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
-            data[0] = [fi]
-            self.addition[element_id] = self.ADD_BUFF
-            self.data['buffs'][element_id] = data
+        ts.finish()
+        if ts.finished and len(known) > len(self.data['buffs'].get(element_id, [[], []])[1]):
+            self.data['buffs'][element_id][1] = list(known)
+            self.data['buffs'][element_id][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
             self.modified = True
+            self.addition[element_id] = self.ADD_BUFF
             self.flags.set("found_buff")
             self.tasks.print("Updated:", element_id, "for index:", 'buffs')
-
-    # function to check if a buff icon file exists
-    async def update_buff_check(self : Updater, file_name : str) -> bool:
-        try:
-            headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + file_name + ".png")
-            if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
-            return True
-        except:
-            return False
 
     ### Update #################################################################################################################
 
@@ -3293,7 +3292,7 @@ class Updater():
         self.flags.set("maintenance_buff")
         self.tasks.print("Starting tasks to update known Buffs...")
         for element_id in self.data['buffs']:
-            self.tasks.add(self.update_buff, parameters=(element_id,))
+            self.prepare_update_buff(element_id)
         await self.tasks.start()
 
     # Called by maintenance or process_flags
@@ -3488,7 +3487,6 @@ class Updater():
                             sound_count += len(v[self.NPC_SOUND])
                         case 'buffs':
                             if v is None or v == 0: continue
-                            if len(v[0][0].split('_')) == 1: file_estimation += 1
                             file_estimation += len(v[1])
                         case _:
                             file_estimation += 2
@@ -3685,7 +3683,10 @@ class Updater():
             maintenance.add_argument('-fj', '--fatejson', help="import and update manual_fate.json.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-it', '--importthumb', help="import data from manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-et', '--exportthumb', help="export data to manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-mt', '--maintenance', help="basic tasks to keep the data up-to-date.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-mt', '--maintenance', help="run all existing maintenance tasks.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-mb', '--maintenancebuff', help="maintenance task to check existing buffs for new icons.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-ms', '--maintenancesky', help="maintenance task to check sky compass arts for existing events.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-mu', '--maintenancenpcthumbnail', help="maintenance task to check NPC thumbnails for existing NPCs.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
             
             settings = parser.add_argument_group('settings', 'commands to alter the updater behavior.')
@@ -3772,6 +3773,15 @@ class Updater():
             elif args.maintenance:
                 self.tasks.print("Performing maintenance...")
                 await self.maintenance()
+            elif args.maintenancebuff:
+                self.tasks.print("Performing maintenance...")
+                await self.maintenance_buff()
+            elif args.maintenancesky:
+                self.tasks.print("Performing maintenance...")
+                await self.maintenance_event_skycompass()
+            elif args.maintenancenpcthumbnail:
+                self.tasks.print("Performing maintenance...")
+                await self.maintenance_npc_thumbnail()
             elif args.json:
                 await self.lookup()
                 self.update_manual_fate()
