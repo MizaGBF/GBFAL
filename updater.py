@@ -136,7 +136,7 @@ class TaskManager():
 
     # start to run queued tasks
     async def start(self : TaskManager) -> bool:
-        if self.is_running: # return if already running
+        if self.is_running or self.queues_are_empty(): # return if already running or no tasks pending
             return False
         self.return_state = True
         asyncio.create_task(self.run())
@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.8'
+    VERSION = '3.9'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -382,7 +382,7 @@ class Updater():
     FATE_OTHER_CONTENT = 3
     FATE_LINK = 4
     # buff suffix list
-    BUFF_LIST_EXTENDED =  ["_1", "_2", "_10", "_11", "_101", "_110", "_111", "_20", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
+    BUFF_LIST_EXTENDED =  ["", "_1", "_2", "_10", "_11", "_101", "_110", "_111", "_20", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10" "_1_20", "_2_10"]
     BUFF_LIST =  BUFF_LIST_EXTENDED.copy()
     BUFF_LIST.pop(BUFF_LIST.index("1"))
     # job update
@@ -902,70 +902,167 @@ class Updater():
     # Search for new buffs
     async def search_buff(self, ts : TaskStatus) -> None:
         while not ts.complete:
-            fi = str(ts.get_next_index()).zfill(4) # formatted id
-            if fi in self.data['buffs']: # already indexed
+            i : int = ts.get_next_index()
+            fi : str = str(i).zfill(4) # formatted id
+            if False:#fi in self.data['buffs']: # already indexed
                 ts.good()
                 continue
-            # attempt to update
-            if await self.update_buff(fi):
+            found : bool = False
+            slist = self.BUFF_LIST_EXTENDED if i >= 1000 else self.BUFF_LIST
+            for s in slist:
+                if await self.update_buff_check(str(i) + s):
+                    found = True
+                    break
+            if found:
                 ts.good()
+                self.tasks.print("Found:", fi, "for index:", "buffs")
+                self.tasks.add(self.update_buff, parameters=(fi,), priority=4) # call update task for that element
             else:
                 ts.bad()
 
     # Update a buff data
-    async def update_buff(self : Updater, element_id : str) -> bool: # return bool until other update functions
+    async def update_buff(self : Updater, element_id : str) -> None:
         i : int = int(element_id)
+        fi : str = str(i)
         known : set[str]
-        data : list[list[str]] = [[], []] # prepare container
-        # the list of files to check changes slightly depending on if the ID is lesser than 1000
-        slist = self.BUFF_LIST_EXTENDED if i >= 1000 else self.BUFF_LIST
-        # retrieve known data from the index (if any)
-        try:
-            data[0] = self.data['buffs'][element_id][0]
-            data[1] = self.data['buffs'][element_id][1]
-            known = set(data[1])
-            if '_' not in data[0] and len(data[0]) < 5:
+        data : list[list[str]] = self.data['buffs'].get(element_id, [[], []]) # prepare container
+        known : set[str] = set(data[1])
+        modified : bool = False
+        
+        if "" not in known:
+            if await self.update_buff_check(fi):
+                data[1].append("")
                 known.add("")
-        except:
-            data = [[], []]
-            known = set()
-        found = False
-        modified = False
-        # first search just the file matching the id
-        try:
-            if len(data[0]) == 0:
-                headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + ".png")
-                if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
-                data[0] = [str(i)]
                 modified = True
-            found = True
-        except:
-            pass
-        # next search with each file suffix, keep track of all of them
-        for s in slist:
-            try:
-                if s not in known:
-                    headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + str(i) + s + ".png")
-                    if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
-                    if len(data[0]) == 0:
-                        data[0] = [str(i)+s]
-                    if s != "":
-                        data[1].append(s)
+        
+        err : int = 0
+        n : int = 0
+        m : int
+        suffix : str
+        # _1, _2...
+        while err < 3 and n < 10:
+            suffix = "_" + str(n)
+            if suffix in known:
+                err = 0
+            else:
+                if await self.update_buff_check(fi + suffix):
+                    data[1].append(suffix)
+                    known.add(suffix)
                     modified = True
-                found = True
-            except:
-                pass
-        # save if positive result
-        if not found:
-            return False
-        else:
-            if modified:
-                self.addition[element_id] = self.ADD_BUFF
-                self.data['buffs'][element_id] = data
-                self.modified = True
-                self.flags.set("found_buff")
-                self.tasks.print("Updated:", element_id, "for index:", 'buffs')
+                    err = 0
+                else:
+                    err += 1
+            n += 1
+        
+        if i > 1000:
+            # 1, 2...
+            n = 0
+            err = 0
+            while err < 3:
+                suffix = str(n)
+                if suffix in known:
+                    err = 0
+                else:
+                    if await self.update_buff_check(fi + suffix):
+                        data[1].append(suffix)
+                        known.add(suffix)
+                        modified = True
+                        err = 0
+                    else:
+                        err += 1
+                n += 1
+        
+        for x in range(1, 10):
+            # _10, _11, _20, _30...
+            start : int = 10 * x
+            n = 10 * x
+            m = n + 10
+            err = 0
+            while err < 3 and n < m:
+                suffix = "_" + str(n)
+                if suffix in known:
+                    err = 0
+                else:
+                    if await self.update_buff_check(fi + suffix):
+                        data[1].append(suffix)
+                        known.add(suffix)
+                        modified = True
+                        err = 0
+                    else:
+                        err += 1
+                n += 1
+            
+            if x < 6: # might increase this limit later if needed
+                # _11, _12...
+                for y in range(1, 7):
+                    start = 10 * y
+                    n = start # start at 10 to avoid repeat of above
+                    m = n + 10
+                    err = 0
+                    while err < 3 and n < m:
+                        suffix = "_" + str(x) + str(n)
+                        if suffix in known:
+                            err = 0
+                        else:
+                            if await self.update_buff_check(fi + suffix):
+                                data[1].append(suffix)
+                                known.add(suffix)
+                                modified = True
+                                err = 0
+                            else:
+                                err += 1
+                        n += 1
+                
+                # _101, _102...
+                n = 0
+                err = 0
+                while err < 3:
+                    suffix = "_" + str(x) + str(n).zfill(2)
+                    if suffix in known:
+                        err = 0
+                    else:
+                        if await self.update_buff_check(fi + suffix):
+                            data[1].append(suffix)
+                            known.add(suffix)
+                            modified = True
+                            err = 0
+                        else:
+                            err += 1
+                    n += 1
+                
+        for x in range(0, 7):
+            #_0_1, _0_2...
+            n = 0
+            err = 0
+            while err < 6:
+                suffix = "_" + str(x) + "_" + str(n)
+                if suffix in known:
+                    err = 0
+                else:
+                    if await self.update_buff_check(fi + suffix):
+                        data[1].append(suffix)
+                        known.add(suffix)
+                        err = 0
+                    else:
+                        err += 1
+                n += 1
+        if modified:
+            data[1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
+            data[0] = [fi]
+            self.addition[element_id] = self.ADD_BUFF
+            self.data['buffs'][element_id] = data
+            self.modified = True
+            self.flags.set("found_buff")
+            self.tasks.print("Updated:", element_id, "for index:", 'buffs')
+
+    # function to check if a buff icon file exists
+    async def update_buff_check(self : Updater, file_name : str) -> bool:
+        try:
+            headers = await self.head(self.IMG + "sp/ui/icon/status/x64/status_" + file_name + ".png")
+            if 'content-length' in headers and int(headers['content-length']) < 150: raise Exception()
             return True
+        except:
+            return False
 
     ### Update #################################################################################################################
 
@@ -3183,13 +3280,34 @@ class Updater():
     # Call some functions to perform some updating (buff, npc, thumbnail...)
     async def maintenance(self : Updater) -> None:
         self.flags.set("maintenance")
+        if not self.flags.check("maintenance_buff"):
+            self.tasks.add(self.maintenance_buff)
+        if not self.flags.check("maintenance_npc_thumbnail"):
+            self.tasks.add(self.maintenance_npc_thumbnail)
+        if not self.flags.check("maintenance_event_skycompass"):
+            self.tasks.add(self.maintenance_event_skycompass)
+        await self.tasks.start()
+
+    # Called by maintenance or process_flags
+    async def maintenance_buff(self : Updater) -> None:
+        self.flags.set("maintenance_buff")
         self.tasks.print("Starting tasks to update known Buffs...")
         for element_id in self.data['buffs']:
             self.tasks.add(self.update_buff, parameters=(element_id,))
+        await self.tasks.start()
+
+    # Called by maintenance or process_flags
+    async def maintenance_npc_thumbnail(self : Updater) -> None:
+        self.flags.set("maintenance_npc_thumbnail")
         self.tasks.print("Starting tasks to update known NPC thumbnails...")
         for element_id in self.data['npcs']:
             if not isinstance(self.data['npcs'][element_id], int) and not self.data['npcs'][element_id][self.NPC_JOURNAL]:
                 self.tasks.add(self.update_npc_thumb, parameters=(element_id,))
+        await self.tasks.start()
+
+    # Called by maintenance or process_flags
+    async def maintenance_event_skycompass(self : Updater) -> None:
+        self.flags.set("maintenance_event_skycompass")
         self.tasks.print("Starting tasks to update known Events Skycompass Arts...")
         for ev in self.data['events']:
             if self.data['events'][ev][self.EVENT_THUMB] is not None:
@@ -3422,10 +3540,10 @@ class Updater():
                 self.tasks.print("Adding tasks to check for new events and fate episodes...")
                 self.tasks.add(self.check_new_event)
                 self.tasks.add(self.update_all_fate, parameters=('last',))
-            if (self.flags.check("found_buff") or self.flags.check("found_event")) and not self.flags.check("maintenance"):
-                self.flags.set("maintenance")
-                self.tasks.print("Adding the maintenance task...")
-                self.tasks.add(self.maintenance)
+            if self.flags.check("found_event") and not self.flags.check("checking_event_related"):
+                self.flags.set("checking_event_related")
+                self.tasks.add(self.maintenance_npc_thumbnail, priority=0)
+                self.tasks.add(self.maintenance_event_skycompass, priority=0)
 
     # return True if the file name passes the  filters
     def file_is_matching(self : Updater, name : str, filters : list[str]) -> bool:

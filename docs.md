@@ -18,7 +18,7 @@ where:
 - `PATH`: The remaining path towards the resource. For example: [img/sp/assets/npc/zoom/3040068000_01.png](https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/zoom/3040068000_01.png).  
   
 ### json/data.json content  
-- `version`: Integer, the file version. Currently **2**.
+- `version`: Integer, the file version. Currently **1** but unused.
 - `valentines`: Object of ID, integer pairs, for elements with (possibly) white day or valentine scene files. The integer is unused. Elements are always from the `characters`, `skins` or `npcs` indexes.  
 - `characters`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of nine lists, each containing file names. (`[[], [], [], [], [], [], [], [], []]`).
@@ -89,8 +89,8 @@ where:
 - `subskills`: Object of ID and integer pairs for subskills (such as Wamdus' s1). The integer is unused. Paths: `sp/assets/item/ability/s/ID_N.jpg` where `N` can be **1** to **3**.  
 - `buffs`: Object of ID (zfilled to string of length 4), data pairs for buff icons. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of two lists, each containing file names. (`[[], [], [], [], [], [], [], [], [], []]`).
-    - Index 0: One file (the main one to be displayed on GBFAL). Path: `sp/ui/icon/status/x64/status_FILE.png`.  
-    - Index 1: Some valid suffixes for this buff. Because of the sheer number of possible variations, only a few of them are checked and stored. Path: `sp/ui/icon/status/x64/status_ID_suffix.png`.  
+    - Index 0: The first part of the filename. It should matches the ID without leading zeros.
+    - Index 1: Valid suffixes for this buff. Resulting path: `sp/ui/icon/status/x64/status_ZID_suffix.png` where `ZID` is the string at Index 0.  
 - `eventthumb`: Object of ID and integer pairs for event thumbnail. For internal use only. The integer is set to **1** if it's used for an event.  
 - `story`: Object of chapter ID (zfilled to string of length 3) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of one single list, containing file names. (`[[]]`).  

@@ -1139,7 +1139,7 @@ function display_buffs(id, data, range, unused = null)
     if(!data) return null;
     let val = parseInt(id);
     if(val < range[0] || val >= range[1]) return null;
-    return [["b"+id, "GBF/assets_en/img_low/sp/ui/icon/status/x64/status_" + data[0][0] + ".png", null, "preview" + (data[1].length > 0 ? " more" : ""), false]];
+    return [["b"+id, "GBF/assets_en/img_low/sp/ui/icon/status/x64/status_" + data[0][0] + data[1][0] + ".png", null, "preview" + (data[1].length > 1 ? " more" : ""), false]];
 }
 
 function display_backgrounds(id, data, key, unused = null)
@@ -2243,11 +2243,8 @@ function loadAssets(id, data, target, indexed, allow_open)
             last_id = "b"+id;
             search_type = 9;
             assets = [
-                {name:"Icons", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:0, icon:"assets/ui/result_icon/buff.png", open:allow_open}
+                {name:"Icons", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:1, icon:"assets/ui/result_icon/buff.png", open:allow_open, file:data[0]}
             ];
-            let tmp = getBuffSets(id, data, assets, allow_open);
-            data = tmp[0];
-            assets = tmp[1];
             break;
         default:
             return;
@@ -2367,6 +2364,8 @@ function loadAssets_main(id, data, target, indexed, asset, files, mc_skycompass,
         for(let i = 0; i < files.length; ++i)
         {
             let file = files[i];
+            if((asset.file ?? null) != null)
+                file = asset.file + file;
             if(asset.name != "Sky Compass") // event sky compass exception
             {
                 if(!addImage(div, file, asset, path, lazy_loading))
@@ -3058,132 +3057,6 @@ function addSound(div, id, sound) // add a sound asset
     elem.appendChild(a);
     div.appendChild(elem);
     return elem;
-}
-
-function getBuffSets(id, data, assets, allow_open) // MESS WARNING!! buffs are a pain to deal with, this is the best I can do for now
-{
-    let iid = parseInt(id);
-    let tmp = data[0][0];
-    let variations = data[1];
-    data = [[]];
-    if(!tmp.includes("_"))
-        data[0].push(""+parseInt(id));
-    let v1 = variations.includes("1");
-    let vu1 = variations.includes("_1");
-    let vu2 = variations.includes("_2");
-    let vu10 = variations.includes("_10");
-    let vu11 = variations.includes("_11");
-    let vu101 = variations.includes("_101");
-    let vu110 = variations.includes("_110");
-    let vu111 = variations.includes("_111");
-    let vu20 = variations.includes("_20");
-    let vu30 = variations.includes("_30");
-    let vu1u1 = variations.includes("_1_1");
-    let vu2u1 = variations.includes("_2_1");
-    let vu0u10 = variations.includes("_0_10");
-    let vu1u10 = variations.includes("_1_10");
-    let vu1u20 = variations.includes("_1_20");
-    let vu2u10 = variations.includes("_2_10");
-    if(vu1 && vu10)
-    {
-        data.push([]);
-        for(let i = 0; i < 31; ++i)
-            data[data.length-1].push(""+iid+"_"+i);
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_1.png", open:allow_open});
-    }
-    else if(vu1 || vu2)
-    {
-        data.push([]);
-        for(let i = 0; i < 10; ++i)
-            data[data.length-1].push(""+iid+"_"+i);
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_2.png", open:allow_open});
-    }
-    if(v1) // weird exception for satyr and siete (among maybe others)
-    {
-        data.push([]);
-        for(let i = 0; i < 21; ++i)
-            data[data.length-1].push(""+iid+""+i);
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_3.png", open:allow_open});
-    }
-    if(vu10 && vu30)
-    {
-        data.push([]);
-        for(let i = 10; i < 100; ++i)
-            data[data.length-1].push(""+iid+"_"+i);
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_4.png"});
-    }
-    else if(vu10 && vu11)
-    {
-        data.push([]);
-        for(let i = 10; i < 21; ++i)
-            data[data.length-1].push(""+iid+"_"+i);
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_4.png"});
-    }
-    else if(!vu10)
-    {
-        if(vu11)
-        {
-            if(vu111)
-            {
-                data.push([]);
-                for(let i = 0; i < 200; ++i)
-                    data[data.length-1].push(""+iid+"_"+i);
-                assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_5.png"});
-            }
-            else if(vu110)
-            {
-                data.push([]);
-                for(let i = 0; i < 21; ++i)
-                    data[data.length-1].push(""+iid+"_1"+i);
-                assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_6.png"});
-            }
-            else
-            {
-                data.push([]);
-                for(let i = 10; i < 111; ++i)
-                    data[data.length-1].push(""+iid+"_"+i);
-                assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_7.png"});
-            }
-        }
-        else if(vu20)
-        {
-            data.push([]);
-            for(let i = 10; i < 21; ++i)
-                data[data.length-1].push(""+iid+"_"+i);
-            assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_4.png"});
-        }
-        else if(vu101)
-        {
-            data.push([]);
-            for(let i = 1; i < 21; ++i)
-                data[data.length-1].push(""+iid+"_1"+JSON.stringify(i).padStart(2, '0'));
-            assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_8.png", open:allow_open});
-        }
-    }
-    if(vu0u10 && !vu1u10)
-    {
-        data.push([]);
-        for(let i = 10; i < 101; ++i)
-        {
-            data[data.length-1].push(""+iid+"_0_"+i);
-        }
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_9.png"});
-    }
-    // elem stuff
-    let lim = 0;
-    if(vu1u20) lim = 101;
-    else if(vu1u10 || vu2u10) lim = 21;
-    else if(vu1u1 || vu2u1) lim = 11;
-    for(let i = 0; i < 9; ++i)
-    {
-        data.push([]);
-        for(let j = 0; j < lim; ++j)
-        {
-            data[data.length-1].push(""+iid+"_"+i+"_"+j);
-        }
-        assets.push({name:"Part " + (data.length-1) + " (up to " + data[data.length-1].length + " files)", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:data.length-1, icon:"assets/ui/result_icon/buff_9.png"});
-    }
-    return [data, assets];
 }
 
 function randomLookup()

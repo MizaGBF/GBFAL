@@ -37,13 +37,13 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```
-GBFAL Updater v3.8
+GBFAL Updater v3.9
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]] [-ne]
                   [-st [LIMIT]] [-ft [FATES]] [-pt] [-ij] [-ej] [-lk] [-fj]
                   [-it] [-et] [-mt] [-au [ADDUNCAP ...]] [-nc] [-nr] [-dg]
 
-Asset Updater v3.8 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.9 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
