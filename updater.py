@@ -914,11 +914,14 @@ class Updater():
             path : list[str] = [self.IMG, "sp/ui/icon/status/x64/status_", str(i), "", ".png"]
             for s in slist:
                 path[3] = s
-                headers = await self.head_nx("".join(path))
-                if headers is not None and 'content-length' in headers and int(headers['content-length']) >= 200:
-                    self.data['buffs'][fi] = [[path[2]], [s]]
-                    found = True
-                    break
+                try:
+                    headers = await self.head("".join(path))
+                    if 'content-length' in headers and int(headers['content-length']) >= 200:
+                        self.data['buffs'][fi] = [[path[2]], [s]]
+                        found = True
+                        break
+                except:
+                    pass
             if found:
                 ts.good()
                 self.tasks.print("Found:", fi, "for index:", "buffs")
@@ -932,29 +935,31 @@ class Updater():
         fi : str = str(i)
         known : set[str] = set(self.data['buffs'].get(element_id, [[], []])[1])
         path : list[str] = [self.IMG, "sp/ui/icon/status/x64/status_", fi, "", ".png"]
-        ts : TaskStatus = TaskStatus(1, 1, running=12)
+        ts : TaskStatus = TaskStatus(1, 1, running=6)
         
         # add tasks to verify variations
-        for mode in range(12):
-            if mode == 2 and i < 1000: # skip this one for this ID
+        for mode in range(6):
+            if (mode == 0 and "" in known) or (mode == 2 and i < 1000): # skip these if the condition matches
                 ts.finish()
                 continue
             self.tasks.add(self.update_buff, parameters=(mode, ts, path, element_id, fi, known), priority=priority)
 
     # Subroutine of prepare_update_buff to check for varitions
     # Mode control which variation to check
-    # Mode 2 is only for IDs lesser than 1000
+    # Mode 0 is only if "" is not in known files, Mode 2 is only for IDs lesser than 1000
     async def update_buff(self : Updater, mode : int, ts : TaskStatus, path : list[str], element_id : str, fi : str, known : set[str]) -> None:
         err : int = 0
         n : int = 0
         m : int
         match mode:
             case 0:
-                # default:
-                if "" not in known:
-                    path[3] = ""
-                    if await self.head_nx("".join(path)) is not None:
-                        known.add("")
+                # default
+                path[3] = ""
+                try:
+                    await self.head("".join(path))
+                    known.add("")
+                except:
+                    pass
             case 1:
                 # _1, _2...
                 while err < 3 and n < 10:
@@ -962,10 +967,11 @@ class Updater():
                     if path[3] in known:
                         err = 0
                     else:
-                        if await self.head_nx("".join(path)) is not None:
-                            known.add(path[3])
+                        try:
+                            await self.head("".join(path))
+                            known.add("_" + str(n))
                             err = 0
-                        else:
+                        except:
                             err += 1
                     n += 1
             case 2:
@@ -975,14 +981,15 @@ class Updater():
                     if path[3] in known:
                         err = 0
                     else:
-                        if await self.head_nx("".join(path)) is not None:
-                            known.add(path[3])
+                        try:
+                            await self.head("".join(path))
+                            known.add(str(n))
                             err = 0
-                        else:
+                        except:
                             err += 1
                     n += 1
             case 3:
-                errlimit : int = 10 if element_id in ["3000", "1008"] else 2
+                errlimit : int = 10 if element_id in ["3000", "1008"] else 3
                 for x in range(1, 10):
                     # _10, _11, _20, _30...
                     start : int = 10 * x
@@ -994,14 +1001,15 @@ class Updater():
                         if path[3] in known:
                             err = 0
                         else:
-                            if await self.head_nx("".join(path)) is not None:
-                                known.add(path[3])
+                            try:
+                                await self.head("".join(path))
+                                known.add("_" + str(n))
                                 err = 0
-                            else:
+                            except:
                                 err += 1
                         n += 1
             case 4:
-                for x in range(1, 5): # stopping at _4XX included
+                for x in range(1, 8): # stopping at _7XX included
                     # _101, _102...
                     n = 0
                     err = 0
@@ -1010,12 +1018,24 @@ class Updater():
                         if path[3] in known:
                             err = 0
                         else:
-                            if await self.head_nx("".join(path)) is not None:
-                                known.add(path[3])
+                            try:
+                                await self.head("".join(path))
+                                known.add("_" + str(x) + str(n).zfill(2))
                                 err = 0
-                            else:
+                            except:
                                 err += 1
+                                if err == 3 and n < 10:
+                                    n = 9
+                                    err = 0
                         n += 1
+                # exception, testing for _110
+                path[3] = "_110"
+                if path[3] not in known:
+                    try:
+                        await self.head("".join(path))
+                        known.add("_110")
+                    except:
+                        pass
             case 5:
                 errlimit : int = 6 if element_id in ["1019"] else 3
                 for x in range(0, 7):
@@ -1027,31 +1047,11 @@ class Updater():
                         if path[3] in known:
                             err = 0
                         else:
-                            if await self.head_nx("".join(path)) is not None:
-                                known.add(path[3])
+                            try:
+                                await self.head("".join(path))
+                                known.add("_" + str(x) + "_" + str(n))
                                 err = 0
-                            else:
-                                err += 1
-                        n += 1
-                    if x >= 2 and n == 6: # force stop for later stages to gain time
-                        break
-            case 6|7|8|9|10|11:
-                x : int = mode - 5
-                # _11, _12...
-                for y in range(1, 7):
-                    start = 10 * y
-                    n = start # start at 10 to avoid repeat of above
-                    m = n + 10
-                    err = 0
-                    while err < 3 and n < m:
-                        path[3] = "_" + str(x) + str(n)
-                        if path[3] in known:
-                            err = 0
-                        else:
-                            if await self.head_nx("".join(path)) is not None:
-                                known.add(path[3])
-                                err = 0
-                            else:
+                            except:
                                 err += 1
                         n += 1
         ts.finish()
@@ -1639,20 +1639,29 @@ class Updater():
         if not exist:
             # base scene
             base_target, main_x, uncap_x = self.generate_scene_file_list(element_id)
+            path : list[str] = [self.IMG, "", element_id, "", "", ".png"]
             for u in ["", "_02", "_03"]:
                 for f in base_target:
-                    if f != "" and u != "": break
-                    try:
-                        if f not in data[self.NPC_SCENE]:
-                            if (await self.multi_head_nx([self.IMG + "sp/quest/scene/character/body/{}{}{}.png".format(element_id, u, f), self.IMG + "sp/raid/navi_face/{}{}{}.png".format(element_id, u, f)])) is not None:
+                    if f != "" and u != "":
+                        break
+                    if u+f in data[self.NPC_SCENE]:
+                        exist = True
+                    else:
+                        path[3] = u
+                        path[4] = f
+                        found : bool = False
+                        for fpath in ["sp/quest/scene/character/body/", "sp/raid/navi_face/"]:
+                            path[1] = fpath
+                            try:
+                                await self.head("".join(path))
                                 data[self.NPC_SCENE].append(u+f)
                                 exist = True
+                                found = True
                                 break
-                        else:
-                            exist = True
+                            except:
+                                pass
+                        if found:
                             break
-                    except:
-                        pass
             # base sound
             if not exist:
                 base_target = ["_v_001", "_boss_v_1", "_boss_v_2"]
@@ -2229,10 +2238,16 @@ class Updater():
 
     # request scene assets
     async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str]) -> None:
-        if await self.head_nx(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(file_id, f)) is not None: # check if scene file exists
+        try:
+            await self.head(self.IMG + "sp/quest/scene/character/body/{}{}.png".format(file_id, f)) # check if scene file exists
             existing.add(f)
-        elif (f == "" or f.split("_")[-1] not in self.SCENE_BUBBLE_FILTER) and await self.head_nx(self.IMG + "sp/raid/navi_face/{}{}.png".format(file_id, f)) is not None: # or check navi_face is the file name matches the SCENE_BUBBLE_FILTER
-            existing.add(f)
+        except:
+            if (f == "" or f.split("_")[-1] not in self.SCENE_BUBBLE_FILTER):
+                try:
+                    await self.head(self.IMG + "sp/raid/navi_face/{}{}.png".format(file_id, f)) # or check navi_face is the file name matches the SCENE_BUBBLE_FILTER
+                    existing.add(f)
+                except:
+                    pass
         ts.finish() # task ended
 
     ### Generic Chapter Update #################################################################################################################
@@ -2933,8 +2948,14 @@ class Updater():
         if current is None: # simple mode
             for p in post:
                 f = suffix + p
-                if f in existing or (await self.head_nx(self.VOICE + "{}{}{}.mp3".format(element_id, uncap, f))) is not None:
+                if f in existing:
                     existing.add(uncap+f)
+                else:
+                    try:
+                        await self.head(self.VOICE + "{}{}{}.mp3".format(element_id, uncap, f))
+                        existing.add(uncap+f)
+                    except:
+                        pass
         else: # complex mode
             err = 0
             is_z_limited = suffix.startswith('_v_') or suffix.startswith('_boss_v_')
@@ -2950,9 +2971,12 @@ class Updater():
                     for p in post:
                         f = suffix.format(str(current).zfill(zfill)) + p
                         if f not in existing:
-                            if await self.head_nx(self.VOICE + "{}{}{}.mp3".format(element_id, uncap, f)) is not None:
+                            try:
+                                await self.head(self.VOICE + "{}{}{}.mp3".format(element_id, uncap, f))
                                 found = True
                                 existing.add(uncap+f)
+                            except:
+                                pass
                         else:
                             found = True
                     if not found:
