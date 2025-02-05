@@ -644,14 +644,6 @@ class Updater():
         except:
             return None
 
-    # another wrapper to chain HEAD requests, return if ONE request is successful, else return None
-    async def multi_head_nx(self : Updater, urls : list[str]):
-        for url in urls:
-            r = await self.head_nx(url)
-            if r is not None:
-                return r
-        return None
-
     # Extract json data from a GBF animation manifest file
     async def processManifest(self, file : str, verify_file : bool = False) -> list:
         # request the file
