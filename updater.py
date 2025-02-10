@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.11'
+    VERSION = '3.12'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -2024,6 +2024,18 @@ class Updater():
                 self.tasks.print("Job Data exported to json/job_data_export.json")
 
     ### Scene #################################################################################################################
+    
+    # update npc/character/skin scene files for given IDs
+    async def update_all_scene_for_ids(self : Updater, ids : list[str] = []) -> None:
+        for element_id in ids:
+            if element_id in self.data["characters"]:
+                self.tasks.add(self.update_scenes_of, parameters=(element_id, "characters"))
+            elif element_id in self.data["skins"]:
+                self.tasks.add(self.update_scenes_of, parameters=(element_id, "skins"))
+            elif element_id in self.data["npcs"]:
+                self.tasks.add(self.update_scenes_of, parameters=(element_id, "npcs"))
+        self.tasks.print("Updating scenes for {} elements...".format(self.tasks.total))
+        await self.tasks.start()
 
     # update ALL npc/character/skin scene files, time consuming, can be resumed, can be filtered
     async def update_all_scene(self : Updater, filters : list[str] = []) -> None:
@@ -3686,10 +3698,11 @@ class Updater():
             primary.add_argument('-j', '--job', help="detailed job search. Add something to trigger a full search.", action='store', nargs='?', default=False, metavar='FULL')
             
             secondary = parser.add_argument_group('secondary', 'commands to update some specific data.')
+            secondary.add_argument('-si', '--sceneid', help="update scene content for given IDs.", nargs='+', default=None)
             secondary.add_argument('-sc', '--scene', help="update scene content. Add optional strings to match.", nargs='*', default=None)
             secondary.add_argument('-sd', '--sound', help="update sound content. Add optional strings to match.", nargs='*', default=None)
             secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
-            secondary.add_argument('-fe', '--forceevent', help="force update event content for specific event IDs.", nargs='+', default=None)
+            secondary.add_argument('-fe', '--forceevent', help="force update event content for given event IDs.", nargs='+', default=None)
             secondary.add_argument('-ne', '--newevent', help="check new event content.", action='store_const', const=True, default=False, metavar='')
             secondary.add_argument('-st', '--story', help="update story content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
             secondary.add_argument('-ft', '--fate', help="update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.", action='store', nargs='?', default="", metavar='FATES')
@@ -3750,6 +3763,9 @@ class Updater():
                 self.tasks.print("Searching detailed job data...")
                 await self.init_updater(wiki=False, job=True)
                 await self.search_job_detail(args.job is not None)
+            elif args.sceneid is not None and len(args.sceneid) > 0:
+                self.tasks.print("Updating scene data...")
+                await self.update_all_scene_for_ids(args.sceneid)
             elif args.scene is not None:
                 self.tasks.print("Updating scene data...")
                 await self.update_all_scene(args.scene)

@@ -36,14 +36,16 @@ This script is in charge of updating the JSON files.
 * See [requirements.txt](https://github.com/MizaGBF/GBFAP/blob/master/requirements.txt) for a list of third-party modules.  
   
 ### Usage
-```
-GBFAL Updater v3.11
+```GBFAL Updater v3.12
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
-                  [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]] [-ne]
-                  [-st [LIMIT]] [-ft [FATES]] [-pt] [-ij] [-ej] [-lk] [-fj]
-                  [-it] [-et] [-mt] [-au [ADDUNCAP ...]] [-nc] [-nr] [-dg]
+                  [-si SCENEID [SCENEID ...]] [-sc [SCENE ...]]
+                  [-sd [SOUND ...]] [-ev [EVENT ...]]
+                  [-fe FORCEEVENT [FORCEEVENT ...]] [-ne] [-st [LIMIT]]
+                  [-ft [FATES]] [-pt] [-mn] [-ij] [-ej] [-lk] [-fj] [-it]
+                  [-et] [-mt] [-mb] [-ms] [-mu] [-js] [-au [ADDUNCAP ...]]
+                  [-nc] [-nr] [-if] [-da PATH] [-dg]
 
-Asset Updater v3.11 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.12 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -54,11 +56,14 @@ primary:
   -r, --run             search for new content.
   -u, --update UPDATE [UPDATE ...]
                         update given elements.
-  -j, --job [FULL]      detailed job search. Add something to trigger a full search.
+  -j, --job [FULL]      detailed job search. Add something to trigger a full
+                        search.
 
 secondary:
   commands to update some specific data.
 
+  -si, --sceneid SCENEID [SCENEID ...]
+                        update scene content for given IDs.
   -sc, --scene [SCENE ...]
                         update scene content. Add optional strings to match.
   -sd, --sound [SOUND ...]
@@ -66,7 +71,7 @@ secondary:
   -ev, --event [EVENT ...]
                         update event content. Add optional event IDs to update specific events.
   -fe, --forceevent FORCEEVENT [FORCEEVENT ...]
-                        force update event content for specific event IDs.
+                        force update event content for given event IDs.
   -ne, --newevent       check new event content.
   -st, --story [LIMIT]  update story content. Add an optional chapter to stop at.
   -ft, --fate [FATES]   update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.
@@ -79,7 +84,7 @@ maintenance:
   -ij, --importjob      import data from job_data_export.json.
   -ej, --exportjob      export data to job_data_export.json.
   -lk, --lookup         import and update manual_lookup.json and fetch the wiki to update the lookup table.
-  -fj, --fatejson       import and manual_fate.json.
+  -fj, --fatejson       import and update manual_fate.json.
   -it, --importthumb    import data from manual_event_thumbnail.json.
   -et, --exportthumb    export data to manual_event_thumbnail.json.
   -mt, --maintenance    run all existing maintenance tasks.
@@ -92,7 +97,7 @@ maintenance:
   -js, --json           import all manual JSON files.
 
 settings:
-  commands to alter the update behavior.
+  commands to alter the updater behavior.
 
   -au, --adduncap [ADDUNCAP ...]
                         add elements to be updated during the next run.
@@ -102,6 +107,7 @@ settings:
                         ignore known file count when updating elements.
   -da, --gbfdaio PATH   import index.json from GBFDAIO.
   -dg, --debug          enable the debug infos in the progress string.
+
 ```  
   
 > [!TIP]  
