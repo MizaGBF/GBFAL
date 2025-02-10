@@ -732,6 +732,8 @@ a:active {
     border-radius: 25px;
     border-style: solid;
     border-width: 2px;
+    margin-left: 1px;
+    margin-right: 2px;
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
