@@ -37,13 +37,13 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```
-GBFAL Updater v3.10
+GBFAL Updater v3.11
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]] [-ne]
                   [-st [LIMIT]] [-ft [FATES]] [-pt] [-ij] [-ej] [-lk] [-fj]
                   [-it] [-et] [-mt] [-au [ADDUNCAP ...]] [-nc] [-nr] [-dg]
 
-Asset Updater v3.10 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.11 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -65,6 +65,8 @@ secondary:
                         update sound content. Add optional strings to match.
   -ev, --event [EVENT ...]
                         update event content. Add optional event IDs to update specific events.
+  -fe, --forceevent FORCEEVENT [FORCEEVENT ...]
+                        force update event content for specific event IDs.
   -ne, --newevent       check new event content.
   -st, --story [LIMIT]  update story content. Add an optional chapter to stop at.
   -ft, --fate [FATES]   update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.

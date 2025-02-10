@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.10'
+    VERSION = '3.11'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -984,7 +984,6 @@ class Updater():
                 errlimit : int = 10 if element_id in ["3000", "1008"] else 3
                 for x in range(1, 10):
                     # _10, _11, _20, _30...
-                    start : int = 10 * x
                     n = 10 * x
                     m = n + 10
                     err = 0
@@ -2372,6 +2371,8 @@ class Updater():
                 if element_id not in self.addition:
                     match index:
                         case 'events':
+                            if self.data[index][element_id][self.EVENT_CHAPTER_COUNT] == -1:
+                                self.data[index][element_id][self.EVENT_CHAPTER_COUNT] = 0
                             self.addition[element_id] = self.ADD_EVENT
                             self.flags.set("found_event")
                         case 'story':
@@ -2424,12 +2425,14 @@ class Updater():
         return l
     
     # exactly what the name implies. A specific list of events can also be provided to only update those
-    async def update_all_event(self : Updater, events : list[str]) -> None:
+    async def update_all_event(self : Updater, events : list[str], forceflag : bool) -> None:
         if len(events) == 0:
+            if forceflag: # shouldn't be used without specific events
+                return
             events = [ev for ev in self.data['events'] if (self.data['events'][ev][self.EVENT_CHAPTER_COUNT] >= 0 or self.data['events'][ev][self.EVENT_THUMB] is not None)]
         self.tasks.print("Updating", len(events), "event(s)...")
         for ev in events:
-            self.tasks.add(self.update_event, parameters=(ev,))
+            self.tasks.add(self.update_event, parameters=(ev, forceflag))
         await self.tasks.start()
 
     # also a pretty implicit name
@@ -2491,11 +2494,11 @@ class Updater():
                 self.tasks.add(self.update_event, parameters=(element_id,), priority=3)
 
     # Update an event data
-    async def update_event(self : Updater, element_id : str) -> None:
+    async def update_event(self : Updater, element_id : str, forceflag : bool = False) -> None:
         if element_id not in self.data["events"]: # add container to index if not set
             self.data["events"][element_id] = self.create_event_container()
         # we must have a valid chapter count (==0 : undefined but valid event, >=0 : chapter count)
-        if self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] >= 0:
+        if forceflag or self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] >= 0:
             name : str = self.SPECIAL_EVENTS.get(element_id, element_id) # retrieve file name id if special event
             prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
             existings : list[set[str]] = [set(self.data["events"][element_id][i]) for i in range(self.EVENT_OP, len(self.data["events"][element_id]))] # make set of existing files
@@ -3242,7 +3245,7 @@ class Updater():
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
                         # prepare lookup string
-                        looks = wiki + html.unescape(" ".join(looks)).replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
+                        looks = wiki + html.unescape(" ".join(looks)).replace(' tie-in ', ' collab ').replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
                         # voice
                         if len(id) == 10 and self.data['npcs'].get(id, 0) != 0 and len(self.data['npcs'][id][self.NPC_SOUND]) > 0: # npc sound
                             looks += " voiced"
@@ -3686,6 +3689,7 @@ class Updater():
             secondary.add_argument('-sc', '--scene', help="update scene content. Add optional strings to match.", nargs='*', default=None)
             secondary.add_argument('-sd', '--sound', help="update sound content. Add optional strings to match.", nargs='*', default=None)
             secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
+            secondary.add_argument('-fe', '--forceevent', help="force update event content for specific event IDs.", nargs='+', default=None)
             secondary.add_argument('-ne', '--newevent', help="check new event content.", action='store_const', const=True, default=False, metavar='')
             secondary.add_argument('-st', '--story', help="update story content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
             secondary.add_argument('-ft', '--fate', help="update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.", action='store', nargs='?', default="", metavar='FATES')
@@ -3756,6 +3760,10 @@ class Updater():
                 self.tasks.print("Updating event data...")
                 await self.init_updater(wiki=True)
                 await self.update_all_event(args.event)
+            elif args.forceevent is not None and len(args.forceevent) > 0:
+                self.tasks.print("Updating event data...")
+                await self.init_updater(wiki=True)
+                await self.update_all_event(args.forceevent, True)
             elif args.newevent:
                 self.tasks.print("Searching new event data...")
                 await self.init_updater(wiki=True)
