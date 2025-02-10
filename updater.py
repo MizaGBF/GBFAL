@@ -2437,7 +2437,7 @@ class Updater():
         return l
     
     # exactly what the name implies. A specific list of events can also be provided to only update those
-    async def update_all_event(self : Updater, events : list[str], forceflag : bool) -> None:
+    async def update_all_event(self : Updater, events : list[str], forceflag : bool = False) -> None:
         if len(events) == 0:
             if forceflag: # shouldn't be used without specific events
                 return
@@ -2534,6 +2534,11 @@ class Updater():
                 self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_OP, self.IMG + "sp/quest/scene/character/body/"+fn, existings[self.EVENT_OP-self.EVENT_OP]), priority=2)
             # ending
             fn = "scene_{}{}_ed".format(prefix, name)
+            ts = TaskStatus(200, 5, running=10)
+            for n in range(10):
+                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_ED, self.IMG + "sp/quest/scene/character/body/"+fn, existings[self.EVENT_ED-self.EVENT_OP]), priority=2)
+            # ending 2
+            fn = "scene_{}{}_ed2".format(prefix, name)
             ts = TaskStatus(200, 5, running=10)
             for n in range(10):
                 self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, self.EVENT_ED, self.IMG + "sp/quest/scene/character/body/"+fn, existings[self.EVENT_ED-self.EVENT_OP]), priority=2)
