@@ -2230,9 +2230,14 @@ class Updater():
             self.data[index][element_id][idx] = list(existing) # set it
             self.data[index][element_id][idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e))) # and sort it
             self.modified = True
+            match index:
+                case 'npcs':
+                    self.addition[element_id] = self.ADD_NPC
+                case 'characters'|'skins':
+                    self.addition[element_id] = self.ADD_CHAR
             # valentine check
             if "_white" in existing or "_valentine" in existing and element_id not in self.data['valentines']:
-                self.data['valentines'].append(element_id)
+                self.data['valentines'][element_id] = 0
         # add element id and uncap to resume save
         if self.flags.check("scene_update"):
             if element_id not in self.resume['done']:
