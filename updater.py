@@ -2180,7 +2180,7 @@ class Updater():
         # list all files to test
         for base in bases:
             f = uncap + base
-            if f in existing or base == "": # exists OR empty (later is already tested by run() and update())
+            if f in existing or base == "" or not self.file_is_matching(f, filters): # exists OR empty (later is already tested by run() and update())
                 continue
             files.append(f)
         if len(files) > 0: # for each file
