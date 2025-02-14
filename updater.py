@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.12'
+    VERSION = '3.13'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -704,7 +704,7 @@ class Updater():
         # buffs
         for i in range(10):
             for j in range(4):
-                ts = TaskStatus(i*1000+250*(j+1), 10, start=i*1000+250*j)
+                ts = TaskStatus(i*1000+250*(j+1), 15, start=i*1000+250*j)
                 n : int
                 for n in range(3):
                     self.tasks.add(self.search_buff, parameters=(ts, ))
@@ -899,6 +899,8 @@ class Updater():
             i : int = ts.get_next_index()
             fi : str = str(i).zfill(4) # formatted id
             if fi in self.data['buffs']: # already indexed
+                if self.data['buffs'][fi] == 0:
+                    self.prepare_update_buff(fi, priority=3) # call update task for that element
                 ts.good()
                 continue
             found : bool = False
@@ -907,11 +909,10 @@ class Updater():
             for s in slist:
                 path[3] = s
                 try:
-                    headers = await self.head("".join(path))
-                    if 'content-length' in headers and int(headers['content-length']) >= 200:
-                        self.data['buffs'][fi] = [[path[2]], [s]]
-                        found = True
-                        break
+                    await self.request_buff("".join(path))
+                    self.data['buffs'][fi] = [[path[2]], [s]]
+                    found = True
+                    break
                 except:
                     pass
             if found:
@@ -925,6 +926,8 @@ class Updater():
     def prepare_update_buff(self : Updater, element_id : str, *, priority : int = -1) -> None:
         i : int = int(element_id)
         fi : str = str(i)
+        if self.data['buffs'].get(element_id, 0) == 0: # init array
+            self.data['buffs'][element_id] = [[], []]
         known : set[str] = set(self.data['buffs'].get(element_id, [[], []])[1])
         path : list[str] = [self.IMG, "sp/ui/icon/status/x64/status_", fi, "", ".png"]
         ts : TaskStatus = TaskStatus(1, 1, running=6)
@@ -948,7 +951,7 @@ class Updater():
                 # default
                 path[3] = ""
                 try:
-                    await self.head("".join(path))
+                    await self.request_buff("".join(path))
                     known.add("")
                 except:
                     pass
@@ -960,7 +963,7 @@ class Updater():
                         err = 0
                     else:
                         try:
-                            await self.head("".join(path))
+                            await self.request_buff("".join(path))
                             known.add("_" + str(n))
                             err = 0
                         except:
@@ -974,7 +977,7 @@ class Updater():
                         err = 0
                     else:
                         try:
-                            await self.head("".join(path))
+                            await self.request_buff("".join(path))
                             known.add(str(n))
                             err = 0
                         except:
@@ -993,7 +996,7 @@ class Updater():
                             err = 0
                         else:
                             try:
-                                await self.head("".join(path))
+                                await self.request_buff("".join(path))
                                 known.add("_" + str(n))
                                 err = 0
                             except:
@@ -1010,7 +1013,7 @@ class Updater():
                             err = 0
                         else:
                             try:
-                                await self.head("".join(path))
+                                await self.request_buff("".join(path))
                                 known.add("_" + str(x) + str(n).zfill(2))
                                 err = 0
                             except:
@@ -1023,7 +1026,7 @@ class Updater():
                 path[3] = "_110"
                 if path[3] not in known:
                     try:
-                        await self.head("".join(path))
+                        await self.request_buff("".join(path))
                         known.add("_110")
                     except:
                         pass
@@ -1039,7 +1042,7 @@ class Updater():
                             err = 0
                         else:
                             try:
-                                await self.head("".join(path))
+                                await self.request_buff("".join(path))
                                 known.add("_" + str(x) + "_" + str(n))
                                 err = 0
                             except:
@@ -1047,12 +1050,17 @@ class Updater():
                         n += 1
         ts.finish()
         if ts.finished and len(known) > len(self.data['buffs'].get(element_id, [[], []])[1]):
-            self.data['buffs'][element_id][1] = list(known)
+            self.data['buffs'][element_id] = [[str(int(element_id))], list(known)]
             self.data['buffs'][element_id][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
             self.modified = True
             self.addition[element_id] = self.ADD_BUFF
             self.flags.set("found_buff")
             self.tasks.print("Updated:", element_id, "for index:", 'buffs')
+
+    async def request_buff(self : Updater, path : str) -> None:
+        headers = await self.head("".join(path))
+        if int(headers.get('content-length', 0)) < 200:
+            raise Exception()
 
     ### Update #################################################################################################################
 
@@ -3667,6 +3675,13 @@ class Updater():
                 if fi not in self.data['skins']:
                     self.data['skins'][fi] = 0
                     count += 1
+            for b in data:
+                if len(b) == 6 and b.startswith('icon'):
+                    for i in data[b]:
+                        fi = str(i).zfill(4)
+                        if fi not in self.data['buffs']:
+                            self.data['buffs'][fi] = 0
+                            count += 1
             if count > 0:
                 print(count, "element(s) imported from GBFDAIO. Use -r/--run to update them")
                 self.modified = True
