@@ -849,7 +849,7 @@ class Updater():
                         self.tasks.add(self.update_element, parameters=(sfi, 'enemies'), priority=3)
                     found = True
                 else:
-                    #Note: 6200483 has no icons and raid_appear must be checked instead
+                    #Note: 6200483, 6099502 and possibly more got no icons and raid_appear must be checked instead
                     try:
                         await self.head(self.ENDPOINT + "img/sp/assets/enemy/s/{}.png".format(sfi))
                         self.tasks.print("Found:", sfi, "for index:", 'enemies')
