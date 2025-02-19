@@ -1446,17 +1446,17 @@ class Updater():
             data[self.CHARA_SP] += attacks
             # skills
             attacks = []
-            for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+            for el in range(1, 15):
                 try:
-                    fn = "ab_all_{}{}_{}".format(tid, style, el)
+                    fn = "ab_all_{}{}_{}".format(tid, style, str(el).zfill(2))
                     attacks += await self.processManifest(fn)
                 except:
                     pass
             data[self.CHARA_AB_ALL] += attacks
             attacks = []
-            for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+            for el in range(1, 15):
                 try:
-                    fn = "ab_{}{}_{}".format(tid, style, el)
+                    fn = "ab_{}{}_{}".format(tid, style, str(el).zfill(2))
                     attacks += await self.processManifest(fn)
                 except:
                     pass
@@ -1583,17 +1583,17 @@ class Updater():
                 tmp[self.CHARA_SP] = attacks
                 # skills
                 attacks = []
-                for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                for el in range(1, 15):
                     try:
-                        fn = "ab_all_{}{}_{}".format(tid, style, el)
+                        fn = "ab_all_{}{}_{}".format(tid, style, str(el).zfill(2))
                         if fn not in lookup: attacks += await self.processManifest(fn, True)
                     except:
                         pass
                 tmp[self.CHARA_AB_ALL] = attacks
                 attacks = []
-                for el in ["01", "02", "03", "04", "05", "06", "07", "08"]:
+                for el in range(1, 15):
                     try:
-                        fn = "ab_{}{}_{}".format(tid, style, el)
+                        fn = "ab_{}{}_{}".format(tid, style, str(el).zfill(2))
                         if fn not in lookup: attacks += await self.processManifest(fn, True)
                     except:
                         pass
