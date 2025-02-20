@@ -18,6 +18,8 @@ var endpoint_count = -1;
 const DUMMY_SCENE = ["", "_a", "_b", "_up", "_down", "_laugh", "_wink", "_shout", "_sad", "_angry", "_cry", "_painful", "_shadow", "_light", "_close", "_serious", "_surprise", "_think", "_serious", "_mood", "_ecstasy", "_suddenly", "_speed", "_shy", "_weak", "_sleepy", "_open", "_bad", "_amaze", "_joy", "_pride", "_intrigue", "_motivation", "_melancholy", "_concentration", "_weapon", "_foot", "_head"];
 // list of scene suffixes to ignore for raid bubbles
 const NO_BUBBLE_FILTER = ["b1", "b2", "b3", "speed", "line", "up", "up2", "up3", "up4", "down", "shadow", "shadow2", "shadow3", "damage", "light", "vanish", "vanish1", "vanish2", "fadein1", "blood"];
+// eternal ids
+const ETERNALS = ["3040030000", "3040031000", "3040032000", "3040033000", "3040034000", "3040035000", "3040036000", "3040037000", "3040038000", "3040039000"];
 // HTML UI indexes
 const CHARACTERS = [
     ["Year 2025 (Snake)", "assets/ui/index_icon/year_2025_(snake).png", [0, -1, 0, -1, 571, 999]],
@@ -2102,6 +2104,11 @@ function loadAssets(id, data, target, indexed, allow_open)
                 {name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], index:-6, icon:"assets/ui/result_icon/custom.png", form:false, lazy:false},
                 {name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], index:-8, icon:"assets/ui/result_icon/siero.png", form:false, lazy:false}
             ];
+            if(ETERNALS.includes(id)) // include specific icons
+            {
+                assets[3].paths.push(["sp/event/common/terra/top/assets/story/btnbnr_", "png"]);
+                assets[18].paths.push(["sp/coaching/assets/eternals/", "png"]);
+            }
             skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
             npcdata = data[7];
             sounds = data[8];
