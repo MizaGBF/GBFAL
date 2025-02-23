@@ -3474,7 +3474,7 @@ class Updater():
                             file_estimation += len(v[self.CHARA_SP])
                             file_estimation += len(v[self.CHARA_AB_ALL])
                             file_estimation += len(v[self.CHARA_AB])
-                            file_estimation += len(v[self.CHARA_GENERAL]) * 14
+                            file_estimation += len(v[self.CHARA_GENERAL]) * 32
                             if t != "partners":
                                 file_estimation += len(v[self.CHARA_SD]) * 5
                                 file_estimation += len(v[self.CHARA_SCENE])

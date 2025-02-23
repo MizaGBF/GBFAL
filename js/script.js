@@ -2089,6 +2089,7 @@ function loadAssets(id, data, target, indexed, allow_open)
                 {name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:5, icon:"assets/ui/result_icon/journal.png", form:false},
                 {name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:6, icon:"assets/ui/result_icon/other.png", form:false},
                 {name:"Various Portraits", paths:[["sp/assets/npc/m/", "jpg"], ["sp/assets/npc/s/", "jpg"], ["sp/assets/npc/f/", "jpg"], ["sp/assets/npc/qm/", "png"], ["sp/assets/npc/quest/", "jpg"], ["sp/assets/npc/t/", "png"], ["sp/assets/npc/result_lvup/", "png"], ["sp/assets/npc/detail/", "png"], ["sp/assets/npc/sns/", "jpg"]], index:5, icon:"assets/ui/result_icon/portrait.png", form:false},
+                {name:"Skin Portraits", paths:[["sp/assets/npc/s/skin/", "_s1.jpg"], ["sp/assets/npc/f/skin/", "_s1.jpg"], ["sp/assets/npc/t/skin/", "_s1.png"], ["sp/assets/npc/s/skin/", "_s2.jpg"], ["sp/assets/npc/f/skin/", "_s2.jpg"], ["sp/assets/npc/t/skin/", "_s2.png"], ["sp/assets/npc/s/skin/", "_s3.jpg"], ["sp/assets/npc/f/skin/", "_s3.jpg"], ["sp/assets/npc/t/skin/", "_s3.png"], ["sp/assets/npc/s/skin/", "_s4.jpg"], ["sp/assets/npc/f/skin/", "_s4.jpg"], ["sp/assets/npc/t/skin/", "_s4.png"], ["sp/assets/npc/s/skin/", "_s5.jpg"], ["sp/assets/npc/f/skin/", "_s5.jpg"], ["sp/assets/npc/t/skin/", "_s5.png"], ["sp/assets/npc/s/skin/", "_s6.jpg"], ["sp/assets/npc/f/skin/", "_s6.jpg"], ["sp/assets/npc/t/skin/", "_s6.png"]], index:5, icon:"assets/ui/result_icon/skin.png", form:false},
                 {name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"assets/ui/result_icon/battle.png"},
                 {name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"assets/ui/result_icon/cb.png", form:false},
                 {name:"Sprites", paths:[["sp/gacha/assets/balloon_s/", "png"], ["sp/assets/npc/sd/", "png"]], index:6, icon:"assets/ui/result_icon/sprite.png", form:false},
@@ -2107,7 +2108,7 @@ function loadAssets(id, data, target, indexed, allow_open)
             if(ETERNALS.includes(id)) // include specific icons
             {
                 assets[3].paths.push(["sp/event/common/terra/top/assets/story/btnbnr_", "png"]);
-                assets[18].paths.push(["sp/coaching/assets/eternals/", "png"]);
+                assets[19].paths.push(["sp/coaching/assets/eternals/", "png"]);
             }
             skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
             npcdata = data[7];
@@ -2897,9 +2898,17 @@ function addImage(div, file, asset, path, lazy_loading) // add an asset
     let img = document.createElement("img");
     let ref = document.createElement('a');
     if(file.endsWith(".png") || file.endsWith(".jpg")) // if extension is already set
+    {
         img.src = cycleEndpoint() + "assets_en/img_low/" + path[0] + file;
+    }
+    else if(path[1].endsWith(".png") || path[1].endsWith(".jpg"))
+    {
+        img.src = cycleEndpoint() + "assets_en/img_low/" + path[0] + file + path[1];
+    }
     else
+    {
         img.src = cycleEndpoint() + "assets_en/img_low/" + path[0] + file + "." + path[1];
+    }
     ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img")); // set link
     img.classList.add("loading");
     // preview stuff
