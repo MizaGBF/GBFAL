@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.13'
+    VERSION = '3.14'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -3325,27 +3325,71 @@ class Updater():
 
     ### Maintenance #################################################################################################################
 
-    # Call some functions to perform some updating (buff, npc, thumbnail...)
-    async def maintenance(self : Updater) -> None:
-        self.flags.set("maintenance")
-        if not self.flags.check("maintenance_buff"):
-            self.tasks.add(self.maintenance_buff)
-        if not self.flags.check("maintenance_npc_thumbnail"):
-            self.tasks.add(self.maintenance_npc_thumbnail)
-        if not self.flags.check("maintenance_event_skycompass"):
-            self.tasks.add(self.maintenance_event_skycompass)
-        await self.tasks.start()
-
-    # Called by maintenance or process_flags
+    # Called by maintenancebuff
     async def maintenance_buff(self : Updater) -> None:
+        if self.flags.check("maintenance_buff"):
+            return
         self.flags.set("maintenance_buff")
+        await self.maintenance_compare_wiki_buff()
         self.tasks.print("Starting tasks to update known Buffs...")
         for element_id in self.data['buffs']:
             self.prepare_update_buff(element_id)
         await self.tasks.start()
 
-    # Called by maintenance or process_flags
+    # Called by maintenancebuff, maintenance or process_flags
+    async def maintenance_compare_wiki_buff(self : Updater) -> None:
+        try:
+            if not self.use_wiki or self.flags.check("maintenance_buff_wiki"):
+                return
+            self.flags.set("maintenance_buff_wiki")
+            self.tasks.print("Comparing data with gbf.wiki buff list...")
+            data = await self.get_wiki("https://gbf.wiki/api.php?action=query&prop=revisions&titles=Module:StatusList&rvslots=main&rvprop=content&formatversion=2&format=json", get_json=True)
+            bid : str
+            ext : str
+            count : int = 0
+            for line in data['query']['pages'][0]['revisions'][0]['slots']['main']['content'].split('\n'):
+                if line.strip().startswith('status ='):
+                    icon : str = line.split("'")[1].strip()
+                    if icon == "":
+                        continue
+                    elif "_" in icon:
+                        bid = icon.split('_', 1)[0].zfill(4)
+                        ext = '_' + icon.split('_', 1)[1]
+                    elif icon.isdigit() and len(icon) >= 5:
+                        bid = icon[:4]
+                        ext = icon[4:]
+                    else:
+                        bid = icon.zfill(4)
+                        ext = ""
+                    if len(bid) >= 5:
+                        ext = bid[4:] + ext
+                        bid = bid[:4]
+                    if bid not in self.data['buffs']:
+                        # check if icon exists
+                        if not await self.head_nx("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/ui/icon/status/x64/status_" + icon + ".png"):
+                            continue
+                        self.data['buffs'][bid] = [[str(int(bid))], [ext]]
+                        self.modified = True
+                        self.addition[bid] = self.ADD_BUFF
+                        count += 1
+                    elif ext not in self.data['buffs'][bid][1]:
+                        if not await self.head_nx("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/ui/icon/status/x64/status_" + icon + ".png"):
+                            continue
+                        self.data['buffs'][bid][1].append(ext)
+                        self.data['buffs'][bid][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
+                        self.modified = True
+                        self.addition[bid] = self.ADD_BUFF
+                        count += 1
+            if count > 0:
+                self.tasks.print("Updated", count, "buff(s)")
+        except Exception as e:
+            print("An error occured while comparing with gbf.wiki buff list")
+            print("Exception:", e)
+
+    # Called by maintenancenpcthumbnail, maintenance or process_flags
     async def maintenance_npc_thumbnail(self : Updater) -> None:
+        if self.flags.check("maintenance_npc_thumbnail"):
+            return
         self.flags.set("maintenance_npc_thumbnail")
         self.tasks.print("Starting tasks to update known NPC thumbnails...")
         for element_id in self.data['npcs']:
@@ -3353,17 +3397,7 @@ class Updater():
                 self.tasks.add(self.update_npc_thumb, parameters=(element_id,))
         await self.tasks.start()
 
-    # Called by maintenance or process_flags
-    async def maintenance_event_skycompass(self : Updater) -> None:
-        self.flags.set("maintenance_event_skycompass")
-        self.tasks.print("Starting tasks to update known Events Skycompass Arts...")
-        for ev in self.data['events']:
-            if self.data['events'][ev][self.EVENT_THUMB] is not None:
-                self.tasks.add(self.update_event_skycompass, parameters=(ev,))
-        self.tasks.add(self.update_all_event_thumbnail)
-        await self.tasks.start()
-
-    # Called by maintenance
+    # maintenance_npc_thumbnail() subroutine
     async def update_npc_thumb(self : Updater, element_id : str) -> None: # subroutine
         try:
             await self.head(self.IMG + "sp/assets/npc/m/{}_01.jpg".format(element_id))
@@ -3371,6 +3405,18 @@ class Updater():
             self.modified = True
         except:
             pass
+
+    # Called by maintenancesky, maintenance or process_flags
+    async def maintenance_event_skycompass(self : Updater) -> None:
+        if self.flags.check("maintenance_event_skycompass"):
+            return
+        self.flags.set("maintenance_event_skycompass")
+        self.tasks.print("Starting tasks to update known Events Skycompass Arts...")
+        for ev in self.data['events']:
+            if self.data['events'][ev][self.EVENT_THUMB] is not None:
+                self.tasks.add(self.update_event_skycompass, parameters=(ev,))
+        self.tasks.add(self.update_all_event_thumbnail)
+        await self.tasks.start()
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
     async def update_event_skycompass(self : Updater, ev : str) -> None:
@@ -3591,6 +3637,7 @@ class Updater():
                 self.flags.set("checking_event_related")
                 self.tasks.add(self.maintenance_npc_thumbnail, priority=0)
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
+                self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
 
     # return True if the file name passes the  filters
     def file_is_matching(self : Updater, name : str, filters : list[str]) -> bool:
@@ -3693,7 +3740,7 @@ class Updater():
 
     # To be called before running anything
     async def init_updater(self : Updater, *, wiki : bool = False, job : bool = False) -> None:
-        if wiki:
+        if wiki and not self.use_wiki:
             # test wiki
             self.use_wiki = await self.test_wiki()
             if not self.use_wiki:
@@ -3836,11 +3883,19 @@ class Updater():
             elif args.exportthumb:
                 self.update_manual_event_thumbnail(False)
             elif args.maintenance:
+                await self.init_updater(wiki=True)
                 self.tasks.print("Performing maintenance...")
-                await self.maintenance()
+                self.tasks.add(self.maintenance_buff)
+                self.tasks.add(self.maintenance_compare_wiki_buff)
+                self.tasks.add(self.maintenance_npc_thumbnail)
+                self.tasks.add(self.maintenance_event_skycompass)
+                await self.tasks.start()
             elif args.maintenancebuff:
+                await self.init_updater(wiki=True)
                 self.tasks.print("Performing maintenance...")
-                await self.maintenance_buff()
+                self.tasks.add(self.maintenance_compare_wiki_buff)
+                self.tasks.add(self.maintenance_buff)
+                await self.tasks.start()
             elif args.maintenancesky:
                 self.tasks.print("Performing maintenance...")
                 await self.maintenance_event_skycompass()
