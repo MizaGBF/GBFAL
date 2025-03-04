@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.14'
+    VERSION = '3.15'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -2527,7 +2527,7 @@ class Updater():
             name : str = self.SPECIAL_EVENTS.get(element_id, element_id) # retrieve file name id if special event
             prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
             existings : list[set[str]] = [set(self.data["events"][element_id][i]) for i in range(self.EVENT_OP, len(self.data["events"][element_id]))] # make set of existing files
-            ch_count = self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] if self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] > 0 else self.EVENT_MAX_CHAPTER # get the number of chapter to check
+            ch_count = self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] if not forceevent and self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] > 0 else self.EVENT_MAX_CHAPTER # get the number of chapter to check
             ts : TaskStatus
             # chapters
             for i in range(1, ch_count+1):
@@ -3330,7 +3330,7 @@ class Updater():
         if self.flags.check("maintenance_buff"):
             return
         self.flags.set("maintenance_buff")
-        await self.maintenance_compare_wiki_buff()
+        self.tasks.add(self.maintenance_compare_wiki_buff)
         self.tasks.print("Starting tasks to update known Buffs...")
         for element_id in self.data['buffs']:
             self.prepare_update_buff(element_id)
@@ -3343,6 +3343,7 @@ class Updater():
                 return
             self.flags.set("maintenance_buff_wiki")
             self.tasks.print("Comparing data with gbf.wiki buff list...")
+            checked : set[str] = set()
             data = await self.get_wiki("https://gbf.wiki/api.php?action=query&prop=revisions&titles=Module:StatusList&rvslots=main&rvprop=content&formatversion=2&format=json", get_json=True)
             bid : str
             ext : str
@@ -3379,6 +3380,10 @@ class Updater():
                         self.data['buffs'][bid][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
                         self.modified = True
                         self.addition[bid] = self.ADD_BUFF
+                        # do a full check of that buff (if it hasn't been done)
+                        if bid not in checked:
+                            checked.add(bid)
+                            self.tasks.add(self.prepare_update_buff, parameters=(bid,))
                         count += 1
             if count > 0:
                 self.tasks.print("Updated", count, "buff(s)")
@@ -3886,16 +3891,13 @@ class Updater():
                 await self.init_updater(wiki=True)
                 self.tasks.print("Performing maintenance...")
                 self.tasks.add(self.maintenance_buff)
-                self.tasks.add(self.maintenance_compare_wiki_buff)
                 self.tasks.add(self.maintenance_npc_thumbnail)
                 self.tasks.add(self.maintenance_event_skycompass)
                 await self.tasks.start()
             elif args.maintenancebuff:
                 await self.init_updater(wiki=True)
                 self.tasks.print("Performing maintenance...")
-                self.tasks.add(self.maintenance_compare_wiki_buff)
-                self.tasks.add(self.maintenance_buff)
-                await self.tasks.start()
+                await self.maintenance_buff()
             elif args.maintenancesky:
                 self.tasks.print("Performing maintenance...")
                 await self.maintenance_event_skycompass()
@@ -3919,7 +3921,6 @@ class Updater():
                     self.update_manual_fate()
             if self.modified:
                 self.make_stats()
-            self.save()
 
 if __name__ == "__main__":
     asyncio.run(Updater().start())
