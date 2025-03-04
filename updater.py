@@ -3913,6 +3913,7 @@ class Updater():
                 await self.lookup() # update the lookup
                 # update other manual json files if needed
                 if self.flags.check("found_event"):
+                    self.update_manual_event_thumbnail(True)
                     self.update_manual_event_thumbnail(False)
                 if self.flags.check("found_fate"):
                     self.update_manual_fate()
