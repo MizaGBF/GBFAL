@@ -150,6 +150,7 @@ const BANNED = [
 // =================================================================================================
 // global variables
 var output = null; // contain the html output element
+var fragment = null; // fragment to add DOM elements to avoid trashing
 var stat_string = null; // stat string (from changelog.json)
 var last_id = null; // last id loaded
 var last_type = null; // last asset type loaded
@@ -2265,22 +2266,31 @@ function loadAssets(id, data, target, indexed, allow_open)
 		updateHistory(id, search_type);
 		favButton(true, id, search_type);
 	}
+	// cleanup output and create fragment
+	output.innerHTML = "";
+	fragment = document.createDocumentFragment();
+	// create headers
 	prepareOuputAndHeader(area_name, id, target, search_type, data, include_link, indexed);
+	// add assets
 	for(let i = 0; i < assets.length; ++i)
 	{
-		if(assets[i].break ?? false) output.appendChild(document.createElement('br'));
+		if(assets[i].break ?? false) fragment.appendChild(document.createElement('br'));
 		loadAssets_main(id, data, target, indexed, assets[i], loadAssets_getFiles(id, data, assets[i], files, melee), mc_skycompass, skycompass, (assets[i].lazy ?? true));
 	}
+	// add npc assets
 	if(npcdata && npcdata.length > 0)
 	{
-		output.appendChild(document.createElement('br'));
+		fragment.appendChild(document.createElement('br'));
 		loadAssets_scene(id, npcdata, indexed, openscene);
 	}
+	// add sound assets
 	if(sounds && sounds.length > 0)
 	{
-		output.appendChild(document.createElement('br'));
+		fragment.appendChild(document.createElement('br'));
 		loadAssets_sound(id, sounds, indexed);
 	}
+	// append fragment to output
+	output.appendChild(fragment);
 }
 
 function loadAssets_getFiles(id, data, asset, files, melee)
@@ -2491,8 +2501,6 @@ function prepareOuputAndHeader(name, id, target, search_type, data, include_link
 	// open tab
 	document.getElementById("tab-view").style.display = null;
 	openTab("view");
-	// cleanup output
-	output.innerHTML = "";
 	// create header
 	let div = (name == "Event") ? addResultHeader("Result Header", name + ": " + id + (isNaN(id.slice(1)) ? "" : " (20"+id.substring(0,2)+"/"+id.substring(2,4)+"/"+id.substring(4,6)+")")) : addResultHeader("Result Header", name + ": " + id);
 	// add next/previous
@@ -2876,7 +2884,7 @@ function addResult(identifier, name, icon, open=false) // add an asset category
 	
 	details.appendChild(summary);
 	details.appendChild(div);
-	output.appendChild(details);
+	fragment.appendChild(details);
 	return div;
 }
 
@@ -2888,7 +2896,7 @@ function addResultHeader(identifier, name) // add an asset category
 	div.setAttribute("data-id", identifier);
 	div.appendChild(document.createTextNode(name));
 	div.appendChild(document.createElement("br"));
-	output.appendChild(div);
+	fragment.appendChild(div);
 	return div;
 }
 
