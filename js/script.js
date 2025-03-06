@@ -276,9 +276,10 @@ function initIndex() // build the html index. simply edit the constants above to
 	try
 	{
 		content.innerHTML = "";
+		let frag = document.createDocumentFragment();
 		let parents = null;
 		let elems = null;
-		parents = makeIndexSummary(content, "Characters", true, 0, "assets/ui/icon/characters.png");
+		parents = makeIndexSummary(frag, "Characters", true, 0, "assets/ui/icon/characters.png");
 		for(let i of CHARACTERS)
 		{
 			elems = makeIndexSummary(parents[0], i[0], false, 1, i[1]);
@@ -288,7 +289,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		parents = makeIndexSummary(content, "Skins", true, 0, "assets/ui/icon/skins.png");
+		parents = makeIndexSummary(frag, "Skins", true, 0, "assets/ui/icon/skins.png");
 		for(let i of SKINS)
 		{
 			elems = makeIndexSummary(parents[0], i[0], false, 1);
@@ -298,7 +299,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		parents = makeIndexSummary(content, "Partners", true, 0, "assets/ui/icon/partners.png");
+		parents = makeIndexSummary(frag, "Partners", true, 0, "assets/ui/icon/partners.png");
 		for(let i of PARTNERS)
 		{
 			elems = makeIndexSummary(parents[0], i[0], false, 1, i[2]);
@@ -308,7 +309,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		parents = makeIndexSummary(content, "Summons", true, 0, "assets/ui/icon/summons.png");
+		parents = makeIndexSummary(frag, "Summons", true, 0, "assets/ui/icon/summons.png");
 		for(let i of SUMMONS)
 		{
 			elems = makeIndexSummary(parents[0], i[0], false, 1, i[3]);
@@ -318,7 +319,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		parents = makeIndexSummary(content, "Weapons", true, 0, "assets/ui/icon/weapons.png");
+		parents = makeIndexSummary(frag, "Weapons", true, 0, "assets/ui/icon/weapons.png");
 		for(let i of WEAPONS_RARITY)
 		{
 			let inter = makeIndexSummary(parents[0], i[0], true, 1, i[2]);
@@ -332,7 +333,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				};
 			}
 		}
-		elems = makeIndexSummary(content, "Main Character", false, 0, "assets/ui/icon/classes.png");
+		elems = makeIndexSummary(frag, "Main Character", false, 0, "assets/ui/icon/classes.png");
 		{
 			const tmp = elems[0];
 			elems[1].onclick = function (){
@@ -340,7 +341,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		parents = makeIndexSummary(content, "Enemies", true, 0, "assets/ui/icon/enemies.png");
+		parents = makeIndexSummary(frag, "Enemies", true, 0, "assets/ui/icon/enemies.png");
 		for(let i of ENEMIES)
 		{
 			let inter = makeIndexSummary(parents[0], i[0], true, 1, i[2]);
@@ -355,7 +356,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				};
 			}
 		}
-		parents = makeIndexSummary(content, "NPCs", true, 0, "assets/ui/icon/npcs.png");
+		parents = makeIndexSummary(frag, "NPCs", true, 0, "assets/ui/icon/npcs.png");
 		for(let i of NPCS)
 		{
 			if(i.length > 4)
@@ -381,7 +382,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				};
 			}
 		}
-		elems = makeIndexSummary(content, "Valentine / White Day", false, 0, "assets/ui/index_icon/special.png");
+		elems = makeIndexSummary(frag, "Valentine / White Day", false, 0, "assets/ui/index_icon/special.png");
 		{
 			const tmp = elems[0];
 			elems[1].onclick = function (){
@@ -389,7 +390,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		elems = makeIndexSummary(content, "Main Story", false, 0, "assets/ui/icon/story.png");
+		elems = makeIndexSummary(frag, "Main Story", false, 0, "assets/ui/icon/story.png");
 		{
 			const tmp = elems[0];
 			elems[1].onclick = function (){
@@ -397,7 +398,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		parents = makeIndexSummary(content, "Fate Episodes", true, 0, "assets/ui/icon/fate.png");
+		parents = makeIndexSummary(frag, "Fate Episodes", true, 0, "assets/ui/icon/fate.png");
 		for(let i of FATES)
 		{
 			elems = makeIndexSummary(parents[0], i[0], false, 1, i[3]);
@@ -409,7 +410,7 @@ function initIndex() // build the html index. simply edit the constants above to
 		}
 		
 		
-		parents = makeIndexSummary(content, "Events", true, 0, "assets/ui/icon/events.png");
+		parents = makeIndexSummary(frag, "Events", true, 0, "assets/ui/icon/events.png");
 		for(let i of EVENTS)
 		{
 			let elems = makeIndexSummary(parents[0], i[0], false, 1, i[1]);
@@ -422,7 +423,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				};
 			}
 		}
-		parents = makeIndexSummary(content, "Skills", true, 0, "assets/ui/icon/skills.png");
+		parents = makeIndexSummary(frag, "Skills", true, 0, "assets/ui/icon/skills.png");
 		for(let i of SKILLS)
 		{
 			const name = "ID " + JSON.stringify(i[1][0]).padStart(4, "0") + " to " + JSON.stringify(i[i.length-1][1]-1).padStart(4, "0");
@@ -437,7 +438,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				};
 			}
 		}
-		elems = makeIndexSummary(content, "Sub Skills", false, 0, "assets/ui/icon/subskills.png");
+		elems = makeIndexSummary(frag, "Sub Skills", false, 0, "assets/ui/icon/subskills.png");
 		{
 			const tmp = elems[0];
 			elems[1].onclick = function (){
@@ -445,7 +446,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		parents = makeIndexSummary(content, "Buffs", true, 0, "assets/ui/icon/buffs.png");
+		parents = makeIndexSummary(frag, "Buffs", true, 0, "assets/ui/icon/buffs.png");
 		for(let i of BUFFS)
 		{
 			if(i.length > 3)
@@ -471,7 +472,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				};
 			}
 		}
-		parents = makeIndexSummary(content, "Backgrounds", true, 0, "assets/ui/icon/backgrounds.png");
+		parents = makeIndexSummary(frag, "Backgrounds", true, 0, "assets/ui/icon/backgrounds.png");
 		for(let i of BACKGROUNDS)
 		{
 			elems = makeIndexSummary(parents[0], i[0], false, 1);
@@ -481,7 +482,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		elems = makeIndexSummary(content, "Title Screens", false, 0, "assets/ui/icon/titles.png");
+		elems = makeIndexSummary(frag, "Title Screens", false, 0, "assets/ui/icon/titles.png");
 		{
 			const tmp = elems[0];
 			elems[1].onclick = function (){
@@ -489,7 +490,7 @@ function initIndex() // build the html index. simply edit the constants above to
 				this.onclick = null;
 			};
 		}
-		elems = makeIndexSummary(content, "Suprise Tickets", false, 0, "assets/ui/icon/suptix.png");
+		elems = makeIndexSummary(frag, "Suprise Tickets", false, 0, "assets/ui/icon/suptix.png");
 		{
 			const tmp = elems[0];
 			elems[1].onclick = function (){
@@ -502,8 +503,9 @@ function initIndex() // build the html index. simply edit the constants above to
 			let center = document.createElement("center");
 			center.appendChild(document.createTextNode(stat_string));
 			center.classList.add("small-text");
-			content.appendChild(center);
+			frag.appendChild(center);
 		}
+		content.appendChild(frag);
 	}
 	catch(err)
 	{
@@ -1293,6 +1295,7 @@ function addTextImage(node, className, id, string, unusedA, unusedB) // like add
 function updateList(node, elems) // update a list of elements
 {
 	node.innerHTML = "";
+	let frag = document.createDocumentFragment();
 	for(let e of elems)
 	{
 		try
@@ -1373,6 +1376,7 @@ function updateList(node, elems) // update a list of elements
 		} catch(err) {
 			console.error("Exception thrown", err.stack);
 		}
+		node.appendChild(frag);
 	}
 }
 

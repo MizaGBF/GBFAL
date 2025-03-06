@@ -102,6 +102,7 @@ function setSparkList()
 {
 	// for each characters
 	let node = document.getElementById('spark-select-npc');
+	let frag = document.createDocumentFragment();
 	const ckeys = Object.keys(index["characters"]).reverse();
 	if(ckeys.length > 0) // add more non-indexed characters first, so that the user got recent stuff in all scenarios
 	{
@@ -112,7 +113,7 @@ function setSparkList()
 			const ret = display_characters(id, null, [-1, -1, -1, -1, 0, 1000]);
 			if(ret != null)
 			{
-				items[id] = addImage_spark(node, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
+				items[id] = addImage_spark(frag, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
 			}
 		}
 	}
@@ -122,12 +123,14 @@ function setSparkList()
 		const ret = display_characters(id, (index["characters"][id] !== 0 ? index["characters"][id] : null), [-1, -1, -1, -1, 0, 1000]);
 		if(ret != null)
 		{
-			items[id] = addImage_spark(node, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
+			items[id] = addImage_spark(frag, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
 		}
 	}
+	node.appendChild(frag);
 	
 	// for each summons
 	node = document.getElementById('spark-select-summon');
+	frag = document.createDocumentFragment();
 	const skeys = Object.keys(index["summons"]).reverse();
 	if(skeys.length > 0) // add more non-indexed summons first, so that the user got recent stuff in all scenarios
 	{
@@ -138,7 +141,7 @@ function setSparkList()
 			const ret = display_summons(id, null, "4", [0, 1000]);
 			if(ret != null)
 			{
-				items[id] = addImage_spark(node, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
+				items[id] = addImage_spark(frag, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
 			}
 		}
 	}
@@ -148,9 +151,10 @@ function setSparkList()
 		const ret = display_summons(id, (index["summons"][id] !== 0 ? index["summons"][id] : null), "4", [0, 1000]);
 		if(ret != null)
 		{
-			items[id] = addImage_spark(node, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
+			items[id] = addImage_spark(frag, ret[0][1], ret[0][0], ret[0][2]); // display and memorize in items
 		}
 	}
+	node.appendChild(frag);
 }
 
 function addImage_spark(node, path, id, onerr) // add an image to the selector
