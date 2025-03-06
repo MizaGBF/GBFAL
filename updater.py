@@ -3921,6 +3921,7 @@ class Updater():
                     self.update_manual_fate()
             if self.modified:
                 self.make_stats()
+                self.save()
 
 if __name__ == "__main__":
     asyncio.run(Updater().start())
