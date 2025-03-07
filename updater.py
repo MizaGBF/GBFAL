@@ -210,7 +210,7 @@ class TaskManager():
                         print("No changes waiting to be saved")
                     else:
                         self.updater.save()
-                        self.updater.save_resume()
+                    self.updater.save_resume()
                 case 'peek':
                     if len(s) < 3:
                         print("missing 1 parameter: ID")
@@ -3616,6 +3616,7 @@ class Updater():
             if self.flags.check("use_resume"):
                 with open("resume", mode="w", encoding="utf-8") as f:
                     json.dump(self.resume, f)
+                self.tasks.print("The resume file has been updated")
         except:
             pass
 
