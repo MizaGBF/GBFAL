@@ -36,7 +36,7 @@ This script is in charge of updating the JSON files.
 * See [requirements.txt](https://github.com/MizaGBF/GBFAP/blob/master/requirements.txt) for a list of third-party modules.  
   
 ### Usage
-```GBFAL Updater v3.12
+```GBFAL Updater v3.16
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-si SCENEID [SCENEID ...]] [-sc [SCENE ...]]
                   [-sd [SOUND ...]] [-ev [EVENT ...]]
@@ -45,7 +45,7 @@ usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-et] [-mt] [-mb] [-ms] [-mu] [-js] [-au [ADDUNCAP ...]]
                   [-nc] [-nr] [-if] [-da PATH] [-dg]
 
-Asset Updater v3.12 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.16 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -56,8 +56,7 @@ primary:
   -r, --run             search for new content.
   -u, --update UPDATE [UPDATE ...]
                         update given elements.
-  -j, --job [FULL]      detailed job search. Add something to trigger a full
-                        search.
+  -j, --job [FULL]      detailed job search. Add 'full' to trigger a full search.
 
 secondary:
   commands to update some specific data.

@@ -297,8 +297,8 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.15'
-    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rosetta/Dev'
+    VERSION = '3.16'
+    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
     MAX_NEW = 100 # changelog limit
@@ -690,8 +690,12 @@ class Updater():
         # jobs
         if self.job_list is not None:
             jkeys = [k for k in list(self.job_list.keys()) if (k not in self.data['job'] or self.data['job'][k] == 0)]
+            # Adding jobs added by other means
+            for k in self.data['job']:
+                if self.data['job'][k] == 0 and k not in jkeys:
+                    jkeys.append(k)
             for k in jkeys:
-                self.tasks.add(self.update_job, parameters=(k))
+                self.tasks.add(self.update_job, parameters=(k,))
         # skills
         ts = TaskStatus(10000, 12)
         highest : int = 0
@@ -1840,12 +1844,13 @@ class Updater():
         if self.job_list is None:
             self.tasks.print("Couldn't retrieve job list from the game")
             return
-        to_search = []
         # key search
         for k, v in self.data['job'].items():
+            if v == 0:
+                continue
             if len(v[self.JOB_SPRITE]) == 0:
-                if self.job_list[k] != self.STRING_CHAR:
-                    to_search.append((0, self.job_list[k], k)) # keyword search type, letters, class id
+                if k in self.job_list and self.job_list[k] != self.STRING_CHAR:
+                    self.tasks.add(self.detail_job_search, parameters=(self.job_list[k], k))
                 else:
                     full_key_search = True
         # class weapon search
@@ -1856,15 +1861,9 @@ class Updater():
                 if wid in self.data['weapons'] or wid in self.data["job_wpn"]:
                     err = 0
                     continue
-                to_search.append((1, wid)) # skin weapon search, id
+                self.tasks.add(self.detail_job_weapon_search, parameters=(wid, ))
                 err += 1
                 if err > 15: break
-        # add tasks
-        for v in to_search:
-            if v[0] == 0:
-                self.tasks.add(self.detail_job_search, parameters=(v[1], v[2]))
-            elif v[0] == 1:
-                self.tasks.add(self.detail_job_weapon_search, parameters=(v[1], ))
         # full key search
         if full_key_search:
             for a in self.STRING_CHAR:
@@ -1916,16 +1915,15 @@ class Updater():
 
     # test a job key
     async def detail_job_search_single(self, key : str) -> None:
-        with self.progress:
-            for mh in self.MAINHAND:
-                try:
-                    await self.head(self.MANIFEST + "{}_{}_0_01.js".format(key, mh))
-                    self.data["job_key"][key] = None
-                    self.modified = True
-                    self.tasks.print("\nUnknown job key", key, "for mh", mh)
-                    break
-                except:
-                    pass
+        for mh in self.MAINHAND:
+            try:
+                await self.head(self.MANIFEST + "{}_{}_0_01.js".format(key, mh))
+                self.data["job_key"][key] = None
+                self.modified = True
+                self.tasks.print("\nUnknown job key", key, "for mh", mh)
+                break
+            except:
+                pass
 
     # import job_data_export data
     async def importjob(self : Updater) -> None:
@@ -3773,7 +3771,7 @@ class Updater():
             primary = parser.add_argument_group('primary', 'main commands to update the data.')
             primary.add_argument('-r', '--run', help="search for new content.", action='store_const', const=True, default=False, metavar='')
             primary.add_argument('-u', '--update', help="update given elements.", nargs='+', default=None)
-            primary.add_argument('-j', '--job', help="detailed job search. Add something to trigger a full search.", action='store', nargs='?', default=False, metavar='FULL')
+            primary.add_argument('-j', '--job', help="detailed job search. Add 'full' to trigger a full search.", action='store', nargs='?', default=False, metavar='FULL')
             
             secondary = parser.add_argument_group('secondary', 'commands to update some specific data.')
             secondary.add_argument('-si', '--sceneid', help="update scene content for given IDs.", nargs='+', default=None)
@@ -3840,7 +3838,7 @@ class Updater():
             elif args.job is not False:
                 self.tasks.print("Searching detailed job data...")
                 await self.init_updater(wiki=False, job=True)
-                await self.search_job_detail(args.job is not None)
+                await self.search_job_detail(args.job == "full")
             elif args.sceneid is not None and len(args.sceneid) > 0:
                 self.tasks.print("Updating scene data...")
                 await self.update_all_scene_for_ids(args.sceneid)
