@@ -2527,7 +2527,7 @@ class Updater():
             name : str = self.SPECIAL_EVENTS.get(element_id, element_id) # retrieve file name id if special event
             prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
             existings : list[set[str]] = [set(self.data["events"][element_id][i]) for i in range(self.EVENT_OP, len(self.data["events"][element_id]))] # make set of existing files
-            ch_count = self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] if not forceevent and self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] > 0 else self.EVENT_MAX_CHAPTER # get the number of chapter to check
+            ch_count = self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] if not forceflag and self.data["events"][element_id][self.EVENT_CHAPTER_COUNT] > 0 else self.EVENT_MAX_CHAPTER # get the number of chapter to check
             ts : TaskStatus
             # chapters
             for i in range(1, ch_count+1):
