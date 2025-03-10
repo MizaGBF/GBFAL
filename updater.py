@@ -80,7 +80,7 @@ class TaskManager():
                         else:
                             skip -= 1
                     except Exception as e:
-                        self.print("Can't start task, the following exception occured:")
+                        self.print("Can't start task, the following exception occured in queue", i)
                         self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                         self.finished += 1
                         self.return_state = False
@@ -904,7 +904,7 @@ class Updater():
             fi : str = str(i).zfill(4) # formatted id
             if fi in self.data['buffs']: # already indexed
                 if self.data['buffs'][fi] == 0:
-                    self.prepare_update_buff(fi, priority=3) # call update task for that element
+                    await self.prepare_update_buff(fi, priority=3) # call update task for that element
                 ts.good()
                 continue
             found : bool = False
@@ -922,12 +922,12 @@ class Updater():
             if found:
                 ts.good()
                 self.tasks.print("Found:", fi, "for index:", "buffs")
-                self.prepare_update_buff(fi, priority=3) # call update task for that element
+                await self.prepare_update_buff(fi, priority=3) # call update task for that element
             else:
                 ts.bad()
 
     # Prepare the update_buff tasks
-    def prepare_update_buff(self : Updater, element_id : str, *, priority : int = -1) -> None:
+    async def prepare_update_buff(self : Updater, element_id : str, *, priority : int = -1) -> None:
         i : int = int(element_id)
         fi : str = str(i)
         if self.data['buffs'].get(element_id, 0) == 0: # init array
@@ -3331,7 +3331,7 @@ class Updater():
         self.tasks.add(self.maintenance_compare_wiki_buff)
         self.tasks.print("Starting tasks to update known Buffs...")
         for element_id in self.data['buffs']:
-            self.prepare_update_buff(element_id)
+            await self.prepare_update_buff(element_id)
         await self.tasks.start()
 
     # Called by maintenancebuff, maintenance or process_flags
