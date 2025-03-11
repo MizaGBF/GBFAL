@@ -3292,6 +3292,7 @@
 "3993846000":"sabrina human female サブリナ yūko natsuyoshi 夏吉ゆうこ",
 "3993847000":"main character mc gran human male グラン",
 "3993848000":"main character mc djeeta human female ジータ",
+"3993856000":null,
 "3993857000":"nora erune female",
 "3993858000":"andira 12generals erune female アンチラ aya uchida 内田彩",
 "3993859000":"mahira 12generals harvin female マキラ mai kadowaki 門脇舞以",
@@ -3317,6 +3318,10 @@
 "3993879000":"goldenwing dragon",
 "3993880000":"klesha-wreathed joya local type",
 "3993881000":"klesha-wreathed joya local type",
+"3993882000":null,
+"3993883000":null,
+"3993884000":null,
+"3993885000":null,
 "3993888000":"samantha",
 "3993889000":"seox eternals erune male シス nobuyuki hiyama 檜山修之",
 "3993892000":"vajra 12generals erune female ヴァジラ yū serizawa 芹澤優",
@@ -5991,6 +5996,11 @@
 "9102603":"farbigrabe $$fire",
 "9102613":"chimera flock $$earth",
 "9102623":"klesha-wreathed joya local type $$wind",
+"9102633":null,
 "9102643":"klesha-wreathed joya local type $$wind",
-"9102653":"klesha-wreathed joya local type $$wind"
+"9102653":"klesha-wreathed joya local type $$wind",
+"9102662":null,
+"9102663":null,
+"9102673":null,
+"9102683":null
 }
