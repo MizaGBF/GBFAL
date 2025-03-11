@@ -3468,7 +3468,7 @@ class Updater():
                 uris.append((self.IMG + "sp/raid/navi_face/{}" + "{}{}.png".format(u, s), self.NPC_SCENE))
         for s in sound_strings:
             uris.append((self.SOUND + "voice/{}" + "{}.mp3".format(s), self.NPC_SOUND))
-        for i in range(0, highest+5):
+        for i in range(highest-20, highest+5):
             fid : str = "399{}000".format(str(i).zfill(4))
             if self.data['npcs'].get(fid, 0) == 0:
                 count += 1

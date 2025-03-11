@@ -126,6 +126,14 @@
             "comment": "Ferry SSR",
             "unique": ["_beppo", "_beppo_jiji", "_jiji", "_foogee", "_foogee_nicola", "_nicola", "_momo"]
         },
+        "3040197000": {
+            "comment": "Kumbhira",
+            "unique": ["_boar1", "_boar2", "_boar3"]
+        },
+        "3040071000": {
+            "comment": "Andira",
+            "unique": ["_02_monkey"]
+        },
         "3040209000": {
             "comment": "Ferry Grand",
             "unique": ["_beppo", "_beppo_jiji", "_jiji", "_foogee", "_foogee_nicola", "_nicola", "_momo"]
@@ -199,7 +207,7 @@
         },
         "3992888000": {
             "comment": "Makura",
-            "unique": ["_rabbit1", "_rabbit2", "_rabbit3", "_rabbit4"]
+            "unique": ["_rabbit1", "_rabbit2", "_rabbit3", "_rabbit4", "_ear"]
         },
         "3993539000": {
             "comment": "Miss Heaty",
