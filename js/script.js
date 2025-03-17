@@ -202,7 +202,7 @@ function initChangelog() // load content of changelog.json
 		if(json.hasOwnProperty("new")) // set updated
 			updated = json["new"].reverse();
 		timestamp = json.timestamp; // set timestamp
-		clock(); // start the clock
+		setInterval(clock, 1000); // start the clock
 		if(json.hasOwnProperty("stat")) stat_string = json["stat"];
 		if(json.hasOwnProperty("issues")) // read issues, if any
 		{
@@ -527,8 +527,7 @@ function clock() // update the "last updated" clock
 	else if(elapsed < 5270400) msg = Math.trunc(elapsed / 86400) + " days ago.";
 	else if(elapsed < 63115200) msg = Math.trunc(elapsed / 2635200) + " months ago.";
 	else msg = Math.trunc(elapsed / 31557600) + " years ago.";
-	document.getElementById('timestamp').innerHTML = "Last update: " + msg;
-	setTimeout(clock, now.getTime() % 1000 + 1);
+	document.getElementById('timestamp').textContent = "Last update: " + msg;
 }
 
 function resetTabs() // reset the tab state
