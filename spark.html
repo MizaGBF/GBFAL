@@ -1,111 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>GBF Asset Lookup</title>
-    <meta name="title" content="Granblue Fantasy Asset Lookup">
-    <meta name="description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
-    <meta name="theme-color" content="#5217b0">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://mizagbf.github.io/GBFAL/">
-    <meta property="og:title" content="Granblue Fantasy Asset Lookup">
-    <meta property="og:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
-    <meta property="og:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://mizagbf.github.io/GBFAL/">
-    <meta property="twitter:title" content="Granblue Fantasy Asset Lookup">
-    <meta property="twitter:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
-    <meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
-    <link rel="icon" type="image/png" href="assets/icon.png">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/spark.css">
-    <script src="js/script.js"></script>
-    <script src="js/spark.js"></script>
-    <link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
-    <link rel="dns-prefetch" href="https://prd-game-a1-granbluefantasy.akamaized.net/" />
-    <link rel="dns-prefetch" href="https://prd-game-a2-granbluefantasy.akamaized.net/" />
-    <link rel="dns-prefetch" href="https://prd-game-a3-granbluefantasy.akamaized.net/" />
-    <link rel="dns-prefetch" href="https://prd-game-a4-granbluefantasy.akamaized.net/" />
-    <link rel="dns-prefetch" href="https://prd-game-a5-granbluefantasy.akamaized.net/" />
+	<meta charset="utf-8">
+	<title>GBF Asset Lookup</title>
+	<meta name="title" content="Granblue Fantasy Asset Lookup">
+	<meta name="description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+	<meta name="theme-color" content="#5217b0">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://mizagbf.github.io/GBFAL/">
+	<meta property="og:title" content="Granblue Fantasy Asset Lookup">
+	<meta property="og:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+	<meta property="og:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+	<meta property="twitter:card" content="summary_large_image">
+	<meta property="twitter:url" content="https://mizagbf.github.io/GBFAL/">
+	<meta property="twitter:title" content="Granblue Fantasy Asset Lookup">
+	<meta property="twitter:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+	<meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+	<link rel="icon" type="image/png" href="assets/icon.png">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/spark.css">
+	<script src="js/script.js"></script>
+	<script src="js/spark.js"></script>
+	<link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a1-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a2-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a3-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a4-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a5-granbluefantasy.akamaized.net/" />
 </head>
 <body onload="init_spark()">
-    <a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
-    <div id="header">
-        <div>Spark v1.10</div>
-        <div id="timestamp"></div>
-    </div>
-    <div id="issues" style="display:none">
-        <h3>Known Issues</h3>
-    </div>
-    <div class="margin-element spark-container" id="spark-container">
-        <div id="spark-main">
-            <div id="spark-rate">
-                0 / 300<br>
-                0% SSR
-            </div>
-            <table class="spark-border" id="spark-main-table">
-                <tbody>
-                    <tr>
-                        <th class="spark-section-header">
-                            <img src="assets/spark/gem.jpg">
-                        </th>
-                        <th class="spark-section-header">
-                            <img src="assets/spark/moon.jpg">
-                        </th>
-                        <th class="spark-section-header">
-                            <img src="assets/spark/sunstone.jpg">
-                        </th>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="spark-section" id="spark-npc"></div>
-                        </td>
-                        <td>
-                            <div class="spark-section" id="spark-moon"></div>
-                        </td>
-                        <td>
-                            <div class="spark-section" id="spark-summon"></div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="spark-ui-container">
-            <input type="text" class="spark-ui-element" id="spark-filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Filter...">
-            <input type="text" class="spark-ui-element" id="spark-roll-input" onkeyup="updateRate(true)" placeholder="Rolls" value="300">
-            <button class="spark-ui-element spark-ui-button" id="moon-check" onclick="toggle_moon(this);"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button>
-            <button class="spark-ui-element spark-ui-button" id="spark-check" onclick="toggle_spark(this);"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button>
-            <button class="spark-ui-element spark-ui-button" onclick="generate_image();"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button>
-            <button class="spark-ui-element spark-ui-button" onclick="confirm_spark_clear();"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button>
-        </div>
-        <div class="spark-ui-container">
-            <button class="spark-tab active" id="spark-tab-btn-npc" onclick="openSparkTab('npc');"><img class="spark-tab-icon" src="assets/ui/icon/characters.png">Characters</button>
-            <button class="spark-tab" id="spark-tab-btn-summon" onclick="openSparkTab('summon');"><img class="spark-tab-icon" src="assets/ui/icon/summons.png">Summons</button>
-        </div>
-        <div class="spark-border spark-select" id="spark-select-npc"></div>
-        <div class="spark-border spark-select" id="spark-select-summon" style="display:none"></div>
-    </div>
-    <div class="margin-element spark-manual">
-        <h3>How-To</h3>
-        <ul>
-            <li><b>Click</b> a Character or Summon to <b>add</b> it to the list.</li>
-            <li><button class="spark-ui-element spark-ui-button active"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button> or <b>Hold Shift</b> before adding a Character to add it to the <b>Moon Column</b>.</li>
-            <li><b>Click</b> on an Element to <b>Remove</b> it from the list.</li>
-            <li><button class="spark-ui-element spark-ui-button active"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button> or <b>Hold Shift</b> and click on an Element to toggle its <img src="assets/spark/spark.png" class="spark-manual-icon"> Sparked state.</li>
-            <li>Change the <b>number of rolls</b> next to the Filter.</li>
-            <li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button> to generate an <b>Image</b> of your spark. You can then right click/hold touch it, to Copy or Save as <b>(It might not work on some phones/browsers, please take a screenshot instead)</b>.</li>
-            <li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button> to <b>Reset</b> the whole list.</li>
-        </ul>
-    </div>
+	<a href="index.html"><img id="titleheader" src="assets/ui/header.png" alt="header"></a>
+	<div id="header">
+		<div>Spark v1.10</div>
+		<div id="timestamp"></div>
+	</div>
+	<div id="issues" style="display:none">
+		<h3>Known Issues</h3>
+	</div>
+	<div class="margin-element spark-container" id="spark-container">
+		<div id="spark-main">
+			<div id="spark-rate">
+				0 / 300<br>
+				0% SSR
+			</div>
+			<table class="spark-border" id="spark-main-table">
+				<tbody>
+					<tr>
+						<th class="spark-section-header">
+							<img src="assets/spark/gem.jpg">
+						</th>
+						<th class="spark-section-header">
+							<img src="assets/spark/moon.jpg">
+						</th>
+						<th class="spark-section-header">
+							<img src="assets/spark/sunstone.jpg">
+						</th>
+					</tr>
+					<tr>
+						<td>
+							<div class="spark-section" id="spark-npc"></div>
+						</td>
+						<td>
+							<div class="spark-section" id="spark-moon"></div>
+						</td>
+						<td>
+							<div class="spark-section" id="spark-summon"></div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="spark-ui-container">
+			<input type="text" class="spark-ui-element" id="spark-filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Filter...">
+			<input type="text" class="spark-ui-element" id="spark-roll-input" onkeyup="updateRate(true)" placeholder="Rolls" value="300">
+			<button class="spark-ui-element spark-ui-button" id="moon-check" onclick="toggle_moon(this);"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button>
+			<button class="spark-ui-element spark-ui-button" id="spark-check" onclick="toggle_spark(this);"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button>
+			<button class="spark-ui-element spark-ui-button" onclick="generate_image();"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button>
+			<button class="spark-ui-element spark-ui-button" onclick="confirm_spark_clear();"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button>
+		</div>
+		<div class="spark-ui-container">
+			<button class="spark-tab active" id="spark-tab-btn-npc" onclick="openSparkTab('npc');"><img class="spark-tab-icon" src="assets/ui/icon/characters.png">Characters</button>
+			<button class="spark-tab" id="spark-tab-btn-summon" onclick="openSparkTab('summon');"><img class="spark-tab-icon" src="assets/ui/icon/summons.png">Summons</button>
+		</div>
+		<div class="spark-border spark-select" id="spark-select-npc"></div>
+		<div class="spark-border spark-select" id="spark-select-summon" style="display:none"></div>
+	</div>
+	<div class="margin-element spark-manual">
+		<h3>How-To</h3>
+		<ul>
+			<li><b>Click</b> a Character or Summon to <b>add</b> it to the list.</li>
+			<li><button class="spark-ui-element spark-ui-button active"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button> or <b>Hold Shift</b> before adding a Character to add it to the <b>Moon Column</b>.</li>
+			<li><b>Click</b> on an Element to <b>Remove</b> it from the list.</li>
+			<li><button class="spark-ui-element spark-ui-button active"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button> or <b>Hold Shift</b> and click on an Element to toggle its <img src="assets/spark/spark.png" class="spark-manual-icon"> Sparked state.</li>
+			<li>Change the <b>number of rolls</b> next to the Filter.</li>
+			<li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button> to generate an <b>Image</b> of your spark. You can then right click/hold touch it, to Copy or Save as <b>(It might not work on some phones/browsers, please take a screenshot instead)</b>.</li>
+			<li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button> to <b>Reset</b> the whole list.</li>
+		</ul>
+	</div>
 </body>
 <footer>
-    <div id="footer">
-        <a href="https://github.com/MizaGBF/GBFAL" title="Source Code"><img class="img-link" src="assets/ui/icon/github.png"></a>
-        <a href="https://mizagbf.github.io/GBFAP" title="GBF Animation Player"><img class="img-link" src="assets/ui/icon/GBFAP.png"></a>
-        <a href="https://mizagbf.github.io/" title="Home Page"><img class="img-link" src="assets/ui/mypage.png"></a>
-    </div>
-    <div id="copyright">
-        Granblue Fantasy content and materials are trademarks and copyrights of Cygames, Inc. or its licensors. All rights reserved.
-    </div>
+	<div id="footer">
+		<a href="https://github.com/MizaGBF/GBFAL" title="Source Code"><img class="img-link" src="assets/ui/icon/github.png"></a>
+		<a href="https://mizagbf.github.io/GBFAP" title="GBF Animation Player"><img class="img-link" src="assets/ui/icon/GBFAP.png"></a>
+		<a href="https://mizagbf.github.io/" title="Home Page"><img class="img-link" src="assets/ui/mypage.png"></a>
+	</div>
+	<div id="copyright">
+		Granblue Fantasy content and materials are trademarks and copyrights of Cygames, Inc. or its licensors. All rights reserved.
+	</div>
 </footer>
 </html>
