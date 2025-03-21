@@ -161,7 +161,6 @@ var searchID = null; // search result id
 var bookmarks = []; // bookmarks
 var timestamp = Date.now(); // timestamp (from changelog.json)
 var updated = []; // list of recently updated elements (from changelog.json)
-var intervals = []; // on screen notifications
 var typingTimer; // typing timer timeout
 var audio = null; // last played/playing audio
 var previewhome = false; // boolean to keep track of mypage preview
@@ -1503,14 +1502,12 @@ function pushPopup(string) // display a popup on the top left corner
 	div.className = 'popup';
 	div.textContent = string;
 	document.body.appendChild(div);
-	intervals.push(setInterval(rmPopup, 2500, div));
+	setTimeout(rmPopup, 2500, div);
 }
 
 function rmPopup(popup) // remove a popup
 {
 	popup.parentNode.removeChild(popup);
-	clearInterval(intervals[0]);
-	intervals.shift();
 }
 
 function toggleBookmark(id = null, search_type = null) // toggle bookmark state
