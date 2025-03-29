@@ -297,7 +297,7 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.16'
+    VERSION = '3.17'
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
@@ -722,7 +722,9 @@ class Updater():
                 "img/sp/raid/navi_face/{}.png",
                 "img/sp/assets/npc/b/{}_01.png",
                 "sound/voice/{}_v_001.mp3",
-                "sound/voice/{}_boss_v_1.mp3"
+                "sound/voice/{}_boss_v_1.mp3",
+                "sound/voice/{}_boss_v_10.mp3",
+                "sound/voice/{}_boss_v_20.mp3",
             ]))
         # special npc
         ts = TaskStatus(10000, 2)
@@ -1667,7 +1669,7 @@ class Updater():
                             break
             # base sound
             if not exist:
-                base_target = ["_v_001", "_boss_v_1", "_boss_v_2"]
+                base_target = ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_10", "_boss_v_20"]
                 for k in base_target:
                     try:
                         f = "{}{}".format(element_id, k)
@@ -2366,11 +2368,48 @@ class Updater():
                     except:
                         err += 1
                     i += 1
+                i = 1
+                # now test ALL numbered variations
+                while i < 100 and err < 10: # they are in sequence usually, I check until 100 or if we go 10 in a row without a single match
+                    k = str(i).zfill(Z)
+                    try:
+                        if url.split("/")[-1]+"_"+k not in existing:
+                            await self.head(url + "_" + k + ".png")
+                            existing.add(url.split("/")[-1]+"_"+k)
+                        good = True
+                        err = 0
+                        # these variations are only possible if the above file exists (in theory)
+                        for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                            found = False
+                            try:
+                                if url.split("/")[-1]+"_"+k+kk not in existing:
+                                    await self.head(url + "_" + k + kk + ".png")
+                                    existing.add(url.split("/")[-1]+"_"+k+kk)
+                                found = True
+                            except:
+                                pass
+                            for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
+                                for kkk in ss:
+                                    try:
+                                        if url.split("/")[-1]+"_"+k+kk+kkk not in existing:
+                                            await self.head(url + "_" + k + kk + kkk + ".png")
+                                            existing.add(url.split("/")[-1]+"_"+k+kk+kkk)
+                                        found = True
+                                    except:
+                                        break
+                            if not found:
+                                break
+                    except:
+                        err += 1
+                    i += 1
             # check if we found at least ONE file
             if good:
                 ts.good()
             else:
                 ts.bad()
+                if ts.err >= ts.max_err and ts.index < 50: # special edge case, for 250329 so far
+                    ts.index = 50
+                    ts.err = 0
         ts.finish()
         # all tasks for this chapter finished
         # the last one is in charge of cleaning it up
