@@ -630,6 +630,7 @@ I'm sure there are better wait to do it in javascript but it works so...
 function drawSpark(canvas) // draw the spark on the canvas
 {
 	var ctx = canvas.getContext("2d");
+	ctx.imageSmoothingEnabled = true;
 	++canvasWait;
 	// background
 	ctx.rect(0, 0, 1920, 1080);
