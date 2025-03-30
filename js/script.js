@@ -165,6 +165,7 @@ var typingTimer; // typing timer timeout
 var audio = null; // last played/playing audio
 var previewhome = false; // boolean to keep track of mypage preview
 var previewprofile = false; // boolean to keep track of profile preview
+var typing_update = 1000; // used by typing, in seconds
 var beepAudio = new Audio("assets/audio/beep.ogg"); // contains last played audio sfx
 
 // =================================================================================================
@@ -1637,7 +1638,7 @@ function filter() // called by the search filter (onkeyup event)
 	clearTimeout(typingTimer);
 	typingTimer = setTimeout(function(){ // set a timeout of 1s before executing lookup
 		lookup(document.getElementById('filter').value.trim().toLowerCase());
-	}, 1000);
+	}, typing_update);
 }
 
 function lookup(id, allow_open=true) // check element validity and either load it or return search results

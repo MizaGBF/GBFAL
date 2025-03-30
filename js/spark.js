@@ -45,7 +45,7 @@ function initChangelog_spark() // load content of changelog.json
 		if(json.hasOwnProperty("new")) // set updated
 			updated = json["new"].reverse();
 		timestamp = json.timestamp; // set timestamp
-		clock(); // start the clock
+		setInterval(clock, 1000); // start the clock
 		if(json.hasOwnProperty("stat")) stat_string = json["stat"];
 		if(json.hasOwnProperty("issues")) // read issues, if any
 		{
@@ -64,6 +64,7 @@ function initChangelog_spark() // load content of changelog.json
 	{
 		console.error("Exception thrown", err.stack);
 	}
+	typing_update = 200; // reduce typing timer for reactivity
 	getJSON("json/data.json?" + timestamp, initData_spark); // load data.json next
 }
 
