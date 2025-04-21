@@ -3241,7 +3241,7 @@
 "3993788000":"goblin king (2nd Gen.) ゴブリンキング（二代目） yuji ueda うえだゆうじ",
 "3993789000":"raphael primal male ラファエル satoshi mikami 三上哲",
 "3993790000":"raphael primal male ラファエル satoshi mikami 三上哲",
-"3993791000":"???",
+"3993791000":"pijiu unknown other ピィジウ jun kasama 笠間淳",
 "3993792000":"apparetei rakusho human male 天晴亭楽笑 kappei yamaguchi 山口勝平",
 "3993793000":"apparetei rakko human female 天晴亭楽呼 yuuki temma 天麻ゆうき",
 "3993795000":"high roller ochou unknown female ピンカラのお蝶 hitomi ueda 上田瞳",
@@ -3364,6 +3364,8 @@
 "3993926000":"gran human male グラン",
 "3993927000":"djeeta human female ジータ",
 "3993932000":"rosamia human female ロザミア yui ishikawa 石川由依",
+"3993957000":"pijiu unknown other ピィジウ jun kasama 笠間淳",
+"3993958000":"shenxian 四象瑞神",
 "1100021":"cave bat $$dark",
 "1100023":"cave bat $$dark",
 "1100031":"hornbird $$wind",
@@ -4718,7 +4720,7 @@
 "6202402":"scavengin' urv $$water",
 "6202412":"angry high roller $$earth",
 "6202422":"art thief $$wind",
-"6202423":"??? $$wind",
+"6202423":"goon $$wind",
 "6202432":"raffle runner $$light",
 "6202442":"dark goon $$dark",
 "6202443":"dark goon $$dark",
@@ -6045,5 +6047,6 @@
 "9102662":"klesha avatar svaha $$light",
 "9102663":"klesha avatar svaha $$light",
 "9102673":"klesha avatar svaha $$light",
-"9102683":"klesha avatar svaha $$light"
+"9102683":"klesha avatar svaha $$light",
+"9102693":"pijiu $$light"
 }
