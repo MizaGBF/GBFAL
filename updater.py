@@ -297,8 +297,8 @@ class Flags():
 
 class Updater():
     ### CONSTANT
-    VERSION = '3.17'
-    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 Rosetta/Dev'
+    VERSION = '3.18'
+    USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
     MAX_NEW = 100 # changelog limit
@@ -779,7 +779,7 @@ class Updater():
         # backgrounds
         # event & common
         ev : str
-        for ev in ["event_{}", "common_{}"]:
+        for ev in ("event_{}", "common_{}"):
             ts = TaskStatus(1000, 10)
             for j in range(5):
                 self.tasks.add(self.search_generic, parameters=(ts, 'background', ev, 3 if ev.startswith("common_") else 1, ["img/sp/raid/bg/{}.jpg"]))
@@ -789,12 +789,12 @@ class Updater():
             self.tasks.add(self.search_generic, parameters=(ts, 'background', "main_{}", 1, ["img/sp/guild/custom/bg/{}.png"]))
         # others
         ss : str
-        for ss in ["ra", "rb", "rc"]:
+        for ss in ("ra", "rb", "rc"):
             ts = TaskStatus(1000, 50)
             for j in range(5):
                 self.tasks.add(self.search_generic, parameters=(ts, 'background', "{}"+ss, 1, ["img/sp/raid/bg/{}_1.jpg"]))
         bgt : tuple[str, str]
-        for bgt in [("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")]:
+        for bgt in (("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")):
             ts = TaskStatus(1000, 50)
             for j in range(5):
                 self.tasks.add(self.search_generic, parameters=(ts, 'background', bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
@@ -883,7 +883,7 @@ class Updater():
             else:
                 found : bool = False
                 s : str
-                for s in ["_1.png", "_2.png", "_3.png", "_4.png", "_5.png", ".png"]: # request for each (we only need one good one), ".png" is last because it's rarely used nowadays
+                for s in ("_1.png", "_2.png", "_3.png", "_4.png", "_5.png", ".png"): # request for each (we only need one good one), ".png" is last because it's rarely used nowadays
                     try:
                         headers : Any = await self.head(self.IMG + "sp/ui/icon/ability/m/" + str(i) + s)
                         if 'content-length' in headers and int(headers['content-length']) < 200:
@@ -990,7 +990,7 @@ class Updater():
                             err += 1
                     n += 1
             case 3:
-                errlimit : int = 10 if element_id in ["3000", "1008"] else 3
+                errlimit : int = 10 if element_id in ("3000", "1008") else 3
                 for x in range(1, 10):
                     # _10, _11, _20, _30...
                     n = 10 * x
@@ -1037,7 +1037,7 @@ class Updater():
                     except:
                         pass
             case 5:
-                errlimit : int = 6 if element_id in ["1019"] else 3
+                errlimit : int = 6 if element_id in ("1019",) else 3
                 for x in range(0, 7):
                     #_0_1, _0_2...
                     n = 0
@@ -1156,7 +1156,7 @@ class Updater():
         except:
             pass
         # appear
-        for k in ["", "_2", "_3", "_shade"]:
+        for k in ("", "_2", "_3", "_shade"):
             try:
                 fn = "raid_appear_{}{}".format(element_id, k)
                 data[self.BOSS_APPEAR] += await self.processManifest(fn)
@@ -1210,7 +1210,7 @@ class Updater():
                 path = "sp/raid/bg/{}.jpg"
             s : str
             # for each suffix
-            for s in ["", "_a", "_b", "_c"]:
+            for s in ("", "_a", "_b", "_c"):
                 f : str = element_id + s
                 if f in data[0]: # known, we skip
                     continue
@@ -1253,7 +1253,7 @@ class Updater():
         fn : str
         # main sheet
         uncap : str
-        for uncap in ["", "_02", "_03", "_04"]:
+        for uncap in ("", "_02", "_03", "_04"):
             try:
                 fn = "{}_{}".format(element_id, uncap)
                 await self.head(self.IMG + "sp/assets/summon/m/{}{}.jpg".format(element_id, uncap))
@@ -1272,7 +1272,7 @@ class Updater():
         u : str
         m : str
         for u in uncaps:
-            for m in ["", "_a", "_b", "_c", "_d", "_e"]:
+            for m in ("", "_a", "_b", "_c", "_d", "_e"):
                 try:
                     fn = "summon_{}{}{}_attack".format(element_id, u, m)
                     data[self.SUM_CALL] += await self.processManifest(fn)
@@ -1284,7 +1284,7 @@ class Updater():
         except:
             pass
         for u in uncaps:
-            for m in ["", "_a", "_b", "_c", "_d", "_e"]:
+            for m in ("", "_a", "_b", "_c", "_d", "_e"):
                 try:
                     fn = "summon_{}{}{}_damage".format(element_id, u, m)
                     data[self.SUM_DAMAGE] += await self.processManifest(fn)
@@ -1303,7 +1303,7 @@ class Updater():
             uncaps = ["01", "02", "03", "04"]
         flags : dict[str, list[bool]] = {}
         i : int
-        for i in [0, 80, 90]:
+        for i in (0, 80, 90):
             j : int = 1
             while j < 9:
                 uncap : str = str(i + j).zfill(2)
@@ -1314,9 +1314,9 @@ class Updater():
                 m : str
                 n : str
                 async with asyncio.TaskGroup() as tg:
-                    for g in ["_1", ""]: # gender
-                        for m in ["_101", ""]: # multi
-                            for n in ["_01", ""]: # null
+                    for g in ("_1", ""): # gender
+                        for m in ("_101", ""): # multi
+                            for n in ("_01", ""): # null
                                 tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(self.IMG + "sp/assets/npc/raid_normal/{}_{}{}{}{}{}.jpg".format(element_id, uncap, style, g, m, n)))
                 positive : bool = False
                 for tup, task in tasks.items():
@@ -1347,7 +1347,7 @@ class Updater():
         if element_id in self.data[index] and self.data[index][element_id] != 0:
             data[self.CHARA_SCENE] = self.data[index][element_id][self.CHARA_SCENE]
             data[self.CHARA_SOUND] = self.data[index][element_id][self.CHARA_SOUND]
-        for style in ["", "_st2"]:
+        for style in ("", "_st2"):
             uncaps = []
             sheets = []
             altForm = False
@@ -1355,10 +1355,10 @@ class Updater():
                 break
             # # # Main sheets
             tid : str = self.CHARA_SPECIAL_REUSE.get(element_id, element_id) # special substitution (mostly for bobobo)
-            for uncap in ["01", "02", "03", "04"]:
-                for gender in ["", "_0", "_1"]:
-                    for ftype in ["", "_s2", "_0", "_1"]:
-                        for form in ["", "_f", "_f1", "_f2"]:
+            for uncap in ("01", "02", "03", "04"):
+                for gender in ("", "_0", "_1"):
+                    for ftype in ("", "_s2", "_0", "_1"):
+                        for form in ("", "_f", "_f1", "_f2"):
                             try:
                                 fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
                                 sheets += await self.processManifest(fn)
@@ -1411,8 +1411,8 @@ class Updater():
                 for i in range(0, 7):
                     mid = tid[:-1] + str(i)
                     for t in targets:
-                        for u in ["", "_2", "_3", "_4"]:
-                            for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                        for u in ("", "_2", "_3", "_4"):
+                            for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
                                 try:
                                     fn = "phit_{}{}{}{}{}".format(mid, t, style, u, form)
                                     attacks += await self.processManifest(fn)
@@ -1420,8 +1420,8 @@ class Updater():
                                     pass
             else:
                 for t in targets:
-                    for u in ["", "_2", "_3", "_4"]:
-                        for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                    for u in ("", "_2", "_3", "_4"):
+                        for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
                             try:
                                 fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
                                 attacks += await self.processManifest(fn)
@@ -1437,11 +1437,11 @@ class Updater():
                     continue
                 uf = flags[uncap]
                 found = False
-                for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                    for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                        for catype in ["", "_s2", "_s3"]:
-                            for sub in ([""] if tid == self.MALINDA else ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]):
-                                for ex in (["", "_1", "_2", "_3", "_4", "_5", "_6"] if tid == self.MALINDA else [""]):
+                for g in (("", "_0", "_1") if (uf[0] is True) else ("")):
+                    for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
+                        for catype in ("", "_s2", "_s3"):
+                            for sub in (("") if tid == self.MALINDA else ("", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j")):
+                                for ex in (("", "_1", "_2", "_3", "_4", "_5", "_6") if tid == self.MALINDA else ("")):
                                     try:
                                         fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
                                         attacks += await self.processManifest(fn)
@@ -1533,17 +1533,17 @@ class Updater():
                     # main
                     base_fn = "{}_{}{}".format(tid, uncap, style)
                     uf = flags[uncap]
-                    for g in (["_0", "_1"] if (uf[0] is True) else [""]):
-                        for m in (["_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
-                            for n in (["_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
-                                for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                    for g in (("_0", "_1") if (uf[0] is True) else ("")):
+                        for m in (("_101", "_102", "_103", "_104", "_105") if (uf[1] is True) else ("")):
+                            for n in (("_01", "_02", "_03", "_04", "_05", "_06") if (uf[2] is True) else ("")):
+                                for af in (("", "_f", "_f1", "_f2") if altForm else ("")):
                                     targets.append(base_fn + af + g + m + n)
                 tmp[self.CHARA_GENERAL] = targets
                 # # # Main sheets
-                for uncap in (["0_01", "1_01", "0_02", "1_02"] if is_mc else ["01", "02", "03", "04"]):
-                    for gender in ["", "_0", "_1"]:
-                        for ftype in ["", "_s2", "_0", "_1"]:
-                            for form in ["", "_f", "_f1", "_f2"]:
+                for uncap in (("0_01", "1_01", "0_02", "1_02") if is_mc else ("01", "02", "03", "04")):
+                    for gender in ("", "_0", "_1"):
+                        for ftype in ("", "_s2", "_0", "_1"):
+                            for form in ("", "_f", "_f1", "_f2"):
                                 try:
                                     fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
                                     if fn not in lookup: sheets += await self.processManifest(fn, True)
@@ -1561,8 +1561,8 @@ class Updater():
                     targets.append("_" + uncaps[i])
                 attacks = []
                 for t in targets:
-                    for u in ["", "_2", "_3", "_4"]:
-                        for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
+                    for u in ("", "_2", "_3", "_4"):
+                        for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
                             try:
                                 fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
                                 if fn not in lookup: attacks += await self.processManifest(fn, True)
@@ -1575,10 +1575,10 @@ class Updater():
                     try: uf = flags[uncap.split('_')[-1]]
                     except: uf = [False]
                     found = False
-                    for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                        for form in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                            for catype in ["", "_s2", "_s3"]:
-                                for sub in ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"]:
+                    for g in (("", "_0", "_1") if (uf[0] is True) else ("")):
+                        for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
+                            for catype in ("", "_s2", "_s3"):
+                                for sub in ("", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"):
                                     try:
                                         fn = "nsp_{}_{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub)
                                         if fn not in lookup: attacks += await self.processManifest(fn, True)
@@ -1645,7 +1645,7 @@ class Updater():
             # base scene
             base_target, main_x, uncap_x = self.generate_scene_file_list(element_id)
             path : list[str] = [self.IMG, "", element_id, "", "", ".png"]
-            for u in ["", "_02", "_03"]:
+            for u in ("", "_02", "_03"):
                 for f in base_target:
                     if f != "" and u != "":
                         break
@@ -1655,7 +1655,7 @@ class Updater():
                         path[3] = u
                         path[4] = f
                         found : bool = False
-                        for fpath in ["sp/quest/scene/character/body/", "sp/raid/navi_face/"]:
+                        for fpath in ("sp/quest/scene/character/body/", "sp/raid/navi_face/"):
                             path[1] = fpath
                             try:
                                 await self.head("".join(path))
@@ -1703,7 +1703,7 @@ class Updater():
         # init
         data : list[list[str]] = [[], [], []] # general, phit, sp
         s : str
-        for s in ["", "_02", "_03"]:
+        for s in ("", "_02", "_03"):
             # art
             try:
                 await self.head(self.IMG + "sp/assets/weapon/m/{}{}.jpg".format(element_id, s))
@@ -1716,8 +1716,8 @@ class Updater():
             # attack
             u : str
             g : str
-            for u in ["", "_2", "_3", "_4"]:
-                for g in ["", "_0", "_1"]:
+            for u in ("", "_2", "_3", "_4"):
+                for g in ("", "_0", "_1"):
                     try:
                         fn = "phit_{}{}{}{}".format(element_id, s, g, u)
                         data[self.WEAP_PHIT] += await self.processManifest(fn)
@@ -1726,9 +1726,9 @@ class Updater():
                             break
             # ougi
             t : str
-            for u in ["", "_0", "_1", "_2", "_3"]:
-                for t in ["", "_s2", "_s3"]:
-                    for g in ["", "_0", "_1"]:
+            for u in ("", "_0", "_1", "_2", "_3"):
+                for t in ("", "_s2", "_s3"):
+                    for g in ("", "_0", "_1"):
                         try:
                             fn = "sp_{}{}{}{}{}".format(element_id, s, g, u, t)
                             data[self.WEAP_SP] += await self.processManifest(fn)
@@ -1768,7 +1768,7 @@ class Updater():
         if len(cmh) > 0:
             # alt check
             if colors[0] == 1:
-                for j in [2, 3, 4, 5, 80]:
+                for j in (2, 3, 4, 5, 80):
                     try:
                         await self.head(self.IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(element_id[:-2]+str(j).zfill(2), cmh[0]))
                         if element_id in self.UNIQUE_SKIN:
@@ -1818,7 +1818,7 @@ class Updater():
         # invert pairs (+ format characters)
         job_list = {v : "".join(set(k.lower())) for k, v in job_list.items()}
         # old skins
-        for e in [("125001","snt"), ("165001","stf"), ("185001", "idl")]:
+        for e in (("125001","snt"), ("165001","stf"), ("185001", "idl")):
             job_list[e[0]] = e[1]
         # new skins
         async with asyncio.TaskGroup() as tg:
@@ -1904,8 +1904,8 @@ class Updater():
             return
         except:
             pass
-        for k in [["phit_", ""], ["phit_", "_2"], ["phit_", "_3"], ["sp_", "_s2"], ["sp_", ""]]:
-            for g in ["", "_0"]:
+        for k in (("phit_", ""), ("phit_", "_2"), ("phit_", "_3"), ("sp_", "_s2"), ("sp_", "")):
+            for g in ("", "_0"):
                 try:
                     await self.head(self.MANIFEST + k[0] + wid + g + k[1] + ".js")
                     self.data["job_wpn"][wid] = None
@@ -1981,8 +1981,8 @@ class Updater():
             case 1:
                 # phit
                 sheets = []
-                for u in ["", "_1", "_2", "_3"]:
-                    for g in ["", "_0", "_1"]:
+                for u in ("", "_1", "_2", "_3"):
+                    for g in ("", "_0", "_1"):
                         try:
                             sheets += await self.processManifest("phit_{}{}{}".format(s, u, g))
                         except:
@@ -1998,7 +1998,7 @@ class Updater():
                 self.data['job'][jid][self.JOB_PHIT] = sheets
                 # ougi
                 sheets = []
-                for u in ["", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"]:
+                for u in ("", "_0", "_1", "_0_s2", "_1_s2", "_0_s3", "_1_s3"):
                     try:
                         sheets += await self.processManifest("sp_{}{}".format(s, u))
                     except:
@@ -2058,7 +2058,7 @@ class Updater():
             self.resume['name'] = "scene"
         if 'done' not in self.resume:
             self.resume['done'] = {}
-        for index in ["characters", "skins", 'npcs']:
+        for index in ("characters", "skins", 'npcs'):
             for element_id in self.data[index]:
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, index, filters))
         self.tasks.print("Updating scenes for {} elements...".format(self.tasks.total))
@@ -2092,7 +2092,7 @@ class Updater():
                 base = self.SCENE_SUFFIXES["default"]["base"]
             if "main" in self.SCENE_SUFFIXES[element_id] or "end" in self.SCENE_SUFFIXES[element_id] or "unique" in self.SCENE_SUFFIXES[element_id]:
                 d = {}
-                for k in ["main", "unique", "end"]:
+                for k in ("main", "unique", "end"):
                     if k not in self.SCENE_SUFFIXES[element_id]:
                         d[k] = self.SCENE_SUFFIXES["default"][k]
                     else:
@@ -2162,7 +2162,7 @@ class Updater():
         base_target, main_x, uncap_x = self.generate_scene_file_list(element_id) # we save memory this way as most elements share the same strings, instead of building them on the spot
         # for each uncap...
         for u in uncaps:
-            if u in ["", "01"]:
+            if u in ("", "01"):
                 u = ""
             else:
                 u = "_" + u
@@ -2273,40 +2273,60 @@ class Updater():
     async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str]) -> tuple:
         is_tuto = "tuto_scene" in base_url # check for MSQ tutorial
         Z = 1 if is_tuto else 2 # zfill value used in the filename, for MSQ tutorial
+        suffix : str
+        stem_suffix : str
         while not ts.complete:
             i : int = ts.get_next_index() # next ID to check
             url : str = base_url + "_" + str(i).zfill(Z) # prepare url
+            stem : str = url.split("/")[-1]
             good : bool = False # flag to determine if we have at least a positive match
             flag : bool = False # flag used along the way
             # Check base ones
-            for k in ["", "_up", "_shadow"]: # there are likely more variations but I don't want to add pointless files to slow it down further
+            for k in ("", "_up", "_shadow"): # there are likely more variations but I don't want to add pointless files to slow it down further
                 try:
-                    if url.split("/")[-1]+k not in existing:
+                    stem_suffix = stem + k
+                    if stem_suffix not in existing:
                         await self.head(url + k + ".png")
-                        existing.add(url.split("/")[-1]+k)
+                        existing.add(stem_suffix)
                     flag = True
                     good = True
                 except:
                     pass
+            # check for extras
+            for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
+                for k in ss:
+                    try:
+                        stem_suffix : str = stem + k
+                        if stem_suffix not in existing:
+                            await self.head(url + k + ".png")
+                            existing.add(stem_suffix)
+                        flag = True
+                        good = True
+                    except:
+                        pass
             # Check the variations (yes, it's slow)
-            for k in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+            for k in string.ascii_lowercase:
                 found = False
                 try:
-                    if url.split("/")[-1]+k not in existing:
-                        await self.head(url + k + ".png")
-                        existing.add(url.split("/")[-1]+k)
+                    suffix = "_" + k
+                    stem_suffix = stem + suffix
+                    if stem_suffix not in existing:
+                        await self.head(url + suffix + ".png")
+                        existing.add(stem_suffix)
                     flag = True
                     found = True
                     good = True
                 except:
                     pass
                 # and sub variations (yes, it's VERY slow)
-                for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
+                for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
                     for kkk in ss:
                         try:
-                            if url.split("/")[-1]+k+kkk not in existing:
-                                await self.head(url + k + kkk + ".png")
-                                existing.add(url.split("/")[-1]+k+kkk)
+                            suffix = "_" + k + kkk
+                            stem_suffix = stem + suffix
+                            if stem_suffix not in existing:
+                                await self.head(url + suffix + ".png")
+                                existing.add(stem_suffix)
                             flag = True
                             found = True
                             good = True
@@ -2318,18 +2338,21 @@ class Updater():
             if not flag or is_tuto:
                 # we test another filename format
                 try:
-                    if url.split("/")[-1]+"_00" not in existing:
+                    stem_suffix = stem + "_00"
+                    if stem_suffix not in existing:
                         await self.head(url + "_00.png")
-                        existing.add(url.split("/")[-1]+"_00")
+                        existing.add(stem_suffix)
                     good = True
                 except:
                     pass
                 # some variations
-                for k in ["_up", "_shadow"]:
+                for k in ("_up", "_shadow"):
                     try:
-                        if url.split("/")[-1]+"_00"+k not in existing:
-                            await self.head(url + "_00" + k + ".png")
-                            existing.add(url.split("/")[-1]+"_00"+k)
+                        suffix = "_00"+k
+                        stem_suffix = stem + suffix
+                        if stem_suffix not in existing:
+                            await self.head(url + suffix + ".png")
+                            existing.add(stem_suffix)
                         good = True
                     except:
                         pass
@@ -2339,27 +2362,33 @@ class Updater():
                 while i < 100 and err < 10: # they are in sequence usually, I check until 100 or if we go 10 in a row without a single match
                     k = str(i).zfill(Z)
                     try:
-                        if url.split("/")[-1]+"_"+k not in existing:
-                            await self.head(url + "_" + k + ".png")
-                            existing.add(url.split("/")[-1]+"_"+k)
+                        suffix = "_"+k
+                        stem_suffix = stem + suffix
+                        if stem_suffix not in existing:
+                            await self.head(url + suffix + ".png")
+                            existing.add(stem_suffix)
                         good = True
                         err = 0
                         # these variations are only possible if the above file exists (in theory)
-                        for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                        for kk in string.ascii_lowercase:
                             found = False
                             try:
-                                if url.split("/")[-1]+"_"+k+kk not in existing:
-                                    await self.head(url + "_" + k + kk + ".png")
-                                    existing.add(url.split("/")[-1]+"_"+k+kk)
+                                suffix = "_"+k+"_"+kk
+                                stem_suffix = stem + suffix
+                                if stem_suffix not in existing:
+                                    await self.head(url + suffix + ".png")
+                                    existing.add(stem_suffix)
                                 found = True
                             except:
                                 pass
-                            for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
+                            for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
                                 for kkk in ss:
                                     try:
-                                        if url.split("/")[-1]+"_"+k+kk+kkk not in existing:
-                                            await self.head(url + "_" + k + kk + kkk + ".png")
-                                            existing.add(url.split("/")[-1]+"_"+k+kk+kkk)
+                                        suffix = "_" + k + "_" + kk + kkk
+                                        stem_suffix = stem + suffix
+                                        if stem_suffix not in existing:
+                                            await self.head(url + suffix + ".png")
+                                            existing.add(stem_suffix)
                                         found = True
                                     except:
                                         break
@@ -2373,27 +2402,33 @@ class Updater():
                 while i < 100 and err < 10: # they are in sequence usually, I check until 100 or if we go 10 in a row without a single match
                     k = str(i).zfill(Z)
                     try:
-                        if url.split("/")[-1]+"_"+k not in existing:
-                            await self.head(url + "_" + k + ".png")
-                            existing.add(url.split("/")[-1]+"_"+k)
+                        suffix = "_"+k
+                        stem_suffix = stem + suffix
+                        if stem_suffix not in existing:
+                            await self.head(url + suffix + ".png")
+                            existing.add(stem_suffix)
                         good = True
                         err = 0
                         # these variations are only possible if the above file exists (in theory)
-                        for kk in ["_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j", "_k", "_l", "_m", "_n", "_o", "_p", "_q", "_r", "_s", "_t", "_u", "_v", "_w", "_x", "_y", "_z"]:
+                        for kk in string.ascii_lowercase:
                             found = False
                             try:
-                                if url.split("/")[-1]+"_"+k+kk not in existing:
-                                    await self.head(url + "_" + k + kk + ".png")
-                                    existing.add(url.split("/")[-1]+"_"+k+kk)
+                                suffix = "_"+k+"_"+kk
+                                stem_suffix = stem + suffix
+                                if stem_suffix not in existing:
+                                    await self.head(url + suffix + ".png")
+                                    existing.add(stem_suffix)
                                 found = True
                             except:
                                 pass
-                            for ss in [["a", "b", "c", "d", "e", "f"], ["1", "2", "3", "4", "5"]]:
+                            for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
                                 for kkk in ss:
                                     try:
-                                        if url.split("/")[-1]+"_"+k+kk+kkk not in existing:
-                                            await self.head(url + "_" + k + kk + kkk + ".png")
-                                            existing.add(url.split("/")[-1]+"_"+k+kk+kkk)
+                                        suffix = "_"+k+"_"+kk+kkk
+                                        stem_suffix = stem + suffix
+                                        if stem_suffix not in existing:
+                                            await self.head(url + suffix + ".png")
+                                            existing.add(stem_suffix)
                                         found = True
                                     except:
                                         break
@@ -2870,7 +2905,7 @@ class Updater():
                     if uncap >= 2: # transcendence
                         self.tasks.add(self.check_fate, parameters=(element_id, self.FATE_TRANSCENDENCE_CONTENT, fid, "scene_ult2_chr{}".format(element_id), True, None, False))
                 # evokers
-                if cid in ["3040160000", "3040161000", "3040162000", "3040163000", "3040164000", "3040165000", "3040166000", "3040167000", "3040168000", "3040169000"]:
+                if cid in ("3040160000", "3040161000", "3040162000", "3040163000", "3040164000", "3040165000", "3040166000", "3040167000", "3040168000", "3040169000"):
                     self.tasks.add(self.check_fate, parameters=(element_id, self.FATE_UNCAP_CONTENT, fid, "scene_ult_chr{}_world".format(element_id), True, None, False))
         await self.tasks.start()
 
@@ -2890,7 +2925,7 @@ class Updater():
             self.resume['name'] = "sound"
         if 'done' not in self.resume:
             self.resume['done'] = {}
-        for index in ["characters", "skins", 'npcs']:
+        for index in ("characters", "skins", 'npcs'):
             for element_id in self.data[index]:
                 self.tasks.add(self.update_sound_of, parameters=(element_id, index, filters))
         self.tasks.print("Updating sounds for {} elements...".format(self.tasks.total))
@@ -2906,7 +2941,7 @@ class Updater():
             suffixes : list[str]
             A : int
             max_err : int
-            for mid, Z in [("_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_zenith_lankup", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("d_boss_v_", 1)]:
+            for mid, Z in (("_", 3), ("_introduce", 1), ("_mypage", 1), ("_formation", 2), ("_evolution", 2), ("_archive", 2), ("_zenith_up", 2), ("_zenith_lankup", 2), ("_kill", 2), ("_ready", 2), ("_damage", 2), ("_healed", 2), ("_dying", 2), ("_power_down", 2), ("_cutin", 1), ("_attack", 1), ("_attack", 2), ("_ability_them", 1), ("_ability_us", 1), ("_mortal", 1), ("_win", 1), ("_lose", 1), ("_to_player", 1), ("d_boss_v_", 1)):
                 match mid: # opti
                     case "_":
                         suffixes = ["", "a", "b"]
@@ -2930,9 +2965,9 @@ class Updater():
             for A in range(2, 5):
                 self.sound_base_strings.append(("_chain{}_"+str(A), [], 1, 1, 1))
             # seasonal A
-            for mid, Z in [("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_Whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)]:
+            for mid, Z in (("_birthday", 1), ("_Birthday", 1), ("_birthday_mypage", 1), ("_newyear_mypage", 1), ("_newyear", 1), ("_Newyear", 1), ("_valentine_mypage", 1), ("_valentine", 1), ("_Valentine", 1), ("_white_mypage", 1), ("_whiteday", 1), ("_Whiteday", 1), ("_WhiteDay", 1), ("_halloween_mypage", 1), ("_halloween", 1), ("_Halloween", 1), ("_christmas_mypage", 1), ("_christmas", 1), ("_Christmas", 1), ("_xmas", 1), ("_Xmas", 1)):
                 self.sound_base_strings.append((mid + "{}", [], 1, Z, 5))
-            for suffix in ["white","newyear","valentine","christmas","halloween","birthday"]:
+            for suffix in ("white","newyear","valentine","christmas","halloween","birthday"):
                 for s in range(1, 6):
                     self.sound_base_strings.append(("_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
         return self.sound_base_strings, self.sound_other_strings
@@ -2981,7 +3016,7 @@ class Updater():
             ts.finish()
         # other files (per uncap)
         for u in uncaps:
-            if u in ["", "01"]:
+            if u in ("", "01"):
                 u = ""
             else:
                 u = "_" + u
@@ -3108,7 +3143,7 @@ class Updater():
                 data = json.load(f)
             # check entries
             to_save = False
-            for t in ['npcs', "enemies"]:
+            for t in ('npcs', "enemies"):
                 for k in self.data[t]:
                     s = self.data['lookup'].get(k, None)
                     valid = s is not None and s != "" and not s.startswith("missing-help-wanted")
@@ -3118,7 +3153,7 @@ class Updater():
                         s = s.split(" ")
                         i = 0
                         while i < len(s):
-                            if s[i] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"]:
+                            if s[i] in ("/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"):
                                 i += 1
                             else:
                                 break
@@ -3171,7 +3206,8 @@ class Updater():
                         case 7: # enemy
                             if "$$" in v:
                                 vs = v.split("$$")
-                                if vs[1] not in ["fire", "water", "earth", "wind", "light", "dark", "null", "unknown-element"]: self.tasks.print("Element Warning for", k, "in manual_lookup.json")
+                                if vs[1] not in ("fire", "water", "earth", "wind", "light", "dark", "null", "unknown-element"):
+                                    self.tasks.print("Element Warning for", k, "in manual_lookup.json")
                                 v = vs[1] + " " + vs[0]
                             else:
                                 self.tasks.print("Element Warning for", k, "in manual_lookup.json")
@@ -3221,7 +3257,8 @@ class Updater():
                                 case _:
                                     append =" unknown-boss"
                     vs = v.split(" ")
-                    if vs[0] in ["/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"]: vs = vs[1:]
+                    if vs[0] in ("/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"):
+                        vs = vs[1:]
                     l = (" ".join(vs) + append).lower().strip().replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('  ', ' ').replace('  ', ' ')
                     if voice:
                         l += " voiced"
@@ -3502,7 +3539,7 @@ class Updater():
         # other
         count : int = 0
         for s in scene_strings:
-            for u in ["", "_02", "_03"]:
+            for u in ("", "_02", "_03"):
                 uris.append((self.IMG + "sp/quest/scene/character/body/{}" + "{}{}.png".format(u, s), self.NPC_SCENE))
                 uris.append((self.IMG + "sp/raid/navi_face/{}" + "{}{}.png".format(u, s), self.NPC_SCENE))
         for s in sound_strings:
@@ -3550,7 +3587,7 @@ class Updater():
             scene_count = 0
             sound_count = 0
             file_estimation = 0
-            for t in ["characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "title", "suptix", 'events', "skills", "subskills", 'buffs', "story"]:
+            for t in ("characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "title", "suptix", 'events', "skills", "subskills", 'buffs', "story"):
                 ref = self.data.get(t, {})
                 entity_count += len(ref.keys())
                 for k, v in ref.items():
@@ -3745,7 +3782,7 @@ class Updater():
                         if fi not in self.data['enemies']:
                             self.data['enemies'][fi] = 0
                             count += 1
-            for e in [('r', '2'), ('sr', '3'), ('ssr', '4')]:
+            for e in (('r', '2'), ('sr', '3'), ('ssr', '4')):
                 k : str = e[0]+'char'
                 if k in data:
                     for i in data[k]:
