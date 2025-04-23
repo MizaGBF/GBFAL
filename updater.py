@@ -2282,7 +2282,7 @@ class Updater():
             good : bool = False # flag to determine if we have at least a positive match
             flag : bool = False # flag used along the way
             # Check base ones
-            for k in ("", "_up", "_shadow"): # there are likely more variations but I don't want to add pointless files to slow it down further
+            for k in ("", "_up", "_ef", "_shadow"): # there are likely more variations but I don't want to add pointless files to slow it down further
                 try:
                     stem_suffix = stem + k
                     if stem_suffix not in existing:
@@ -2293,7 +2293,7 @@ class Updater():
                 except:
                     pass
             # check for extras
-            for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
+            for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5", "6")):
                 for k in ss:
                     try:
                         stem_suffix : str = stem + k
