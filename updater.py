@@ -304,7 +304,7 @@ class Updater():
     MAX_NEW = 100 # changelog limit
     HTTP_CONN_LIMIT = 80
     LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
-    UPDATABLE = set(["characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job"])
+    UPDATABLE = {"characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job"}
     # addition type
     ADD_JOB = 0
     ADD_WEAP = 1
@@ -410,7 +410,7 @@ class Updater():
                 for k, v in data.items():
                     setattr(self, k, v)
             # extra, SCENE_BUBBLE_FILTER for performance
-            setattr(self, 'SCENE_BUBBLE_FILTER', set([k[1:] for k in self.SCENE_SUFFIXES["default"]["end"] if len(k) > 0]))
+            setattr(self, 'SCENE_BUBBLE_FILTER', {k[1:] for k in self.SCENE_SUFFIXES["default"]["end"] if len(k) > 0})
         except Exception as e:
             print("Failed to load and set json/manual_constants.json")
             print("Please fix the file content and try again")
@@ -3815,6 +3815,19 @@ class Updater():
         except Exception as e:
             print("Couldn't import GBFDAIO index.json, verify the path is correct")
             print("Exception:", e)
+
+    async def test_fate(self, k):
+        for i in range(0, self.FATE_LINK):
+            for e in self.data["fate"][k][i]:
+                s = e + "a"
+                if s not in self.data["events"][k][i]:
+                    try:
+                        await self.head(self.IMG + "sp/quest/scene/character/body/" + s + ".png")
+                        self.tasks.print("fate", k, "found", s)
+                        self.data["fate"][k][i].append(s)
+                        #self.modified = True
+                    except:
+                        pass
 
     ### Entry Point #################################################################################################################
 
