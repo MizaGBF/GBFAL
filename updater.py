@@ -580,7 +580,6 @@ class Updater():
                             new[str((datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d'))] = data['new'] # use yesterday for the key
                         else:
                             new = data.get('new', {})
-                        print(new)
                 except:
                     new = {}
                     stat = None
