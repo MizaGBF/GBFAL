@@ -301,7 +301,6 @@ class Updater():
     USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
     SAVE_VERSION = 1
     # limit
-    MAX_NEW = 100 # changelog limit
     HTTP_CONN_LIMIT = 80
     LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
     UPDATABLE = {"characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job"}
@@ -609,7 +608,6 @@ class Updater():
                         keys = keys[:5]
                     new = {k:new[k] for k in keys}
                     self.addition = {} # clear self.addition
-                    # REMOVE MAX_NEW??
                 # update stat
                 if self.stat_string is not None:
                     stat = self.stat_string
