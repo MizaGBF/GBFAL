@@ -160,7 +160,7 @@ var searchResults = []; // search results
 var searchID = null; // search result id
 var bookmarks = []; // bookmarks
 var timestamp = Date.now(); // timestamp (from changelog.json)
-var updated = []; // list of recently updated elements (from changelog.json)
+var updated = {}; // list of recently updated elements (from changelog.json)
 var typingTimer; // typing timer timeout
 var audio = null; // last played/playing audio
 var previewhome = false; // boolean to keep track of mypage preview
@@ -200,7 +200,7 @@ function initChangelog() // load content of changelog.json
 	{
 		let json = JSON.parse(this.response);
 		if(json.hasOwnProperty("new")) // set updated
-			updated = json["new"].reverse();
+			updated = json["new"]
 		timestamp = json.timestamp; // set timestamp
 		setInterval(clock, 1000); // start the clock
 		if(json.hasOwnProperty("stat")) stat_string = json["stat"];
@@ -244,9 +244,16 @@ function initData() // load data.json
 			if(!(value in index["lookup_reverse"])) index["lookup_reverse"][value] = [];
 			index["lookup_reverse"][value].push(key);
 		}
-		if(updated.length > 0) // init Updated list
+		// init Updated list
+		let new_node = document.getElementById('new');
+		for(const [key, value] of Object.entries(updated))
 		{
-			updateList(document.getElementById('new'), updated);
+			let div = document.createElement("div");
+			div.classList.add("mobile-big");
+			div.classList.add("updated-header");
+			div.innerText = key;
+			new_node.appendChild(div);
+			updateList(new_node, value.reverse(), false);
 		}
 		toggleBookmark(); // init bookmark
 		updateHistory(); // init history
@@ -1291,9 +1298,10 @@ function addTextImage(node, className, id, string, unusedA, unusedB) // like add
 
 // =================================================================================================
 // bookmark, history, settings...
-function updateList(node, elems) // update a list of elements
+function updateList(node, elems, clear_node = true) // update a list of elements
 {
-	node.innerHTML = "";
+	if(clear_node)
+		node.innerHTML = "";
 	let frag = document.createDocumentFragment();
 	for(let e of elems)
 	{

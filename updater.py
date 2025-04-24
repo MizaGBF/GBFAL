@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 import asyncio
 import aiohttp
 import os
@@ -566,7 +566,7 @@ class Updater():
                     outfile.write("}")
                 # changelog.json
                 stat : str|None
-                existing : dict[str, Any]
+                new : dict[str, list[Any]]
                 issues : list[str]
                 help : bool
                 try: # load its content
@@ -575,27 +575,41 @@ class Updater():
                         stat = data.get('stat', None)
                         issues = data.get('issues', [])
                         help = data.get('help', False)
-                        existing = {}
-                        e : Any
-                        for e in data.get('new', []): # convert content to dict
-                            existing[e[0]] = e[1]
-                except:
-                    existing = {}
+                        new = {}
+                        self.addition = {"3990696000":5}
+                        if isinstance(data.get('new', {}), list): # Retrocompatibility with old format
+                            new[str((datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d'))] = data['new'] # use yesterday for the key
+                        else:
+                            new = data.get('new', {})
+                        print(new)
+                except Exception as xx:
+                    self.tasks.print(xx)
+                    self.tasks.print("".join(traceback.format_exception(type(xx), xx, xx.__traceback__)))
+                    return
+                    new = {}
                     stat = None
                     issues = []
                     help = False
-                if self.update_changelog: # update new content
-                    k : str
-                    v : Any
-                    for k, v in self.addition.items(): # merge but put updated elements last
-                        if k in existing:
-                            existing.pop(k)
-                        existing[k] = v
+                if self.update_changelog and len(self.addition) > 0: # update new content
+                    # get date of today
+                    now : str = datetime.now(UTC).strftime('%Y-%m-%d')
+                    if now in new: # if date present
+                        temp : dict[str, Any] = {e[0]:e[1] for e in new[now]} # get old data
+                        for k, v in self.addition.items(): # put new data after
+                            if k in temp:
+                                temp.pop(k)
+                            temp[k] = v
+                        new[now] = [[k, v] for k, v in temp.items()] # replace by new data
+                    else:
+                        new[now] = [[k, v] for k, v in self.addition.items()] # else just set new data
+                    # sort keys
+                    keys : list[str]= list(new.keys())
+                    keys.sort(reverse=True)
+                    if len(keys) > 5: # and remove oldest
+                        keys = keys[:5]
+                    new = {k:new[k] for k in keys}
                     self.addition = {} # clear self.addition
-                # updated new elements
-                new : list[Any] = [[k, v] for k, v in existing.items()] # convert back to list. NOTE: maybe make a cleaner way later
-                if len(new) > self.MAX_NEW:
-                    new = new[len(new)-self.MAX_NEW:]
+                    # REMOVE MAX_NEW??
                 # update stat
                 if self.stat_string is not None:
                     stat = self.stat_string
@@ -3997,6 +4011,8 @@ class Updater():
                 self.update_manual_fate()
                 self.update_manual_event_thumbnail(True)
             elif run_help:
+                self.modified = True
+                self.save()
                 parser.print_help()
             # post process
             if len(self.addition) > 0: # we found stuff

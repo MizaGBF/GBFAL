@@ -42,8 +42,6 @@ function initChangelog_spark() // load content of changelog.json
 	try
 	{
 		let json = JSON.parse(this.response);
-		if(json.hasOwnProperty("new")) // set updated
-			updated = json["new"].reverse();
 		timestamp = json.timestamp; // set timestamp
 		setInterval(clock, 1000); // start the clock
 		if(json.hasOwnProperty("stat")) stat_string = json["stat"];

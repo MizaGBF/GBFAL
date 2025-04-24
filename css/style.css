@@ -772,6 +772,13 @@ a:active {
 	font-size: 20px;
 }
 
+.updated-header {
+	min-width: 100%;
+	max-width: 100%;
+	text-align: center;
+	font-size: 25px;
+}
+
 @media (hover: none) { /* mobile stuff */
 	body {
 		--is-mobile: 1;
@@ -989,6 +996,10 @@ a:active {
 	}
 
 	.checkbox-label {
+		font-size: 40px;
+	}
+
+	.updated-header {
 		font-size: 40px;
 	}
 }
