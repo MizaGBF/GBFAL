@@ -575,7 +575,6 @@ class Updater():
                         issues = data.get('issues', [])
                         help = data.get('help', False)
                         new = {}
-                        self.addition = {"3990696000":5}
                         if isinstance(data.get('new', {}), list): # Retrocompatibility with old format
                             new[str((datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d'))] = data['new'] # use yesterday for the key
                         else:
