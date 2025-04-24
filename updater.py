@@ -581,10 +581,7 @@ class Updater():
                         else:
                             new = data.get('new', {})
                         print(new)
-                except Exception as xx:
-                    self.tasks.print(xx)
-                    self.tasks.print("".join(traceback.format_exception(type(xx), xx, xx.__traceback__)))
-                    return
+                except:
                     new = {}
                     stat = None
                     issues = []
