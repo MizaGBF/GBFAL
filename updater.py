@@ -4009,8 +4009,6 @@ class Updater():
                 self.update_manual_fate()
                 self.update_manual_event_thumbnail(True)
             elif run_help:
-                self.modified = True
-                self.save()
                 parser.print_help()
             # post process
             if len(self.addition) > 0: # we found stuff
