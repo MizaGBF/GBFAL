@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable
+from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone, UTC
 import asyncio
@@ -16,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.18'
+VERSION = '3.19'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -131,7 +132,7 @@ MALINDA : str = ""
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
 MSQ_RECAPS : dict[str, str] = {}
-# load constants
+# load dynamic constants
 try:
     with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
         globals().update(json.load(f)) # add to global scope
@@ -149,8 +150,8 @@ class TaskManager():
         self.debug : bool = False
         self.is_running : bool = False
         self.updater : Updater = updater
-        self.queues : tuple[asyncio.Queue, ...] = (asyncio.Queue(), asyncio.Queue(), asyncio.Queue(), asyncio.Queue(), asyncio.Queue())
-        self.running : list[asyncio.Task] = []
+        self.queues : tuple[deque, ...] = (deque(), deque(), deque(), deque(), deque())
+        self.running : deque[asyncio.Task] = deque()
         self.total : int = 0
         self.finished : int = 0
         self.print_flag : bool = False
@@ -171,13 +172,13 @@ class TaskManager():
             raise Exception("Invalid parameters")
         if priority < 0 or priority >= len(self.queues):
             priority = len(self.queues) - 1
-        self.queues[priority].put_nowait(Task.make(awaitable, parameters))
+        self.queues[priority].append(Task.make(awaitable, parameters))
         self.total += 1
 
     # return True if all queues are empty
     def queues_are_empty(self : TaskManager) -> bool:
         for q in self.queues:
-            if not q.empty():
+            if len(q) > 0:
                 return False
         return True
 
@@ -194,10 +195,10 @@ class TaskManager():
         # loop
         while len(self.running) > 0 or not self.queues_are_empty():
             # remove from queue and run
-            for i in range(len(self.queues)):
-                while len(self.running) < CONCURRENT_TASKS and not self.queues[i].empty():
+            for i, q in enumerate(self.queues):
+                while len(self.running) < CONCURRENT_TASKS and len(q) > 0:
                     try:
-                        t : Task = await self.queues[i].get()
+                        t : Task = q.popleft()
                         if skip <= 0:
                             if t.parameters is not None:
                                 self.running.append(asyncio.create_task(t.awaitable(*t.parameters)))
@@ -214,23 +215,31 @@ class TaskManager():
             # check process flags
             await self.updater.process_flags()
             # remove completed tasks
-            i = 0
             prev : int = self.finished
-            while i < len(self.running):
-                if self.running[i].done():
+            for i in range(len(self.running)):
+                t : asyncio.Task = self.running.popleft()
+                if t.done():
                     try:
-                        self.running[i].result()
+                        t.result()
                     except Exception as e:
                         self.return_state = False
                         self.print("The following exception occured:")
                         self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                     self.finished += 1
-                    self.running.pop(i)
+                    # t is discarded
                 else:
-                    i += 1
+                    self.running.append(t) # put back in
             # update status
-            if prev != self.finished:
-                self.update_progress()
+            if prev != self.finished: # number of finished task changed
+                # print t he progress
+                self.print_progress()
+                # auto save if needed
+                if time.time() - self.elapsed >= 3600:
+                    if self.updater.modified:
+                        self.print("Progress: {} / {} Tasks, autosaving...".format(self.finished, self.total))
+                    self.updater.save()
+                    self.updater.save_resume()
+                    self.elapsed = time.time()
                 to_sleep = False
             else:
                 to_sleep = True
@@ -271,16 +280,6 @@ class TaskManager():
             await asyncio.sleep(1)
         return self.return_state
 
-    # update the progression string and save if we've run for over 1h
-    def update_progress(self : TaskManager) -> None:
-        self.print_progress()
-        if time.time() - self.elapsed >= 3600:
-            if self.updater.modified:
-                self.print("Progress: {} / {} Tasks, autosaving...".format(self.finished, self.total))
-            self.updater.save()
-            self.updater.save_resume()
-            self.elapsed = time.time()
-
     # print the progression string
     def print_progress(self : TaskManager) -> None:
         if self.running and self.total > 0:
@@ -291,7 +290,7 @@ class TaskManager():
             else:
                 self.print_flag = True
             if self.debug:
-                self.written_len = sys.stdout.write("P:{}/{} | R:{} | Q:{} {} {} {} {}".format(self.finished, self.total, len(self.running), self.queues[0].qsize(), self.queues[1].qsize(), self.queues[2].qsize(), self.queues[3].qsize(), self.queues[4].qsize()))
+                self.written_len = sys.stdout.write("P:{}/{} | R:{} | Q:{} {} {} {} {}".format(self.finished, self.total, len(self.running), len(self.queues[0]), len(self.queues[1]), len(self.queues[2]), len(self.queues[3]), len(self.queues[4])))
             else:
                 self.written_len = sys.stdout.write("Progress: {} / {} Tasks".format(self.finished, self.total))
             sys.stdout.flush()
@@ -318,8 +317,8 @@ class TaskManager():
         print("Process PAUSED")
         print("{} / {} Tasks completed".format(self.finished, self.total))
         print("{} Tasks running".format(len(self.running)))
-        for i in range(len(self.queues)):
-            print("Tasks in queue lv{}: {}".format(i, self.queues[i].qsize()))
+        for i, q in enumerate(self.queues):
+            print("Tasks in queue lv{}: {}".format(i, len(q)))
         if self.updater.modified:
             print("Pending Data is waiting to be saved")
         print("Type 'help' for a command list, or a command to execute, anything else to resume")
