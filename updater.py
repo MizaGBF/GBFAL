@@ -120,9 +120,28 @@ CHAPTER_REGEX = re.compile("Chapter (\\d+)(-(\\d+))?")
 QUEUE_KEY = ['uncap_queue']
 STRING_CHAR = string.ascii_lowercase + string.digits
 
-
-
-
+# dynamic constants
+MISSING_EVENTS : list[str] = []
+SPECIAL_EVENTS : dict[str, str] = {}
+CUT_CONTENT : list[str] = []
+SHARED_LOOKUP : list[list[str]] = []
+SPECIAL_LOOKUP : dict[str, str] = {}
+UNIQUE_SKIN : list[str] = []
+MALINDA : str = ""
+SCENE_SUFFIXES : dict[str, dict[Any]] = {}
+SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
+MSQ_RECAPS : dict[str, str] = {}
+# load constants
+try:
+    with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
+        globals().update(json.load(f)) # add to global scope
+        # extra, SCENE_BUBBLE_FILTER for performance
+        SCENE_BUBBLE_FILTER = {k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0}
+except Exception as e:
+    print("Failed to load and set json/manual_constants.json")
+    print("Please fix the file content and try again")
+    print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+    raise Exception("Failed to load GBFAL Constants")
 
 # Handle tasks
 class TaskManager():
@@ -391,20 +410,6 @@ class TaskStatus():
 
 class Updater():
     def __init__(self : Updater):
-        # load constants
-        try:
-            with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
-                data : dict[str, Any] = json.load(f)
-                k : str
-                for k, v in data.items():
-                    setattr(self, k, v)
-            # extra, SCENE_BUBBLE_FILTER for performance
-            setattr(self, 'SCENE_BUBBLE_FILTER', {k[1:] for k in self.SCENE_SUFFIXES["default"]["end"] if len(k) > 0})
-        except Exception as e:
-            print("Failed to load and set json/manual_constants.json")
-            print("Please fix the file content and try again")
-            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-            os._exit(0)
         # other init
         self.client : aiohttp.ClientSession|None = None # the http client
         self.flags : set[str] = set() # to contain and manage various flag values
@@ -1263,9 +1268,9 @@ class Updater():
                     uncaps.append("_01")
             except:
                 break
-        if len(uncaps) == 0 and element_id not in self.CUT_CONTENT:
+        if len(uncaps) == 0 and element_id not in CUT_CONTENT:
             return
-        if len(data[SUM_GENERAL]) == 0 and element_id in self.CUT_CONTENT:
+        if len(data[SUM_GENERAL]) == 0 and element_id in CUT_CONTENT:
             data[SUM_GENERAL].append(element_id)
             uncaps = ["", "_01"]
         # attack
@@ -1407,7 +1412,7 @@ class Updater():
             for i in range(1, len(uncaps)):
                 targets.append("_" + uncaps[i])
             attacks = []
-            if tid == self.MALINDA:
+            if tid == MALINDA:
                 for i in range(0, 7):
                     mid = tid[:-1] + str(i)
                     for t in targets:
@@ -1440,8 +1445,8 @@ class Updater():
                 for g in (("", "_0", "_1") if (uf[0] is True) else ("")):
                     for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
                         for catype in ("", "_s2", "_s3"):
-                            for sub in (("") if tid == self.MALINDA else ("", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j")):
-                                for ex in (("", "_1", "_2", "_3", "_4", "_5", "_6") if tid == self.MALINDA else ("")):
+                            for sub in (("") if tid == MALINDA else ("", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j")):
+                                for ex in (("", "_1", "_2", "_3", "_4", "_5", "_6") if tid == MALINDA else ("")):
                                     try:
                                         fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
                                         attacks += await self.processManifest(fn)
@@ -1771,7 +1776,7 @@ class Updater():
                 for j in (2, 3, 4, 5, 80):
                     try:
                         await self.head(IMG + "sp/assets/leader/sd/{}_{}_0_01.png".format(element_id[:-2]+str(j).zfill(2), cmh[0]))
-                        if element_id in self.UNIQUE_SKIN:
+                        if element_id in UNIQUE_SKIN:
                             await self.update_job(element_id[:-2]+str(j).zfill(2))
                         else:
                             colors.append(j)
@@ -1968,7 +1973,7 @@ class Updater():
                 sheets = []
                 for v in self.data['job'][jid][JOB_DETAIL_ALL]:
                     try:
-                        if jid in self.UNIQUE_SKIN:
+                        if jid in UNIQUE_SKIN:
                             sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_01")
                         else:
                             sheets += await self.processManifest(s + "_" + '_'.join(v.split('_')[1:3]) + "_" + v.split('_')[0][-2:])
@@ -2071,34 +2076,34 @@ class Updater():
         # it's mostly a concatenation work
         if self.scene_strings is None:
             self.scene_strings = [{}, {}] # dict to keep order
-            for main in self.SCENE_SUFFIXES["default"]["main"]:
-                for end in self.SCENE_SUFFIXES["default"]["end"]:
+            for main in SCENE_SUFFIXES["default"]["main"]:
+                for end in SCENE_SUFFIXES["default"]["end"]:
                     if main != "" and main == end: continue
                     f = main + end
                     self.scene_strings[0][f] = None
             self.scene_strings[1] = self.scene_strings[0].copy()
             self.scene_strings[1] = list(self.scene_strings[1].keys())
-            for unique in self.SCENE_SUFFIXES["default"]["unique"]:
-                for end in self.SCENE_SUFFIXES["default"]["end"]:
+            for unique in SCENE_SUFFIXES["default"]["unique"]:
+                for end in SCENE_SUFFIXES["default"]["end"]:
                     if unique != "" and unique == end: continue
                     f = unique + end
                     self.scene_strings[0][f] = None
             self.scene_strings[0] = list(self.scene_strings[0].keys())
         
-        if element_id in self.SCENE_SUFFIXES: # this part is similar to the above but for special elements with dedicated strings
-            if "base" in self.SCENE_SUFFIXES[element_id]:
-                base = self.SCENE_SUFFIXES["default"]["base"] + self.SCENE_SUFFIXES[element_id]["base"]
+        if element_id in SCENE_SUFFIXES: # this part is similar to the above but for special elements with dedicated strings
+            if "base" in SCENE_SUFFIXES[element_id]:
+                base = SCENE_SUFFIXES["default"]["base"] + SCENE_SUFFIXES[element_id]["base"]
             else:
-                base = self.SCENE_SUFFIXES["default"]["base"]
-            if "main" in self.SCENE_SUFFIXES[element_id] or "end" in self.SCENE_SUFFIXES[element_id] or "unique" in self.SCENE_SUFFIXES[element_id]:
+                base = SCENE_SUFFIXES["default"]["base"]
+            if "main" in SCENE_SUFFIXES[element_id] or "end" in SCENE_SUFFIXES[element_id] or "unique" in SCENE_SUFFIXES[element_id]:
                 d = {}
                 for k in ("main", "unique", "end"):
-                    if k not in self.SCENE_SUFFIXES[element_id]:
-                        d[k] = self.SCENE_SUFFIXES["default"][k]
+                    if k not in SCENE_SUFFIXES[element_id]:
+                        d[k] = SCENE_SUFFIXES["default"][k]
                     else:
                         s = set()
                         d[k] = []
-                        for f in (self.SCENE_SUFFIXES["default"][k] + self.SCENE_SUFFIXES[element_id].get(k, [])):
+                        for f in (SCENE_SUFFIXES["default"][k] + SCENE_SUFFIXES[element_id].get(k, [])):
                             if f not in s:
                                 s.add(f)
                                 d[k].append(f)
@@ -2121,7 +2126,7 @@ class Updater():
                 B = self.scene_strings[1]
             return base, A, B
         else:
-            return self.SCENE_SUFFIXES["default"]["base"], self.scene_strings[0], self.scene_strings[1]
+            return SCENE_SUFFIXES["default"]["base"], self.scene_strings[0], self.scene_strings[1]
 
     # Execution flow
     #
@@ -2486,9 +2491,9 @@ class Updater():
     # Use the wiki to build a list of existing events with their start date. Note: It needs to be updated for something more efficient
     async def get_event_list(self : Updater) -> list[str]:
         try:
-            l = self.MISSING_EVENTS # missing events
+            l = MISSING_EVENTS # missing events
             # add our special events
-            for k in self.SPECIAL_EVENTS:
+            for k in SPECIAL_EVENTS:
                 l.append(k)
             # try to access the wiki
             if not self.use_wiki:
@@ -2596,7 +2601,7 @@ class Updater():
             self.data["events"][element_id] = self.create_event_container()
         # we must have a valid chapter count (==0 : undefined but valid event, >=0 : chapter count)
         if forceflag or self.data["events"][element_id][EVENT_CHAPTER_COUNT] >= 0:
-            name : str = self.SPECIAL_EVENTS.get(element_id, element_id) # retrieve file name id if special event
+            name : str = SPECIAL_EVENTS.get(element_id, element_id) # retrieve file name id if special event
             prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
             existings : list[set[str]] = [set(self.data["events"][element_id][i]) for i in range(EVENT_OP, len(self.data["events"][element_id]))] # make set of existing files
             ch_count = self.data["events"][element_id][EVENT_CHAPTER_COUNT] if not forceflag and self.data["events"][element_id][EVENT_CHAPTER_COUNT] > 0 else EVENT_MAX_CHAPTER # get the number of chapter to check
@@ -2733,14 +2738,14 @@ class Updater():
         existing : set[str]
         ts : TaskStatus
         # special recap chapters
-        for k in self.MSQ_RECAPS:
+        for k in MSQ_RECAPS:
             if k not in self.data['story']:
                 if k not in self.data['story']:
                     self.data['story'][k] = [[]]
                 ts = TaskStatus(200, 5, running=10)
                 existing = set(self.data['story'][k][STORY_CONTENT])
                 for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene_skip"+self.MSQ_RECAPS[k], existing), priority=2)
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene_skip"+MSQ_RECAPS[k], existing), priority=2)
         # chapters
         for i in range(0, limit+1):
             element_id = str(i).zfill(3)
@@ -3375,16 +3380,16 @@ class Updater():
                 for k in self.data[t]:
                     check_shared = False
                     if k not in self.data['lookup'] or self.data['lookup'][k] is None:
-                        if k in self.SPECIAL_LOOKUP:
-                            self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
+                        if k in SPECIAL_LOOKUP:
+                            self.data['lookup'][k] = SPECIAL_LOOKUP[k]
                         else:
                             check_shared = True
                     else:
-                        if k not in modified and k in self.SPECIAL_LOOKUP and self.data['lookup'][k] != self.SPECIAL_LOOKUP[k]:
-                            self.data['lookup'][k] = self.SPECIAL_LOOKUP[k]
+                        if k not in modified and k in SPECIAL_LOOKUP and self.data['lookup'][k] != SPECIAL_LOOKUP[k]:
+                            self.data['lookup'][k] = SPECIAL_LOOKUP[k]
                         check_shared = True
                     if check_shared:
-                        for l in self.SHARED_LOOKUP:
+                        for l in SHARED_LOOKUP:
                             if k not in l: continue
                             for m in l:
                                 if m != k and m in self.data['lookup'] and m is not None and self.data['lookup'][m] is not None:
