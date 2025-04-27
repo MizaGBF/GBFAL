@@ -282,19 +282,6 @@ class TaskStatus():
     def finished(self : TaskStatus) -> bool:
         return self.running <= 0
 
-@dataclass(slots=True)
-class Flags():
-    _d_ : dict[str, int]
-    
-    def __init__(self : Flags) -> None:
-        self._d_ = {}
-
-    def set(self : Flags, name : str) -> None:
-        self._d_[name] = 1
-
-    def check(self : Flags, name : str) -> bool:
-        return self._d_.get(name, 0) != 0
-
 class Updater():
     ### CONSTANT
     VERSION = '3.18'
@@ -417,7 +404,7 @@ class Updater():
             os._exit(0)
         # other init
         self.client : aiohttp.ClientSession|None = None # the http client
-        self.flags : Flags = Flags() # to contain and manage various flag values
+        self.flags : set[str] = set() # to contain and manage various flag values
         self.http_sem : asyncio.Semaphore = asyncio.Semaphore(self.HTTP_CONN_LIMIT) # http semaphor to limit http connections
         self.tasks : TaskManager = TaskManager(self) # the task manager
         self.use_wiki : bool = False # flag to see if the wiki usable
@@ -646,10 +633,13 @@ class Updater():
 
     # wrapper of head() if the exception isn't needed (return None in case of error instead)
     async def head_nx(self : Updater, url : str):
-        try:
-            return await self.head(url)
-        except:
-            return None
+        # copy paste to avoid a needless functions call and exception
+        async with self.http_sem:
+            response : aiohttp.HTTPResponse = await self.client.head(url, headers={'connection':'keep-alive'})
+            async with response:
+                if response.status != 200:
+                    return None
+                return response.headers
 
     # Extract json data from a GBF animation manifest file
     async def processManifest(self, file : str, verify_file : bool = False) -> list:
@@ -689,7 +679,7 @@ class Updater():
 
     # called by -run
     async def run(self : Updater) -> None:
-        self.flags.set("run_process")
+        self.flags.add("run_process")
         i : int
         j : int
         r : int
@@ -1067,7 +1057,7 @@ class Updater():
             self.data['buffs'][element_id][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
             self.modified = True
             self.addition[element_id] = self.ADD_BUFF
-            self.flags.set("found_buff")
+            self.flags.add("found_buff")
             self.tasks.print("Updated:", element_id, "for index:", 'buffs')
 
     async def request_buff(self : Updater, path : str) -> None:
@@ -1480,7 +1470,7 @@ class Updater():
             self.tasks.add(self.update_scenes_of, parameters=(element_id, index))
             self.tasks.add(self.update_sound_of, parameters=(element_id, index))
             self.addition[element_id] = self.ADD_CHAR
-            self.flags.set("found_character")
+            self.flags.add("found_character")
             # updating corresponding fate episode
             if index == 'characters':
                 for k, v in self.data['fate'].items():
@@ -1629,7 +1619,7 @@ class Updater():
                 self.data['partners'][element_id][i] = list(set(self.data['partners'][element_id][i] + data[i]))
                 self.data['partners'][element_id][i].sort()
             self.addition[element_id] = self.ADD_PARTNER
-            self.flags.set("found_character")
+            self.flags.add("found_character")
             self.tasks.print("Updated:", element_id, "for index:", 'partners')
             self.remove_from_uncap_queue(element_id)
 
@@ -1695,7 +1685,7 @@ class Updater():
             self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
             self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
             self.addition[element_id] = self.ADD_NPC
-            self.flags.set("found_character")
+            self.flags.add("found_character")
             self.tasks.print("Updated:", element_id, "for index:", 'npcs', "(Queuing secondary updates...)")
             self.remove_from_uncap_queue(element_id)
 
@@ -2054,8 +2044,8 @@ class Updater():
 
     # update ALL npc/character/skin scene files, time consuming, can be resumed, can be filtered
     async def update_all_scene(self : Updater, filters : list[str] = []) -> None:
-        self.flags.set("use_resume")
-        self.flags.set("scene_update")
+        self.flags.add("use_resume")
+        self.flags.add("scene_update")
         self.load_resume("scene")
         if len(self.resume.get('done', {})) != 0:
             self.tasks.print("Note: Resuming the previous run...")
@@ -2173,7 +2163,7 @@ class Updater():
                 u = ""
             else:
                 u = "_" + u
-            if self.flags.check('scene_update') and u in self.resume.get('done', {}).get(element_id, []): # skip if in resume file
+            if 'scene_update' in self.flags and u in self.resume.get('done', {}).get(element_id, []): # skip if in resume file
                 continue
             # start update_scene
             self.tasks.add(self.update_scene, parameters=(index, element_id, idx, u, existing, base_target, main_x if u == "" else uncap_x, filters), priority=2)
@@ -2254,7 +2244,7 @@ class Updater():
             if "_white" in existing or "_valentine" in existing and element_id not in self.data['valentines']:
                 self.data['valentines'][element_id] = 0
         # add element id and uncap to resume save
-        if self.flags.check("scene_update"):
+        if "scene_update" in self.flags:
             if element_id not in self.resume['done']:
                 self.resume['done'][element_id] = []
             self.resume['done'][element_id].append(uncap)
@@ -2478,12 +2468,12 @@ class Updater():
                             if self.data[index][element_id][self.EVENT_CHAPTER_COUNT] == -1:
                                 self.data[index][element_id][self.EVENT_CHAPTER_COUNT] = 0
                             self.addition[element_id] = self.ADD_EVENT
-                            self.flags.set("found_event")
+                            self.flags.add("found_event")
                         case 'story':
                             self.addition[element_id] = self.ADD_STORY
                         case 'fate':
                             self.addition[element_id] = self.ADD_FATE
-                            self.flags.set("found_fate")
+                            self.flags.add("found_fate")
                     self.tasks.print("Updated:", element_id, "for index:", index)
                 # raise modified flag
                 self.modified = True
@@ -2541,7 +2531,7 @@ class Updater():
 
     # also a pretty implicit name
     async def check_new_event(self : Updater) -> None:
-        self.flags.set("checking_event")
+        self.flags.add("checking_event")
         # get today date
         nowd : datetime = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400)
         now : int = int(str(nowd.year)[2:] + str(nowd.month).zfill(2) + str(nowd.day).zfill(2))
@@ -2865,7 +2855,7 @@ class Updater():
             if param is None or param == "":
                 raise Exception()
             elif param == "last":
-                self.flags.set("checking_event")
+                self.flags.add("checking_event")
                 max_chapter = self.get_latest_fate() + 5
                 min_chapter = max_chapter - 8
             else:
@@ -2921,8 +2911,8 @@ class Updater():
     # the functions are similar to scene ones
     # this one update the sound data of all elements and support resuming and filtering
     async def update_all_sound(self : Updater, filters : list[str] = []) -> None:
-        self.flags.set("use_resume")
-        self.flags.set("sound_update")
+        self.flags.add("use_resume")
+        self.flags.add("sound_update")
         self.load_resume("sound")
         if len(self.resume.get('done', {})) != 0:
             self.tasks.print("Note: Resuming the previous run...")
@@ -2987,7 +2977,7 @@ class Updater():
     #
 
     async def update_sound_of(self : Updater, element_id : str, index : str, filters : list[str] = []) -> None:
-        if self.flags.check('sound_update') and element_id in self.resume.get('done', {}):
+        if 'sound_update' in self.flags and element_id in self.resume.get('done', {}):
             return
         u : str
         uncaps : list[str]
@@ -3131,7 +3121,7 @@ class Updater():
             self.data[index][element_id][idx] = list(existing) # no need to sort
             self.modified = True
         # Add to resume file
-        if self.flags.check("sound_update"):
+        if "sound_update" in self.flags:
             self.resume['done'][element_id] = 0
 
     ### Lookup ##################################################################################################################
@@ -3139,9 +3129,9 @@ class Updater():
     # Check for new elements to lookup on the wiki, to update the lookup list
     # Gigantic function but nothing complicated
     async def lookup(self : Updater) -> None:
-        if not self.use_wiki or self.flags.check('lookup_updated'):
+        if not self.use_wiki or 'lookup_updated' in self.flags:
             return
-        self.flags.set('lookup_updated')
+        self.flags.add('lookup_updated')
         modified = set()
         # Read manual_lookup.json and update data.json
         try:
@@ -3408,9 +3398,9 @@ class Updater():
 
     # Called by maintenancebuff
     async def maintenance_buff(self : Updater) -> None:
-        if self.flags.check("maintenance_buff"):
+        if "maintenance_buff" in self.flags:
             return
-        self.flags.set("maintenance_buff")
+        self.flags.add("maintenance_buff")
         self.tasks.add(self.maintenance_compare_wiki_buff)
         self.tasks.print("Starting tasks to update known Buffs...")
         for element_id in self.data['buffs']:
@@ -3420,9 +3410,9 @@ class Updater():
     # Called by maintenancebuff, maintenance or process_flags
     async def maintenance_compare_wiki_buff(self : Updater) -> None:
         try:
-            if not self.use_wiki or self.flags.check("maintenance_buff_wiki"):
+            if not self.use_wiki or "maintenance_buff_wiki" in self.flags:
                 return
-            self.flags.set("maintenance_buff_wiki")
+            self.flags.add("maintenance_buff_wiki")
             self.tasks.print("Comparing data with gbf.wiki buff list...")
             checked : set[str] = set()
             data = await self.get_wiki("https://gbf.wiki/api.php?action=query&prop=revisions&titles=Module:StatusList&rvslots=main&rvprop=content&formatversion=2&format=json", get_json=True)
@@ -3474,9 +3464,9 @@ class Updater():
 
     # Called by maintenancenpcthumbnail, maintenance or process_flags
     async def maintenance_npc_thumbnail(self : Updater) -> None:
-        if self.flags.check("maintenance_npc_thumbnail"):
+        if "maintenance_npc_thumbnail" in self.flags:
             return
-        self.flags.set("maintenance_npc_thumbnail")
+        self.flags.add("maintenance_npc_thumbnail")
         self.tasks.print("Starting tasks to update known NPC thumbnails...")
         for element_id in self.data['npcs']:
             if not isinstance(self.data['npcs'][element_id], int) and not self.data['npcs'][element_id][self.NPC_JOURNAL]:
@@ -3494,9 +3484,9 @@ class Updater():
 
     # Called by maintenancesky, maintenance or process_flags
     async def maintenance_event_skycompass(self : Updater) -> None:
-        if self.flags.check("maintenance_event_skycompass"):
+        if "maintenance_event_skycompass" in self.flags:
             return
-        self.flags.set("maintenance_event_skycompass")
+        self.flags.add("maintenance_event_skycompass")
         self.tasks.print("Starting tasks to update known Events Skycompass Arts...")
         for ev in self.data['events']:
             if self.data['events'][ev][self.EVENT_THUMB] is not None:
@@ -3573,7 +3563,7 @@ class Updater():
                     self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
                     self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
                     self.addition[element_id] = self.ADD_NPC
-                    self.flags.set("found_character")
+                    self.flags.add("found_character")
                     self.tasks.print("Found NPC:", element_id, "(Queuing secondary updates...)")
                     ts.bad() # to force stop the other tasks
             except Exception as e:
@@ -3685,7 +3675,7 @@ class Updater():
                 self.resume = json.load(f)
                 if name != self.resume['name'] or not isinstance(self.resume, dict):
                     raise Exception()
-                self.flags.set("resume_loaded")
+                self.flags.add("resume_loaded")
         except:
             self.resume = {}
 
@@ -3694,7 +3684,7 @@ class Updater():
         try:
             if not self.use_resume:
                 return
-            if self.flags.check("use_resume"):
+            if "use_resume" in self.flags:
                 with open("resume", mode="w", encoding="utf-8") as f:
                     json.dump(self.resume, f)
                 self.tasks.print("The resume file has been updated")
@@ -3706,7 +3696,7 @@ class Updater():
         try:
             if not self.use_resume:
                 return
-            if self.flags.check("resume_loaded"):
+            if "resume_loaded" in self.flags:
                 with open("resume", mode="r", encoding="utf-8") as f:
                     json.dump({}, f)
         except:
@@ -3714,14 +3704,14 @@ class Updater():
 
     # called by TaskManager, check raised flags and start tasks accordingly
     async def process_flags(self : Updater) -> None:
-        if self.flags.check("run_process"):
-            if self.flags.check("found_character") and not self.flags.check("checking_event"):
-                self.flags.set("checking_event")
+        if "run_process" in self.flags:
+            if "found_character" in self.flags and "checking_event" not in self.flags:
+                self.flags.add("checking_event")
                 self.tasks.print("Adding tasks to check for new events and fate episodes...")
                 self.tasks.add(self.check_new_event)
                 self.tasks.add(self.update_all_fate, parameters=('last',))
-            if self.flags.check("found_event") and not self.flags.check("checking_event_related"):
-                self.flags.set("checking_event_related")
+            if "found_event" in self.flags and "checking_event_related" not in self.flags:
+                self.flags.add("checking_event_related")
                 self.tasks.add(self.maintenance_npc_thumbnail, priority=0)
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
@@ -4009,10 +3999,10 @@ class Updater():
             if len(self.addition) > 0: # we found stuff
                 await self.lookup() # update the lookup
                 # update other manual json files if needed
-                if self.flags.check("found_event"):
+                if "found_event" in self.flags:
                     self.update_manual_event_thumbnail(True)
                     self.update_manual_event_thumbnail(False)
-                if self.flags.check("found_fate"):
+                if "found_fate" in self.flags:
                     self.update_manual_fate()
             if self.modified:
                 self.make_stats()
