@@ -1692,9 +1692,9 @@ class Updater():
                 base_target = ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_10", "_boss_v_20"]
                 for k in base_target:
                     try:
-                        f = "{}{}".format(element_id, k)
-                        if f not in data[NPC_SOUND]:
-                            await self.head(self.SOUND + "voice/" + f + ".mp3")
+                        if k not in data[NPC_SOUND]:
+                            f = "{}{}".format(element_id, k)
+                            await self.head(SOUND + "voice/" + f + ".mp3")
                             data[NPC_SOUND].append(k)
                             exist = True
                         else:
@@ -3589,7 +3589,7 @@ class Updater():
                 uris.append((IMG + "sp/quest/scene/character/body/{}" + "{}{}.png".format(u, s), NPC_SCENE))
                 uris.append((IMG + "sp/raid/navi_face/{}" + "{}{}.png".format(u, s), NPC_SCENE))
         for s in sound_strings:
-            uris.append((self.SOUND + "voice/{}" + "{}.mp3".format(s), NPC_SOUND))
+            uris.append((SOUND + "voice/{}" + "{}.mp3".format(s), NPC_SOUND))
         for i in range(0, highest+5):
             fid : str = "399{}000".format(str(i).zfill(4))
             if npcs.get(fid, 0) == 0:
