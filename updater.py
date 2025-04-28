@@ -2289,7 +2289,7 @@ class Updater():
             await self.head(IMG + "sp/quest/scene/character/body/{}{}.png".format(file_id, f)) # check if scene file exists
             existing.add(f)
         except:
-            if (f == "" or f.split("_")[-1] not in self.SCENE_BUBBLE_FILTER):
+            if (f == "" or f.split("_")[-1] not in SCENE_BUBBLE_FILTER):
                 try:
                     await self.head(IMG + "sp/raid/navi_face/{}{}.png".format(file_id, f)) # or check navi_face is the file name matches the SCENE_BUBBLE_FILTER
                     existing.add(f)
