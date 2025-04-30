@@ -1487,7 +1487,7 @@ class Updater():
             data[CHARA_AB] += attacks
         if self.count_file(data) > file_count:
             self.modified = True
-            data[element_id] = data
+            self.data[element_id] = data
             self.tasks.add(self.update_scenes_of, parameters=(element_id, index))
             self.tasks.add(self.update_sound_of, parameters=(element_id, index))
             self.addition[element_id] = ADD_CHAR
