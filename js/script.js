@@ -2189,7 +2189,9 @@ function loadAssets(id, data, target, indexed, allow_open)
 				{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/spritesheet.png", index:7},
 				{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:8, icon:"assets/ui/result_icon/auto.png"},
 				{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"assets/ui/result_icon/ca.png"},
-				{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:10, icon:"assets/ui/result_icon/lock.png"},
+				{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:10, icon:"assets/ui/result_icon/skill.png"},
+				{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:11, icon:"assets/ui/result_icon/skill.png"},
+				{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:12, icon:"assets/ui/result_icon/lock.png"},
 				{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], index:-5, icon:"assets/ui/result_icon/custom.png", break:true, lazy:false}
 			];
 			skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];

@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.19'
+VERSION = '3.20'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -66,7 +66,9 @@ JOB_MH = 6
 JOB_SPRITE = 7
 JOB_PHIT = 8
 JOB_SP = 9
-JOB_UNLOCK = 10
+JOB_AB_ALL = 10
+JOB_AB = 11
+JOB_UNLOCK = 12
 # summon update
 SUM_GENERAL = 0
 SUM_CALL = 1
@@ -2032,7 +2034,28 @@ class Updater():
                 sheets = list(set(sheets))
                 sheets.sort()
                 self.data['job'][jid][JOB_SP] = sheets
-                self.tasks.print(len(self.data['job'][jid][JOB_PHIT]),"attack sprites and",len(self.data['job'][jid][JOB_SP]),"ougi sprites set to job", jid)
+                # ab_all
+                sheets = []
+                for u in range(1, 10):
+                    try:
+                        sheets += await self.processManifest("ab_all_{}_{}".format(s, str(u).zfill(2)))
+                    except:
+                        pass
+                sheets = list(set(sheets))
+                sheets.sort()
+                self.data['job'][jid][JOB_AB_ALL] = sheets
+                # ab
+                sheets = []
+                for u in range(1, 10):
+                    try:
+                        sheets += await self.processManifest("ab_{}_{}".format(s, str(u).zfill(2)))
+                    except:
+                        pass
+                sheets = list(set(sheets))
+                sheets.sort()
+                self.data['job'][jid][JOB_AB] = sheets
+
+                self.tasks.print(len(self.data['job'][jid][JOB_PHIT])+len(self.data['job'][jid][JOB_SP])+len(self.data['job'][jid][JOB_AB_ALL])+len(self.data['job'][jid][JOB_AB]),"weapon sprites set to job", jid)
                 self.data['job_wpn'][s] = jid
                 self.modified = True
 
