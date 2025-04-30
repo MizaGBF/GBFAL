@@ -1353,11 +1353,11 @@ class Updater():
     # Update character and skin data
     async def update_character(self : Updater, element_id : str) -> None:
         index : str = "skins" if element_id.startswith("371") else "characters"
-        data = self.data[index] # reference
+        chara_data = self.data[index] # reference
         # get existing file_count
         try:
             if self.ignore_file_count: raise Exception()
-            file_count = self.count_file(data[element_id])
+            file_count = self.count_file(chara_data[element_id])
         except:
             file_count = 0
         # init
@@ -1487,7 +1487,7 @@ class Updater():
             data[CHARA_AB] += attacks
         if self.count_file(data) > file_count:
             self.modified = True
-            self.data[element_id] = data
+            chara_data[element_id] = data
             self.tasks.add(self.update_scenes_of, parameters=(element_id, index))
             self.tasks.add(self.update_sound_of, parameters=(element_id, index))
             self.addition[element_id] = ADD_CHAR
@@ -2925,6 +2925,7 @@ class Updater():
             if not fid.isdigit() and len(v[0])+len(v[1])+len(v[2])+len(v[3]) == 0: # id not digit and data empty
                 self.tasks.add(self.check_fate, parameters=(fid, FATE_UNCAP_CONTENT, fid, "scene_ult_{}".format(fid), True, None, False)) # only check this one for now
         # chapters
+        chara_data = self.data['characters'] # reference
         for i in range(min_chapter, max_chapter+1):
             element_id = str(i).zfill(3)
             fid = str(i).zfill(4)
@@ -2933,10 +2934,12 @@ class Updater():
             # check uncaps (only if corresponding chara exists in memory and is set via manual_fate.json)
             if fid in fate_data and fate_data[fid][FATE_LINK] is not None:
                 cid = fate_data[fid][FATE_LINK]
-                if cid in self.data['characters']:
+                if cid in chara_data:
+                    if chara_data[cid]  == 0:
+                        continue
                     uncap = 0
                     # calculate uncap
-                    for entry in self.data['characters'][cid][CHARA_GENERAL]:
+                    for entry in chara_data[cid][CHARA_GENERAL]:
                         if entry.endswith("_03"):
                             uncap = max(uncap, 1)
                         elif entry.endswith("_04"):
