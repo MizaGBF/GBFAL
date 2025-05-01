@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.20'
+VERSION = '3.21'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -147,19 +147,31 @@ except Exception as e:
     raise Exception("Failed to load GBFAL Constants")
 
 # Handle tasks
+@dataclass(slots=True)
 class TaskManager():
+    debug : bool
+    is_running : bool
+    updater : Updater
+    queues : tuple[deque, ...]
+    running : deque[asyncio.Task]
+    total : int
+    finished : int
+    print_flag : bool
+    elapsed : float
+    return_state : bool
+    written_len : int
     def __init__(self : TaskManager, updater : Updater) -> None:
-        self.debug : bool = False
-        self.is_running : bool = False
-        self.updater : Updater = updater
-        self.queues : tuple[deque, ...] = (deque(), deque(), deque(), deque(), deque())
-        self.running : deque[asyncio.Task] = deque()
-        self.total : int = 0
-        self.finished : int = 0
-        self.print_flag : bool = False
-        self.elapsed : float = 0
-        self.return_state : bool = True
-        self.written_len : int = 0
+        self.debug = False
+        self.is_running = False
+        self.updater = updater
+        self.queues = (deque(), deque(), deque(), deque(), deque())
+        self.running = deque()
+        self.total = 0
+        self.finished = 0
+        self.print_flag = False
+        self.elapsed = 0
+        self.return_state = True
+        self.written_len = 0
 
     # reinitialize variables
     def reset(self : TaskManager) -> None:
@@ -409,18 +421,38 @@ class TaskStatus():
     def finished(self : TaskStatus) -> bool:
         return self.running <= 0
 
+@dataclass(slots=True)
 class Updater():
+    # other init
+    client : aiohttp.ClientSession|None
+    flags : set[str]
+    http_sem : asyncio.Semaphore
+    tasks : TaskManager
+    use_wiki : bool
+    update_changelog : bool
+    use_resume : bool
+    ignore_file_count : bool
+    data : dict[str, Any]
+    modified : bool
+    resume : dict[str, Any]
+    stat_string : str|None
+    addition : dict[str, Any]
+    updated_elements : set[str]
+    job_list : dict[str, str]|None
+    scene_strings : None|tuple[dict, dict]
+    sound_base_strings : list[str, list[str], int, int, int]
+    sound_other_strings : list[str, list[str], int, int, int]
     def __init__(self : Updater):
         # other init
-        self.client : aiohttp.ClientSession|None = None # the http client
-        self.flags : set[str] = set() # to contain and manage various flag values
-        self.http_sem : asyncio.Semaphore = asyncio.Semaphore(HTTP_CONN_LIMIT) # http semaphor to limit http connections
-        self.tasks : TaskManager = TaskManager(self) # the task manager
-        self.use_wiki : bool = False # flag to see if the wiki usable
-        self.update_changelog : bool = True # flag to enable or disable the generation of changelog.json
-        self.use_resume : bool = True # flag to use the resume file
-        self.ignore_file_count : bool = False # flag to control the count_file function behavior
-        self.data : dict[str, Any] = { # data structure
+        self.client = None # the http client
+        self.flags = set() # to contain and manage various flag values
+        self.http_sem = asyncio.Semaphore(HTTP_CONN_LIMIT) # http semaphor to limit http connections
+        self.tasks = TaskManager(self) # the task manager
+        self.use_wiki = False # flag to see if the wiki usable
+        self.update_changelog  = True # flag to enable or disable the generation of changelog.json
+        self.use_resume = True # flag to use the resume file
+        self.ignore_file_count = False # flag to control the count_file function behavior
+        self.data = { # data structure
             "version":SAVE_VERSION,
             "uncap_queue":[],
             "valentines":[],
@@ -449,16 +481,16 @@ class Updater():
             "npc_replace":{}
         }
         self.load() # load self.data NOW
-        self.modified : bool = False # if set to true, data.json will be written on the next call of save()
-        self.resume : dict[str, Any] = {} # list of items completed (for the resume file)
-        self.stat_string : str|None = None # set and updated by make_stats
-        self.addition : dict[str, Any] = {} # new elements for changelog.json
+        self.modified = False # if set to true, data.json will be written on the next call of save()
+        self.resume = {} # list of items completed (for the resume file)
+        self.stat_string = None # set and updated by make_stats
+        self.addition = {} # new elements for changelog.json
         self.updated_elements = set() # set of elements ran through update_element()
-        self.job_list : dict[str, str]|None = None # job dictionary of id string pair
-        self.scene_strings : None|tuple[dict, dict] = None # scene string containers
+        self.job_list = None # job dictionary of id string pair
+        self.scene_strings = None # scene string containers
         # sound strings containers
-        self.sound_base_strings : list[str, list[str], int, int, int] = []
-        self.sound_other_strings : list[str, list[str], int, int, int] = []
+        self.sound_base_strings = []
+        self.sound_other_strings = []
 
     ### Utility #################################################################################################################
 
