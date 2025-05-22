@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.21'
+VERSION = '3.22'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -1390,15 +1390,16 @@ class Updater():
         chara_data = self.data[index] # reference
         # get existing file_count
         try:
+            
             if self.ignore_file_count: raise Exception()
             file_count = self.count_file(chara_data[element_id])
         except:
             file_count = 0
         # init
         data : list[list[str]] = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
-        if element_id in data and data[element_id] != 0:
-            data[CHARA_SCENE] = data[element_id][CHARA_SCENE]
-            data[CHARA_SOUND] = data[element_id][CHARA_SOUND]
+        if element_id in chara_data and chara_data[element_id] != 0:
+            data[CHARA_SCENE] = chara_data[element_id][CHARA_SCENE]
+            data[CHARA_SOUND] = chara_data[element_id][CHARA_SOUND]
         for style in ("", "_st2"):
             uncaps = []
             sheets = []
@@ -1414,8 +1415,10 @@ class Updater():
                             try:
                                 fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
                                 sheets += await self.processManifest(fn)
-                                if form == "": uncaps.append(uncap)
-                                else: altForm = True
+                                if form == "":
+                                    uncaps.append(uncap)
+                                else:
+                                    altForm = True
                             except:
                                 if form == "":
                                     break
@@ -1464,7 +1467,7 @@ class Updater():
                     mid = tid[:-1] + str(i)
                     for t in targets:
                         for u in ("", "_2", "_3", "_4"):
-                            for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
+                            for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                                 try:
                                     fn = "phit_{}{}{}{}{}".format(mid, t, style, u, form)
                                     attacks += await self.processManifest(fn)
@@ -1473,7 +1476,7 @@ class Updater():
             else:
                 for t in targets:
                     for u in ("", "_2", "_3", "_4"):
-                        for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
+                        for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                             try:
                                 fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
                                 attacks += await self.processManifest(fn)
@@ -1489,11 +1492,11 @@ class Updater():
                     continue
                 uf = flags[uncap]
                 found = False
-                for g in (("", "_0", "_1") if (uf[0] is True) else ("")):
-                    for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
+                for g in (("", "_0", "_1") if (uf[0] is True) else ("",)):
+                    for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                         for catype in ("", "_s2", "_s3"):
-                            for sub in (("") if tid == MALINDA else ("", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j")):
-                                for ex in (("", "_1", "_2", "_3", "_4", "_5", "_6") if tid == MALINDA else ("")):
+                            for sub in (("",) if tid == MALINDA else ("", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j")):
+                                for ex in (("", "_1", "_2", "_3", "_4", "_5", "_6") if tid == MALINDA else ("",)):
                                     try:
                                         fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
                                         attacks += await self.processManifest(fn)
@@ -1586,10 +1589,10 @@ class Updater():
                     # main
                     base_fn = "{}_{}{}".format(tid, uncap, style)
                     uf = flags[uncap]
-                    for g in (("_0", "_1") if (uf[0] is True) else ("")):
-                        for m in (("_101", "_102", "_103", "_104", "_105") if (uf[1] is True) else ("")):
-                            for n in (("_01", "_02", "_03", "_04", "_05", "_06") if (uf[2] is True) else ("")):
-                                for af in (("", "_f", "_f1", "_f2") if altForm else ("")):
+                    for g in (("_0", "_1") if (uf[0] is True) else ("",)):
+                        for m in (("_101", "_102", "_103", "_104", "_105") if (uf[1] is True) else ("",)):
+                            for n in (("_01", "_02", "_03", "_04", "_05", "_06") if (uf[2] is True) else ("",)):
+                                for af in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                                     targets.append(base_fn + af + g + m + n)
                 tmp[CHARA_GENERAL] = targets
                 # # # Main sheets
@@ -1615,7 +1618,7 @@ class Updater():
                 attacks = []
                 for t in targets:
                     for u in ("", "_2", "_3", "_4"):
-                        for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
+                        for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                             try:
                                 fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
                                 if fn not in lookup: attacks += await self.processManifest(fn, True)
@@ -1628,8 +1631,8 @@ class Updater():
                     try: uf = flags[uncap.split('_')[-1]]
                     except: uf = [False]
                     found = False
-                    for g in (("", "_0", "_1") if (uf[0] is True) else ("")):
-                        for form in (("", "_f", "_f1", "_f2") if altForm else ("")):
+                    for g in (("", "_0", "_1") if (uf[0] is True) else ("",)):
+                        for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                             for catype in ("", "_s2", "_s3"):
                                 for sub in ("", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"):
                                     try:
