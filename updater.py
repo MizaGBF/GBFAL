@@ -676,7 +676,11 @@ class Updater():
     async def head_nx(self : Updater, url : str):
         # copy paste to avoid a needless functions call and exception
         async with self.http_sem:
-            response : aiohttp.HTTPResponse = await self.client.head(url, headers={'connection':'keep-alive'})
+            try:
+                response : aiohttp.HTTPResponse = await self.client.head(url, headers={'connection':'keep-alive'})
+            except Exception as e:
+                self.tasks.print("The following exception occured in head_nx():\nURL: " + url + "\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                return None
             async with response:
                 if response.status != 200:
                     return None
