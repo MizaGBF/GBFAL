@@ -140,7 +140,7 @@ const BACKGROUNDS = [
 	["Others", ""]
 ];
 // search
-const SEARCH_LIMIT = 50;
+const SEARCH_LIMIT = 100;
 
 // add id here to disable some elements
 const BANNED = [
