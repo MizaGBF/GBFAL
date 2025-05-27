@@ -1209,7 +1209,7 @@ class Updater():
         except:
             pass
         # appear
-        for k in ("", "_2", "_3", "_shade"):
+        for k in ("", "_2", "_3", "_4", "_5", "_shade"):
             try:
                 fn = "raid_appear_{}{}".format(element_id, k)
                 data[BOSS_APPEAR] += await self.processManifest(fn)
