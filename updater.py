@@ -3549,6 +3549,8 @@ class Updater():
                     if len(bid) >= 5:
                         ext = bid[4:] + ext
                         bid = bid[:4]
+                    if isinstance(buffs.get(bid, None), int): # uninitialized buff, skip
+                        continue
                     if bid not in buffs:
                         # check if icon exists
                         if not await self.head_nx("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/ui/icon/status/x64/status_" + icon + ".png"):
@@ -3572,8 +3574,8 @@ class Updater():
             if count > 0:
                 self.tasks.print("Updated", count, "buff(s)")
         except Exception as e:
-            print("An error occured while comparing with gbf.wiki buff list")
-            print("Exception:", e)
+            self.tasks.print("An error occured while comparing with gbf.wiki buff list")
+            self.tasks.print(self.print("".join(traceback.format_exception(type(e), e, e.__traceback__))))
 
     # Called by maintenancenpcthumbnail, maintenance or process_flags
     async def maintenance_npc_thumbnail(self : Updater) -> None:
