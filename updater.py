@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.22'
+VERSION = '3.23'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -1843,7 +1843,7 @@ class Updater():
                     except:
                         continue
             # set data
-            data = [[element_id], [element_id+"_01"], [], [], [], [], cmh, [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
+            data = [[element_id], [element_id+"_01"], [], [], [], [], cmh, [], [], [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
             
             data[JOB_ALT] = [element_id+"_01"] + [element_id[:-2]+str(j).zfill(2)+"_01" for j in alts]
             data[JOB_DETAIL] = [element_id+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
@@ -3779,7 +3779,7 @@ class Updater():
             self.stat_string = "{:,} indexed elements, for ~{:.1f}K files".format(entity_count, file_estimation / 1000).replace(".0K", "K")
         except Exception as e:
             self.tasks.print("An unexpected error occured, can't update stats")
-            self.tasks.print(e)
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
     # load resume file
     def load_resume(self : Updater, name : str) -> None:

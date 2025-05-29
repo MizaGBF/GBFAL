@@ -104,11 +104,11 @@
         },
         "3990219000": {
             "comment": "Gran MC",
-            "base": ["_dancer", "_mechanic", "_glory", "_kengo", "_monk", "_lumberjack", "_robinhood", "_horse", "_paladin", "_panakeia", "_manadiver", "_king", "_sumou", "_bogey", "_eternals", "_eternals2"]
+            "base": ["_dancer", "_mechanic", "_glory", "_kengo", "_monk", "_lumberjack", "_robinhood", "_horse", "_paladin", "_panakeia", "_manadiver", "_king", "_sumou", "_bogey", "_mariachi", "_eternals", "_eternals2"]
         },
         "3990220000": {
             "comment": "Djeeta MC",
-            "base": ["_dancer", "_mechanic", "_glory", "_kengo", "_monk", "_lumberjack", "_robinhood", "_horse", "_paladin", "_panakeia", "_manadiver", "_king", "_sumou", "_bogey", "_eternals", "_eternals2"]
+            "base": ["_dancer", "_mechanic", "_glory", "_kengo", "_monk", "_lumberjack", "_robinhood", "_horse", "_paladin", "_panakeia", "_manadiver", "_king", "_sumou", "_bogey", "_mariachi", "_eternals", "_eternals2"]
         },
         "3990002000": {
             "comment": "Black Knight",
