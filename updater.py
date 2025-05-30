@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.23'
+VERSION = '3.24'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -441,7 +441,6 @@ class Updater():
     job_list : dict[str, str]|None
     scene_strings : None|tuple[dict, dict]
     sound_base_strings : list[str, list[str], int, int, int]
-    sound_other_strings : list[str, list[str], int, int, int]
     def __init__(self : Updater):
         # other init
         self.client = None # the http client
@@ -490,7 +489,6 @@ class Updater():
         self.scene_strings = None # scene string containers
         # sound strings containers
         self.sound_base_strings = []
-        self.sound_other_strings = []
 
     ### Utility #################################################################################################################
 
@@ -3039,11 +3037,8 @@ class Updater():
         self.clear_resume()
 
     # cache sound strings if needed and return them
-    def get_sound_strings(self : Updater) -> tuple[list[tuple[str, list[str], int, int, int]], list[tuple[str, list[str], int, int, int]]]:
-        if len(self.sound_base_strings) == 0 or len(self.sound_other_strings) == 0:
-            self.sound_base_strings = []
-            self.sound_other_strings = []
-        
+    def get_sound_strings(self : Updater) -> list[tuple[str, list[str], int, int, int]]:
+        if len(self.sound_base_strings) == 0:
             suffixes : list[str]
             A : int
             max_err : int
@@ -3061,11 +3056,11 @@ class Updater():
                         suffixes = ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"]
                         A = 0 if mid == "_cutin" else 1
                         max_err = 2
-                self.sound_other_strings.append((mid + "{}", suffixes, A, Z, max_err))
+                self.sound_base_strings.append((mid + "{}", suffixes, A, Z, max_err))
             for i in range(0, 10): # break down _navi for speed, up to 100
-                self.sound_other_strings.append(("_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 0, 1, 6))
+                self.sound_base_strings.append(("_boss_v_" + ("" if i == 0 else str(i)) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "_mix"], 0, 1, 6))
             for i in range(0, 65): # break down _v_ for speed, up to 650
-                self.sound_other_strings.append(("_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 0, 1, 6))
+                self.sound_base_strings.append(("_v_" + str(i).zfill(2) + "{}", ["", "a", "_a", "_1", "b", "_b", "_2", "c", "_c", "_3"], 0, 1, 6))
             # chain burst
             self.sound_base_strings.append(("_chain_start", [], None, None, None))
             for A in range(2, 5):
@@ -3076,7 +3071,7 @@ class Updater():
             for suffix in ("white","newyear","valentine","christmas","halloween","birthday"):
                 for s in range(1, 6):
                     self.sound_base_strings.append(("_s{}_{}".format(s, suffix) + "{}", [], 1, 1, 5))
-        return self.sound_base_strings, self.sound_other_strings
+        return self.sound_base_strings
 
     # Execution flow
     #
@@ -3112,9 +3107,9 @@ class Updater():
         except:
             return
         # retrieve suffix strings to be used
-        bs, os = self.get_sound_strings()
+        bs = self.get_sound_strings()
         # TaskStatus for all tasks
-        ts = TaskStatus(1, 1, running=len(bs)+len(os)*len(uncaps)+1)
+        ts = TaskStatus(1, 1, running=(len(bs) * len(uncaps) + 1))
         # banter files
         if self.file_is_matching("_pair_", filters): # don't start this task if it doesn't match filter
             self.tasks.add(self.update_sound_banter, parameters=(index, element_id, idx, existing, ts, filters), priority=0)
@@ -3126,13 +3121,7 @@ class Updater():
                 u = ""
             else:
                 u = "_" + u
-            if u == "":
-                for sound_string in bs: # for each string for base uncap
-                    if self.file_is_matching(sound_string[0], filters): # don't start this task if it doesn't match filter
-                        self.tasks.add(self.update_sound, parameters=(index, element_id, idx, existing, ts, u, sound_string), priority=0)
-                    else:
-                        ts.finish()
-            for sound_string in os: # for each string for uncap
+            for sound_string in bs: # for each string
                 if self.file_is_matching(sound_string[0], filters): # don't start this task if it doesn't match filter
                     self.tasks.add(self.update_sound, parameters=(index, element_id, idx, existing, ts, u, sound_string), priority=0)
                 else:
@@ -3145,18 +3134,23 @@ class Updater():
     async def update_sound(self : Updater, index : str, element_id : str, idx : int, existing : set[str], ts : TaskStatus, uncap : str, sound_string : tuple[str, list[str], int, int, int]) -> None:
         # unpack sound_string
         suffix, post, current, zfill, max_err = sound_string
-        if len(post) == 0: # post suffix not set
+        # don't test uncaps for those suffixes
+        if uncap != "" and suffix in ("_", "d_boss_v_", "_boss_v_"):
+            ts.finish()
+            return
+        # post suffix not set
+        if len(post) == 0:
             post = [""]
         # there are two possible mode, used depending on the file
         if current is None: # simple mode
             for p in post:
-                f = suffix + p
+                f = uncap + suffix + p
                 if f in existing:
-                    existing.add(uncap+f)
+                    existing.add(f)
                 else:
                     try:
-                        await self.head(VOICE + "{}{}{}.mp3".format(element_id, uncap, f))
-                        existing.add(uncap+f)
+                        await self.head(VOICE + "{}{}.mp3".format(element_id, f))
+                        existing.add(f)
                     except:
                         pass
         else: # complex mode
@@ -3165,19 +3159,19 @@ class Updater():
             while not is_z_limited or (is_z_limited and len(str(current)) <= zfill):
                 found = False
                 for p in post: # check if already processed in the past
-                    f = suffix.format(str(current).zfill(zfill)) + p
+                    f = uncap + suffix.format(str(current).zfill(zfill)) + p
                     if f in existing:
                         found = True
                         err = 0
                         break
                 if not found: # if not
                     for p in post:
-                        f = suffix.format(str(current).zfill(zfill)) + p
+                        f = uncap + suffix.format(str(current).zfill(zfill)) + p
                         if f not in existing:
                             try:
-                                await self.head(VOICE + "{}{}{}.mp3".format(element_id, uncap, f))
+                                await self.head(VOICE + "{}{}.mp3".format(element_id, f))
                                 found = True
-                                existing.add(uncap+f)
+                                existing.add(f)
                             except:
                                 pass
                         else:
