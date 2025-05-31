@@ -2083,6 +2083,7 @@ function loadAssets(id, data, target, indexed, allow_open)
 				{name:"Battle Portraits", paths:[["sp/assets/summon/raid_normal/", "jpg"], ["sp/assets/summon/btn/", "png"]], index:0, icon:"assets/ui/result_icon/battle.png"},
 				{name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"assets/ui/result_icon/summon_call.png"},
 				{name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/summon_call.png"},
+				{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/home.png"},
 				{name:"Quest Portraits", paths:[["sp/assets/summon/qm/", "png"]], index:-7, icon:"assets/ui/result_icon/quest.png", break:true, lazy:false}
 			];
 			skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
@@ -2108,6 +2109,7 @@ function loadAssets(id, data, target, indexed, allow_open)
 				{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/ca.png"},
 				{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/skill.png"},
 				{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"assets/ui/result_icon/skill.png"},
+				{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"assets/ui/result_icon/home.png"},
 				{name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], index:-8, icon:"assets/ui/result_icon/fate_reward.png", break:true, form:false, lazy:false},
 				{name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], index:-9, icon:"assets/ui/result_icon/recruit.png", form:false, lazy:false},
 				{name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"assets/ui/result_icon/news.png", form:false, lazy:false},

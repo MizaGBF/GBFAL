@@ -21,7 +21,7 @@ where:
 - `version`: Integer, the file version. Currently **1** but unused.
 - `valentines`: Object of ID, integer pairs, for elements with (possibly) white day or valentine scene files. The integer is unused. Elements are always from the `characters`, `skins` or `npcs` indexes.  
 - `characters`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
-    - General format: A list of nine lists, each containing file names. (`[[], [], [], [], [], [], [], [], []]`).
+    - General format: A list of ten lists, each containing file names. (`[[], [], [], [], [], [], [], [], [], []]`).
     - Index 0: Spritesheets. Path: `sp/cjs/FILE.png`.  
     - Index 1: Attack sheets (effects playing during auto attacks). Path: `sp/cjs/FILE.png`.  
     - Index 2: Charage Attack sheets. Path: `sp/cjs/FILE.png`.  
@@ -31,12 +31,14 @@ where:
     - Index 6: SD files (as seen on the outfit selection screen). Path: `sp/assets/npc/sd/FILE.png`. This is the array to use if you want to generate a list of uncaps without being parazited by bonus poses and such.  
     - Index 7: Scene file suffixes. Possible paths: `sp/quest/scene/character/body/ID_SUFFIX.png` (used in cutscenes) or  `sp/raid/navi_face/ID_SUFFIX.png` (portrait used in battles, when characters talk). A file being in this list means either or both of those paths are valid.  
     - Index 8: Voice file suffixes. Path: `voice/ID_SUFFIX.mp3`.  
+    - Index 9: MyPage animation sheets. Path: `sp/cjs/FILE.png`.  
 - `partners`: Nearly the same as `characters`, up to Index 5 **included**. What I call partners are characters lended to you during script battles.  
 - `summons`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
-    - General format: A list of three lists, each containing file names. (`[[], [], []]`).
+    - General format: A list of four lists, each containing file names. (`[[], [], [], []]`).
     - Index 0: General files. This will be used for most files used in the inventory for example and one will exist for all uncaps and more.  
     - Index 1: Summon call sheets. Path: `sp/cjs/FILE.png`.  
     - Index 2: Damage sheets (effects played after the call). Path: `sp/cjs/FILE.png`.  
+    - Index 3: MyPage animation sheets. Path: `sp/cjs/FILE.png`.  
 - `weapons`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of three lists, each containing file names. (`[[], [], []]`).
     - Index 0: General files. This will be used for most files used in the inventory for example and one will exist for all uncaps and more.  

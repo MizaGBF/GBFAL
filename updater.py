@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.24'
+VERSION = '3.25'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -50,6 +50,7 @@ CHARA_GENERAL = 5
 CHARA_SD = 6
 CHARA_SCENE = 7
 CHARA_SOUND = 8
+CHARA_MYPAGE = 9
 CHARA_SPECIAL_REUSE = {"3710171000":"3710167000","3710170000":"3710167000","3710169000":"3710167000","3710168000":"3710167000"} # bobobo skins reuse bobobo data
 # npc update
 NPC_JOURNAL = 0
@@ -73,6 +74,7 @@ JOB_UNLOCK = 12
 SUM_GENERAL = 0
 SUM_CALL = 1
 SUM_DAMAGE = 2
+SUM_MYPAGE = 3
 # weapon update
 WEAP_GENERAL = 0
 WEAP_PHIT = 1
@@ -1301,7 +1303,7 @@ class Updater():
         except:
             file_count = 0
         # Set container
-        data : list[list[str]] = [[], [], []] # general, call, damage
+        data : list[list[str]] = [[], [], [], []] # general, call, damage, mypage
         uncaps : list[str] = []
         fn : str
         # main sheet
@@ -1343,6 +1345,15 @@ class Updater():
                     data[SUM_DAMAGE] += await self.processManifest(fn)
                 except:
                     pass
+        # mypage
+        for u in uncaps:
+            try:
+                if u == "_01":
+                    continue
+                fn = "mypage_{}".format(element_id, u)
+                data[SUM_MYPAGE] += await self.processManifest(fn)
+            except:
+                pass
         if self.count_file(data) > file_count:
             self.modified = True
             summons[element_id] = data
@@ -1398,7 +1409,7 @@ class Updater():
         except:
             file_count = 0
         # init
-        data : list[list[str]] = [[], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound
+        data : list[list[str]] = [[], [], [], [], [], [], [], [], [], []] # sprite, phit, sp, aoe, single, general, sd, scene, sound, mypage
         if element_id in chara_data and chara_data[element_id] != 0:
             data[CHARA_SCENE] = chara_data[element_id][CHARA_SCENE]
             data[CHARA_SOUND] = chara_data[element_id][CHARA_SOUND]
@@ -1459,11 +1470,20 @@ class Updater():
                     return False
                 continue
             # # # Other sheets
+            # mypage
+            sheets = []
+            for uncap in flags:
+                try:
+                    fn = "mypage_{}_{}{}".format(tid, uncap, style)
+                    data[CHARA_MYPAGE] += await self.processManifest(fn)
+                except:
+                    pass
+            data[CHARA_MYPAGE] += sheets
             # attack
             targets = [""]
             for i in range(1, len(uncaps)):
                 targets.append("_" + uncaps[i])
-            attacks = []
+            sheets = []
             if tid == MALINDA:
                 for i in range(0, 7):
                     mid = tid[:-1] + str(i)
@@ -1472,7 +1492,7 @@ class Updater():
                             for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                                 try:
                                     fn = "phit_{}{}{}{}{}".format(mid, t, style, u, form)
-                                    attacks += await self.processManifest(fn)
+                                    sheets += await self.processManifest(fn)
                                 except:
                                     pass
             else:
@@ -1481,12 +1501,12 @@ class Updater():
                         for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                             try:
                                 fn = "phit_{}{}{}{}{}".format(tid, t, style, u, form)
-                                attacks += await self.processManifest(fn)
+                                sheets += await self.processManifest(fn)
                             except:
                                 pass
-            data[CHARA_PHIT] += attacks
+            data[CHARA_PHIT] += sheets
             # ougi
-            attacks = []
+            sheets = []
             for uncap in uncaps:
                 if uncap not in flags:
                     self.tasks.print("")
@@ -1501,29 +1521,29 @@ class Updater():
                                 for ex in (("", "_1", "_2", "_3", "_4", "_5", "_6") if tid == MALINDA else ("",)):
                                     try:
                                         fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
-                                        attacks += await self.processManifest(fn)
+                                        sheets += await self.processManifest(fn)
                                         found = True
                                     except:
                                         pass
                             if found: break
-            data[CHARA_SP] += attacks
+            data[CHARA_SP] += sheets
             # skills
-            attacks = []
+            sheets = []
             for el in range(1, 15):
                 try:
                     fn = "ab_all_{}{}_{}".format(tid, style, str(el).zfill(2))
-                    attacks += await self.processManifest(fn)
+                    sheets += await self.processManifest(fn)
                 except:
                     pass
-            data[CHARA_AB_ALL] += attacks
-            attacks = []
+            data[CHARA_AB_ALL] += sheets
+            sheets = []
             for el in range(1, 15):
                 try:
                     fn = "ab_{}{}_{}".format(tid, style, str(el).zfill(2))
-                    attacks += await self.processManifest(fn)
+                    sheets += await self.processManifest(fn)
                 except:
                     pass
-            data[CHARA_AB] += attacks
+            data[CHARA_AB] += sheets
         if self.count_file(data) > file_count:
             self.modified = True
             chara_data[element_id] = data
@@ -3715,6 +3735,7 @@ class Updater():
                                 
                                 scene_count += len(v[CHARA_SCENE])
                                 sound_count += len(v[CHARA_SOUND])
+                                sound_count += len(v[CHARA_MYPAGE])
                         case "summons":
                             if v is None or v == 0: continue
                             file_estimation += len(v[SUM_GENERAL]) * 12
