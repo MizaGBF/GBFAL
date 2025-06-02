@@ -251,7 +251,7 @@ function lookup(id, allow_open=true) // check element validity and either load i
 		// cleanup search results if not relevant to current id
 		clean_search_if_not(id)
 		// remove fav button before loading
-		set_bookmark_button(false);
+		init_bookmark_button(false);
 		// execute
 		if(target != null)
 		{
@@ -566,7 +566,7 @@ function load_assets(id, data, target, indexed, allow_open)
 	if(indexed)
 	{
 		update_history(id, type);
-		set_bookmark_button(true, id, type);
+		init_bookmark_button(true, id, type);
 	}
 	// cleanup output and create fragment
 	let fragment = document.createDocumentFragment();
