@@ -2660,6 +2660,8 @@ class Updater():
             if not ev.isdigit(): # our special ids (such as babyl0)
                 if ev not in evt_data: # not set, update this event
                     self.tasks.print("Checking special event:", ev)
+                    evt_data[ev] = self.create_event_container()
+                    evt_data[ev][EVENT_CHAPTER_COUNT] = 0
                     self.tasks.add(self.update_event, parameters=(ev,), priority=3)
             elif ev in evt_data: # this event already exists
                 if now >= int(ev) and now_day - self.ev2daycount(ev) <= 14: # if happened in the last 14 days, we try to update again (mostly for daily skits)
