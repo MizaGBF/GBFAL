@@ -1,0 +1,1743 @@
+{
+    "help_form": "https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform",
+    "dummy_scene": ["", "_a", "_b", "_up", "_down", "_laugh", "_wink", "_shout", "_sad", "_angry", "_cry", "_painful", "_shadow", "_light", "_close", "_serious", "_surprise", "_think", "_serious", "_mood", "_ecstasy", "_suddenly", "_speed", "_shy", "_weak", "_sleepy", "_open", "_bad", "_amaze", "_joy", "_pride", "_intrigue", "_motivation", "_melancholy", "_concentration", "_weapon", "_foot", "_head"],
+    "no_speech_bubble_filter": ["b1", "b2", "b3", "speed", "line", "up", "up2", "up3", "up4", "down", "shadow", "shadow2", "shadow3", "damage", "light", "vanish", "vanish1", "vanish2", "fadein1", "blood"],
+    "index" : [
+        {
+            "name":"Characters",
+            "icon":"../GBFML/assets/ui/icon/characters.png",
+            "childs":[
+                {
+                    "name":"Year 2025 (Snake)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2025_(snake).png",
+                    "target":"characters",
+                    "arg1":[0, -1, 0, -1, 571, 999],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2024 (Dragon)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2024_(dragon).png",
+                    "target":"characters",
+                    "arg1":[75, 76, 0, -1, 504, 571],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2023 (Rabbit)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2023_(rabbit).png",
+                    "target":"characters",
+                    "arg1":[0, -1, 0, -1, 443, 504],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2022 (Tiger)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2022_(tiger).png",
+                    "target":"characters",
+                    "arg1":[0, -1, 0, -1, 379, 443],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2021 (Ox)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2021_(ox).png",
+                    "target":"characters",
+                    "arg1":[74, 75, 0, -1, 316, 379],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2020 (Rat)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2020_(rat).png",
+                    "target":"characters",
+                    "arg1":[73, 74, 281, 323, 256, 316],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2019 (Pig)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2019_(pig).png",
+                    "target":"characters",
+                    "arg1":[72, 73, 263, 281, 199, 256],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2018 (Dog)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2018_(dog).png",
+                    "target":"characters",
+                    "arg1":[71, 72, 233, 263, 149, 199],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2017 (Chicken)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2017_(chicken).png",
+                    "target":"characters",
+                    "arg1":[0, -1, 173, 233, 108, 149],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2016 (Monkey)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2016_(monkey).png",
+                    "target":"characters",
+                    "arg1":[47, 71, 113, 173, 72, 108],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2015 (Sheep)",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2015_(sheep).png",
+                    "target":"characters",
+                    "arg1":[30, 47, 51, 113, 30, 72],
+                    "reverse":1
+                },
+                {
+                    "name":"Year 2014",
+                    "icon":"../GBFML/assets/ui/index_icon/year_2015_(sheep).png",
+                    "target":"characters",
+                    "arg1":[0, 30, 0, 51, 0, 30],
+                    "reverse":1
+                }
+            ]
+        },
+        {
+            "name":"Skins",
+            "icon":"../GBFML/assets/ui/icon/skins.png",
+            "childs":[
+                {
+                    "name":"ID 200 to 299",
+                    "target":"skins",
+                    "arg1":[200, 300],
+                    "reverse":1
+                },
+                {
+                    "name":"ID 100 to 199",
+                    "target":"skins",
+                    "arg1":[100, 200],
+                    "reverse":1
+                },
+                {
+                    "name":"ID 000 to 099",
+                    "target":"skins",
+                    "arg1":[0, 100],
+                    "reverse":1
+                }
+            ]
+        },
+        {
+            "name":"Partners",
+            "icon":"../GBFML/assets/ui/icon/partners.png",
+            "childs":[
+                {
+                    "name":"Main",
+                    "icon":"../GBFML/assets/ui/icon/main.png",
+                    "target":"partners",
+                    "arg1":"89",
+                    "reverse":1
+                },
+                {
+                    "name":"Special",
+                    "icon":"../GBFML/assets/ui/icon/other.png",
+                    "target":"partners",
+                    "arg1":"88",
+                    "reverse":1
+                },
+                {
+                    "name":"SSR",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "target":"partners",
+                    "arg1":"84",
+                    "reverse":1
+                },
+                {
+                    "name":"SR",
+                    "icon":"../GBFML/assets/ui/icon/sr.png",
+                    "target":"partners",
+                    "arg1":"83",
+                    "reverse":1
+                },
+                {
+                    "name":"R",
+                    "icon":"../GBFML/assets/ui/icon/r.png",
+                    "target":"partners",
+                    "arg1":"82",
+                    "reverse":1
+                }
+            ]
+        },
+        {
+            "name":"Summons",
+            "icon":"../GBFML/assets/ui/icon/summons.png",
+            "childs":[
+                {
+                    "name":"SSR ID 400 to 599",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "target":"summons",
+                    "arg1":"4",
+                    "arg2":[400, 600],
+                    "reverse":1
+                },
+                {
+                    "name":"SSR ID 200 to 399",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "target":"summons",
+                    "arg1":"4",
+                    "arg2":[200, 400],
+                    "reverse":1
+                },
+                {
+                    "name":"SSR ID 000 to 199",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "target":"summons",
+                    "arg1":"4",
+                    "arg2":[0, 200],
+                    "reverse":1
+                },
+                {
+                    "name":"SR",
+                    "icon":"../GBFML/assets/ui/icon/sr.png",
+                    "target":"summons",
+                    "arg1":"3",
+                    "arg2":[0, 1000],
+                    "reverse":1
+                },
+                {
+                    "name":"R",
+                    "icon":"../GBFML/assets/ui/icon/r.png",
+                    "target":"summons",
+                    "arg1":"2",
+                    "arg2":[0, 1000],
+                    "reverse":1
+                },
+                {
+                    "name":"N",
+                    "icon":"../GBFML/assets/ui/icon/n.png",
+                    "target":"summons",
+                    "arg1":"1",
+                    "arg2":[0, 1000],
+                    "reverse":1
+                }
+            ]
+        },
+        {
+            "name":"Weapons",
+            "icon":"../GBFML/assets/ui/icon/weapons.png",
+            "childs":[
+                {
+                    "name":"SSR",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "childs":[
+                        {
+                            "name":"Sword",
+                            "icon":"../GBFML/assets/ui/icon/sword.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"0",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Dagger",
+                            "icon":"../GBFML/assets/ui/icon/dagger.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"1",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Spear",
+                            "icon":"../GBFML/assets/ui/icon/spear.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"2",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Axe",
+                            "icon":"../GBFML/assets/ui/icon/axe.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"3",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Staff",
+                            "icon":"../GBFML/assets/ui/icon/staff.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"4",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Gun",
+                            "icon":"../GBFML/assets/ui/icon/gun.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"5",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Melee",
+                            "icon":"../GBFML/assets/ui/icon/melee.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"6",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Bow",
+                            "icon":"../GBFML/assets/ui/icon/bow.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"7",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Harp",
+                            "icon":"../GBFML/assets/ui/icon/harp.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"8",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Katana",
+                            "icon":"../GBFML/assets/ui/icon/katana.png",
+                            "target":"weapons",
+                            "arg1":"4",
+                            "arg2":"9",
+                            "reverse":1
+                        }
+                    ]
+                },
+                {
+                    "name":"SR",
+                    "icon":"../GBFML/assets/ui/icon/sr.png",
+                    "childs":[
+                        {
+                            "name":"Sword",
+                            "icon":"../GBFML/assets/ui/icon/sword.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"0",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Dagger",
+                            "icon":"../GBFML/assets/ui/icon/dagger.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"1",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Spear",
+                            "icon":"../GBFML/assets/ui/icon/spear.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"2",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Axe",
+                            "icon":"../GBFML/assets/ui/icon/axe.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"3",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Staff",
+                            "icon":"../GBFML/assets/ui/icon/staff.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"4",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Gun",
+                            "icon":"../GBFML/assets/ui/icon/gun.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"5",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Melee",
+                            "icon":"../GBFML/assets/ui/icon/melee.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"6",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Bow",
+                            "icon":"../GBFML/assets/ui/icon/bow.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"7",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Harp",
+                            "icon":"../GBFML/assets/ui/icon/harp.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"8",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Katana",
+                            "icon":"../GBFML/assets/ui/icon/katana.png",
+                            "target":"weapons",
+                            "arg1":"3",
+                            "arg2":"9",
+                            "reverse":1
+                        }
+                    ]
+                },
+                {
+                    "name":"R",
+                    "icon":"../GBFML/assets/ui/icon/r.png",
+                    "childs":[
+                        {
+                            "name":"Sword",
+                            "icon":"../GBFML/assets/ui/icon/sword.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"0",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Dagger",
+                            "icon":"../GBFML/assets/ui/icon/dagger.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"1",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Spear",
+                            "icon":"../GBFML/assets/ui/icon/spear.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"2",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Axe",
+                            "icon":"../GBFML/assets/ui/icon/axe.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"3",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Staff",
+                            "icon":"../GBFML/assets/ui/icon/staff.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"4",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Gun",
+                            "icon":"../GBFML/assets/ui/icon/gun.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"5",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Melee",
+                            "icon":"../GBFML/assets/ui/icon/melee.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"6",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Bow",
+                            "icon":"../GBFML/assets/ui/icon/bow.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"7",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Harp",
+                            "icon":"../GBFML/assets/ui/icon/harp.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"8",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Katana",
+                            "icon":"../GBFML/assets/ui/icon/katana.png",
+                            "target":"weapons",
+                            "arg1":"2",
+                            "arg2":"9",
+                            "reverse":1
+                        }
+                    ]
+                },
+                {
+                    "name":"N",
+                    "icon":"../GBFML/assets/ui/icon/n.png",
+                    "childs":[
+                        {
+                            "name":"Sword",
+                            "icon":"../GBFML/assets/ui/icon/sword.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"0",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Dagger",
+                            "icon":"../GBFML/assets/ui/icon/dagger.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"1",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Spear",
+                            "icon":"../GBFML/assets/ui/icon/spear.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"2",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Axe",
+                            "icon":"../GBFML/assets/ui/icon/axe.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"3",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Staff",
+                            "icon":"../GBFML/assets/ui/icon/staff.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"4",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Gun",
+                            "icon":"../GBFML/assets/ui/icon/gun.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"5",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Melee",
+                            "icon":"../GBFML/assets/ui/icon/melee.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"6",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Bow",
+                            "icon":"../GBFML/assets/ui/icon/bow.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"7",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Harp",
+                            "icon":"../GBFML/assets/ui/icon/harp.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"8",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Katana",
+                            "icon":"../GBFML/assets/ui/icon/katana.png",
+                            "target":"weapons",
+                            "arg1":"1",
+                            "arg2":"9",
+                            "reverse":1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Main Character",
+            "icon": "../GBFML/assets/ui/icon/classes.png",
+            "target": "job",
+            "reverse":1
+        },
+        {
+            "name": "Enemies",
+            "icon": "../GBFML/assets/ui/icon/enemies.png",
+            "childs": [
+                {
+                    "name": "Beasts and Animals",
+                    "icon": "../GBFML/assets/ui/index_icon/1.png",
+                    "childs": [
+                        {
+                            "name": "Flying",
+                            "icon": "../GBFML/assets/ui/index_icon/flying.png",
+                            "target": "enemies",
+                            "arg1": "1",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Beasts",
+                            "icon": "../GBFML/assets/ui/index_icon/beasts.png",
+                            "target": "enemies",
+                            "arg1": "1",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Monstrosities",
+                            "icon": "../GBFML/assets/ui/index_icon/monstrosities.png",
+                            "target": "enemies",
+                            "arg1": "1",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "Plants and Insects",
+                    "icon": "../GBFML/assets/ui/index_icon/2.png",
+                    "childs": [
+                        {
+                            "name": "Plants",
+                            "icon": "../GBFML/assets/ui/index_icon/plants.png",
+                            "target": "enemies",
+                            "arg1": "2",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Insects",
+                            "icon": "../GBFML/assets/ui/index_icon/insects.png",
+                            "target": "enemies",
+                            "arg1": "2",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "???",
+                            "icon": "../GBFML/assets/ui/index_icon/unkn.png",
+                            "target": "enemies",
+                            "arg1": "2",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "Fishes and Sea Life",
+                    "icon": "../GBFML/assets/ui/index_icon/3.png",
+                    "childs": [
+                        {
+                            "name": "Sea Life",
+                            "icon": "../GBFML/assets/ui/index_icon/sea_life.png",
+                            "target": "enemies",
+                            "arg1": "3",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "???",
+                            "icon": "../GBFML/assets/ui/index_icon/unkn.png",
+                            "target": "enemies",
+                            "arg1": "3",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "???",
+                            "icon": "../GBFML/assets/ui/index_icon/unkn.png",
+                            "target": "enemies",
+                            "arg1": "3",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "Golems and Robots",
+                    "icon": "../GBFML/assets/ui/index_icon/4.png",
+                    "childs": [
+                        {
+                            "name": "Golems",
+                            "icon": "../GBFML/assets/ui/index_icon/golems.png",
+                            "target": "enemies",
+                            "arg1": "4",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Aberrations",
+                            "icon": "../GBFML/assets/ui/index_icon/aberrations.png",
+                            "target": "enemies",
+                            "arg1": "4",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Machines",
+                            "icon": "../GBFML/assets/ui/index_icon/machines.png",
+                            "target": "enemies",
+                            "arg1": "4",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "Undeads and Otherworlders",
+                    "icon": "../GBFML/assets/ui/index_icon/5.png",
+                    "childs": [
+                        {
+                            "name": "Otherwordly",
+                            "icon": "../GBFML/assets/ui/index_icon/otherwordly.png",
+                            "target": "enemies",
+                            "arg1": "5",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Undeads",
+                            "icon": "../GBFML/assets/ui/index_icon/undeads.png",
+                            "target": "enemies",
+                            "arg1": "5",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "???",
+                            "icon": "../GBFML/assets/ui/index_icon/unkn.png",
+                            "target": "enemies",
+                            "arg1": "5",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "Humans and Humanoids",
+                    "icon": "../GBFML/assets/ui/index_icon/6.png",
+                    "childs": [
+                        {
+                            "name": "Goblins",
+                            "icon": "../GBFML/assets/ui/index_icon/goblins.png",
+                            "target": "enemies",
+                            "arg1": "6",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "People",
+                            "icon": "../GBFML/assets/ui/index_icon/people.png",
+                            "target": "enemies",
+                            "arg1": "6",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Fairies",
+                            "icon": "../GBFML/assets/ui/index_icon/fairies.png",
+                            "target": "enemies",
+                            "arg1": "6",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "Dragons and Wyverns",
+                    "icon": "../GBFML/assets/ui/index_icon/7.png",
+                    "childs": [
+                        {
+                            "name": "Dragons",
+                            "icon": "../GBFML/assets/ui/index_icon/dragons.png",
+                            "target": "enemies",
+                            "arg1": "7",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Reptiles",
+                            "icon": "../GBFML/assets/ui/index_icon/reptiles.png",
+                            "target": "enemies",
+                            "arg1": "7",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "True Dragons",
+                            "icon": "../GBFML/assets/ui/index_icon/true_dragons.png",
+                            "target": "enemies",
+                            "arg1": "7",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "Primal Beasts",
+                    "icon": "../GBFML/assets/ui/index_icon/8.png",
+                    "childs": [
+                        {
+                            "name": "Primals",
+                            "icon": "../GBFML/assets/ui/index_icon/primals.png",
+                            "target": "enemies",
+                            "arg1": "8",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Elementals",
+                            "icon": "../GBFML/assets/ui/index_icon/elementals.png",
+                            "target": "enemies",
+                            "arg1": "8",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "Angel Cores",
+                            "icon": "../GBFML/assets/ui/index_icon/angel_cores.png",
+                            "target": "enemies",
+                            "arg1": "8",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "Astrals and Others",
+                    "icon": "../GBFML/assets/ui/index_icon/9.png",
+                    "childs": [
+                        {
+                            "name": "Others",
+                            "icon": "../GBFML/assets/ui/index_icon/others.png",
+                            "target": "enemies",
+                            "arg1": "9",
+                            "arg2": "1",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "???",
+                            "icon": "../GBFML/assets/ui/index_icon/unkn.png",
+                            "target": "enemies",
+                            "arg1": "9",
+                            "arg2": "2",
+                            "reverse": 1
+                        },
+                        {
+                            "name": "???",
+                            "icon": "../GBFML/assets/ui/index_icon/unkn.png",
+                            "target": "enemies",
+                            "arg1": "9",
+                            "arg2": "3",
+                            "reverse": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "NPCs",
+            "icon": "../GBFML/assets/ui/icon/npcs.png",
+            "childs": [
+                {
+                    "name": "Special",
+                    "icon": "../GBFML/assets/ui/index_icon/special.png",
+                    "target": "npcs",
+                    "arg1": "05",
+                    "arg2": [
+                        0,
+                        100000
+                    ]
+                },
+                {
+                    "name": "Year 2025 (Snake)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2025_(snake).png",
+                    "target": "npcs",
+                    "arg1": "99",
+                    "arg2": [
+                        3791,
+                        9999
+                    ]
+                },
+                {
+                    "name": "Year 2024 (Dragon)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2025_(snake).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                3391,
+                                3791
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                3582,
+                                3800
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year 2023 (Rabbit)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2023_(rabbit).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                2915,
+                                3188
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                3188,
+                                3391
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year 2022 (Tiger)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2022_(tiger).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                2519,
+                                2714
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                2714,
+                                2915
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year 2021 (Ox)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2021_(ox).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                2008,
+                                2248
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                2248,
+                                2519
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year 2020 (Rat)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2020_(rat).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                1637,
+                                1814
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                1814,
+                                2008
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year 2019 (Pig)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2019_(pig).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                1254,
+                                1432
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                1432,
+                                1637
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year 2018 (Dog)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2018_(dog).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                981,
+                                1092
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                1092,
+                                1254
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year 2017 (Chicken)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2017_(chicken).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                603,
+                                735
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                735,
+                                981
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Year 2016 (Monkey)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2016_(monkey).png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                378,
+                                476
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                476,
+                                603
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Years 2014 & 2015",
+                    "icon": "../GBFML/assets/ui/index_icon/years_2014_&_2015.png",
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                0,
+                                239
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                239,
+                                378
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name":"Valentine / White Day",
+            "icon":"../GBFML/assets/ui/index_icon/special.png",
+            "target":"valentines",
+            "text":"This list accuracy isn't guaranted"
+        },
+        {
+            "name":"Main Story",
+            "icon":"../GBFML/assets/ui/icon/story.png",
+            "target":"story",
+            "reverse":1
+        },
+        {
+            "name":"Fate Episodes",
+            "icon":"../GBFML/assets/ui/icon/fate.png",
+            "childs":[
+                {
+                    "name":"SSR Characters",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "target":"fate",
+                    "arg1":"304",
+                    "arg2":true,
+                    "reverse":1
+                },
+                {
+                    "name":"SR Characters",
+                    "icon":"../GBFML/assets/ui/icon/sr.png",
+                    "target":"fate",
+                    "arg1":"303",
+                    "arg2":true,
+                    "reverse":1
+                },
+                {
+                    "name":"R Characters",
+                    "icon":"../GBFML/assets/ui/icon/r.png",
+                    "target":"fate",
+                    "arg1":"302",
+                    "arg2":true,
+                    "reverse":1
+                },
+                {
+                    "name":"Summons",
+                    "icon":"../GBFML/assets/ui/icon/summons.png",
+                    "target":"fate",
+                    "arg1":"20",
+                    "arg2":true,
+                    "reverse":1
+                }
+            ]
+        },
+        {
+            "name": "Events",
+            "icon": "../GBFML/assets/ui/icon/events.png",
+            "childs": [
+                {
+                    "name": "Special",
+                    "icon": "../GBFML/assets/ui/icon/other.png",
+                    "target": "events",
+                    "arg1": "",
+                    "text": "No particular order"
+                },
+                {
+                    "name": "Year 2025 (Snake)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2025_(snake).png",
+                    "target": "events",
+                    "arg1": "25",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2024 (Dragon)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2025_(snake).png",
+                    "target": "events",
+                    "arg1": "24",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2023 (Rabbit)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2023_(rabbit).png",
+                    "target": "events",
+                    "arg1": "23",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2022 (Tiger)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2022_(tiger).png",
+                    "target": "events",
+                    "arg1": "22",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2021 (Ox)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2021_(ox).png",
+                    "target": "events",
+                    "arg1": "21",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2020 (Rat)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2020_(rat).png",
+                    "target": "events",
+                    "arg1": "20",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2019 (Pig)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2019_(pig).png",
+                    "target": "events",
+                    "arg1": "19",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2018 (Dog)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2018_(dog).png",
+                    "target": "events",
+                    "arg1": "18",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2017 (Chicken)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2017_(chicken).png",
+                    "target": "events",
+                    "arg1": "17",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2016 (Monkey)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2016_(monkey).png",
+                    "target": "events",
+                    "arg1": "16",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2015 (Sheep)",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2015_(sheep).png",
+                    "target": "events",
+                    "arg1": "15",
+                    "reverse": 1
+                },
+                {
+                    "name": "Year 2014",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2014.png",
+                    "target": "events",
+                    "arg1": "14",
+                    "reverse": 1
+                }
+            ]
+        },
+        {
+            "name": "Skills",
+            "icon": "../GBFML/assets/ui/icon/skills.png",
+            "childs": [
+                {
+                    "name": "ID 0 to 1000",
+                    "icon": "../GBFML/assets/ui/index_icon/skill1.png",
+                    "childs": [
+                        {
+                            "name": "ID 0 to 250",
+                            "target": "skills",
+                            "arg1": [
+                                0,
+                                250
+                            ]
+                        },
+                        {
+                            "name": "ID 250 to 500",
+                            "target": "skills",
+                            "arg1": [
+                                250,
+                                500
+                            ]
+                        },
+                        {
+                            "name": "ID 500 to 750",
+                            "target": "skills",
+                            "arg1": [
+                                500,
+                                750
+                            ]
+                        },
+                        {
+                            "name": "ID 750 to 1000",
+                            "target": "skills",
+                            "arg1": [
+                                750,
+                                1000
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "ID 1000 to 2000",
+                    "icon": "../GBFML/assets/ui/index_icon/skill2.png",
+                    "childs": [
+                        {
+                            "name": "ID 1000 to 1250",
+                            "target": "skills",
+                            "arg1": [
+                                1000,
+                                1250
+                            ]
+                        },
+                        {
+                            "name": "ID 1250 to 1500",
+                            "target": "skills",
+                            "arg1": [
+                                1250,
+                                1500
+                            ]
+                        },
+                        {
+                            "name": "ID 1500 to 1750",
+                            "target": "skills",
+                            "arg1": [
+                                1500,
+                                1750
+                            ]
+                        },
+                        {
+                            "name": "ID 1750 to 2000",
+                            "target": "skills",
+                            "arg1": [
+                                1750,
+                                2000
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "ID 2000 to 3000",
+                    "icon": "../GBFML/assets/ui/index_icon/skill3.png",
+                    "childs": [
+                        {
+                            "name": "ID 2000 to 2250",
+                            "target": "skills",
+                            "arg1": [
+                                2000,
+                                2250
+                            ]
+                        },
+                        {
+                            "name": "ID 2250 to 2500",
+                            "target": "skills",
+                            "arg1": [
+                                2250,
+                                2500
+                            ]
+                        },
+                        {
+                            "name": "ID 2500 to 2750",
+                            "target": "skills",
+                            "arg1": [
+                                2500,
+                                2750
+                            ]
+                        },
+                        {
+                            "name": "ID 2750 to 3000",
+                            "target": "skills",
+                            "arg1": [
+                                2750,
+                                3000
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name":"Sub Skills",
+            "icon":"../GBFML/assets/ui/icon/subskills.png",
+            "target":"subskills"
+        },
+        {
+            "name": "Buffs",
+            "icon": "../GBFML/assets/ui/icon/buffs.png",
+            "childs": [
+                {
+                    "name": "Old Set",
+                    "icon": "../GBFML/assets/ui/index_icon/old_set.png",
+                    "target": "buffs",
+                    "arg1": [
+                        0,
+                        1000
+                    ]
+                },
+                {
+                    "name": "Basic Set",
+                    "icon": "../GBFML/assets/ui/index_icon/basic_set.png",
+                    "childs": [
+                        {
+                            "name": "ID 1000 to 1250",
+                            "target": "buffs",
+                            "arg1": [
+                                1000,
+                                1250
+                            ]
+                        },
+                        {
+                            "name": "ID 1250 to 1500",
+                            "target": "buffs",
+                            "arg1": [
+                                1250,
+                                1500
+                            ]
+                        },
+                        {
+                            "name": "ID 1500 to 1750",
+                            "target": "buffs",
+                            "arg1": [
+                                1500,
+                                1750
+                            ]
+                        },
+                        {
+                            "name": "ID 1750 to 2000",
+                            "target": "buffs",
+                            "arg1": [
+                                1750,
+                                2000
+                            ]
+                        },
+                        {
+                            "name": "ID 2000 to 2250",
+                            "target": "buffs",
+                            "arg1": [
+                                2000,
+                                2250
+                            ]
+                        },
+                        {
+                            "name": "ID 2250 to 2500",
+                            "target": "buffs",
+                            "arg1": [
+                                2250,
+                                2500
+                            ]
+                        },
+                        {
+                            "name": "ID 2500 to 2750",
+                            "target": "buffs",
+                            "arg1": [
+                                2500,
+                                2750
+                            ]
+                        },
+                        {
+                            "name": "ID 2750 to 3000",
+                            "target": "buffs",
+                            "arg1": [
+                                2750,
+                                3000
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Unique Set 1",
+                    "icon": "../GBFML/assets/ui/index_icon/unique_set_1.png",
+                    "childs": [
+                        {
+                            "name": "ID 3000 to 3250",
+                            "target": "buffs",
+                            "arg1": [
+                                3000,
+                                3250
+                            ]
+                        },
+                        {
+                            "name": "ID 3250 to 3500",
+                            "target": "buffs",
+                            "arg1": [
+                                3250,
+                                3500
+                            ]
+                        },
+                        {
+                            "name": "ID 3500 to 3750",
+                            "target": "buffs",
+                            "arg1": [
+                                3500,
+                                3750
+                            ]
+                        },
+                        {
+                            "name": "ID 3750 to 4000",
+                            "target": "buffs",
+                            "arg1": [
+                                3750,
+                                4000
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Unique Set 2",
+                    "icon": "../GBFML/assets/ui/index_icon/unique_set_2.png",
+                    "childs": [
+                        {
+                            "name": "ID 4000 to 4250",
+                            "target": "buffs",
+                            "arg1": [
+                                4000,
+                                4250
+                            ]
+                        },
+                        {
+                            "name": "ID 4250 to 4500",
+                            "target": "buffs",
+                            "arg1": [
+                                4250,
+                                4500
+                            ]
+                        },
+                        {
+                            "name": "ID 4500 to 4750",
+                            "target": "buffs",
+                            "arg1": [
+                                4500,
+                                4750
+                            ]
+                        },
+                        {
+                            "name": "ID 4750 to 5000",
+                            "target": "buffs",
+                            "arg1": [
+                                4750,
+                                5000
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Field Effect Set",
+                    "icon": "../GBFML/assets/ui/index_icon/field_effect_set.png",
+                    "childs": [
+                        {
+                            "name": "ID 5000 to 5250",
+                            "target": "buffs",
+                            "arg1": [
+                                5000,
+                                5250
+                            ]
+                        },
+                        {
+                            "name": "ID 5250 to 5500",
+                            "target": "buffs",
+                            "arg1": [
+                                5250,
+                                5500
+                            ]
+                        },
+                        {
+                            "name": "ID 5500 to 5750",
+                            "target": "buffs",
+                            "arg1": [
+                                5500,
+                                5750
+                            ]
+                        },
+                        {
+                            "name": "ID 5750 to 6000",
+                            "target": "buffs",
+                            "arg1": [
+                                5750,
+                                6000
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Buff Set",
+                    "icon": "../GBFML/assets/ui/index_icon/buff_set.png",
+                    "childs": [
+                        {
+                            "name": "ID 6000 to 6250",
+                            "target": "buffs",
+                            "arg1": [
+                                6000,
+                                6250
+                            ]
+                        },
+                        {
+                            "name": "ID 6250 to 6500",
+                            "target": "buffs",
+                            "arg1": [
+                                6250,
+                                6500
+                            ]
+                        },
+                        {
+                            "name": "ID 6500 to 6750",
+                            "target": "buffs",
+                            "arg1": [
+                                6500,
+                                6750
+                            ]
+                        },
+                        {
+                            "name": "ID 6750 to 7000",
+                            "target": "buffs",
+                            "arg1": [
+                                6750,
+                                7000
+                            ]
+                        },
+                        {
+                            "name": "ID 7000 to 7250",
+                            "target": "buffs",
+                            "arg1": [
+                                7000,
+                                7250
+                            ]
+                        },
+                        {
+                            "name": "ID 7250 to 7500",
+                            "target": "buffs",
+                            "arg1": [
+                                7250,
+                                7500
+                            ]
+                        },
+                        {
+                            "name": "ID 7500 to 7750",
+                            "target": "buffs",
+                            "arg1": [
+                                7500,
+                                7750
+                            ]
+                        },
+                        {
+                            "name": "ID 7750 to 8000",
+                            "target": "buffs",
+                            "arg1": [
+                                7750,
+                                8000
+                            ]
+                        },
+                        {
+                            "name": "ID 9000 to 9250",
+                            "target": "buffs",
+                            "arg1": [
+                                9000,
+                                9250
+                            ]
+                        },
+                        {
+                            "name": "ID 9250 to 9500",
+                            "target": "buffs",
+                            "arg1": [
+                                9250,
+                                9500
+                            ]
+                        },
+                        {
+                            "name": "ID 9500 to 9750",
+                            "target": "buffs",
+                            "arg1": [
+                                9500,
+                                9750
+                            ]
+                        },
+                        {
+                            "name": "ID 9750 to 10000",
+                            "target": "buffs",
+                            "arg1": [
+                                9750,
+                                10000
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Old Stack Set",
+                    "icon": "../GBFML/assets/ui/index_icon/old_stack_set.png",
+                    "target": "buffs",
+                    "arg1": [
+                        8000,
+                        9000
+                    ]
+                }
+            ]
+        },
+        {
+            "name":"Backgrounds",
+            "icon":"../GBFML/assets/ui/icon/backgrounds.png",
+            "childs":[
+                {
+                    "name":"Mains",
+                    "target":"background",
+                    "arg1":"main",
+                    "pad":1,
+                    "reverse":1
+                },
+                {
+                    "name":"Commons",
+                    "target":"background",
+                    "arg1":"common",
+                    "pad":1,
+                    "reverse":1
+                },
+                {
+                    "name":"Events",
+                    "target":"background",
+                    "arg1":"event",
+                    "pad":1,
+                    "reverse":1
+                },
+                {
+                    "name":"Others",
+                    "target":"background",
+                    "arg1":"",
+                    "pad":1,
+                    "reverse":1
+                }
+            ]
+        },
+        {
+            "name":"Title Screens",
+            "icon":"../GBFML/assets/ui/icon/titles.png",
+            "target":"title",
+            "pad":1
+        },
+        {
+            "name":"Surprise Tickets",
+            "icon":"../GBFML/assets/ui/icon/suptix.png",
+            "target":"suptix",
+            "pad":1,
+            "reverse":1
+        }
+    ]
+}
