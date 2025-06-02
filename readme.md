@@ -137,7 +137,6 @@ When a Task or the Updater judges more Task are needed, they will be queued too.
 It's designed to limit the memory usage while keeping the Updater always busy, to not have idle/dead times.  
   
 ### Additional Notes   
-- Use one of the `server` scripts to start a Python HTTP server and test the project locally, in your web browser.  
-- Or, on other OS, just run `python-m http.server` in a terminal, in the project folder.  
+- For testing, just run `python-m http.server` in a terminal, in the parent folder of the project, with [GBFML](https://github.com/MizaGBF/GBFML) on the side.  
 - [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with character animations. It reuses some Javascript, HTML, CSS and Python code.  
 - For developers, I documented some things in this [file](https://github.com/MizaGBF/GBFAL/blob/main/docs.md).  
