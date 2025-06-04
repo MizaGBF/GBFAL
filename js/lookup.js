@@ -195,11 +195,15 @@ function lookup(id, allow_open=true) // check element validity and either load i
 		{
 			filter.value = id;
 		}
-		let possibles = gbf.lookup_string_to_element(id);
+		let type = gbf.lookup_string_to_element(id);
 		let target = null;
-		if(possibles.length == 1)
+		if(type == GBFType.unknown && id.length == 7 && id.substring(1) in index["events"]) // exception due to special events
 		{
-			switch(possibles[0])
+			type = GBFType.event;
+		}
+		if(type != GBFType.unknown)
+		{
+			switch(type)
 			{
 				case GBFType.job:
 					target = "job";
@@ -241,10 +245,10 @@ function lookup(id, allow_open=true) // check element validity and either load i
 					target = "fate";
 					break;
 				default:
-					console.error("Unsupported type " + possibles[0]);
+					console.error("Unsupported type " + type);
 					break;
 			};
-			id = gbf.remove_prefix(id, possibles[0]);
+			id = gbf.remove_prefix(id, type);
 		};
 		if(target != null && gbf.is_banned(id))
 			return;
