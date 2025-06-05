@@ -597,6 +597,11 @@ function load_assets(id, data, target, indexed, allow_open)
 	// append fragment to output
 	new Promise((resolve, reject) => {
 		requestAnimationFrame(() => {
+			for(let img of output.getElementsByTagName("img")) // interrupt on-going downloads
+			{
+				img.src = "";
+				img.removeAttribute("src");
+			}
 			output.innerHTML = "";
 			output.appendChild(fragment);
 			resolve(); 
