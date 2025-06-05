@@ -22,7 +22,6 @@ var canvas_wait = 0; // used to track pending loadings
 function init() // entry point, called by body onload
 {
 	gbf = new GBF();
-	typing_update = 200;
 	fetchJSON("json/changelog.json?" + timestamp).then((value) => {
 		load(value);
 	});
