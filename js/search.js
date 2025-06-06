@@ -227,15 +227,12 @@ function update_search_results(scroll_to_search=true)
 		div.appendChild(label);
 	}
 	// wait next frame to give time to calculate
-	new Promise((resolve, reject) => {
-		requestAnimationFrame(() => {
-			node.style.display = null;
-			node.innerHTML = "";
-			node.appendChild(frag);
-			if(scroll_to_search)
-				scroll_to_search_results();
-			resolve(); 
-		});
+	requestAnimationFrame(() => {
+		node.style.display = null;
+		node.innerHTML = "";
+		node.appendChild(frag);
+		if(scroll_to_search)
+			scroll_to_search_results();
 	});
 }
 
