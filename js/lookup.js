@@ -412,7 +412,7 @@ function load_assets(id, data, target, indexed, allow_open)
 				{name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], index:-6, icon:"assets/ui/result_icon/custom.png", form:false, lazy:false},
 				{name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], index:-8, icon:"assets/ui/result_icon/siero.png", form:false, lazy:false}
 			];
-			if(gbf.eternals.includes(id)) // include specific icons
+			if(gbf.eternals().includes(id)) // include specific icons
 			{
 				assets[3].paths.push(["sp/event/common/terra/top/assets/story/btnbnr_", "png"]);
 				assets[20].paths.push(["sp/coaching/assets/eternals/", "png"]);
