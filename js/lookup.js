@@ -195,6 +195,9 @@ function lookup(id, allow_open=true) // check element validity and either load i
 		{
 			filter.value = id;
 		}
+		id = id.trim().toLowerCase();
+		if(id == "")
+			return;
 		let type = gbf.lookup_string_to_element(id);
 		let target = null;
 		if(type == GBFType.unknown && id.length == 7 && id.substring(1) in index["events"]) // exception due to special events
@@ -595,7 +598,7 @@ function load_assets(id, data, target, indexed, allow_open)
 		load_assets_sound(fragment, id, sounds, indexed);
 	}
 	// append fragment to output
-	requestAnimationFrame(() => {
+	update_next_frame(function() {
 		for(let img of output.getElementsByTagName("img")) // interrupt on-going downloads
 		{
 			img.src = "";
@@ -1020,7 +1023,7 @@ function prepare_output_and_header(fragment, name, id, target, type, data, inclu
 				{
 					let f = document.getElementById('filter');
 					f.value = t + " " + f.value;
-					lookup(f.value.trim().toLowerCase());
+					lookup(f.value);
 				}
 				else
 				{

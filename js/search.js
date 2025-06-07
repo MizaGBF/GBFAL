@@ -6,6 +6,14 @@ var search_results = []; // search results
 var previous_displayed_result = [];
 const SEARCH_LIMIT = 100;
 
+function filter() // called by the search filter (onkeyup event)
+{
+	clearTimeout(typing_timer);
+	typing_timer = setTimeout(function(){ // set a timeout of 1s before executing lookup
+		lookup(document.getElementById('filter').value);
+	}, typing_update);
+}
+
 function init_search_lookup()
 {
 	if(index.lookup && !index.lookup_reverse)
@@ -124,7 +132,7 @@ function search(id, internal_behavior = 0) // generate search results
 		if(search_results.length > 0)
 		{
 			let filter = document.getElementById('filter');
-			if(filter.value != id)
+			if(filter.value != id && filter.value.trim().toLowerCase() != id)
 				filter.value = id;
 		}
 		update_search_results();
@@ -151,7 +159,7 @@ function get_search_filter_states()
 	return search_filters;
 }
 
-function update_search_results(scroll_to_search=true)
+function update_search_results(scroll_to_search = true)
 {
 	if(search_results.length == 0) return;
 	const search_filters = get_search_filter_states();
@@ -185,7 +193,7 @@ function update_search_results(scroll_to_search=true)
 		if(results.length >= SEARCH_LIMIT)
 			break;
 	}
-	let node = document.getElementById('results');
+	var node = document.getElementById('results');
 	let frag = document.createDocumentFragment();
 	if(results.length == 0)
 	{
@@ -227,7 +235,7 @@ function update_search_results(scroll_to_search=true)
 		div.appendChild(label);
 	}
 	// wait next frame to give time to calculate
-	requestAnimationFrame(() => {
+	update_next_frame(function() {
 		node.style.display = null;
 		node.innerHTML = "";
 		node.appendChild(frag);
