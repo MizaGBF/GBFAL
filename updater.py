@@ -3723,7 +3723,7 @@ class Updater():
             scene_count = 0
             sound_count = 0
             file_estimation = 0
-            for t in ("characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "title", "suptix", 'events', "skills", "subskills", 'buffs', "story"):
+            for t in ("characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "title", "suptix", 'events', "skills", "subskills", 'buffs', "story", "background", "mypage_bg"):
                 ref = self.data.get(t, {})
                 entity_count += len(ref.keys())
                 for k, v in ref.items():
@@ -3788,7 +3788,7 @@ class Updater():
                             file_estimation += len(v[FATE_UNCAP_CONTENT])
                             file_estimation += len(v[FATE_TRANSCENDENCE_CONTENT])
                             file_estimation += len(v[FATE_OTHER_CONTENT])
-                        case 'npcs':
+                        case "npcs":
                             if v is None or v == 0: continue
                             if v[NPC_JOURNAL]: file_estimation += 1
                             file_estimation += len(v[NPC_SCENE])
@@ -3796,9 +3796,14 @@ class Updater():
                             
                             scene_count += len(v[NPC_SCENE])
                             sound_count += len(v[NPC_SOUND])
-                        case 'buffs':
+                        case "buffs":
                             if v is None or v == 0: continue
                             file_estimation += len(v[1])
+                        case "background":
+                            if v is None or v == 0: continue
+                            file_estimation += len(v[0])
+                        case "mypage_bg":
+                            file_estimation += 1
                         case _:
                             file_estimation += 2
             self.stat_string = "{:,} indexed elements, for ~{:.1f}K files".format(entity_count, file_estimation / 1000).replace(".0K", "K")
