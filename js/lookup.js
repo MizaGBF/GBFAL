@@ -676,7 +676,7 @@ function load_assets_main(fragment, id, data, target, indexed, asset, files, mc_
 	if(asset.home ?? false)
 	{
 		let img = document.createElement("img");
-		img.src = "assets/ui/mypage.png";
+		img.src = "../GBFML/assets/ui/mypage.png";
 		img.classList.add("clickable");
 		img.classList.add("toggle-btn");
 		img.onclick = toggle_preview_home;
