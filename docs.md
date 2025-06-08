@@ -81,6 +81,7 @@ where:
     - Possible paths are `sp/guild/custom/bg/FILE.png` for MAIN backgrounds and `sp/raid/bg/FILE.jpg` for everything else.  
 - `title`: Object of ID, integer pairs, for title screens. The integer is unused. Simply use `sp/top/bg/bg_ID.jpg`.  
 - `suptix`: Object of ID, integer pairs, for surprise ticket banners. The integer is unused. Simply use `sp/gacha/campaign/surprise/top_ID.jpg`.  
+- `mypage_bg`: Object of ID, integer pairs, for MyPage background images. The integer is unused. Simply use `sp/mypage/town/ISLAND_ID/bg.jpg`.  
 - `lookup`: Object of ID, string pairs. It's used to create the tag lists on GBFAL. The ID can be found in any other index and the string is the list of tags. The element starting with `@@` corresponds to the wiki link.  
 - `events`: Object of ID, data pairs for events. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of twenty six elements. (`[CHAPTER_COUNT, THUMBNAIL_ID, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]`).  
