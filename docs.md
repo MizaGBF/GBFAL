@@ -53,6 +53,11 @@ where:
     - Index 4: Single target charge attack sheets. Path: `sp/cjs/FILE.png`.  
     - Index 5: AOE charge attack sheets. Path: `sp/cjs/FILE.png`.  
 - `skins`: Same format as `characters`.  
+- `npcs`: Object of ID, data pairs for MC classes or skins. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
+    - General format: A list of one boolean and two lists, each containing file names. (`[false, [], []]`).
+    - Index 0: The boolean indicates if the NPC has a journal thumbnail.  
+    - Index 1: Scene file suffixes. Possible paths: `sp/quest/scene/character/body/ID_SUFFIX.png` (used in cutscenes) or  `sp/raid/navi_face/ID_SUFFIX.png` (portrait used in battles, when characters talk). A file being in this list means either or both of those paths are valid.  
+    - Index 2: Voice file suffixes. Path: `voice/ID_SUFFIX.mp3`.  
 - `job`: Object of ID, data pairs for MC classes or skins. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of thirteen lists, each containing file names. (`[[], [], [], [], [], [], [], [], [], [], [], [], []]`).
     - Index 0: Base file. Used for icons (`sp/ui/icon/job/FILE.png`) and texts (`sp/ui/job_name/job_list/FILE.png`, ...).  
@@ -92,7 +97,7 @@ where:
     - Possible files follow the following format: `sp/ui/icon/ability/m/ID.png` or `sp/ui/icon/ability/m/ID_N.png` where `N` can be **1** to **5**.  
 - `subskills`: Object of ID and integer pairs for subskills (such as Wamdus' s1). The integer is unused. Paths: `sp/assets/item/ability/s/ID_N.jpg` where `N` can be **1** to **3**.  
 - `buffs`: Object of ID (zfilled to string of length 4), data pairs for buff icons. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
-    - General format: A list of two lists, each containing file names. (`[[], [], [], [], [], [], [], [], [], []]`).
+    - General format: A list of two lists, each containing file names. (`[[], []]`).
     - Index 0: The first part of the filename. It should matches the ID without leading zeros.
     - Index 1: Valid suffixes for this buff. Resulting path: `sp/ui/icon/status/x64/status_ZID_suffix.png` where `ZID` is the string at Index 0.  
 - `eventthumb`: Object of ID and integer pairs for event thumbnail. For internal use only. The integer is set to **1** if it's used for an event.  
