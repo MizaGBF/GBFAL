@@ -843,9 +843,10 @@ class Updater():
             for j in range(5):
                 self.tasks.add(self.search_generic, parameters=(ts, 'background', bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
         # mypage island background
-        for i in range(99):
-            ts = TaskStatus(1000, 20)
-            self.tasks.add(self.search_generic, parameters=(ts, 'mypage_bg', str(i).zfill(2) + "{}", 3, ["img/sp/mypage/town/{}/bg.jpg"]))
+        for i in (range(0, 40), range(70, 75)):
+            for j in i:
+                ts = TaskStatus(1000, 20)
+                self.tasks.add(self.search_generic, parameters=(ts, 'mypage_bg', str(j).zfill(2) + "{}", 3, ["img/sp/mypage/town/{}/bg.jpg"]))
         # titles
         ts = TaskStatus(1000, 5)
         for i in range(3):
