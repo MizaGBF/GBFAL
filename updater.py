@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.25'
+VERSION = '3.26'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -39,7 +39,8 @@ ADD_BUFF = 9
 ADD_BG = 10
 ADD_STORY = 11
 ADD_FATE = 12
-ADD_SINGLE_ASSET = ["title", "subskills", "suptix"]
+ADD_MYPAGE = 13 # unused by GBFAL
+ADD_SINGLE_ASSET = ["title", "subskills", "suptix", "mypage_bg"]
 # chara/skin/partner update
 CHARA_SPRITE = 0
 CHARA_PHIT = 1
@@ -468,6 +469,7 @@ class Updater():
             "job_key":{},
             'npcs':{},
             "background":{},
+            "mypage_bg":{},
             "title":{},
             "suptix":{},
             "lookup":{},
@@ -840,6 +842,10 @@ class Updater():
             ts = TaskStatus(1000, 50)
             for j in range(5):
                 self.tasks.add(self.search_generic, parameters=(ts, 'background', bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
+        # mypage island background
+        for i in range(99):
+            ts = TaskStatus(1000, 20)
+            self.tasks.add(self.search_generic, parameters=(ts, 'mypage_bg', str(i).zfill(2) + "{}", 3, ["img/sp/mypage/town/{}/bg.jpg"]))
         # titles
         ts = TaskStatus(1000, 5)
         for i in range(3):

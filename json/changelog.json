@@ -1,6 +1,124 @@
 {
-  "timestamp":1749197695863,
+  "timestamp":1749407798969,
   "new":{
+    "2025-06-08":[
+      [
+        "mypage_bg:21001",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:21002",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:10001",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20001",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:22001",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:21003",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:70001",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20002",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:22002",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:21004",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20003",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:22003",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:21005",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20004",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:22004",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:21006",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20005",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:22005",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:21007",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20006",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:22006",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20007",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20008",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20009",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20011",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20012",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:20014",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:70010",
+        "mypage_bg"
+      ],
+      [
+        "mypage_bg:70020",
+        "mypage_bg"
+      ]
+    ],
     "2025-06-06":[
       [
         "1040714400",
@@ -292,47 +410,9 @@
         "3993310000",
         5
       ]
-    ],
-    "2025-05-27":[
-      [
-        "4100463",
-        4
-      ],
-      [
-        "9101243",
-        4
-      ],
-      [
-        "9101343",
-        4
-      ],
-      [
-        "9101463",
-        4
-      ],
-      [
-        "9101623",
-        4
-      ],
-      [
-        "8103493",
-        4
-      ],
-      [
-        "9102213",
-        4
-      ],
-      [
-        "8104123",
-        4
-      ],
-      [
-        "6205853",
-        4
-      ]
     ]
   },
-  "stat":"16,867 indexed elements, for ~639.2K files",
+  "stat":"16,868 indexed elements, for ~639.2K files",
   "issues":[],
   "help":false
 }
