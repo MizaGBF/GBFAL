@@ -812,7 +812,7 @@ class Updater():
         sub : int
         for main in range(1, 10):
             for sub in range(1, 4):
-                ts = TaskStatus(1000, 40)
+                ts = TaskStatus(10000, 40)
                 prefix : str = str(main) + str(sub)
                 for i in range(10):
                     self.tasks.add(self.search_enemy, parameters=(ts, prefix))
