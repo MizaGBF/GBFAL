@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.26'
+VERSION = '3.27'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -604,11 +604,7 @@ class Updater():
                         stat = data.get('stat', None)
                         issues = data.get('issues', [])
                         help = data.get('help', False)
-                        new = {}
-                        if isinstance(data.get('new', {}), list): # Retrocompatibility with old format
-                            new[str((datetime.now(UTC) - timedelta(days=1)).strftime('%Y-%m-%d'))] = data['new'] # use yesterday for the key
-                        else:
-                            new = data.get('new', {})
+                        new = data.get('new', {})
                 except:
                     new = {}
                     stat = None
