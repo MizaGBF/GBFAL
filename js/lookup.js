@@ -73,7 +73,7 @@ function load(config, changelog)
 		dummy_scene = config.dummy_scene;
 	if(config.no_speech_bubble_filter)
 		no_speech_bubble_filter = config.no_speech_bubble_filter;
-	if(config.banned)
+	if(config.hasOwnProperty("banned"))
 	{
 		gbf.banned_ids = config.banned;
 	}
@@ -91,7 +91,7 @@ function load(config, changelog)
 		{
 			help_form = config.help_form;
 		}
-		if(help_form && changelog.help)
+		if(help_form && changelog.hasOwnProperty("help") && changelog.help)
 		{
 			help_wanted(config);
 		}
