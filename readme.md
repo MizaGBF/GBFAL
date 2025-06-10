@@ -5,20 +5,19 @@ Click [Here](https://mizagbf.github.io/GBFAL) to access it.
   
 # Front-End  
 There are two pages:  
-- The Asset Lookup, to search assets.   
-- The Spark Maker, for users to keep track of their "spark".  
+- The Asset Lookup, `index.html`, to search assets.   
+- The Spark Maker, `spark.html`, for users to keep track of their "spark".  
   
 Both are using assets and codes from [GBFML](https://github.com/MizaGBF/GBFML).  
   
 > [!NOTE]  
 > These pages are static and are currently hosted on [Github Pages](https://pages.github.com/), but it can technically be hosted anywhere.  
   
-# Back-End  
-Three of the JSON files in the `json` folder are the core of the system:  
+Three of the JSON files in the `json` folder are also used:  
 - [config.json](https://github.com/MizaGBF/GBFAL/blob/main/json/config.json) is the first file loaded upon opening the page. It contains various constants, the layout of the index and such.  
 - [changelog.json](https://github.com/MizaGBF/GBFAL/blob/main/json/changelog.json) is loaded next. It contains the timestamp of the last update and a list of recently updated elements.  
 - [data.json](https://github.com/MizaGBF/GBFAL/blob/main/json/data.json) is loaded along with config.json and contains the asset catalog and more.  
-  
+# Back-End  
 Others JSON files are used for debug or update purpose:  
 - [job_data_export.json](https://github.com/MizaGBF/GBFAL/blob/main/json/job_data_export.json) is used to quickly link some MC jobs to their weapon animations using the built-in CLI.  
 - [manual_lookup.json](https://github.com/MizaGBF/GBFAL/blob/main/json/manual_lookup.json) is used to fill lookup entries without wiki data.  
@@ -37,10 +36,11 @@ This script is in charge of updating the JSON files.
 ### Updater Requirements  
 * Python 3.13.
 * Run `pip install -r requirements.txt` in a command prompt.
-* See [requirements.txt](https://github.com/MizaGBF/GBFAP/blob/master/requirements.txt) for a list of third-party modules.  
+* See [requirements.txt](https://github.com/MizaGBF/GBFAL/blob/master/requirements.txt) for a list of third-party modules.  
   
 ### Usage
-```GBFAL Updater v3.25
+```console
+GBFAL Updater v3.25
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-si SCENEID [SCENEID ...]] [-sc [SCENE ...]]
                   [-sd [SOUND ...]] [-ev [EVENT ...]]
@@ -110,7 +110,6 @@ settings:
                         ignore known file count when updating elements.
   -da, --gbfdaio PATH   import index.json from GBFDAIO.
   -dg, --debug          enable the debug infos in the progress string.
-
 ```  
   
 > [!TIP]  
