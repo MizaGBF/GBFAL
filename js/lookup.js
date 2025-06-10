@@ -47,7 +47,7 @@ function init() // entry point, called by body onload
 		settings.profile = false;
 	
 	// open tab
-	openTab('index'); // set to this tab by default
+	open_tab('index'); // set to this tab by default
 	
 	// get json
 	Promise.all([
@@ -818,7 +818,7 @@ function prepare_output_and_header(fragment, name, id, target, type, data, inclu
 {
 	// open tab
 	document.getElementById("tab-view").style.display = null;
-	openTab("view");
+	open_tab("view");
 	// create header
 	let div = (name == "Event") ? add_result_header(fragment, "Result Header", name + ": " + id + (isNaN(id.slice(1)) ? "" : " (20"+id.substring(0,2)+"/"+id.substring(2,4)+"/"+id.substring(4,6)+")")) : add_result_header(fragment, "Result Header", name + ": " + id);
 	// add next/previous
