@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.27'
+VERSION = '3.28'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -143,6 +143,7 @@ try:
         globals().update(json.load(f)) # add to global scope
         # extra, SCENE_BUBBLE_FILTER for performance
         SCENE_BUBBLE_FILTER = {k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0}
+    del f
 except Exception as e:
     print("Failed to load and set json/manual_constants.json")
     print("Please fix the file content and try again")
