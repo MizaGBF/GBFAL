@@ -1354,7 +1354,7 @@ class Updater():
             try:
                 if u == "_01":
                     continue
-                fn = "mypage_{}".format(element_id, u)
+                fn = "mypage_{}{}".format(element_id, u)
                 data[SUM_MYPAGE] += await self.processManifest(fn)
             except:
                 pass
