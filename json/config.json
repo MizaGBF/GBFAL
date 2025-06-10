@@ -1720,14 +1720,16 @@
                 {
                     "name":"Others",
                     "target":"background",
-                    "arg1":"",
+                    "arg1":"",,
+                    "text": "No particular order",
                     "pad":1,
                     "reverse":1
                 },
                 {
                     "name":"My Page",
                     "target":"mypage_bg",
-                    "arg1":"",
+                    "arg1":"",,
+                    "text": "No particular order",
                     "pad":1,
                     "reverse":1
                 }
