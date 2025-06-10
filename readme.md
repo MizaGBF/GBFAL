@@ -136,7 +136,7 @@ The Task Manager itself won't run more than 90 Tasks concurrently (The number it
 When a Task or the Updater judges more Task are needed, they will be queued too. That's why the number of Tasks will likely grow when executing the Updater.  
 It's designed to limit the memory usage while keeping the Updater always busy, to not have idle/dead times.  
   
-### Additional Notes   
+### Additional Notes  
 - For testing, just run `python-m http.server` in a terminal, in the parent folder of the project, with [GBFML](https://github.com/MizaGBF/GBFML) on the side.  
 - [GBFAP](https://github.com/MizaGBF/GBFAP) is the sister project, dealing with GBF animations.  
 - For developers, I documented some things in this [file](https://github.com/MizaGBF/GBFAL/blob/main/docs.md).  
