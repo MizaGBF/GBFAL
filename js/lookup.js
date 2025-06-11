@@ -27,7 +27,9 @@ function init() // entry point, called by body onload
 		"sk": GBFType.skill,
 		"fa": GBFType.fate,
 		"b": GBFType.buff,
-		"ms": GBFType.story
+		"ms": GBFType.story,
+		"sd": GBFType.shield,
+		"ma": GBFType.manatura
 	});
 	bookmark_onclick = index_onclick;
 	history_onclick = index_onclick;
@@ -215,6 +217,12 @@ function lookup(id, allow_open=true) // check element validity and either load i
 				case GBFType.weapon:
 					target = "weapons";
 					break;
+				case GBFType.shield:
+					target = "shields";
+					break;
+				case GBFType.manatura:
+					target = "manaturas";
+					break;
 				case GBFType.summon:
 					target = "summons";
 					break;
@@ -365,6 +373,26 @@ function load_assets(id, data, target, indexed, allow_open)
 				{name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", "png"]], index:-8, icon:"assets/ui/result_icon/siero.png", lazy:false}
 			];
 			melee = (id[4] == "6");
+			break;
+		case "shields":
+			area_name = "Shield";
+			include_link = true;
+			last_id = "sd"+id;
+			type = GBFType.shield;
+			assets = [
+				{name:"Various Portraits", paths:[["sp/assets/shield/m/", "jpg"], ["sp/assets/shield/s/", "jpg"]], icon:"assets/ui/result_icon/portrait.png", index:0, open:allow_open},
+				{name:"Sprites", paths:[["sp/cjs/shield_", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0, open:allow_open},
+			];
+			break;
+		case "manaturas":
+			area_name = "Manatura";
+			include_link = true;
+			last_id = "ma"+id;
+			type = GBFType.manatura;
+			assets = [
+				{name:"Various Portraits", paths:[["sp/assets/familiar/m/", "jpg"], ["sp/assets/familiar/s/", "jpg"]], icon:"assets/ui/result_icon/portrait.png", index:0, open:allow_open},
+				{name:"Sprites", paths:[["sp/cjs/familiar_", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0, open:allow_open},
+			];
 			break;
 		case "summons":
 			area_name = "Summon";

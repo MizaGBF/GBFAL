@@ -17,14 +17,14 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.29'
+VERSION = '3.30'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
 # limit
 HTTP_CONN_LIMIT = 80
 LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
-UPDATABLE = {"characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job"}
+UPDATABLE = {"characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job", "shields"}
 # addition type
 ADD_JOB = 0
 ADD_WEAP = 1
@@ -39,7 +39,8 @@ ADD_BUFF = 9
 ADD_BG = 10
 ADD_STORY = 11
 ADD_FATE = 12
-ADD_MYPAGE = 13 # unused by GBFAL
+ADD_SHIELD = 13
+ADD_MANATURA = 14
 ADD_SINGLE_ASSET = ["title", "subskills", "suptix", "mypage_bg", "sky_title"]
 # chara/skin/partner update
 CHARA_SPRITE = 0
@@ -440,7 +441,7 @@ class Updater():
     modified : bool
     resume : dict[str, Any]
     stat_string : str|None
-    addition : dict[str, Any]
+    addition : set[tuple[str, int|str]]
     updated_elements : set[str]
     job_list : dict[str, str]|None
     scene_strings : None|tuple[dict, dict]
@@ -463,6 +464,8 @@ class Updater():
             "partners":{},
             "summons":{},
             "weapons":{},
+            "shields":{},
+            "manaturas":{},
             "enemies":{},
             "skins":{},
             "job":{},
@@ -489,7 +492,7 @@ class Updater():
         self.modified = False # if set to true, data.json will be written on the next call of save()
         self.resume = {} # list of items completed (for the resume file)
         self.stat_string = None # set and updated by make_stats
-        self.addition = {} # new elements for changelog.json
+        self.addition = set() # new elements for changelog.json
         self.updated_elements = set() # set of elements ran through update_element()
         self.job_list = None # job dictionary of id string pair
         self.scene_strings = None # scene string containers
@@ -616,14 +619,12 @@ class Updater():
                     # get date of today
                     now : str = datetime.now(UTC).strftime('%Y-%m-%d')
                     if now in new: # if date present
-                        temp : dict[str, Any] = {e[0]:e[1] for e in new[now]} # get old data
-                        for k, v in self.addition.items(): # put new data after
-                            if k in temp:
-                                temp.pop(k)
-                            temp[k] = v
-                        new[now] = [[k, v] for k, v in temp.items()] # replace by new data
+                        existing : set[tuple[str, int|str]] = {(e[0], e[1]) for e in new[now]} # get old data
+                        for el in self.addition:
+                            if el not in existing:
+                                new[now].append(list(el))
                     else:
-                        new[now] = [[k, v] for k, v in self.addition.items()] # else just set new data
+                        new[now] = [str(el) for el in self.addition] # else just set new data
                     # sort keys
                     keys : list[str]= list(new.keys())
                     keys.sort(reverse=True)
@@ -643,6 +644,9 @@ class Updater():
         except Exception as e:
             self.tasks.print(e)
             self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+
+    def add(self : Updater, element_id : str, element_type : int|str) -> None:
+        self.addition.add((element_id, element_type))
 
     # Generic GET request function
     async def get(self : Updater, url : str) -> Any:
@@ -754,6 +758,9 @@ class Updater():
                 n : int
                 for n in range(3):
                     self.tasks.add(self.search_buff, parameters=(ts, ))
+        ts = TaskStatus(1000, 4)
+        for i in range(4):
+            self.tasks.add(self.search_manatura, parameters=(ts, ))
         # npc
         ts = TaskStatus(10000, 90)
         for i in range(20):
@@ -779,6 +786,11 @@ class Updater():
                 ts = TaskStatus(1000, 20)
                 for i in range(5):
                     self.tasks.add(self.search_generic, parameters=(ts, 'weapons', "10"+str(r)+"0{}".format(j) + "{}00", 3, ["img/sp/assets/weapon/m/{}.jpg"]))
+            # shields
+            for j in range(2):
+                ts = TaskStatus(1000, 5)
+                for i in range(5):
+                    self.tasks.add(self.search_generic, parameters=(ts, 'shields', str(r)+"{}", 3, ["img/sp/assets/shield/m/{}.jpg"]))
             # summons
             ts = TaskStatus(1000, 20)
             for i in range(5):
@@ -889,7 +901,7 @@ class Updater():
                         self.tasks.print("Found:", f, "for index:", index)
                         data[f] = 0 # set data to 0 (until it's updated)
                         if index in ADD_SINGLE_ASSET: # these index don't have changelog ID
-                            self.addition[index+":"+f] = index
+                            self.add(index+":"+f, index)
                         self.modified = True
                         self.tasks.add(self.update_element, parameters=(f, index), priority=3) # call update task for that element
                         break
@@ -949,7 +961,7 @@ class Updater():
                         ts.good()
                         found = True
                         skills[fi] = [[str(i) + s.split('.')[0]]]
-                        self.addition[fi] = ADD_SKILL
+                        self.add(fi, ADD_SKILL)
                         self.modified = True
                         break
                     except:
@@ -957,9 +969,31 @@ class Updater():
                 if not found and i > highest:
                     ts.bad()
 
+    # Search for new manaturas
+    async def search_manatura(self, ts : TaskStatus) -> None:
+        manaturas = self.data['manaturas'] # reference
+        path : list[str] = [IMG, "sp/assets/familiar/m/", None, "", ".jpg"]
+        while not ts.complete:
+            i : int = ts.get_next_index()
+            fi : str = str(i).zfill(4) # formatted id
+            if fi in manaturas:
+                ts.good()
+            else:
+                try:
+                    path[2] = str(i)
+                    await self.head("".join(path))
+                    manaturas[fi] = [[str(i)]]
+                    self.add(fi, ADD_MANATURA)
+                    self.modified = True
+                    self.tasks.print("Found:", fi, "for index:", "manaturas")
+                    ts.good()
+                except:
+                    ts.bad()
+
     # Search for new buffs
     async def search_buff(self, ts : TaskStatus) -> None:
         buffs = self.data['buffs'] # reference
+        path : list[str] = [IMG, "sp/ui/icon/status/x64/status_", None, "", ".png"]
         while not ts.complete:
             i : int = ts.get_next_index()
             fi : str = str(i).zfill(4) # formatted id
@@ -970,7 +1004,7 @@ class Updater():
                 continue
             found : bool = False
             slist : list[str] = BUFF_LIST_EXTENDED if i >= 1000 else BUFF_LIST
-            path : list[str] = [IMG, "sp/ui/icon/status/x64/status_", str(i), "", ".png"]
+            path[2] = str(i)
             for s in slist:
                 path[3] = s
                 try:
@@ -1129,7 +1163,7 @@ class Updater():
             buffs[element_id] = [[str(int(element_id))], list(known)]
             buffs[element_id][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
             self.modified = True
-            self.addition[element_id] = ADD_BUFF
+            self.add(element_id, ADD_BUFF)
             self.flags.add("found_buff")
             self.tasks.print("Updated:", element_id, "for index:", 'buffs')
 
@@ -1179,6 +1213,8 @@ class Updater():
                 await self.update_summon(element_id)
             case 'weapons':
                 await self.update_weapon(element_id)
+            case 'shields':
+                await self.update_shield(element_id)
             case 'npcs':
                 await self.update_npc(element_id)
             case 'partners':
@@ -1251,7 +1287,7 @@ class Updater():
         if self.count_file(data) > file_count:
             self.modified = True
             enemies[element_id] = data
-            self.addition[element_id] = ADD_BOSS
+            self.add(element_id, ADD_BOSS)
             self.tasks.print("Updated:", element_id, "for index:", 'enemies')
             self.remove_from_uncap_queue(element_id)
 
@@ -1284,13 +1320,13 @@ class Updater():
                 elif s == "": # empty, we know it probably exists (this function is likely called from run() or from existing data)
                     data[0].append(f)
                     modified = True
-                    self.addition[f] = ADD_BG # set to changelog
+                    self.add(f, ADD_BG)
                 else: # request for given suffix
                     try:
                         await self.head(IMG + path.format(f))
                         data[0].append(f)
                         modified = True
-                        self.addition[f] = ADD_BG # set to changelog for each successful one
+                        self.add(f, ADD_BG)
                     except:
                         break
         else: # type 2, these backgrouns always come 3 per 3 usually, no need to check
@@ -1298,7 +1334,7 @@ class Updater():
                 data[0] = [element_id+"_1",element_id+"_2",element_id+"_3"]
                 modified = True
                 for f in data[0]: # set to changelog for each
-                    self.addition[f] = ADD_BG
+                    self.add(f, ADD_BG)
         if modified:
             data[0].sort()
             self.modified = True
@@ -1370,7 +1406,7 @@ class Updater():
         if self.count_file(data) > file_count:
             self.modified = True
             summons[element_id] = data
-            self.addition[element_id] = ADD_SUMM
+            self.add(element_id, ADD_SUMM)
             self.tasks.print("Updated:", element_id, "for index:", 'summons')
             self.remove_from_uncap_queue(element_id)
 
@@ -1562,7 +1598,7 @@ class Updater():
             chara_data[element_id] = data
             self.tasks.add(self.update_scenes_of, parameters=(element_id, index))
             self.tasks.add(self.update_sound_of, parameters=(element_id, index))
-            self.addition[element_id] = ADD_CHAR
+            self.add(element_id, ADD_CHAR)
             self.flags.add("found_character")
             # updating corresponding fate episode
             if index == 'characters':
@@ -1712,7 +1748,7 @@ class Updater():
             for i in range(len(data)):
                 partners[element_id][i] = list(set(partners[element_id][i] + data[i]))
                 partners[element_id][i].sort()
-            self.addition[element_id] = ADD_PARTNER
+            self.add(element_id, ADD_PARTNER)
             self.flags.add("found_character")
             self.tasks.print("Updated:", element_id, "for index:", 'partners')
             self.remove_from_uncap_queue(element_id)
@@ -1779,7 +1815,7 @@ class Updater():
             npcs[element_id] = data
             self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
             self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
-            self.addition[element_id] = ADD_NPC
+            self.add(element_id, ADD_NPC)
             self.flags.add("found_character")
             self.tasks.print("Updated:", element_id, "for index:", 'npcs', "(Queuing secondary updates...)")
             self.remove_from_uncap_queue(element_id)
@@ -1835,9 +1871,26 @@ class Updater():
             data[WEAP_SP].sort()
             self.modified = True
             weapons[element_id] = data
-            self.addition[element_id] = ADD_WEAP
+            self.add(element_id, ADD_WEAP)
             self.tasks.print("Updated:", element_id, "for index:", 'weapons')
             self.remove_from_uncap_queue(element_id)
+
+    # Update Weapon data
+    async def update_shield(self, element_id : str) -> None:
+        shields = self.data['shields'] # reference
+        if element_id not in shields:
+            # art check
+            try:
+                await self.head(IMG + "sp/assets/shield/m/{}.jpg".format(element_id))
+            except:
+                return
+        elif isinstance(shields[element_id], list):
+            return
+        
+        self.modified = True
+        shields[element_id] = [[element_id]]
+        self.add(element_id, ADD_SHIELD)
+        self.tasks.print("Updated:", element_id, "for index:", 'shields')
 
     # Update Job data
     async def update_job(self, element_id : str) -> None:
@@ -1893,7 +1946,7 @@ class Updater():
             if self.count_file(data) > file_count:
                 jobs[element_id] = data
                 self.modified = True
-                self.addition[element_id] = ADD_JOB
+                self.add(element_id, ADD_JOB)
                 self.tasks.print("Updated:", element_id, "for index:", 'job')
                 self.remove_from_uncap_queue(element_id)
 
@@ -2364,9 +2417,9 @@ class Updater():
             self.modified = True
             match index:
                 case 'npcs':
-                    self.addition[element_id] = ADD_NPC
+                    self.add(element_id, ADD_NPC)
                 case 'characters'|'skins':
-                    self.addition[element_id] = ADD_CHAR
+                    self.add(element_id, ADD_CHAR)
             # valentine check
             if "_white" in existing or "_valentine" in existing and element_id not in self.data['valentines']:
                 self.data['valentines'][element_id] = 0
@@ -2595,12 +2648,12 @@ class Updater():
                         case 'events':
                             if data[element_id][EVENT_CHAPTER_COUNT] == -1:
                                 data[element_id][EVENT_CHAPTER_COUNT] = 0
-                            self.addition[element_id] = ADD_EVENT
+                            self.add(element_id, ADD_EVENT)
                             self.flags.add("found_event")
                         case 'story':
-                            self.addition[element_id] = ADD_STORY
+                            self.add(element_id, ADD_STORY)
                         case 'fate':
-                            self.addition[element_id] = ADD_FATE
+                            self.add(element_id, ADD_FATE)
                             self.flags.add("found_fate")
                     self.tasks.print("Updated:", element_id, "for index:", index)
                 # raise modified flag
@@ -3586,7 +3639,7 @@ class Updater():
                             continue
                         buffs[bid] = [[str(int(bid))], [ext]]
                         self.modified = True
-                        self.addition[bid] = ADD_BUFF
+                        self.add(bid, ADD_BUFF)
                         count += 1
                     elif ext not in buffs[bid][1]:
                         if not await self.head_nx("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/ui/icon/status/x64/status_" + icon + ".png"):
@@ -3594,7 +3647,7 @@ class Updater():
                         buffs[bid][1].append(ext)
                         buffs[bid][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
                         self.modified = True
-                        self.addition[bid] = ADD_BUFF
+                        self.add(bid, ADD_BUFF)
                         # do a full check of that buff (if it hasn't been done)
                         if bid not in checked:
                             checked.add(bid)
@@ -3708,7 +3761,7 @@ class Updater():
                     npcs[element_id][idx].append(url.format(element_id).split('/')[-1].split('.')[0])
                     self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
                     self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
-                    self.addition[element_id] = ADD_NPC
+                    self.add(element_id, ADD_NPC)
                     self.flags.add("found_character")
                     self.tasks.print("Found NPC:", element_id, "(Queuing secondary updates...)")
                     ts.bad() # to force stop the other tasks
@@ -3761,6 +3814,9 @@ class Updater():
                             file_estimation += len(v[WEAP_GENERAL]) * 9
                             file_estimation += len(v[WEAP_PHIT])
                             file_estimation += len(v[WEAP_SP])
+                        case "shields"|"manaturas":
+                            if v is None or v == 0: continue
+                            file_estimation += 3
                         case "job":
                             if v is None or v == 0: continue
                             file_estimation += len(v[JOB_ID]) * 5

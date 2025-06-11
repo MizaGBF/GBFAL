@@ -563,6 +563,23 @@
             ]
         },
         {
+            "name": "Accessories",
+            "icon": "../GBFML/assets/ui/icon/familiar.png",
+            "childs": [
+                {
+                    "name": "Shields",
+                    "target": "shields",
+                    "arg1": null,
+                    "reverse": 1
+                },
+                {
+                    "name": "Manaturas",
+                    "target": "manaturas",
+                    "reverse": 1
+                }
+            ]
+        },
+        {
             "name": "Main Character",
             "icon": "../GBFML/assets/ui/icon/classes.png",
             "target": "job",
