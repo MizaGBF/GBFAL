@@ -631,7 +631,7 @@ class Updater():
                     if len(keys) > 5: # and remove oldest
                         keys = keys[:5]
                     new = {k:new[k] for k in keys}
-                    self.addition = {} # clear self.addition
+                    self.addition = set() # clear self.addition
                 # update stat
                 if self.stat_string is not None:
                     stat = self.stat_string
