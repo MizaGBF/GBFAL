@@ -1742,6 +1742,13 @@
             "pad":1
         },
         {
+            "name":"Sky Compass Gallery",
+            "icon":"../GBFML/assets/ui/skycompass.png",
+            "target":"sky_title",
+            "pad":1,
+            "reverse":1
+        },
+        {
             "name":"Surprise Tickets",
             "icon":"../GBFML/assets/ui/icon/suptix.png",
             "target":"suptix",

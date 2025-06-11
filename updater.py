@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.28'
+VERSION = '3.29'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -40,7 +40,7 @@ ADD_BG = 10
 ADD_STORY = 11
 ADD_FATE = 12
 ADD_MYPAGE = 13 # unused by GBFAL
-ADD_SINGLE_ASSET = ["title", "subskills", "suptix", "mypage_bg"]
+ADD_SINGLE_ASSET = ["title", "subskills", "suptix", "mypage_bg", "sky_title"]
 # chara/skin/partner update
 CHARA_SPRITE = 0
 CHARA_PHIT = 1
@@ -472,6 +472,7 @@ class Updater():
             "background":{},
             "mypage_bg":{},
             "title":{},
+            "sky_title":{},
             "suptix":{},
             "lookup":{},
             'events':{},
@@ -848,6 +849,14 @@ class Updater():
         ts = TaskStatus(1000, 5)
         for i in range(3):
             self.tasks.add(self.search_generic, parameters=(ts, 'title', "{}", 1, ["img/sp/top/bg/bg_{}.jpg"]))
+        # titles
+        ts = TaskStatus(1000, 5)
+        for i in range(3):
+            self.tasks.add(self.search_generic, parameters=(ts, 'title', "{}", 1, ["img/sp/top/bg/bg_{}.jpg"]))
+        # sky compass title
+        ts = TaskStatus(1000, 8)
+        for i in range(2):
+            self.tasks.add(self.search_generic, parameters=(ts, 'sky_title', "{}", 1, ["assets/archives/galleries/{}/detail_s.png"], "https://media.skycompass.io/"))
         # subskills
         ts = TaskStatus(1000, 5)
         for i in range(3):
@@ -860,7 +869,7 @@ class Updater():
         await self.tasks.start()
 
     # generic search for assets
-    async def search_generic(self : Updater, ts : TaskStatus, index : str, file : str, zfill : int, paths : list[str]) -> None:
+    async def search_generic(self : Updater, ts : TaskStatus, index : str, file : str, zfill : int, paths : list[str], endpoint : str = ENDPOINT) -> None:
         data = self.data[index] # reference
         while not ts.complete:
             i : int = ts.get_next_index()
@@ -875,7 +884,7 @@ class Updater():
                 path : str
                 for j, path in enumerate(paths): # request for each path
                     try:
-                        await self.head(ENDPOINT + path.format(f))
+                        await self.head(endpoint + path.format(f))
                         ts.good()
                         self.tasks.print("Found:", f, "for index:", index)
                         data[f] = 0 # set data to 0 (until it's updated)
@@ -3721,7 +3730,7 @@ class Updater():
             scene_count = 0
             sound_count = 0
             file_estimation = 0
-            for t in ("characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "title", "suptix", 'events', "skills", "subskills", 'buffs', "story", "background", "mypage_bg"):
+            for t in ("characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "title", "sky_title", "suptix", 'events', "skills", "subskills", 'buffs', "story", "background", "mypage_bg"):
                 ref = self.data.get(t, {})
                 entity_count += len(ref.keys())
                 for k, v in ref.items():
@@ -3801,6 +3810,8 @@ class Updater():
                             if v is None or v == 0: continue
                             file_estimation += len(v[0])
                         case "mypage_bg":
+                            file_estimation += 1
+                        case "title"|"sky_title":
                             file_estimation += 1
                         case _:
                             file_estimation += 2
