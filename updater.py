@@ -624,7 +624,7 @@ class Updater():
                             if el not in existing:
                                 new[now].append(list(el))
                     else:
-                        new[now] = [str(el) for el in self.addition] # else just set new data
+                        new[now] = [list(el) for el in self.addition] # else just set new data
                     # sort keys
                     keys : list[str]= list(new.keys())
                     keys.sort(reverse=True)
