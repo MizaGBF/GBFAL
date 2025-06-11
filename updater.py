@@ -1030,7 +1030,7 @@ class Updater():
         i : int = int(element_id)
         fi : str = str(i)
         if buffs.get(element_id, 0) == 0: # init array
-            buffs[element_id] = [[], []]
+            buffs[element_id] = [[str(int(element_id))], []]
         known : set[str] = set(buffs.get(element_id, [[], []])[1])
         path : list[str] = [IMG, "sp/ui/icon/status/x64/status_", fi, "", ".png"]
         ts : TaskStatus = TaskStatus(1, 1, running=6)
