@@ -758,6 +758,7 @@ class Updater():
                 n : int
                 for n in range(3):
                     self.tasks.add(self.search_buff, parameters=(ts, ))
+        # manatura
         ts = TaskStatus(1000, 4)
         for i in range(4):
             self.tasks.add(self.search_manatura, parameters=(ts, ))
