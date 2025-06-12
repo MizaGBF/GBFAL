@@ -282,6 +282,10 @@ function lookup(id, allow_open=true) // check element validity and either load i
 					load_dummy(id, target, allow_open);
 				}
 			}
+			else if(isNaN(id))
+			{
+				search(id);
+			}
 			else
 			{
 				load_dummy(id, target, allow_open);
