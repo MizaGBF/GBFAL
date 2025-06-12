@@ -662,22 +662,18 @@ function load_assets_main(fragment, id, data, target, indexed, asset, files, mc_
 	// add mypage preview
 	if(asset.home ?? false)
 	{
-		let img = document.createElement("img");
-		img.src = "../GBFML/assets/ui/mypage.png";
-		img.classList.add("clickable");
-		img.classList.add("toggle-btn");
-		img.onclick = toggle_preview_home;
-		div.appendChild(img);
+		add_to(div, "img", {
+			cls:["clickable", "toggle-btn"],
+			onclick: toggle_preview_home
+		}).src = "../GBFML/assets/ui/mypage.png";
 	}
 	// add mypage preview
 	else if(asset.profile ?? false)
 	{
-		let img = document.createElement("img");
-		img.src = "assets/ui/profile.png";
-		img.classList.add("clickable");
-		img.classList.add("toggle-btn");
-		img.onclick = toggle_preview_profile;
-		div.appendChild(img);
+		add_to(div, "img", {
+			cls:["clickable", "toggle-btn"],
+			onclick: toggle_preview_home
+		}).src = "assets/ui/profile.png";
 	}
 	// for each path and file
 	for(const path of asset.paths)
