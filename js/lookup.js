@@ -203,63 +203,25 @@ function lookup(id, allow_open=true) // check element validity and either load i
 			return;
 		let type = gbf.lookup_string_to_element(id);
 		let target = null;
-		if(type == GBFType.unknown && id.length == 7 && id.substring(1) in index["events"]) // exception due to special events
+		// exception due to special events and fates
+		if(type == GBFType.unknown)
 		{
-			type = GBFType.event;
+			if(id.length == 7 && id.substring(1) in index["events"])
+				type = GBFType.event;
+			else if(id.length == 6 && id.startsWith("fa") && id.substring(2) in index["fate"])
+				type = GBFType.fate;
 		}
 		if(type != GBFType.unknown)
 		{
-			switch(type)
+			target = gbf.type_to_index(type);
+			if(target == "characters" && gbf.is_character_skin(id))
 			{
-				case GBFType.job:
-					target = "job";
-					break;
-				case GBFType.weapon:
-					target = "weapons";
-					break;
-				case GBFType.shield:
-					target = "shields";
-					break;
-				case GBFType.manatura:
-					target = "manaturas";
-					break;
-				case GBFType.summon:
-					target = "summons";
-					break;
-				case GBFType.character:
-					if(gbf.is_character_skin(id))
-						target = "skins";
-					else
-						target = "characters";
-					break;
-				case GBFType.enemy:
-					target = "enemies";
-					break;
-				case GBFType.npc:
-					target = "npcs";
-					break;
-				case GBFType.partner:
-					target = "partners";
-					break;
-				case GBFType.event:
-					target = "events";
-					break;
-				case GBFType.skill:
-					target = "skills";
-					break;
-				case GBFType.buff:
-					target = "buffs";
-					break;
-				case GBFType.story:
-					target = "story";
-					break;
-				case GBFType.fate:
-					target = "fate";
-					break;
-				default:
-					console.error("Unsupported type " + type);
-					break;
-			};
+				target = "skins";
+			}
+			else if(target == null)
+			{
+				console.error("Unsupported type " + type);
+			}
 			id = gbf.remove_prefix(id, type);
 		};
 		if(target != null && gbf.is_banned(id))
@@ -346,9 +308,9 @@ function load_assets(id, data, target, indexed, allow_open)
 	beep();
 	gbf.reset_endpoint();
 	let tmp_last_id = last_id;
-	let area_name = "";
 	let include_link = false;
-	let type = null;
+	let extra_links = [];
+	let type = gbf.index_to_type(target);
 	let assets = null;
 	let skycompass = null;
 	let mc_skycompass = false;
@@ -360,10 +322,9 @@ function load_assets(id, data, target, indexed, allow_open)
 	switch(target)
 	{
 		case "weapons":
-			area_name = "Weapon";
 			include_link = true;
+			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = id;
-			type = GBFType.weapon;
 			assets = [
 				{name:"Journal Arts", paths:[["sp/assets/weapon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:allow_open},
 				{name:"Miscellaneous Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"assets/ui/result_icon/other.png"},
@@ -379,30 +340,23 @@ function load_assets(id, data, target, indexed, allow_open)
 			melee = (id[4] == "6");
 			break;
 		case "shields":
-			area_name = "Shield";
-			include_link = true;
 			last_id = "sd"+id;
-			type = GBFType.shield;
 			assets = [
 				{name:"Various Portraits", paths:[["sp/assets/shield/m/", "jpg"], ["sp/assets/shield/s/", "jpg"]], icon:"assets/ui/result_icon/portrait.png", index:0, open:allow_open},
 				{name:"Sprites", paths:[["sp/cjs/shield_", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0, open:allow_open},
 			];
 			break;
 		case "manaturas":
-			area_name = "Manatura";
-			include_link = true;
 			last_id = "ma"+id;
-			type = GBFType.manatura;
 			assets = [
 				{name:"Various Portraits", paths:[["sp/assets/familiar/m/", "jpg"], ["sp/assets/familiar/s/", "jpg"]], icon:"assets/ui/result_icon/portrait.png", index:0, open:allow_open},
 				{name:"Sprites", paths:[["sp/cjs/familiar_", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0, open:allow_open},
 			];
 			break;
 		case "summons":
-			area_name = "Summon";
 			include_link = true;
+			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = id;
-			type = GBFType.summon;
 			assets = [
 				{name:"Journal Arts", paths:[["sp/assets/summon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:allow_open},
 				{name:"Home Page", paths:[["sp/assets/summon/my/", "png"]], index:0, icon:"assets/ui/result_icon/home.png", home:true},
@@ -418,10 +372,9 @@ function load_assets(id, data, target, indexed, allow_open)
 			break;
 		case "skins":
 		case "characters":
-			area_name = target == "characters" ? "Character" : "Skin";
 			include_link = true;
+			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = id;
-			type = GBFType.character;
 			assets = [
 				{name:"Main Arts", paths:[["sp/assets/npc/zoom/", "png"]], index:5, icon:"assets/ui/result_icon/art.png", skycompass:true, form:false, open:allow_open},
 				{name:"Home Page", paths:[["sp/assets/npc/my/", "png"]], index:5, icon:"assets/ui/result_icon/home.png", form:false, home:true},
@@ -455,10 +408,8 @@ function load_assets(id, data, target, indexed, allow_open)
 			sounds = data[8];
 			break;
 		case "partners":
-			area_name = "Partner";
 			include_link = true;
 			last_id = id;
-			type = GBFType.partner;
 			assets = [
 				{name:"Party Portraits", paths:[["sp/assets/npc/quest/", "jpg"]], index:5, icon:"assets/ui/result_icon/portrait.png", form:false, open:allow_open},
 				{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"assets/ui/result_icon/battle.png"},
@@ -471,10 +422,8 @@ function load_assets(id, data, target, indexed, allow_open)
 			];
 			break;
 		case "npcs":
-			area_name = "NPC";
 			include_link = data[0];
 			last_id = id;
-			type = GBFType.npc;
 			assets = [
 				{name:"Portrait", paths:[["sp/assets/npc/m/", "jpg"]], index:-1, icon:"assets/ui/result_icon/portrait.png", open:allow_open},
 				{name:"Arts", paths:[["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], icon:"assets/ui/result_icon/art.png", index:-1, open:allow_open}
@@ -485,9 +434,9 @@ function load_assets(id, data, target, indexed, allow_open)
 			files = [id, id + "_01"];
 			break;
 		case "enemies":
-			area_name = "Enemy";
+			include_link = true;
+			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = "e"+id;
-			type = GBFType.enemy;
 			assets = [
 				{name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:0, icon:"assets/ui/result_icon/eicon.png", open:allow_open},
 				{name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"assets/ui/result_icon/appear.png", open:allow_open},
@@ -498,11 +447,10 @@ function load_assets(id, data, target, indexed, allow_open)
 			];
 			break;
 		case "job":
-			area_name = "Main Character";
 			include_link = true;
+			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			indexed = (data[7].length != 0) && indexed;
 			last_id = id;
-			type = GBFType.job;
 			assets = [
 				{name:"Icon", paths:[["sp/ui/icon/job/", "png"]], index:0, icon:"assets/ui/result_icon/jicon.png", open:allow_open},
 				{name:"Portraits", paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:1, icon:"assets/ui/result_icon/portrait.png", open:allow_open},
@@ -528,18 +476,13 @@ function load_assets(id, data, target, indexed, allow_open)
 			mc_skycompass = true;
 			break;
 		case "story":
-			let recap = gbf.msq_recap_lookup(id);
-			area_name = recap != null ? recap : "Main Story Chapter";
 			last_id = "ms"+id;
-			type = GBFType.story;
 			assets = [
 				{name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"assets/ui/result_icon/art.png", open:allow_open}
 			];
 			break;
 		case "fate":
-			area_name = "Fate Episode";
 			last_id = "fa"+id;
-			type = GBFType.fate;
 			assets = [
 				{name:"Base Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"assets/ui/result_icon/art.png", open:allow_open},
 				{name:"Uncap Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:1, icon:"assets/ui/result_icon/v_uncap.png", open:allow_open},
@@ -548,7 +491,6 @@ function load_assets(id, data, target, indexed, allow_open)
 			];
 			break;
 		case "events":
-			area_name = "Event";
 			last_id = "q"+id;
 			type = GBFType.event;
 			assets = [
@@ -580,18 +522,14 @@ function load_assets(id, data, target, indexed, allow_open)
 			skycompass = ["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png", true];
 			break;
 		case "skills":
-			area_name = "Skill";
 			last_id = "sk"+id;
-			type = GBFType.skill;
 			assets = [
 				{name:"Skill Icons", paths:[["sp/ui/icon/ability/m/", "png"]], index:-1, icon:"assets/ui/result_icon/ability.png", open:allow_open},
 			];
 			files = [""+parseInt(id), ""+parseInt(id)+"_1", ""+parseInt(id)+"_2", ""+parseInt(id)+"_3", ""+parseInt(id)+"_4", ""+parseInt(id)+"_5"];
 			break;
 		case "buffs":
-			area_name = "Buff";
 			last_id = "b"+id;
-			type = GBFType.buff;
 			assets = [
 				{name:"Icons", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:1, icon:"assets/ui/result_icon/buff.png", open:allow_open, file:data[0]}
 			];
@@ -610,8 +548,23 @@ function load_assets(id, data, target, indexed, allow_open)
 	}
 	// cleanup output and create fragment
 	let fragment = document.createDocumentFragment();
-	// create headers
-	prepare_output_and_header(fragment, area_name, id, target, type, data, include_link, indexed);
+	// open tab
+	document.getElementById("tab-view").style.display = null;
+	open_tab("view");
+	// create header
+	build_header(
+		fragment,
+		{
+			id:id,
+			target:target,
+			navigation:true,
+			navigation_special_targets:["story", "fate", "events"],
+			lookup:true,
+			related:true,
+			link:include_link,
+			extra_links:extra_links
+		}
+	);
 	// add assets
 	for(let i = 0; i < assets.length; ++i)
 	{
@@ -639,6 +592,7 @@ function load_assets(id, data, target, indexed, allow_open)
 		}
 		output.innerHTML = "";
 		output.appendChild(fragment);
+		output.scrollIntoView();
 	});
 }
 
@@ -846,372 +800,6 @@ function load_assets_sound(fragment, id, sounds)
 	return first;
 }
 
-function prepare_output_and_header(fragment, name, id, target, type, data, include_link, indexed) // prepare the output element by cleaning it up and create its header
-{
-	// open tab
-	document.getElementById("tab-view").style.display = null;
-	open_tab("view");
-	// create header
-	let div = (name == "Event") ? add_result_header(fragment, "Result Header", name + ": " + id + (isNaN(id.slice(1)) ? "" : " (20"+id.substring(0,2)+"/"+id.substring(2,4)+"/"+id.substring(4,6)+")")) : add_result_header(fragment, "Result Header", name + ": " + id);
-	// add next/previous
-	if(indexed)
-	{
-		let keys = Object.keys(index[target]);
-		if(keys.length > 0)
-		{
-			keys.sort();
-			const c = keys.indexOf(id);
-			let next = 0;
-			let previous = 0;
-			switch(type)
-			{
-				case 11: case 12: case 7: // story, fate, event
-					let si = type == 7 ? 2 : 0; // event check index 2, others 0
-					let valid = false;
-					next = c;
-					while(!valid)
-					{
-						next = (next + 1) % keys.length;
-						if(index[target][keys[next]] !== 0)
-						{
-							for(let i = si; i < index[target][keys[next]].length; ++i)
-							{
-								if(index[target][keys[next]][i].constructor === Array && index[target][keys[next]][i].length > 0)
-								{
-									valid = true;
-									break;
-								}
-							}
-						}
-					}
-					valid = false;
-					previous = c;
-					while(!valid)
-					{
-						previous = (previous + keys.length - 1) % keys.length;
-						if(index[target][keys[previous]] !== 0)
-						{
-							for(let i = si; i < index[target][keys[previous]].length; ++i)
-							{
-								if(index[target][keys[next]][i].constructor === Array && index[target][keys[previous]][i].length > 0)
-								{
-									valid = true;
-									break;
-								}
-							}
-						}
-					}
-					break;
-				default:
-					next = (c + 1) % keys.length;
-					previous = (c + keys.length - 1) % keys.length;
-					break;
-			}
-			if(next != c)
-			{
-				let span = document.createElement('span');
-				span.classList.add("navigate-element");
-				span.classList.add("navigate-element-left");
-				div.appendChild(span);
-				list_elements(span, [[keys[previous], type]], index_onclick);
-				span = document.createElement('span');
-				span.classList.add("navigate-element");
-				span.classList.add("navigate-element-right");
-				div.appendChild(span);
-				list_elements(span, [[keys[next], type]], index_onclick);
-			}
-		}
-	}
-	// get chara id if partner
-	let lid = id;
-	if(name == "Partner")
-	{
-		let cid = "30" + id.slice(2);
-		if("characters" in index && cid in index["characters"])
-			lid = cid;
-	}
-	// get chara id if fate episode
-	else if(name.includes("Fate") && data[4] != null)
-	{
-		div.appendChild(document.createElement('br')); // space
-		let cid = data[4].split("_")[0];
-		if("characters" in index && cid in index["characters"])
-			lid = cid;
-	}
-	let did_lookup = false;
-	// include wiki link
-	if(include_link)
-	{
-		let l = document.createElement('a');
-		try
-		{
-			if(lid in index["lookup"] && index["lookup"][lid].includes("@@"))
-			{
-				const idn = index["lookup"][lid].split("@@")[1].split(" ")[0];
-				l.setAttribute('href', "https://gbf.wiki/" + idn);
-				l.title = "Wiki page for " + idn.replaceAll("_", " ");
-			}
-			else throw new Error('Element not indexed');
-		} catch(err) {
-			l.setAttribute('href', "https://gbf.wiki/index.php?title=Special:Search&search=" + id);
-			l.title = "Wiki search for " + id;
-		}
-		let img = document.createElement('img');
-		img.src = "../GBFML/assets/ui/icon/wiki.png";
-		img.classList.add("img-link");
-		l.appendChild(img);
-		div.appendChild(l);
-		did_lookup = true;
-	}
-	// include GBFAP link if element is compatible
-	if((id.length == 10 && ["302", "303", "304", "371", "101", "102", "103", "104", "201", "202", "203", "204", "290"].includes(id.slice(0, 3))) || (id.length == 6 && name == "Main Character") || (id.length == 7 && name == "Enemy"))
-	{
-		let uncaps = [""];
-		if(["101", "102", "103", "104"].includes(id.slice(0, 3))) // get weapon uncaps to add additional links
-		{
-			for(let e of data[0])
-				if(e != id)
-					uncaps.push(e.replace(id, ""));
-		}
-		for(let u of uncaps)
-		{
-			let l = document.createElement('a');
-			l.setAttribute('href', "https://mizagbf.github.io/GBFAP/?id=" + id + u);
-			l.title = "Animations for " + id + u;
-			let img = document.createElement('img');
-			img.src = "../GBFAP/assets/icon.png";
-			img.classList.add("img-link");
-			l.appendChild(img);
-			div.appendChild(l);
-		}
-		did_lookup = true;
-	}
-	// add tags if they exist
-	if(lid in index["lookup"] && index["lookup"][lid].split(' ').length > 0)
-	{
-		div.appendChild(document.createElement('br'));
-		let prev = "";
-		let missing = false;
-		for(const t of index["lookup"][lid].split(' '))
-		{
-			if(t.substring(0, 2) == "@@" || t == "") continue;
-			if(t == prev) continue; // avoid repetitions
-			prev = t;
-			let i = document.createElement('i');
-			i.classList.add("tag");
-			i.classList.add("clickable");
-			switch(t)
-			{
-				case "ssr": case "sr": case "r": case "n": i.appendChild(document.createTextNode(t.toUpperCase())); break;
-				default:
-					if(t == lid && lid != id) i.appendChild(document.createTextNode(id));
-					else if(t.length == 1) i.appendChild(document.createTextNode(t.toUpperCase()));
-					else i.appendChild(document.createTextNode(t.charAt(0).toUpperCase() + t.slice(1)));
-					break;
-			}
-			switch(t.toLowerCase())
-			{
-				case "ssr": case "grand": case "providence": case "optimus": case "dynamis": case "archangel": case "opus": case "xeno": case "exo": i.classList.add("tag-gold"); break;
-				case "missing-help-wanted": missing = true; i.classList.add("tag-gold"); break;
-				case "sr": case "militis": case "voiced": case "voice-only": i.classList.add("tag-silver"); break;
-				case "r": i.classList.add("tag-bronze"); break;
-				case "n": case "gran": case "djeeta": case "null": case "unknown-element": case "unknown-boss": i.classList.add("tag-normal"); break;
-				case "fire": case "dragon-boss": case "elemental-boss": case "other-boss": i.classList.add("tag-fire"); break;
-				case "water": case "fish-boss": case "core-boss": case "aberration-boss": i.classList.add("tag-water"); break;
-				case "earth": case "beast-boss": case "golem-boss": case "machine-boss": case "goblin-boss": i.classList.add("tag-earth"); break;
-				case "wind": case "flying-boss": case "plant-boss": case "insect-boss": case "wyvern-boss": i.classList.add("tag-wind"); break;
-				case "light": case "people-boss": case "fairy-boss": case "primal-boss": i.classList.add("tag-light"); break;
-				case "dark": case "monster-boss": case "otherworld-boss": case "undead-boss": case "reptile-boss": i.classList.add("tag-dark"); break;
-				case "cut-content": case "trial": i.classList.add("tag-cut-content"); break;
-				case "sabre": case "sword": case "spear": case "dagger": case "axe": case "staff": case "melee": case "gun": case "bow": case "harp": case "katana": i.classList.add("tag-weaptype"); break;
-				case "summer": i.classList.add("tag-series-summer"); break;
-				case "yukata": i.classList.add("tag-series-yukata"); break;
-				case "valentine": i.classList.add("tag-series-valentine"); break;
-				case "halloween": i.classList.add("tag-series-halloween"); break;
-				case "holiday": i.classList.add("tag-series-holiday"); break;
-				case "12generals": i.classList.add("tag-series-zodiac"); break;
-				case "fantasy": i.classList.add("tag-series-fantasy"); break;
-				case "collab": i.classList.add("tag-series-collab"); break;
-				case "eternals": i.classList.add("tag-series-eternal"); break;
-				case "evokers": i.classList.add("tag-series-evoker"); break;
-				case "4saints": i.classList.add("tag-series-saint"); break;
-				case "male": i.classList.add("tag-gender0"); break;
-				case "female": i.classList.add("tag-gender1"); break;
-				case "other": i.classList.add("tag-gender2"); break;
-				case "human": i.classList.add("tag-race0"); break;
-				case "draph": i.classList.add("tag-race1"); break;
-				case "erune": i.classList.add("tag-race2"); break;
-				case "harvin": i.classList.add("tag-race3"); break;
-				case "primal": i.classList.add("tag-race4"); break;
-				case "unknown": i.classList.add("tag-race5"); break;
-				case "balanced": i.classList.add("tag-type0"); break;
-				case "attack": i.classList.add("tag-type1"); break;
-				case "defense": i.classList.add("tag-type2"); break;
-				case "heal": i.classList.add("tag-type3"); break;
-				case "special": i.classList.add("tag-type4"); break;
-				default: break;
-			}
-			i.onclick = function() {
-				if(window.event.ctrlKey)
-				{
-					let f = document.getElementById('filter');
-					f.value = t + " " + f.value;
-					lookup(f.value);
-				}
-				else
-				{
-					lookup(t);
-				}
-			};
-			div.appendChild(i);
-			div.appendChild(document.createTextNode(" "));
-		}
-		if(missing && help_form != null)
-		{
-			let a = document.createElement("a");
-			a.href = help_form;
-			a.innerHTML = "Submit name";
-			div.appendChild(a);
-		}
-		did_lookup = true;
-	}
-	// add non indexed warning if it's not indexed
-	if(!indexed)
-	{
-		div.appendChild(document.createElement('br'));
-		div.appendChild(document.createTextNode("This element isn't indexed, assets will be missing"));
-	}
-	// add related partner and weapon for character
-	else if(name == "Character")
-	{
-		if(id in index["premium"] && index["premium"][id] != null)
-		{
-			if(did_lookup) div.appendChild(document.createElement('br'));
-			div.appendChild(document.createTextNode("Unlock Weapon:"));
-			div.appendChild(document.createElement('br'));
-			let i = document.createElement('i');
-			i.classList.add("clickable");
-			i.onclick = function() {
-				lookup(index["premium"][id]);
-			};
-			div.appendChild(i);
-			list_elements(i, [[index["premium"][id], 1]], index_onclick);
-		}
-		let cid = "38" + id.slice(2);
-		if("partners" in index && cid in index["partners"])
-		{
-			if(did_lookup) div.appendChild(document.createElement('br'));
-			div.appendChild(document.createTextNode("Partner Version:"));
-			div.appendChild(document.createElement('br'));
-			let i = document.createElement('i');
-			i.classList.add("clickable");
-			i.onclick = function() {
-				lookup(cid);
-			};
-			div.appendChild(i);
-			list_elements(i, [[cid, 6]], index_onclick);
-		}
-	}
-	// add related character for weapon
-	else if(name == "Weapon")
-	{
-		if(id in index["premium"] && index["premium"][id] != null)
-		{
-			if(did_lookup) div.appendChild(document.createElement('br'));
-			div.appendChild(document.createTextNode("Unlock Character:"));
-			div.appendChild(document.createElement('br'));
-			let i = document.createElement('i');
-			i.classList.add("clickable");
-			i.onclick = function() {
-				lookup(index["premium"][id]);
-			};
-			div.appendChild(i);
-			list_elements(i, [[index["premium"][id], 3]], index_onclick);
-		}
-	}
-	// add related character for partner
-	else if(name == "Partner") // partner chara matching
-	{
-		let cid = "30" + id.slice(2);
-		if("characters" in index && cid in index["characters"])
-		{
-			if(did_lookup) div.appendChild(document.createElement('br'));
-			div.appendChild(document.createTextNode("Associated Character:"));
-			div.appendChild(document.createElement('br'));
-			let i = document.createElement('i');
-			i.classList.add("clickable");
-			i.onclick = function() {
-				lookup(cid);
-			};
-			div.appendChild(i);
-			list_elements(i, [[cid, 3]], index_onclick);
-		}
-	}
-	// add related character for fate episodes
-	else if(name.includes("Fate") && data[4] != null) // partner chara matching
-	{
-		let cid = data[4];
-		let strname = "";
-		let lindex = 0;
-		if(cid.startsWith("30") && "characters" in index && cid in index["characters"])
-		{
-			lindex = 3;
-			strname = "Associated Character:";
-		}
-		else if(cid.startsWith("20") && "summons" in index && cid in index["summons"])
-		{
-			lindex = 2;
-			strname = "Associated Summon:";
-		}
-		if(strname != "")
-		{
-			if(did_lookup) div.appendChild(document.createElement('br'));
-			div.appendChild(document.createTextNode(strname));
-			div.appendChild(document.createElement('br'));
-			let i = document.createElement('i');
-			i.classList.add("clickable");
-			i.onclick = function() {
-				lookup(cid);
-			};
-			div.appendChild(i);
-			list_elements(i, [[cid, lindex]], index_onclick);
-		}
-	}
-	// add event thumbnail
-	else if(name == "Event") // event
-	{
-		if("events" in index && id in index["events"] && index["events"][id][1] != null)
-		{
-			let img = document.createElement("img");
-			img.src = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/archive/assets/island_m2/"+index["events"][id][1]+".png";
-			div.appendChild(img);
-		}
-	}
-	// fate
-	if("fate" in index && ["Character", "Summon"].includes(name))
-	{
-		for(const [key, val] of Object.entries(index["fate"]))
-		{
-			if(val.length > 4 && val[4] == id && val[0].length+val[1].length+val[2].length+val[3].length > 0)
-			{
-				if(did_lookup) div.appendChild(document.createElement('br'));
-				div.appendChild(document.createTextNode("Fate Episode:"));
-				div.appendChild(document.createElement('br'));
-				let i = document.createElement('i');
-				i.classList.add("clickable");
-				i.onclick = function() {
-					lookup("fa"+key);
-				};
-				div.appendChild(i);
-				list_elements(i, [[key, 12]], index_onclick);
-				break;
-			}
-		}
-	}
-	// scroll to output
-	div.scrollIntoView();
-}
-
 function add_result(fragment, identifier, name, icon, open=false) // add an asset category
 {
 	let details = document.createElement("details");
@@ -1235,18 +823,6 @@ function add_result(fragment, identifier, name, icon, open=false) // add an asse
 	details.appendChild(summary);
 	details.appendChild(div);
 	fragment.appendChild(details);
-	return div;
-}
-
-function add_result_header(fragment, identifier, name) // add an asset category
-{
-	let div = document.createElement("div");
-	div.classList.add("container");
-	div.classList.add("container-header");
-	div.setAttribute("data-id", identifier);
-	div.appendChild(document.createTextNode(name));
-	div.appendChild(document.createElement("br"));
-	fragment.appendChild(div);
 	return div;
 }
 
@@ -1433,6 +1009,7 @@ function add_sound(div, id, sound) // add a sound asset
 	return elem;
 }
 
+// random button
 function random_lookup()
 {
 	const targets = ["characters", "summons", "weapons", "enemies", "skins", "job", "npcs"]; // limited to these caregories
@@ -1467,4 +1044,48 @@ function random_lookup()
 			}
 		}
 	}
+}
+
+// build header callback
+function get_special_navigation_indexes(id, target, key_index, keys)
+{
+	let si = target == "events" ? 2 : 0;
+	let next = key_index;
+	let previous = key_index;
+	
+	let valid = false;
+	next = key_index;
+	while(!valid)
+	{
+		next = (next + 1) % keys.length;
+		if(index[target][keys[next]] !== 0)
+		{
+			for(let i = si; i < index[target][keys[next]].length; ++i)
+			{
+				if(index[target][keys[next]][i].constructor === Array && index[target][keys[next]][i].length > 0)
+				{
+					valid = true;
+					break;
+				}
+			}
+		}
+	}
+	valid = false;
+	previous = key_index;
+	while(!valid)
+	{
+		previous = (previous + keys.length - 1) % keys.length;
+		if(index[target][keys[previous]] !== 0)
+		{
+			for(let i = si; i < index[target][keys[previous]].length; ++i)
+			{
+				if(index[target][keys[next]][i].constructor === Array && index[target][keys[previous]][i].length > 0)
+				{
+					valid = true;
+					break;
+				}
+			}
+		}
+	}
+	return [previous, next];
 }
