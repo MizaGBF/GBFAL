@@ -227,7 +227,7 @@ function lookup(id, allow_open=true) // check element validity and either load i
 		if(target != null && gbf.is_banned(id))
 			return;
 		// cleanup search results if not relevant to current id
-		clean_search_if_not(id)
+		clean_search_if_not(id);
 		// remove fav button before loading
 		init_bookmark_button(false);
 		// execute
