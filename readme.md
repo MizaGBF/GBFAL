@@ -28,6 +28,17 @@ Others JSON files are used for debug or update purpose:
   
 More JSON files not specified here might appear in this folder, for development or testing purpose.  
   
+# Folder Structure  
+The project requires [GBFML](https://github.com/MizaGBF/GBFML) to be alongside it.  
+It can also benefit from having [GBFAP](https://github.com/MizaGBF/GBFAP) too.  
+The folder structure on the server is as such:  
+```
+Root Folder/
+├── GBFAL/
+├── GBFML/
+└── GBFAP/ (Optional)
+```
+  
 ## [updater.py](https://github.com/MizaGBF/GBFAL/blob/main/updater.py)  
 This script is in charge of updating the JSON files.  
 > [!CAUTION]  
