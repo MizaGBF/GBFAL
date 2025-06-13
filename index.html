@@ -33,20 +33,25 @@
 <body onload="init()">
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>v10.6</div>
+		<div>v10.7</div>
 		<div id="timestamp"></div>
 	</div>
+	<!-- Know issues -->
 	<div id="issues" style="display:none">
 		<h3>Known Issues</h3>
 	</div>
+	<!-- Notice -->
 	<div id="notice" style="display:none">
 	</div>
+	<!-- Top section -->
 	<div class="navigation clickable" onclick="window.scroll(0, document.body.scrollHeight);">▼</div>
-	<input type="text" id="filter" onkeydown="typying()" onkeyup="filter()" placeholder="Input an ID or Tag">
+	<input type="text" id="filter" onkeydown="typying()" onkeyup="filter()" placeholder="Search">
 	<button id="fav-btn" style="display:none">☆</button>
 	<br>
+	<!-- Search results -->
 	<div id="results" class="container" style="display:none"></div>
 	<br>
+	<!-- Tab buttons -->
 	<div class="margin">
 		<button class="tab-button" id="tab-index" onclick="open_tab('index')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/index.png" />Index</button>
 		<button class="tab-button" id="tab-view" onclick="open_tab('view')", style="display:none"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/view.png" />Assets</button>
@@ -55,11 +60,13 @@
 		<button class="tab-button" id="tab-bookmark" onclick="open_tab('bookmark')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/bookmark.png" />Bookmarks</button>
 		<button class="tab-button" id="tab-about" onclick="open_tab('about')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/about.png" />About</button>
 	</div>
-	<div class="margin-element">
+	<!-- Mini buttons -->
+	<div class="margin">
 		<a class="mini-btn" href="spark.html" title="Spark Maker"><img class="mini-btn-icon" src="assets/ui/moon.png" /></a>
 		<a class="mini-btn" title="Random Element" onclick="random_lookup();"><img class="mini-btn-icon" src="assets/ui/random.png" /></a>
 		<a class="mini-btn" href="../GBFAP" title="Animation Player"><img class="mini-btn-icon" src="../GBFAP/assets/icon.png" /></a>
 	</div>
+	<!-- Index tab -->
 	<div id="index" class="tab-content" style="display:none">
 		<div class="container">
 			<div>
@@ -68,16 +75,21 @@
 			<img src="../GBFML/assets/ui/loading.gif">
 		</div>
 	</div>
+	<!-- Asset tab -->
 	<div id="view" class="tab-content" style="display:none">
 		<div id="output" class="container">
 		</div>
 	</div>
+	<!-- Updated tab -->
 	<div id="new" class="tab-content container" style="display:none">
 	</div>
+	<!-- History tab -->
 	<div id="history" class="tab-content container" style="display:none">
 	</div>
+	<!-- Bookmark tab -->
 	<div id="bookmark" class="tab-content container" style="display:none">
 	</div>
+	<!-- About tab -->
 	<div id="about" class="tab-content container" style="display:none">
 		<h3>&#x2022; What is this?</h3>
 		<p>This page catalogs assets for the mobile game <a href="https://game.granbluefantasy.jp/">Granblue Fantasy</a>.<br>Users often find themselves tinkering with URLs or utilizing Google Chrome Dev Tools when attempting to retrieve specific art pieces.<br>Please acknowledge that assets could potentially become inaccessible or undergo modifications at the discretion of Cygames.</p>
