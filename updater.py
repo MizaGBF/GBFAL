@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.30'
+VERSION = '3.31'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -3680,6 +3680,40 @@ class Updater():
         except:
             pass
 
+    # Called by maintenanceraidappear, maintenance or process_flags
+    async def maintenance_raid_appear(self : Updater) -> None:
+        if "maintenanceraidappear" in self.flags:
+            return
+        self.flags.add("maintenanceraidappear")
+        self.tasks.print("Starting tasks to update known enemies raid appear animations...")
+        for element_id in self.data['enemies']:
+            if not isinstance(self.data['enemies'][element_id], int):
+                self.tasks.add(self.update_enemy_appear, parameters=(element_id,))
+        await self.tasks.start()
+
+    # maintenance_raid_appear() subroutine
+    async def update_enemy_appear(self : Updater, element_id : str) -> None: # subroutine
+        existing : list[str] = self.data["enemies"][element_id][BOSS_APPEAR]
+        appear : list[str] = []
+        for k in ("", "_2", "_3", "_4", "_5", "_shade"):
+            try:
+                fn = "raid_appear_{}{}".format(element_id, k)
+                lfn = len(fn)
+                found = False
+                for f in existing:
+                    if f.startswith(fn) and f[lfn:lfn+2] in {".p", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j"}: # to ensure raid_appear isn't matching raid_appear_2
+                        found = True
+                        appear.append(f)
+                if not found:
+                    appear += await self.processManifest(fn)
+            except:
+                pass
+        if len(appear) != len(existing):
+            self.data["enemies"][element_id][BOSS_APPEAR] = appear
+            self.add(element_id, ADD_BOSS)
+            self.tasks.print("New appear animations for ", element_id)
+            self.tasks.print(appear, existing)
+
     # Called by maintenancesky, maintenance or process_flags
     async def maintenance_event_skycompass(self : Updater) -> None:
         if "maintenance_event_skycompass" in self.flags:
@@ -3924,6 +3958,7 @@ class Updater():
             if "found_event" in self.flags and "checking_event_related" not in self.flags:
                 self.flags.add("checking_event_related")
                 self.tasks.add(self.maintenance_npc_thumbnail, priority=0)
+                self.tasks.add(self.maintenance_raid_appear, priority=0)
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
 
@@ -4093,6 +4128,7 @@ class Updater():
             maintenance.add_argument('-mb', '--maintenancebuff', help="maintenance task to check existing buffs for new icons.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-ms', '--maintenancesky', help="maintenance task to check sky compass arts for existing events.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-mu', '--maintenancenpcthumbnail', help="maintenance task to check NPC thumbnails for existing NPCs.", action='store_const', const=True, default=False, metavar='')
+            maintenance.add_argument('-mr', '--maintenanceraidappear', help="maintenance task to check Enemy Raid Appear spritesheets.", action='store_const', const=True, default=False, metavar='')
             maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
             
             settings = parser.add_argument_group('settings', 'commands to alter the updater behavior.')
@@ -4188,6 +4224,7 @@ class Updater():
                 self.tasks.print("Performing maintenance...")
                 self.tasks.add(self.maintenance_buff)
                 self.tasks.add(self.maintenance_npc_thumbnail)
+                self.tasks.add(self.maintenance_raid_appear)
                 self.tasks.add(self.maintenance_event_skycompass)
                 await self.tasks.start()
             elif args.maintenancebuff:
@@ -4200,6 +4237,9 @@ class Updater():
             elif args.maintenancenpcthumbnail:
                 self.tasks.print("Performing maintenance...")
                 await self.maintenance_npc_thumbnail()
+            elif args.maintenanceraidappear:
+                self.tasks.print("Performing maintenance...")
+                await self.maintenance_raid_appear()
             elif args.json:
                 await self.lookup()
                 self.update_manual_fate()
