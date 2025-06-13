@@ -37,7 +37,8 @@ Root Folder/
 ├── GBFAL/
 ├── GBFML/
 └── GBFAP/ (Optional)
-```
+```  
+If you wish to run a test server with Python for example, uses `python -m http.server` in the Root Folder.  
   
 ## [updater.py](https://github.com/MizaGBF/GBFAL/blob/main/updater.py)  
 This script is in charge of updating the JSON files.  
