@@ -222,6 +222,10 @@ td {
 	background: #004080;
 }
 
+.spark-ui-button:active {
+	animation: animation-button-press 0.1s;
+}
+
 .spark-btn-icon {
 	height: 95%;
 }
