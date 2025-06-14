@@ -326,7 +326,7 @@ function load_assets(id, data, target, indexed, allow_open)
 			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = id;
 			assets = [
-				{name:"Journal Arts", paths:[["sp/assets/weapon/b/", "png"]], index:0, skycompass:true, icon:"assets/ui/result_icon/journal.png", open:allow_open},
+				{name:"Journal Arts", paths:[["sp/assets/weapon/b/", "png"]], index:0, icon:"assets/ui/result_icon/journal.png", open:allow_open},
 				{name:"Miscellaneous Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"assets/ui/result_icon/other.png"},
 				{name:"Various Portraits", paths:[["sp/assets/weapon/m/", "jpg"], ["sp/assets/weapon/s/", "jpg"], ["sp/assets/weapon/ls/", "jpg"]], icon:"assets/ui/result_icon/portrait.png", index:0},
 				{name:"Sprites", paths:[["sp/cjs/", "png"]], icon:"assets/ui/result_icon/sprite.png", index:0},
@@ -368,7 +368,11 @@ function load_assets(id, data, target, indexed, allow_open)
 				{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"assets/ui/result_icon/home.png"},
 				{name:"Quest Portraits", paths:[["sp/assets/summon/qm/", "png"]], index:-7, icon:"assets/ui/result_icon/quest.png", break:true, lazy:false}
 			];
-			skycompass = ["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false];
+			skycompass = [
+				["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false],
+				["https://media.skycompass.io/assets/archives/summons/", "/detail_s.png", false],
+				["https://media.skycompass.io/assets/archives/summons/", "/list.png", false]
+			];
 			break;
 		case "skins":
 		case "characters":
@@ -403,7 +407,9 @@ function load_assets(id, data, target, indexed, allow_open)
 				assets[3].paths.push(["sp/event/common/terra/top/assets/story/btnbnr_", "png"]);
 				assets[20].paths.push(["sp/coaching/assets/eternals/", "png"]);
 			}
-			skycompass = ["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true];
+			skycompass = [
+				["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true]
+			];
 			npcdata = data[7];
 			sounds = data[8];
 			break;
@@ -472,7 +478,9 @@ function load_assets(id, data, target, indexed, allow_open)
 				{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:12, icon:"assets/ui/result_icon/lock.png"},
 				{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], index:-5, icon:"assets/ui/result_icon/custom.png", break:true, lazy:false}
 			];
-			skycompass = ["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true];
+			skycompass = [
+				["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true]
+			];
 			mc_skycompass = true;
 			break;
 		case "story":
@@ -519,7 +527,9 @@ function load_assets(id, data, target, indexed, allow_open)
 				{name:"Ending", paths:[["sp/quest/scene/character/body/", "png"]], index:3, icon:"assets/ui/result_icon/scene.png"},
 				{name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:4, icon:"assets/ui/result_icon/art.png", open:allow_open}
 			];
-			skycompass = ["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png", true];
+			skycompass = [
+				["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png", true]
+			];
 			break;
 		case "skills":
 			last_id = "sk"+id;
@@ -690,7 +700,8 @@ function load_assets_main(fragment, id, data, target, indexed, asset, files, mc_
 			}
 			if(skycompass != null && (asset.skycompass ?? false) && path == asset.paths[0]) // skycompass
 			{
-				add_image_skycompass(div, file, id, data, asset, skycompass, mc_skycompass);
+				for(const skyasset of skycompass)
+					add_image_skycompass(div, file, id, data, asset, skyasset, mc_skycompass);
 			}
 		}
 	}
