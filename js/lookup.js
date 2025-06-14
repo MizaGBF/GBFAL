@@ -672,7 +672,7 @@ function load_assets_main(fragment, id, data, target, indexed, asset, files, mc_
 	{
 		add_to(div, "img", {
 			cls:["clickable", "toggle-btn"],
-			onclick: toggle_preview_home
+			onclick: toggle_preview_profile
 		}).src = "assets/ui/profile.png";
 	}
 	// for each path and file
