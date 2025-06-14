@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.31'
+VERSION = '3.32'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -552,8 +552,7 @@ class Updater():
                 self.modified = False
                 # remove dupes from queues
                 for k in QUEUE_KEY:
-                    self.data[k] = list(set(self.data[k]))
-                    self.data[k].sort()
+                    self.data[k] = list(dict.fromkeys(self.data[k]))
                 # json.dump isn't used to keep the file small AND easily editable by hand
                 with open('json/data.json', mode='w', encoding='utf-8') as outfile:
                     # custom json indentation
@@ -1383,6 +1382,7 @@ class Updater():
                     data[SUM_CALL] += await self.processManifest(fn)
                 except:
                     pass
+        data[SUM_CALL] = list(dict.fromkeys(data[SUM_CALL]))
         # damage
         try:
             data[SUM_DAMAGE] += await self.processManifest("summon_{}".format(element_id)) # old summons
@@ -1395,6 +1395,7 @@ class Updater():
                     data[SUM_DAMAGE] += await self.processManifest(fn)
                 except:
                     pass
+        data[SUM_DAMAGE] = list(dict.fromkeys(data[SUM_DAMAGE]))
         # mypage
         for u in uncaps:
             try:
@@ -1404,6 +1405,7 @@ class Updater():
                 data[SUM_MYPAGE] += await self.processManifest(fn)
             except:
                 pass
+        data[SUM_MYPAGE] = list(dict.fromkeys(data[SUM_MYPAGE]))
         if self.count_file(data) > file_count:
             self.modified = True
             summons[element_id] = data
@@ -1528,6 +1530,7 @@ class Updater():
                     data[CHARA_MYPAGE] += await self.processManifest(fn)
                 except:
                     pass
+            sheets = list(dict.fromkeys(sheets)) # remove dupes
             data[CHARA_MYPAGE] += sheets
             # attack
             targets = [""]
@@ -1554,6 +1557,7 @@ class Updater():
                                 sheets += await self.processManifest(fn)
                             except:
                                 pass
+            sheets = list(dict.fromkeys(sheets)) # remove dupes
             data[CHARA_PHIT] += sheets
             # ougi
             sheets = []
@@ -1575,7 +1579,7 @@ class Updater():
                                         found = True
                                     except:
                                         pass
-                            if found: break
+            sheets = list(dict.fromkeys(sheets)) # remove dupes
             data[CHARA_SP] += sheets
             # skills
             sheets = []
@@ -1585,6 +1589,7 @@ class Updater():
                     sheets += await self.processManifest(fn)
                 except:
                     pass
+            sheets = list(dict.fromkeys(sheets)) # remove dupes
             data[CHARA_AB_ALL] += sheets
             sheets = []
             for el in range(1, 15):
@@ -1593,6 +1598,7 @@ class Updater():
                     sheets += await self.processManifest(fn)
                 except:
                     pass
+            sheets = list(dict.fromkeys(sheets)) # remove dupes
             data[CHARA_AB] += sheets
         if self.count_file(data) > file_count:
             self.modified = True
@@ -1865,11 +1871,10 @@ class Updater():
                         except:
                             if g == '_0':
                                 break
+        # clean dupes
         if self.count_file(data) > file_count:
-            data[WEAP_PHIT] = list(set(data[WEAP_PHIT]))
-            data[WEAP_PHIT].sort()
-            data[WEAP_SP] = list(set(data[WEAP_SP]))
-            data[WEAP_SP].sort()
+            data[WEAP_PHIT] = list(dict.fromkeys(data[WEAP_PHIT]))
+            data[WEAP_SP] = list(dict.fromkeys(data[WEAP_SP]))
             self.modified = True
             weapons[element_id] = data
             self.add(element_id, ADD_WEAP)
@@ -1942,8 +1947,12 @@ class Updater():
                 data[JOB_SD].append(element_id[:-2]+str(j).zfill(2))
             for h in data[JOB_ALT]:
                 for j in range(2):
-                    try: data[JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(h.split('_', 1)[0], j))
-                    except: pass
+                    try:
+                        data[JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(h.split('_', 1)[0], j))
+                    except:
+                        pass
+            # clean dupe
+            data[JOB_UNLOCK] = list(dict.fromkeys(data[JOB_UNLOCK]))
             if self.count_file(data) > file_count:
                 jobs[element_id] = data
                 self.modified = True
@@ -2145,8 +2154,7 @@ class Updater():
                         sheets += await self.processManifest("phit_racer")
                     except:
                         pass
-                sheets = list(set(sheets))
-                sheets.sort()
+                sheets = list(dict.fromkeys(sheets))
                 self.data['job'][jid][JOB_PHIT] = sheets
                 # ougi
                 sheets = []
@@ -2155,8 +2163,7 @@ class Updater():
                         sheets += await self.processManifest("sp_{}{}".format(s, u))
                     except:
                         pass
-                sheets = list(set(sheets))
-                sheets.sort()
+                sheets = list(dict.fromkeys(sheets))
                 self.data['job'][jid][JOB_SP] = sheets
                 # ab_all
                 sheets = []
@@ -2165,8 +2172,7 @@ class Updater():
                         sheets += await self.processManifest("ab_all_{}_{}".format(s, str(u).zfill(2)))
                     except:
                         pass
-                sheets = list(set(sheets))
-                sheets.sort()
+                sheets = list(dict.fromkeys(sheets))
                 self.data['job'][jid][JOB_AB_ALL] = sheets
                 # ab
                 sheets = []
@@ -2175,8 +2181,7 @@ class Updater():
                         sheets += await self.processManifest("ab_{}_{}".format(s, str(u).zfill(2)))
                     except:
                         pass
-                sheets = list(set(sheets))
-                sheets.sort()
+                sheets = list(dict.fromkeys(sheets))
                 self.data['job'][jid][JOB_AB] = sheets
 
                 self.tasks.print(len(self.data['job'][jid][JOB_PHIT])+len(self.data['job'][jid][JOB_SP])+len(self.data['job'][jid][JOB_AB_ALL])+len(self.data['job'][jid][JOB_AB]),"weapon sprites set to job", jid)
