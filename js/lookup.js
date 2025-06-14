@@ -139,9 +139,9 @@ function index_onclick()
 
 function toggle_preview_home() // toggle mypage preview
 {
-	const homepageElements = document.querySelectorAll(".homepage, .homepage-bg");
+	const homepage_elements = document.querySelectorAll(".homepage, .homepage-bg");
 
-	homepageElements.forEach(e => {
+	homepage_elements.forEach(e => {
 		if (!settings.home) {
 			e.classList.toggle("asset", false);
 			e.classList.toggle("homepage", false);
@@ -163,8 +163,8 @@ function toggle_preview_home() // toggle mypage preview
 
 function toggle_preview_profile() // toggle profile preview
 {
-	const homepageElements = document.querySelectorAll(".profilepage");
-	homepageElements.forEach(e => {
+	const profile_elements = document.querySelectorAll(".profilepage");
+	profile_elements.forEach(e => {
 		if (!settings.home) {
 			e.classList.toggle("asset", false);
 			e.src = e.src.replace('/img_low/', '/img/');
