@@ -16,6 +16,7 @@
 	<meta property="twitter:title" content="Granblue Fantasy Asset Lookup">
 	<meta property="twitter:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
 	<meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="icon" type="image/png" href="assets/icon.png">
 	<link rel="stylesheet" href="../GBFML/css/style.css">
 	<script src="../GBFML/js/gbf.js"></script>
@@ -34,7 +35,7 @@
 <body onload="init()">
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>Spark v2.1</div>
+		<div>Spark v2.2</div>
 		<div id="timestamp"></div>
 	</div>
 	<div id="issues" style="display:none">
@@ -74,7 +75,7 @@
 			</table>
 		</div>
 		<div class="spark-ui-container">
-			<input type="text" class="spark-ui-element" id="spark-filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Filter...">
+			<input type="text" class="spark-ui-element" id="spark-filter" onkeydown="typying()" onkeyup="spark_filter()" placeholder="Search">
 			<input type="text" class="spark-ui-element" id="spark-roll-input" onkeyup="update_rate(true)" placeholder="Rolls" value="300">
 			<button class="spark-ui-element spark-ui-button" id="moon-check" onclick="toggle_moon(this);"><img class="spark-btn-icon" src="assets/spark/btn-moon.png"></button>
 			<button class="spark-ui-element spark-ui-button" id="spark-check" onclick="toggle_spark(this);"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button>
@@ -97,7 +98,7 @@
 			<li><button class="spark-ui-element spark-ui-button active"><img class="spark-btn-icon" src="assets/spark/btn-spark.png"></button> or <b>Hold Shift</b> and click on an Element to toggle its <img src="assets/spark/spark.png" class="spark-manual-icon"> Sparked state.</li>
 			<li>Change the <b>number of rolls</b> next to the Filter.</li>
 			<li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-save.png"></button> to generate an <b>Image</b> of your spark. You can then right click/hold touch it, to Copy or Save as <b>(It might not work on some phones/browsers, please take a screenshot instead)</b>.</li>
-			<li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button> to <b>Reset</b> the whole list.</li>
+			<li><button class="spark-ui-element spark-ui-button"><img class="spark-btn-icon" src="assets/spark/btn-reset.png"></button> to <b>Reset</b> the whole spark.</li>
 		</ul>
 	</div>
 </body>

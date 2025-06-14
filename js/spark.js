@@ -27,11 +27,6 @@ function init() // entry point, called by body onload
 	});
 }
 
-function isOnMobile()
-{
-	return (window.getComputedStyle(document.body).getPropertyValue('--is-mobile') != '')
-}
-
 function load(changelog)
 {
 	if(changelog)
@@ -296,7 +291,6 @@ function update_node(mode, addition) // update spark column
 	const nw = node.offsetWidth - 5;
 	const nh = node.offsetHeight - 5;
 	let current_size;
-	const is_mobile = isOnMobile();
 	if(addition) // get last size if we just added a new element
 	{
 		current_size = sizes[mode];
@@ -304,11 +298,6 @@ function update_node(mode, addition) // update spark column
 	
 	{
 		current_size = DEFAULT_SIZE; // get default size otherwise
-		if(is_mobile) // double in mobile mode
-		{
-			current_size[0] *= 2;
-			current_size[1] *= 2;
-		}
 		sizes[mode] = null;
 	}
 	let changed = false;
