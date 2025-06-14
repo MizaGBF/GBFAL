@@ -1567,7 +1567,6 @@ class Updater():
                     self.tasks.print("Warning: Missing uncap art", uncap, "for character:", id)
                     continue
                 uf = flags[uncap]
-                found = False
                 for g in (("", "_0", "_1") if (uf[0] is True) else ("",)):
                     for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                         for catype in ("", "_s2", "_s3"):
@@ -1576,7 +1575,6 @@ class Updater():
                                     try:
                                         fn = "nsp_{}_{}{}{}{}{}{}{}".format(tid, uncap, style, g, form, catype, sub, ex)
                                         sheets += await self.processManifest(fn)
-                                        found = True
                                     except:
                                         pass
             sheets = list(dict.fromkeys(sheets)) # remove dupes
