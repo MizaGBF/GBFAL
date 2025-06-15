@@ -248,14 +248,12 @@ function lookup(id, allow_open=true) // check element validity and either load i
 				}
 				else
 				{
-					load_dummy(id, target, allow_open);
-					return true;
+					return load_dummy(id, target, allow_open);
 				}
 			}
 			else if(!isNaN(id))
 			{
-				load_dummy(id, target, allow_open);
-				return true;
+				return load_dummy(id, target, allow_open);
 			}
 		}
 	} catch(err) {
@@ -290,9 +288,6 @@ function load_dummy(id, target, allow_open)// minimal load of an element not ind
 		case "enemies":
 			data = [[id],["enemy_" + id + "_a.png","enemy_" + id + "_b.png","enemy_" + id + "_c.png"],["raid_appear_" + id + ".png"],["ehit_" + id + ".png"],["esp_" + id + "_01.png","esp_" + id + "_02.png","esp_" + id + "_03.png"],["esp_" + id + "_01_all.png","esp_" + id + "_02_all.png","esp_" + id + "_03_all.png"]];
 			break;
-		case "job":
-			data = [[id],[id + "_01"],[],[],[],[id],[],[],[],[],[],[],[]];
-			break;
 		case "skills":
 			data = [[JSON.stringify(parseInt(id))]];
 			break;
@@ -305,7 +300,9 @@ function load_dummy(id, target, allow_open)// minimal load of an element not ind
 	if(data != null)
 	{
 		load_assets(id, data, target, false, allow_open);
+		return true;
 	}
+	return false;
 }
 
 function load_assets(id, data, target, indexed, allow_open)
