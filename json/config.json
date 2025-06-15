@@ -2,6 +2,7 @@
     "help_form": "https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform",
     "dummy_scene": ["", "_a", "_b", "_up", "_down", "_laugh", "_wink", "_shout", "_sad", "_angry", "_cry", "_painful", "_shadow", "_light", "_close", "_serious", "_surprise", "_think", "_serious", "_mood", "_ecstasy", "_suddenly", "_speed", "_shy", "_weak", "_sleepy", "_open", "_bad", "_amaze", "_joy", "_pride", "_intrigue", "_motivation", "_melancholy", "_concentration", "_weapon", "_foot", "_head"],
     "no_speech_bubble_filter": ["b1", "b2", "b3", "speed", "line", "up", "up2", "up3", "up4", "down", "shadow", "shadow2", "shadow3", "damage", "light", "vanish", "vanish1", "vanish2", "fadein1", "blood"],
+    "allow_id_input":true,
     "index" : [
         {
             "name":"Characters",
@@ -1279,11 +1280,11 @@
             "icon": "../GBFML/assets/ui/icon/skills.png",
             "childs": [
                 {
-                    "name": "ID 0 to 1000",
+                    "name": "ID 0000 to 0999",
                     "icon": "../GBFML/assets/ui/index_icon/skill1.png",
                     "childs": [
                         {
-                            "name": "ID 0 to 250",
+                            "name": "ID 0 to 249",
                             "target": "skills",
                             "arg1": [
                                 0,
@@ -1291,7 +1292,7 @@
                             ]
                         },
                         {
-                            "name": "ID 250 to 500",
+                            "name": "ID 250 to 499",
                             "target": "skills",
                             "arg1": [
                                 250,
@@ -1299,7 +1300,7 @@
                             ]
                         },
                         {
-                            "name": "ID 500 to 750",
+                            "name": "ID 500 to 749",
                             "target": "skills",
                             "arg1": [
                                 500,
@@ -1307,7 +1308,7 @@
                             ]
                         },
                         {
-                            "name": "ID 750 to 1000",
+                            "name": "ID 750 to 999",
                             "target": "skills",
                             "arg1": [
                                 750,
@@ -1317,11 +1318,11 @@
                     ]
                 },
                 {
-                    "name": "ID 1000 to 2000",
+                    "name": "ID 1000 to 1999",
                     "icon": "../GBFML/assets/ui/index_icon/skill2.png",
                     "childs": [
                         {
-                            "name": "ID 1000 to 1250",
+                            "name": "ID 1000 to 1249",
                             "target": "skills",
                             "arg1": [
                                 1000,
@@ -1329,7 +1330,7 @@
                             ]
                         },
                         {
-                            "name": "ID 1250 to 1500",
+                            "name": "ID 1250 to 1499",
                             "target": "skills",
                             "arg1": [
                                 1250,
@@ -1337,7 +1338,7 @@
                             ]
                         },
                         {
-                            "name": "ID 1500 to 1750",
+                            "name": "ID 1500 to 1749",
                             "target": "skills",
                             "arg1": [
                                 1500,
@@ -1345,7 +1346,7 @@
                             ]
                         },
                         {
-                            "name": "ID 1750 to 2000",
+                            "name": "ID 1750 to 1999",
                             "target": "skills",
                             "arg1": [
                                 1750,
@@ -1355,11 +1356,11 @@
                     ]
                 },
                 {
-                    "name": "ID 2000 to 3000",
+                    "name": "ID 2000 to 2999",
                     "icon": "../GBFML/assets/ui/index_icon/skill3.png",
                     "childs": [
                         {
-                            "name": "ID 2000 to 2250",
+                            "name": "ID 2000 to 2249",
                             "target": "skills",
                             "arg1": [
                                 2000,
@@ -1367,7 +1368,7 @@
                             ]
                         },
                         {
-                            "name": "ID 2250 to 2500",
+                            "name": "ID 2250 to 2499",
                             "target": "skills",
                             "arg1": [
                                 2250,
@@ -1375,7 +1376,7 @@
                             ]
                         },
                         {
-                            "name": "ID 2500 to 2750",
+                            "name": "ID 2500 to 2749",
                             "target": "skills",
                             "arg1": [
                                 2500,
@@ -1383,7 +1384,7 @@
                             ]
                         },
                         {
-                            "name": "ID 2750 to 3000",
+                            "name": "ID 2750 to 2999",
                             "target": "skills",
                             "arg1": [
                                 2750,
@@ -1417,7 +1418,7 @@
                     "icon": "../GBFML/assets/ui/index_icon/basic_set.png",
                     "childs": [
                         {
-                            "name": "ID 1000 to 1250",
+                            "name": "ID 1000 to 1249",
                             "target": "buffs",
                             "arg1": [
                                 1000,
@@ -1425,7 +1426,7 @@
                             ]
                         },
                         {
-                            "name": "ID 1250 to 1500",
+                            "name": "ID 1250 to 1499",
                             "target": "buffs",
                             "arg1": [
                                 1250,
@@ -1433,7 +1434,7 @@
                             ]
                         },
                         {
-                            "name": "ID 1500 to 1750",
+                            "name": "ID 1500 to 1749",
                             "target": "buffs",
                             "arg1": [
                                 1500,
@@ -1441,7 +1442,7 @@
                             ]
                         },
                         {
-                            "name": "ID 1750 to 2000",
+                            "name": "ID 1750 to 1999",
                             "target": "buffs",
                             "arg1": [
                                 1750,
@@ -1449,7 +1450,7 @@
                             ]
                         },
                         {
-                            "name": "ID 2000 to 2250",
+                            "name": "ID 2000 to 2249",
                             "target": "buffs",
                             "arg1": [
                                 2000,
@@ -1457,7 +1458,7 @@
                             ]
                         },
                         {
-                            "name": "ID 2250 to 2500",
+                            "name": "ID 2250 to 2499",
                             "target": "buffs",
                             "arg1": [
                                 2250,
@@ -1465,7 +1466,7 @@
                             ]
                         },
                         {
-                            "name": "ID 2500 to 2750",
+                            "name": "ID 2500 to 2749",
                             "target": "buffs",
                             "arg1": [
                                 2500,
@@ -1473,7 +1474,7 @@
                             ]
                         },
                         {
-                            "name": "ID 2750 to 3000",
+                            "name": "ID 2750 to 2999",
                             "target": "buffs",
                             "arg1": [
                                 2750,
@@ -1487,7 +1488,7 @@
                     "icon": "../GBFML/assets/ui/index_icon/unique_set_1.png",
                     "childs": [
                         {
-                            "name": "ID 3000 to 3250",
+                            "name": "ID 3000 to 3249",
                             "target": "buffs",
                             "arg1": [
                                 3000,
@@ -1495,7 +1496,7 @@
                             ]
                         },
                         {
-                            "name": "ID 3250 to 3500",
+                            "name": "ID 3250 to 3499",
                             "target": "buffs",
                             "arg1": [
                                 3250,
@@ -1503,7 +1504,7 @@
                             ]
                         },
                         {
-                            "name": "ID 3500 to 3750",
+                            "name": "ID 3500 to 3749",
                             "target": "buffs",
                             "arg1": [
                                 3500,
@@ -1511,7 +1512,7 @@
                             ]
                         },
                         {
-                            "name": "ID 3750 to 4000",
+                            "name": "ID 3750 to 3999",
                             "target": "buffs",
                             "arg1": [
                                 3750,
@@ -1525,7 +1526,7 @@
                     "icon": "../GBFML/assets/ui/index_icon/unique_set_2.png",
                     "childs": [
                         {
-                            "name": "ID 4000 to 4250",
+                            "name": "ID 4000 to 4249",
                             "target": "buffs",
                             "arg1": [
                                 4000,
@@ -1533,7 +1534,7 @@
                             ]
                         },
                         {
-                            "name": "ID 4250 to 4500",
+                            "name": "ID 4250 to 4499",
                             "target": "buffs",
                             "arg1": [
                                 4250,
@@ -1541,7 +1542,7 @@
                             ]
                         },
                         {
-                            "name": "ID 4500 to 4750",
+                            "name": "ID 4500 to 4749",
                             "target": "buffs",
                             "arg1": [
                                 4500,
@@ -1549,7 +1550,7 @@
                             ]
                         },
                         {
-                            "name": "ID 4750 to 5000",
+                            "name": "ID 4750 to 4999",
                             "target": "buffs",
                             "arg1": [
                                 4750,
@@ -1563,7 +1564,7 @@
                     "icon": "../GBFML/assets/ui/index_icon/field_effect_set.png",
                     "childs": [
                         {
-                            "name": "ID 5000 to 5250",
+                            "name": "ID 5000 to 5249",
                             "target": "buffs",
                             "arg1": [
                                 5000,
@@ -1571,7 +1572,7 @@
                             ]
                         },
                         {
-                            "name": "ID 5250 to 5500",
+                            "name": "ID 5250 to 5499",
                             "target": "buffs",
                             "arg1": [
                                 5250,
@@ -1579,7 +1580,7 @@
                             ]
                         },
                         {
-                            "name": "ID 5500 to 5750",
+                            "name": "ID 5500 to 5749",
                             "target": "buffs",
                             "arg1": [
                                 5500,
@@ -1587,7 +1588,7 @@
                             ]
                         },
                         {
-                            "name": "ID 5750 to 6000",
+                            "name": "ID 5750 to 5999",
                             "target": "buffs",
                             "arg1": [
                                 5750,
@@ -1601,7 +1602,7 @@
                     "icon": "../GBFML/assets/ui/index_icon/buff_set.png",
                     "childs": [
                         {
-                            "name": "ID 6000 to 6250",
+                            "name": "ID 6000 to 6249",
                             "target": "buffs",
                             "arg1": [
                                 6000,
@@ -1609,7 +1610,7 @@
                             ]
                         },
                         {
-                            "name": "ID 6250 to 6500",
+                            "name": "ID 6250 to 6499",
                             "target": "buffs",
                             "arg1": [
                                 6250,
@@ -1617,7 +1618,7 @@
                             ]
                         },
                         {
-                            "name": "ID 6500 to 6750",
+                            "name": "ID 6500 to 6749",
                             "target": "buffs",
                             "arg1": [
                                 6500,
@@ -1625,7 +1626,7 @@
                             ]
                         },
                         {
-                            "name": "ID 6750 to 7000",
+                            "name": "ID 6750 to 6999",
                             "target": "buffs",
                             "arg1": [
                                 6750,
@@ -1633,7 +1634,7 @@
                             ]
                         },
                         {
-                            "name": "ID 7000 to 7250",
+                            "name": "ID 7000 to 7249",
                             "target": "buffs",
                             "arg1": [
                                 7000,
@@ -1641,7 +1642,7 @@
                             ]
                         },
                         {
-                            "name": "ID 7250 to 7500",
+                            "name": "ID 7250 to 7499",
                             "target": "buffs",
                             "arg1": [
                                 7250,
@@ -1649,7 +1650,7 @@
                             ]
                         },
                         {
-                            "name": "ID 7500 to 7750",
+                            "name": "ID 7500 to 7749",
                             "target": "buffs",
                             "arg1": [
                                 7500,
@@ -1657,7 +1658,7 @@
                             ]
                         },
                         {
-                            "name": "ID 7750 to 8000",
+                            "name": "ID 7750 to 7999",
                             "target": "buffs",
                             "arg1": [
                                 7750,
@@ -1665,7 +1666,7 @@
                             ]
                         },
                         {
-                            "name": "ID 9000 to 9250",
+                            "name": "ID 9000 to 9249",
                             "target": "buffs",
                             "arg1": [
                                 9000,
@@ -1673,7 +1674,7 @@
                             ]
                         },
                         {
-                            "name": "ID 9250 to 9500",
+                            "name": "ID 9250 to 9499",
                             "target": "buffs",
                             "arg1": [
                                 9250,
@@ -1681,7 +1682,7 @@
                             ]
                         },
                         {
-                            "name": "ID 9500 to 9750",
+                            "name": "ID 9500 to 9749",
                             "target": "buffs",
                             "arg1": [
                                 9500,
@@ -1689,7 +1690,7 @@
                             ]
                         },
                         {
-                            "name": "ID 9750 to 10000",
+                            "name": "ID 9750 to 9999",
                             "target": "buffs",
                             "arg1": [
                                 9750,

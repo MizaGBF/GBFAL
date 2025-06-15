@@ -4,6 +4,7 @@
 var output = null; // set output
 var settings = {};
 var gbf = null;
+var search = null;
 var timestamp = Date.now(); // last updated timestamp
 var index = null;
 var last_id = null;
@@ -33,7 +34,6 @@ function init() // entry point, called by body onload
 	});
 	bookmark_onclick = index_onclick;
 	history_onclick = index_onclick;
-	search_onclick = index_onclick;
 	output = document.getElementById('output');
 	
 	// load settings
@@ -114,13 +114,29 @@ function load(config, changelog)
 
 function start(config, changelog)
 {
-	init_search_lookup();
+	search = new Search(
+		document.getElementById("filter"),
+		document.getElementById("search-area"),
+		search_save_key,
+		{
+			"wpn":["Weapon", GBFType.weapon],
+			"sum":["Summon", GBFType.summon],
+			"cha":["Character", GBFType.character],
+			"skn":["Skin", "skins"],
+			"npc":["NPC", GBFType.npc],
+			"job":["Protagonist", GBFType.job],
+			"bss":["Enemy", GBFType.enemy]
+		},
+		(config.allow_id_input ?? false)
+	);
+	search.populate_search_area();
 	init_lists(changelog, index_onclick);
 	init_index(config, changelog, index_onclick);
 	let id = get_url_params().get("id");
 	if(id != null)
 	{
 		lookup(id);
+		document.getElementById('filter').value = "" + id;
 	}
 }
 
@@ -193,14 +209,6 @@ function lookup(id, allow_open=true) // check element validity and either load i
 {
 	try
 	{
-		let filter = document.getElementById('filter');
-		if(filter.value == "" || filter.value != id)
-		{
-			filter.value = id;
-		}
-		id = id.trim().toLowerCase();
-		if(id == "")
-			return;
 		let type = gbf.lookup_string_to_element(id);
 		let target = null;
 		// exception due to special events and fates
@@ -225,9 +233,7 @@ function lookup(id, allow_open=true) // check element validity and either load i
 			id = gbf.remove_prefix(id, type);
 		};
 		if(target != null && gbf.is_banned(id))
-			return;
-		// cleanup search results if not relevant to current id
-		clean_search_if_not(id);
+			return false;
 		// remove fav button before loading
 		init_bookmark_button(false);
 		// execute
@@ -238,25 +244,24 @@ function lookup(id, allow_open=true) // check element validity and either load i
 				if(index[target][id] !== 0)
 				{
 					load_assets(id, index[target][id], target, true, allow_open);
+					return true;
 				}
 				else
 				{
 					load_dummy(id, target, allow_open);
+					return true;
 				}
 			}
-			else if(isNaN(id))
-			{
-				search(id);
-			}
-			else
+			else if(!isNaN(id))
 			{
 				load_dummy(id, target, allow_open);
+				return true;
 			}
 		}
-		else search(id);
 	} catch(err) {
 		console.error("Exception thrown", err.stack);
 	}
+	return false;
 }
 
 function load_dummy(id, target, allow_open)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder

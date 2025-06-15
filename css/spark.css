@@ -205,6 +205,20 @@ td {
 	width: calc(80% - 40px * 4);
 }
 
+#spark-filter::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    height: 24px;
+    width: 24px;
+    background-image: url("../assets/spark/btn-close.png");
+	background-size: 100% 100%;
+    cursor: pointer;
+}
+
+#spark-filter::-webkit-search-cancel-button:hover {
+    height: 28px;
+    width: 28px;
+}
+
 #spark-roll-input {
 	width: 10%;
 }

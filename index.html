@@ -34,7 +34,7 @@
 <body onload="init()">
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>v10.8</div>
+		<div>v10.9</div>
 		<div id="timestamp">Loading...</div>
 	</div>
 	<!-- Know issues -->
@@ -46,11 +46,11 @@
 	</div>
 	<!-- Top section -->
 	<div class="navigation clickable" onclick="window.scroll(0, document.body.scrollHeight);">▼</div>
-	<input type="text" id="filter" onkeydown="typying()" onkeyup="filter()" placeholder="Search">
+	<input type="search" id="filter" placeholder="Search" aria-label="Search an element">
 	<button id="fav-btn" style="display:none">☆</button>
 	<br>
 	<!-- Search results -->
-	<div id="results" class="container" style="display:none"></div>
+	<div id="search-area" class="container" style="display:none"></div>
 	<br>
 	<!-- Tab buttons -->
 	<div class="margin">

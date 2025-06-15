@@ -1,6 +1,7 @@
 /*jshint esversion: 11 */
 
 var gbf = null;
+var search = null;
 var timestamp = Date.now();
 var index = null;
 var items = {};
@@ -53,10 +54,28 @@ function load(changelog)
 
 function start(changelog)
 {
-	init_search_lookup();
+	search = new Search(
+		document.getElementById("spark-filter"),
+		null,
+		null,
+		{
+			"wpn":["", GBFType.weapon],
+			"sum":["", GBFType.summon],
+			"cha":["", GBFType.character]
+		},
+		false
+	);
+	// add search event listeners
+	document.addEventListener('search-update', function() {
+		spark_apply_results(document.getElementById('spark-filter').value.trim().toLowerCase());
+	});
+	document.addEventListener('search-clear', function() {
+		spark_reset_results();
+	});
+	// init the rest
 	set_spark_list();
-	load_spark();
-	load_setting();
+	spark_load_settings();
+	load_settings();
 	document.getElementById("spark-container").scrollIntoView();
 }
 
@@ -175,7 +194,7 @@ function add_image_spark(node, data) // add an image to the selector
 					add_image_result_spark(isSummon ? STONE : NPC, cid, this); // add to npc or stone
 				}
 				document.getElementById("spark-container").scrollIntoView(); // recenter view
-				saveSpark();
+				spark_save_settings();
 			}
 		};
 	};
@@ -224,7 +243,7 @@ function add_image_result_spark(mode, id, base_img) // add image to the spark re
 				this.remove();
 				update_node(cmode, false);
 			}
-			saveSpark();
+			spark_save_settings();
 		}
 	};
 	let img = document.createElement("img");
@@ -262,7 +281,8 @@ function remove_spark(div) // remove spark icon
 }
 
 addEventListener("resize", (event) => { // capture window resize event and call update_all() (after 300ms)
-	if(resize_timer != null) clearTimeout(resize_timer);
+	if(resize_timer != null)
+		clearTimeout(resize_timer);
 	resize_timer = setTimeout(update_all, 300);
 });
 
@@ -363,7 +383,7 @@ function update_rate(to_update) // update ssr rate text
 			console.error("Exception thrown", err.stack);
 			return;
 		}
-		if(to_update) saveSpark();
+		if(to_update) spark_save_settings();
 	}
 }
 
@@ -404,7 +424,7 @@ function spark_clear() // clear everything
 	update_rate(false);
 }
 
-function saveSpark() // save spark in localstorage
+function spark_save_settings() // save spark in localstorage
 {
 	let tmp = [[], [], [], document.getElementById("spark-roll-input").value];
 	for(let i = 0; i < COUNT; ++i)
@@ -417,7 +437,7 @@ function saveSpark() // save spark in localstorage
 	localStorage.setItem("gbfal-spark", JSON.stringify(tmp));
 }
 
-function load_spark() // load spark from localstorage
+function spark_load_settings() // load spark from localstorage
 {
 	try
 	{
@@ -461,13 +481,13 @@ function load_spark() // load spark from localstorage
 	}
 }
 
-function saveSetting() // save settings in localstorage
+function save_settings() // save settings in localstorage
 {
 	let tmp = [document.getElementById("moon-check").classList.contains("active"), document.getElementById("spark-check").classList.contains("active")];
 	localStorage.setItem("gbfal-spark-settings", JSON.stringify(tmp));
 }
 
-function load_setting() // load settings from localstorage
+function load_settings() // load settings from localstorage
 {
 	try
 	{
@@ -483,42 +503,48 @@ function load_setting() // load settings from localstorage
 	}
 }
 
-function spark_filter() // filter trigger
+function spark_reset_results()
 {
-	clearTimeout(typing_timer);
-	typing_timer = setTimeout(function(){
-		spark_apply_filter(document.getElementById('spark-filter').value.trim().toLowerCase());
-	}, 1000);
+	for(let k in items)
+	{
+		items[k].style.display = null;
+	}
 }
 
-function spark_apply_filter(content) // apply the filter
+function spark_apply_results(content) // apply the filter
 {
 	if(content == "") // empty, we reset
 	{
-		for(let k in items)
-		{
-			items[k].style.display = null;
-		}
+		spark_reset_results();
 	}
 	else
 	{
+		let search_results = search.get_filtered_results();
 		for(let k in items) // hide everything
 		{
 			items[k].style.display = "none";
 		}
-		search(content, 1); // call GBFAL search (behavior 1)
 		for(let i = 0; i < search_results.length; ++i) // unhide all results
 		{
-			if(search_results[i][1] == 2 || search_results[i][1] == 3) // only chara and summon
+			switch(search_results[i][1])
 			{
-				if(search_results[i][0] in items)
-					items[search_results[i][0]].style.display = null;
-			}
-			else if(search_results[i][1] == 1 && search_results[i][0] in index["premium"]) // matching chara = weapon
-			{
-				const id = index["premium"][search_results[i][0]];
-				if(id in items)
-					items[id].style.display = null;
+				case GBFType.character:
+				case GBFType.summon:
+				{
+					if(search_results[i][0] in items)
+						items[search_results[i][0]].style.display = null;
+					break;
+				}
+				case GBFType.weapon:
+				{
+					if(search_results[i][0] in index["premium"])
+					{
+						const id = index["premium"][search_results[i][0]];
+						if(id in items)
+							items[id].style.display = null;
+					}
+					break;
+				}
 			}
 		}
 	}
@@ -536,7 +562,7 @@ function toggle_moon(btn) // toggle moon mode button
 		btn.classList.add("active");
 		push_popup("Click on a Character to add it to the Moons");
 	}
-	saveSetting();
+	save_settings();
 }
 
 function toggle_spark(btn) // toggle spark mode button
@@ -551,7 +577,7 @@ function toggle_spark(btn) // toggle spark mode button
 		btn.classList.add("active");
 		push_popup("Click on an Element to add a Sparked icon");
 	}
-	saveSetting();
+	save_settings();
 }
 
 function close_fullscreen() // close fullscreen popups
