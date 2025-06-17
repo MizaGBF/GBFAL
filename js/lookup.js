@@ -2,7 +2,6 @@
 
 // global variables
 var output = null; // set output
-var settings = {};
 var gbf = null;
 var search = null;
 var timestamp = Date.now(); // last updated timestamp
@@ -35,18 +34,6 @@ function init() // entry point, called by body onload
 	bookmark_onclick = index_onclick;
 	history_onclick = index_onclick;
 	output = document.getElementById('output');
-	
-	// load settings
-	let tmp = localStorage.getItem("gbfal-previewhome");
-	if(tmp != null)
-		settings.home = !!JSON.parse(tmp);
-	else
-		settings.home = false;
-	tmp = localStorage.getItem("gbfal-previewprofile");
-	if(tmp != null)
-		settings.profile = !!JSON.parse(tmp);
-	else
-		settings.profile = false;
 	
 	// open tab
 	open_tab('index'); // set to this tab by default
@@ -136,7 +123,6 @@ function start(config, changelog)
 	if(id != null)
 	{
 		lookup(id);
-		document.getElementById('filter').value = "" + id;
 	}
 }
 
@@ -151,49 +137,6 @@ function index_onclick()
 		window.scrollTo(0, 0);
 		lookup(this.onclickid);
 	}
-}
-
-function toggle_preview_home() // toggle mypage preview
-{
-	const homepage_elements = document.querySelectorAll(".homepage, .homepage-bg");
-
-	homepage_elements.forEach(e => {
-		if (!settings.home) {
-			e.classList.toggle("asset", false);
-			e.classList.toggle("homepage", false);
-			e.classList.toggle("homepage-bg", true);
-			e.src = e.src.replace('/img_low/', '/img/');
-			e.parentNode.classList.toggle("homepage-ui", true);
-		} else {
-			e.classList.toggle("homepage-bg", false);
-			e.parentNode.classList.toggle("homepage-ui", false);
-			e.src = e.src.replace('/img/', '/img_low/');
-			e.classList.toggle("asset", true);
-			e.classList.toggle("homepage", true);
-		}
-	});
-
-	settings.home = !settings.home;
-	localStorage.setItem("gbfal-previewhome", JSON.stringify(settings.home));
-}
-
-function toggle_preview_profile() // toggle profile preview
-{
-	const profile_elements = document.querySelectorAll(".profilepage");
-	profile_elements.forEach(e => {
-		if (!settings.home) {
-			e.classList.toggle("asset", false);
-			e.src = e.src.replace('/img_low/', '/img/');
-			e.parentNode.classList.toggle("profilepage-ui", true);
-		} else {
-			e.parentNode.classList.toggle("profilepage-ui", false);
-			e.src = e.src.replace('/img/', '/img_low/');
-			e.classList.toggle("asset", true);
-		}
-	});
-
-	settings.home = !settings.home;
-	localStorage.setItem("gbfal-previewprofile", JSON.stringify(settings.home));
 }
 
 // load the appropriate element when user does back or forward
@@ -230,10 +173,10 @@ function lookup(id, allow_open=true) // check element validity and either load i
 			{
 				console.error("Unsupported type " + type);
 			}
+			if(gbf.is_banned(id))
+				return false;
 			id = gbf.remove_prefix(id, type);
 		};
-		if(target != null && gbf.is_banned(id))
-			return false;
 		// remove fav button before loading
 		init_bookmark_button(false);
 		// execute
@@ -243,17 +186,17 @@ function lookup(id, allow_open=true) // check element validity and either load i
 			{
 				if(index[target][id] !== 0)
 				{
-					load_assets(id, index[target][id], target, true, allow_open);
+					load_assets(id, index[target][id], type, target, true, allow_open);
 					return true;
 				}
 				else
 				{
-					return load_dummy(id, target, allow_open);
+					return load_dummy(id, type, target, allow_open);
 				}
 			}
 			else if(!isNaN(id))
 			{
-				return load_dummy(id, target, allow_open);
+				return load_dummy(id, type, target, allow_open);
 			}
 		}
 	} catch(err) {
@@ -262,297 +205,606 @@ function lookup(id, allow_open=true) // check element validity and either load i
 	return false;
 }
 
-function load_dummy(id, target, allow_open)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder
+function load_dummy(id, type, target, allow_open)// minimal load of an element not indexed or not fully indexed, this is only intended as a cheap placeholder
 {
 	let data = null;
-	switch(target)
+	switch(type)
 	{
-		case "weapons":
+		case GBFType.weapon:
 			data = [[id],["phit_" + id + ".png","phit_" + id + "_1.png","phit_" + id + "_2.png"],["sp_" + id + "_0_a.png","sp_" + id + "_0_b.png","sp_" + id + "_1_a.png","sp_" + id + "_1_b.png"]];
 			break;
-		case "summons":
+		case GBFType.summon:
 			data = [[id,id + "_02"],["summon_" + id + "_01_attack_a.png","summon_" + id + "_01_attack_b.png","summon_" + id + "_01_attack_c.png","summon_" + id + "_01_attack_d.png","summon_" + id + "_02_attack_a.png","summon_" + id + "_02_attack_b.png","summon_" + id + "_02_attack_c.png"],["summon_" + id + "_01_damage.png","summon_" + id + "_02_damage.png"], []];
 			break;
-		case "characters":
+		case GBFType.character:
 			data = [["npc_" + id + "_01.png","npc_" + id + "_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],dummy_scene,[],[]];
 			break;
-		case "skins":
-			data = [["npc_" + id + "_01.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_01.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_02"],["" + id + "_01","" + id + "_02"],[],[],[]];
-			break;
-		case "partners":
+		case GBFType.partner:
 			data = [["npc_" + id + "_01.png","npc_" + id + "_0_01.png","npc_" + id + "_1_01.png","npc_" + id + "_02.png","npc_" + id + "_0_02.png","npc_" + id + "_1_02.png"],["phit_" + id + ".png"],["nsp_" + id + "_01_s2.png","nsp_" + id + "_02_s2.png", "nsp_" + id + "_01.png","nsp_" + id + "_02.png"],["ab_all_" + id + "_01.png", "ab_all_" + id + "_02.png"],["ab_" + id + "_01.png","ab_" + id + "_02.png"],["" + id + "_01","" + id + "_01_0","" + id + "_01_1","" + id + "_02","" + id + "_02_0","" + id + "_02_1"]];
 			break;
-		case "npcs":
+		case GBFType.npc:
 			data = [true, dummy_scene, []];
 			break;
-		case "enemies":
+		case GBFType.enemy:
 			data = [[id],["enemy_" + id + "_a.png","enemy_" + id + "_b.png","enemy_" + id + "_c.png"],["raid_appear_" + id + ".png"],["ehit_" + id + ".png"],["esp_" + id + "_01.png","esp_" + id + "_02.png","esp_" + id + "_03.png"],["esp_" + id + "_01_all.png","esp_" + id + "_02_all.png","esp_" + id + "_03_all.png"]];
 			break;
-		case "skills":
+		case GBFType.skill:
 			data = [[JSON.stringify(parseInt(id))]];
 			break;
-		case "buffs":
+		case GBFType.buff:
 			data = [[JSON.stringify(parseInt(id))],["","_1","_2","_10","_11","_101","_110","_111","_20", "_30","1","_1_1", "_2_1","_0_10","_1_10","_1_20","_2_10"]];
 			break;
 		default:
-			break;
+			return false;
 	}
 	if(data != null)
 	{
-		load_assets(id, data, target, false, allow_open);
+		load_assets(id, data, type, target, false, allow_open);
 		return true;
 	}
 	return false;
 }
 
-function load_assets(id, data, target, indexed, allow_open)
+function reset_asset_tabs() // reset the tab state
+{
+	let tabcontent = document.getElementsByClassName("tab-asset-content");
+	for(let i = 0; i < tabcontent.length; i++)
+		tabcontent[i].style.display = "none";
+	let tabbuttons = document.getElementsByClassName("tab-asset-button");
+	for (let i = 0; i < tabbuttons.length; i++)
+		tabbuttons[i].classList.toggle("active", false);
+}
+
+function open_asset_tab(name) // reset and then select a tab
+{
+	reset_asset_tabs();
+	document.getElementById(name).style.display = "";
+	document.getElementById("tab-"+name).classList.toggle("active", true);
+}
+
+function load_assets(id, data, type, target, indexed, allow_open)
 {
 	beep();
 	gbf.reset_endpoint();
+	// save last_id
 	let tmp_last_id = last_id;
+	// headers
 	let include_link = false;
 	let extra_links = [];
-	let type = gbf.index_to_type(target);
-	let assets = null;
-	let skycompass = null;
-	let mc_skycompass = false;
-	let npcdata = null;
+	// content
+	let pages = [];
 	let files = null;
-	let sounds = null;
-	let melee = false;
-	let openscene = false;
-	switch(target)
+	// flags
+	let keeptab = false; // add tab to DOM if true if there is a single category
+	let melee = false; // melee weapon?
+	
+	switch(type)
 	{
-		case "weapons":
+		case GBFType.weapon:
+		{
 			include_link = true;
 			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = id;
-			assets = [
-				{name:"Journal Arts", paths:[["sp/assets/weapon/b/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/journal.png", open:allow_open},
-				{name:"Miscellaneous Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/other.png"},
-				{name:"Various Portraits", paths:[["sp/assets/weapon/m/", "jpg"], ["sp/assets/weapon/s/", "jpg"], ["sp/assets/weapon/ls/", "jpg"]], icon:"../GBFML/assets/ui/result_icon/portrait.png", index:0},
-				{name:"Sprites", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/result_icon/sprite.png", index:0},
-				{name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/auto.png"},
-				{name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/ca.png"},
-				{name:"Recruit Header", paths:[["sp/gacha/cjs_cover/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/recruit.png", break:true, lazy:false},
-				{name:"Reforge Arts", paths:[["sp/archaic/", ""]], index:-3, icon:"../GBFML/assets/ui/result_icon/forge.png", lazy:false},
-				{name:"Reforge Portraits", paths:[["sp/archaic/", ""]], index:-4, icon:"../GBFML/assets/ui/result_icon/forge.png", lazy:false},
-				{name:"Siero's Academy", paths:[["sp/coaching/reward_npc/assets/", "png"]], index:-8, icon:"../GBFML/assets/ui/result_icon/siero.png", lazy:false}
+			pages = [
+				{
+					name:"Arts",
+					icon:"../GBFML/assets/ui/result_icon/journal.png",
+					assets:[
+						{type:1, paths:[["sp/assets/weapon/b/", "png"]], index:0},
+						{name:"Other Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/other.png"}
+					]
+				},
+				{
+					name:"Portraits",
+					icon:"../GBFML/assets/ui/result_icon/portrait.png",
+					assets:[
+						{type:1, paths:[["sp/assets/weapon/m/", "jpg"], ["sp/assets/weapon/s/", "jpg"], ["sp/assets/weapon/ls/", "jpg"]], index:0, lazy:false}
+					]
+				},
+				{
+					name:"Sprites",
+					icon:"../GBFML/assets/ui/result_icon/sprite.png",
+					assets:[
+						{type:1, paths:[["sp/cjs/", "png"]], special_index:"sprite", filename:true, lazy:false},
+						{name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/auto.png", filename:true},
+						{name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/ca.png", filename:true}
+					]
+				},
+				{
+					name:"Others",
+					icon:"../GBFML/assets/ui/result_icon/siero.png",
+					assets:[
+						{type:1, paths:[["sp/gacha/cjs_cover/", "png"]], special_index:"recruit_header", lazy:false},
+						{type:1, paths:[["sp/archaic/", ""]], special_index:"weapon_forge_header", lazy:false},
+						{type:1, paths:[["sp/archaic/", ""]], special_index:"weapon_forge_portrait", lazy:false},
+						{type:1, paths:[["sp/coaching/reward_npc/assets/", "png"]], special_index:"reward", lazy:false}
+					]
+				}
 			];
 			melee = (id[4] == "6");
 			break;
-		case "shields":
+		}
+		case GBFType.shield:
+		{
 			last_id = "sd"+id;
-			assets = [
-				{name:"Various Portraits", paths:[["sp/assets/shield/m/", "jpg"], ["sp/assets/shield/s/", "jpg"]], icon:"../GBFML/assets/ui/result_icon/portrait.png", index:0, open:allow_open},
-				{name:"Sprites", paths:[["sp/cjs/shield_", "png"]], icon:"../GBFML/assets/ui/result_icon/sprite.png", index:0, open:allow_open},
+			pages = [
+				{
+					name:"",
+					icon:"",
+					assets:[
+						{type:1, paths:[["sp/cjs/shield_", "png"], ["sp/assets/shield/m/", "jpg"], ["sp/assets/shield/s/", "jpg"]], index:0}
+					]
+				}
 			];
 			break;
-		case "manaturas":
+		}
+		case GBFType.manatura:
+		{
 			last_id = "ma"+id;
-			assets = [
-				{name:"Various Portraits", paths:[["sp/assets/familiar/m/", "jpg"], ["sp/assets/familiar/s/", "jpg"]], icon:"../GBFML/assets/ui/result_icon/portrait.png", index:0, open:allow_open},
-				{name:"Sprites", paths:[["sp/cjs/familiar_", "png"]], icon:"../GBFML/assets/ui/result_icon/sprite.png", index:0, open:allow_open},
+			pages = [
+				{
+					name:"",
+					icon:"",
+					assets:[
+						{type:1, paths:[["sp/cjs/familiar_", "png"], ["sp/assets/familiar/m/", "jpg"], ["sp/assets/familiar/s/", "jpg"]], index:0}
+					]
+				}
 			];
 			break;
-		case "summons":
+		}
+		case GBFType.summon:
+		{
 			include_link = true;
 			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = id;
-			assets = [
-				{name:"Journal Arts", paths:[["sp/assets/summon/b/", "png"]], index:0, skycompass:true, icon:"../GBFML/assets/ui/result_icon/journal.png", open:allow_open},
-				{name:"Home Page", paths:[["sp/assets/summon/my/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/home.png", home:true},
-				{name:"Miscellaneous Arts", paths:[["sp/assets/summon/summon_evolution/main/", "png"], ["sp/assets/summon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/other.png"},
-				{name:"Various Portraits", paths:[["sp/assets/summon/m/", "jpg"], ["sp/assets/summon/s/", "jpg"], ["sp/assets/summon/party_main/", "jpg"], ["sp/assets/summon/party_sub/", "jpg"], ["sp/assets/summon/detail/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/portrait.png"},
-				{name:"Battle Portraits", paths:[["sp/assets/summon/raid_normal/", "jpg"], ["sp/assets/summon/btn/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/battle.png"},
-				{name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/summon_call.png"},
-				{name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/summon_call.png"},
-				{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/home.png"},
-				{name:"Quest Portraits", paths:[["sp/assets/summon/qm/", "png"]], index:-7, icon:"../GBFML/assets/ui/result_icon/quest.png", break:true, lazy:false}
-			];
-			skycompass = [
-				["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png", false],
-				["https://media.skycompass.io/assets/archives/summons/", "/detail_s.png", false],
-				["https://media.skycompass.io/assets/archives/summons/", "/list.png", false]
+			pages = [
+				{
+					name:"Arts",
+					icon:"../GBFML/assets/ui/result_icon/journal.png",
+					assets:[
+						{type:1, paths:[["sp/assets/summon/b/", "png"]], index:0},
+						{name:"Other Arts", paths:[["sp/assets/summon/summon_evolution/main/", "png"], ["sp/assets/summon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/other.png"},
+					]
+				},
+				{
+					name:"Skycompass",
+					icon:"../GBFML/assets/ui/result_icon/skycompass_alpha.png",
+					assets:[
+						{type:2, paths:[["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png"], ["https://media.skycompass.io/assets/archives/summons/", "/detail_s.png"], ["https://media.skycompass.io/assets/archives/summons/", "/list.png"]], special_index:"skycompass_base"}
+					]
+				},
+				{
+					name:"Home",
+					icon:"../GBFML/assets/ui/result_icon/home.png",
+					assets:[
+						{type:1, paths:[["sp/assets/summon/my/", "png"]], index:0, home:true}
+					]
+				},
+				{
+					name:"Portraits",
+					icon:"../GBFML/assets/ui/result_icon/portrait.png",
+					assets:[
+						{type:1, paths:[["sp/assets/summon/m/", "jpg"], ["sp/assets/summon/s/", "jpg"], ["sp/assets/summon/party_main/", "jpg"], ["sp/assets/summon/party_sub/", "jpg"], ["sp/assets/summon/detail/", "png"]], index:0, lazy:false},
+						{name:"Battle Portraits", paths:[["sp/assets/summon/raid_normal/", "jpg"], ["sp/assets/summon/btn/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/battle.png"}
+					]
+				},
+				{
+					name:"Sprites",
+					icon:"../GBFML/assets/ui/result_icon/sprite.png",
+					assets:[
+						{name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/summon_call.png", filename:true},
+						{name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/summon_call.png", filename:true},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/home.png", filename:true}
+					]
+				},
+				{
+					name:"Others",
+					icon:"../GBFML/assets/ui/result_icon/siero.png",
+					assets:[
+						{type:1, paths:[["sp/assets/summon/qm/", "png"]], special_index:"quest_portrait", lazy:false}
+					]
+				}
 			];
 			break;
-		case "skins":
-		case "characters":
+		}
+		case GBFType.character:
+		{
 			include_link = true;
 			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = id;
-			assets = [
-				{name:"Main Arts", paths:[["sp/assets/npc/zoom/", "png"]], index:5, icon:"../GBFML/assets/ui/result_icon/art.png", skycompass:true, form:false, open:allow_open},
-				{name:"Home Page", paths:[["sp/assets/npc/my/", "png"]], index:5, icon:"../GBFML/assets/ui/result_icon/home.png", form:false, home:true},
-				{name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:5, icon:"../GBFML/assets/ui/result_icon/journal.png", form:false},
-				{name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/other.png", form:false},
-				{name:"Various Portraits", paths:[["sp/assets/npc/m/", "jpg"], ["sp/assets/npc/s/", "jpg"], ["sp/assets/npc/f/", "jpg"], ["sp/assets/npc/qm/", "png"], ["sp/assets/npc/quest/", "jpg"], ["sp/assets/npc/t/", "png"], ["sp/assets/npc/result_lvup/", "png"], ["sp/assets/npc/detail/", "png"], ["sp/assets/npc/sns/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/portrait.png", form:false},
-				{name:"Skin Portraits", paths:[["sp/assets/npc/s/skin/", "_s1.jpg"], ["sp/assets/npc/f/skin/", "_s1.jpg"], ["sp/assets/npc/t/skin/", "_s1.png"], ["sp/assets/npc/s/skin/", "_s2.jpg"], ["sp/assets/npc/f/skin/", "_s2.jpg"], ["sp/assets/npc/t/skin/", "_s2.png"], ["sp/assets/npc/s/skin/", "_s3.jpg"], ["sp/assets/npc/f/skin/", "_s3.jpg"], ["sp/assets/npc/t/skin/", "_s3.png"], ["sp/assets/npc/s/skin/", "_s4.jpg"], ["sp/assets/npc/f/skin/", "_s4.jpg"], ["sp/assets/npc/t/skin/", "_s4.png"], ["sp/assets/npc/s/skin/", "_s5.jpg"], ["sp/assets/npc/f/skin/", "_s5.jpg"], ["sp/assets/npc/t/skin/", "_s5.png"], ["sp/assets/npc/s/skin/", "_s6.jpg"], ["sp/assets/npc/f/skin/", "_s6.jpg"], ["sp/assets/npc/t/skin/", "_s6.png"]], index:5, icon:"../GBFML/assets/ui/result_icon/skin.png", form:false},
-				{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/battle.png"},
-				{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/cb.png", form:false},
-				{name:"Sprites", paths:[["sp/gacha/assets/balloon_s/", "png"], ["sp/assets/npc/sd/", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/sprite.png", form:false},
-				{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/result_icon/spritesheet.png", index:0},
-				{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/auto.png"},
-				{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/ca.png"},
-				{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/skill.png"},
-				{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/result_icon/skill.png"},
-				{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"../GBFML/assets/ui/result_icon/home.png"},
-				{name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], index:-8, icon:"../GBFML/assets/ui/result_icon/fate_reward.png", break:true, form:false, lazy:false},
-				{name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], index:-9, icon:"../GBFML/assets/ui/result_icon/recruit.png", form:false, lazy:false},
-				{name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/news.png", form:false, lazy:false},
-				{name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], index:-2, icon:"../GBFML/assets/ui/result_icon/result.png", form:false, lazy:false},
-				{name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], index:-6, icon:"../GBFML/assets/ui/result_icon/custom.png", form:false, lazy:false},
-				{name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], index:-8, icon:"../GBFML/assets/ui/result_icon/siero.png", form:false, lazy:false}
+			pages = [
+				{
+					name:"Arts",
+					icon:"../GBFML/assets/ui/result_icon/journal.png",
+					assets:[
+						{type:1, paths:[["sp/assets/npc/zoom/", "png"]], index:5, form:false, open:allow_open},
+						{name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:5, icon:"../GBFML/assets/ui/result_icon/journal.png", form:false},
+						{name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/other.png", form:false},
+						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/cb.png", form:false}
+					]
+				},
+				{
+					name:"Skycompass",
+					icon:"../GBFML/assets/ui/result_icon/skycompass_alpha.png",
+					assets:[
+						{type:2, paths:[["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png"]], index:5}
+					]
+				},
+				{
+					name:"Home",
+					icon:"../GBFML/assets/ui/result_icon/home.png",
+					assets:[
+						{type:1, paths:[["sp/assets/npc/my/", "png"]], index:5, form:false, home:true}
+					]
+				},
+				{
+					name:"Portraits",
+					icon:"../GBFML/assets/ui/result_icon/portrait.png",
+					assets:[
+						{type:1, paths:[["sp/assets/npc/m/", "jpg"], ["sp/assets/npc/s/", "jpg"], ["sp/assets/npc/f/", "jpg"], ["sp/assets/npc/qm/", "png"], ["sp/assets/npc/quest/", "jpg"], ["sp/assets/npc/t/", "png"], ["sp/assets/npc/result_lvup/", "png"], ["sp/assets/npc/detail/", "png"], ["sp/assets/npc/sns/", "jpg"]], index:5, form:false},
+						{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/battle.png"},
+						{name:"Fire Outfit", paths:[["sp/assets/npc/s/skin/", "_s1.jpg"], ["sp/assets/npc/f/skin/", "_s1.jpg"], ["sp/assets/npc/t/skin/", "_s1.png"]], index:5, icon:"../GBFML/assets/ui/result_icon/fire.png", form:false},
+						{name:"Water Outfit", paths:[["sp/assets/npc/s/skin/", "_s2.jpg"], ["sp/assets/npc/f/skin/", "_s2.jpg"], ["sp/assets/npc/t/skin/", "_s2.png"]], index:5, icon:"../GBFML/assets/ui/result_icon/water.png", form:false},
+						{name:"Earth Outfit", paths:[["sp/assets/npc/s/skin/", "_s3.jpg"], ["sp/assets/npc/f/skin/", "_s3.jpg"], ["sp/assets/npc/t/skin/", "_s3.png"]], index:5, icon:"../GBFML/assets/ui/result_icon/earth.png", form:false},
+						{name:"Wind Outfit", paths:[["sp/assets/npc/s/skin/", "_s4.jpg"], ["sp/assets/npc/f/skin/", "_s4.jpg"], ["sp/assets/npc/t/skin/", "_s4.png"]], index:5, icon:"../GBFML/assets/ui/result_icon/wind.png", form:false},
+						{name:"Light Outfit", paths:[["sp/assets/npc/s/skin/", "_s5.jpg"], ["sp/assets/npc/f/skin/", "_s5.jpg"], ["sp/assets/npc/t/skin/", "_s5.png"]], index:5, icon:"../GBFML/assets/ui/result_icon/light.png", form:false},
+						{name:"Dark Outfit", paths:[["sp/assets/npc/s/skin/", "_s6.jpg"], ["sp/assets/npc/f/skin/", "_s6.jpg"], ["sp/assets/npc/t/skin/", "_s6.png"]], index:5, icon:"../GBFML/assets/ui/result_icon/dark.png", form:false}
+					]
+				},
+				{
+					name:"Sprites",
+					icon:"../GBFML/assets/ui/result_icon/sprite.png",
+					assets:[
+						{type:1, paths:[["sp/gacha/assets/balloon_s/", "png"], ["sp/assets/npc/sd/", "png"]], index:6, form:false, lazy:false},
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/result_icon/spritesheet.png", filename:true, index:0},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/auto.png", filename:true},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/ca.png", filename:true},
+						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/skill.png", filename:true},
+						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/result_icon/skill.png", filename:true},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"../GBFML/assets/ui/result_icon/home.png", filename:true}
+					]
+				},
+				{
+					name:"Scenes",
+					icon:"../GBFML/assets/ui/result_icon/scene.png",
+					assets:[
+						{type:3, index:7, bubble:0, filename:true},
+						{type:3, index:7, bubble:1, filename:true}
+					]
+				},
+				{
+					name:"Audios",
+					icon:"../GBFML/assets/ui/result_icon/audio.png",
+					assets:[
+						{type:5, index:8}
+					]
+				},
+				{
+					name:"Others",
+					icon:"../GBFML/assets/ui/result_icon/siero.png",
+					assets:[
+						{name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/fate_reward.png", form:false, lazy:false},
+						{name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], special_index:"character_unlock", icon:"../GBFML/assets/ui/result_icon/recruit.png", form:false, lazy:false},
+						{name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/news.png", form:false, lazy:false},
+						{name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], special_index:"character_popup", icon:"../GBFML/assets/ui/result_icon/result.png", form:false, lazy:false},
+						{name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], special_index:"custom_outfit_skill", icon:"../GBFML/assets/ui/result_icon/custom.png", form:false, lazy:false},
+						{name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"], ["sp/coaching/assets/eternals/", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/siero.png", form:false, lazy:false}
+					]
+				}
 			];
-			if(gbf.eternals().includes(id)) // include specific icons
+			if(gbf.eternals().includes(id))
 			{
-				assets[3].paths.push(["sp/event/common/terra/top/assets/story/btnbnr_", "png"]);
-				assets[20].paths.push(["sp/coaching/assets/eternals/", "png"]);
+				pages[7].assets.push(
+					{name:"Eternals", paths:[["sp/event/common/terra/top/assets/story/btnbnr_", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/fate_reward.png", form:false, lazy:false}
+				);
 			}
-			skycompass = [
-				["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png", true]
-			];
-			npcdata = data[7];
-			sounds = data[8];
 			break;
-		case "partners":
+		}
+		case GBFType.partner:
+		{
+			keeptab = true;
 			include_link = true;
 			last_id = id;
-			assets = [
-				{name:"Party Portraits", paths:[["sp/assets/npc/quest/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/portrait.png", form:false, open:allow_open},
-				{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/battle.png"},
-				{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/cb.png", form:false},
-				{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/result_icon/spritesheet.png", index:0},
-				{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/auto.png"},
-				{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/ca.png"},
-				{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/skill.png"},
-				{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/result_icon/skill.png"}
+			pages = [
+				{
+					name:"Portraits",
+					icon:"../GBFML/assets/ui/result_icon/portrait.png",
+					assets:[
+						{name:"Party Portraits", paths:[["sp/assets/npc/quest/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/portrait.png", form:false, open:allow_open},
+						{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/battle.png"},
+						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"../GBFML/assets/ui/result_icon/cb.png", form:false}
+					]
+				},
+				{
+					name:"Sprites",
+					icon:"../GBFML/assets/ui/result_icon/sprite.png",
+					assets:[
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/result_icon/spritesheet.png", index:0},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/auto.png"},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/ca.png"},
+						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/skill.png"},
+						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/result_icon/skill.png"}
+					]
+				}
 			];
 			break;
-		case "npcs":
-			include_link = data[0];
+		}
+		case GBFType.npc:
+		{
+			keeptab = true
+			include_link = true;
 			last_id = id;
-			assets = [
-				{name:"Portrait", paths:[["sp/assets/npc/m/", "jpg"]], index:-1, icon:"../GBFML/assets/ui/result_icon/portrait.png", open:allow_open},
-				{name:"Arts", paths:[["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], icon:"../GBFML/assets/ui/result_icon/art.png", index:-1, open:allow_open}
+			pages = [
+				{
+					name:"Arts",
+					icon:"../GBFML/assets/ui/result_icon/journal.png",
+					assets:[
+						{type:1, paths:[["sp/assets/npc/m/", "jpg"],["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], special_index:"use_files", open:allow_open},
+						{type:3, index:1, bubble:0, filename:true},
+						{type:3, index:1, bubble:1, filename:true}
+					]
+				},
+				{
+					name:"Audios",
+					icon:"../GBFML/assets/ui/result_icon/audio.png",
+					assets:[
+						{type:5, index:2, name:"Audios", icon:"../GBFML/assets/ui/result_icon/audio.png", open:allow_open}
+					]
+				}
 			];
-			openscene = allow_open;
-			npcdata = data[1];
-			sounds = data[2];
-			files = [id, id + "_01"];
+			if("lookup" in index && id in index.lookup && index.lookup[id].includes("voice-only"))
+				pages.splice(0, 1);
+			
+			files = [id + "_01"];
 			break;
-		case "enemies":
+		}
+		case GBFType.enemy:
+		{
 			include_link = true;
 			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
 			last_id = "e"+id;
-			assets = [
-				{name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/eicon.png", open:allow_open},
-				{name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/appear.png", open:allow_open},
-				{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/spritesheet.png"},
-				{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/auto.png"},
-				{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/result_icon/ca.png"},
-				{name:"AOE Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:5, icon:"../GBFML/assets/ui/result_icon/ca.png"}
+			pages = [
+				{
+					name:"",
+					icon:"",
+					assets:[
+						{name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/eicon.png", open:allow_open},
+						{name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/appear.png", open:allow_open, filename:true},
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/spritesheet.png", filename:true},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/auto.png", filename:true},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/result_icon/ca.png", filename:true},
+						{name:"AOE Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:5, icon:"../GBFML/assets/ui/result_icon/ca.png", filename:true}
+					]
+				}
 			];
 			break;
-		case "job":
+		}
+		case GBFType.job:
+		{
 			include_link = true;
 			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
-			indexed = (data[7].length != 0) && indexed;
 			last_id = id;
-			assets = [
-				{name:"Icon", paths:[["sp/ui/icon/job/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/jicon.png", open:allow_open},
-				{name:"Portraits", paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/portrait.png", open:allow_open},
-				{name:"Full Arts", paths:[["sp/assets/leader/job_change/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/art.png", skycompass:true, open:allow_open},
-				{name:"Home Page", paths:[["sp/assets/leader/my/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/home.png", home:true},
-				{name:"Profile Page", paths:[["sp/assets/leader/pm/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/profile.png", profile:true},
-				{name:"Class Unlock", paths:[["sp/assets/leader/jobtree/", "png"], ["sp/ui/job_name_tree_l/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/unlock.png", lazy:false},
-				{name:"Other Class Texts", paths:[["sp/ui/job_name/job_change/", "png"],["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"]], icon:"../GBFML/assets/ui/result_icon/text.png", index:0, lazy:false},
-				{name:"Various Big Portraits", paths:[["sp/assets/leader/zoom/", "png"], ["sp/assets/leader/p/", "png"], ["sp/assets/leader/jobon_z/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/big_portrait.png"},
-				{name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"], ["sp/event/common/teamraid/assets/selected_skin_thumbnail/", "png"]], icon:"../GBFML/assets/ui/result_icon/portrait.png", index:3},
-				{name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"../GBFML/assets/ui/result_icon/battle.png", index:3},
-				{name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/other.png", lazy:false},
-				{name:"Sprites", paths:[["sp/assets/leader/sd/", "png"]], icon:"../GBFML/assets/ui/result_icon/sprite.png", index:4},
-				{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/result_icon/spritesheet.png", index:7},
-				{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:8, icon:"../GBFML/assets/ui/result_icon/auto.png"},
-				{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"../GBFML/assets/ui/result_icon/ca.png"},
-				{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:10, icon:"../GBFML/assets/ui/result_icon/skill.png"},
-				{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:11, icon:"../GBFML/assets/ui/result_icon/skill.png"},
-				{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:12, icon:"../GBFML/assets/ui/result_icon/lock.png"},
-				{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], index:-5, icon:"../GBFML/assets/ui/result_icon/custom.png", break:true, lazy:false}
+			pages = [
+				{
+					name:"Home",
+					icon:"../GBFML/assets/ui/result_icon/home.png",
+					assets:[
+						{type:1, paths:[["sp/assets/leader/my/", "png"]], index:3, home:true}
+					]
+				},
+				{
+					name:"Skycompass",
+					icon:"../GBFML/assets/ui/result_icon/skycompass_alpha.png",
+					assets:[
+						{type:2, paths:[["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png"]], special_index:"skycompass_main_character"}
+					]
+				},
+				{
+					name:"Arts",
+					icon:"../GBFML/assets/ui/result_icon/journal.png",
+					assets:[
+						{type:1, paths:[["sp/assets/leader/job_change/", "png"]], index:3},
+						{type:1, paths:[["sp/assets/leader/jobtree/", "png"]], index:0},
+						{type:1, paths:[["sp/ui/icon/job/", "png"]], index:0, small:true}
+					]
+				},
+				{
+					name:"Texts",
+					icon:"../GBFML/assets/ui/result_icon/text.png",
+					assets:[
+						{type:1, paths:[["sp/ui/job_name_tree_l/", "png"]], index:0, lazy:false},
+						{type:1, paths:[["sp/ui/job_name/job_change/", "png"],["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"]], index:0, lazy:false}
+					]
+				},
+				{
+					name:"Profile",
+					icon:"../GBFML/assets/ui/result_icon/profile.png",
+					assets:[
+						{type:1, paths:[["sp/assets/leader/pm/", "png"]], index:3, profile:true}
+					]
+				},
+				{
+					name:"Portraits",
+					icon:"../GBFML/assets/ui/result_icon/portrait.png",
+					assets:[
+						{type:1, paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:1},
+						{name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"../GBFML/assets/ui/result_icon/battle.png", index:3},
+						{name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/other.png", lazy:false},
+						{name:"Various Big Portraits", paths:[["sp/assets/leader/zoom/", "png"], ["sp/assets/leader/p/", "png"], ["sp/assets/leader/jobon_z/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/big_portrait.png"},
+						{name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"], ["sp/event/common/teamraid/assets/selected_skin_thumbnail/", "png"]], icon:"../GBFML/assets/ui/result_icon/portrait.png", index:3}
+					]
+				},
+				{
+					name:"Sprites",
+					icon:"../GBFML/assets/ui/result_icon/sprite.png",
+					assets:[
+						{name:"Sprites", paths:[["sp/assets/leader/sd/", "png"]], icon:"../GBFML/assets/ui/result_icon/sprite.png", index:4, filename:true},
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/result_icon/spritesheet.png", index:7, filename:true},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:8, icon:"../GBFML/assets/ui/result_icon/auto.png", filename:true},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"../GBFML/assets/ui/result_icon/ca.png", filename:true},
+						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:10, icon:"../GBFML/assets/ui/result_icon/skill.png", filename:true},
+						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:11, icon:"../GBFML/assets/ui/result_icon/skill.png", filename:true},
+						{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:12, icon:"../GBFML/assets/ui/result_icon/lock.png", filename:true},
+						{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], special_index:"custom_class_skill", icon:"../GBFML/assets/ui/result_icon/custom.png", lazy:false, filename:true}
+					]
+				}
 			];
-			skycompass = [
-				["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png", true]
-			];
-			mc_skycompass = true;
 			break;
-		case "story":
+		}
+		case GBFType.story:
+		{
 			last_id = "ms"+id;
-			assets = [
-				{name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/art.png", open:allow_open}
+			pages = [
+				{
+					name:"",
+					icon:"",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:0, filename:true}
+					]
+				}
 			];
 			break;
-		case "fate":
+		}
+		case GBFType.fate:
+		{
+			keeptab = true;
 			last_id = "fa"+id;
-			assets = [
-				{name:"Base Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/art.png", open:allow_open},
-				{name:"Uncap Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/v_uncap.png", open:allow_open},
-				{name:"Transcendence Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/v_uncap.png", open:allow_open},
-				{name:"Other Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/v_recruit.png", open:allow_open}
+			pages = [
+				{
+					name:"Base",
+					icon:"../GBFML/assets/ui/result_icon/art.png",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:0, filename:true}
+					]
+				},
+				{
+					name:"Uncap",
+					icon:"../GBFML/assets/ui/result_icon/uncap.png",
+					assets:[
+						{type:1, name:"Uncap Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:1, filename:true}
+					]
+				},
+				{
+					name:"Transcendence",
+					icon:"../GBFML/assets/ui/result_icon/transcendence.png",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:2, filename:true}
+					]
+				},
+				{
+					name:"Others",
+					icon:"../GBFML/assets/ui/result_icon/party.png",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:3, filename:true}
+					]
+				}
 			];
 			break;
-		case "events":
+		}
+		case GBFType.event:
+		{
+			keeptab = true;
 			last_id = "q"+id;
-			type = GBFType.event;
-			assets = [
-				{name:"Sky Compass", paths:[["", ""]], index:25, icon:"../GBFML/assets/ui/result_icon/skycompass.png", skycompass:true},
-				{name:"Opening", paths:[["sp/quest/scene/character/body/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/scene.png", open:allow_open},
-				{name:"Chapter 1", paths:[["sp/quest/scene/character/body/", "png"]], index:5, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 2", paths:[["sp/quest/scene/character/body/", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 3", paths:[["sp/quest/scene/character/body/", "png"]], index:7, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 4", paths:[["sp/quest/scene/character/body/", "png"]], index:8, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 5", paths:[["sp/quest/scene/character/body/", "png"]], index:9, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 6", paths:[["sp/quest/scene/character/body/", "png"]], index:10, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 7", paths:[["sp/quest/scene/character/body/", "png"]], index:11, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 8", paths:[["sp/quest/scene/character/body/", "png"]], index:12, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 9", paths:[["sp/quest/scene/character/body/", "png"]], index:13, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 10", paths:[["sp/quest/scene/character/body/", "png"]], index:14, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 11", paths:[["sp/quest/scene/character/body/", "png"]], index:15, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 12", paths:[["sp/quest/scene/character/body/", "png"]], index:16, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 13", paths:[["sp/quest/scene/character/body/", "png"]], index:17, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 14", paths:[["sp/quest/scene/character/body/", "png"]], index:18, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 15", paths:[["sp/quest/scene/character/body/", "png"]], index:19, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 16", paths:[["sp/quest/scene/character/body/", "png"]], index:20, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 17", paths:[["sp/quest/scene/character/body/", "png"]], index:21, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 18", paths:[["sp/quest/scene/character/body/", "png"]], index:22, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 19", paths:[["sp/quest/scene/character/body/", "png"]], index:23, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Chapter 20", paths:[["sp/quest/scene/character/body/", "png"]], index:24, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Ending", paths:[["sp/quest/scene/character/body/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/scene.png"},
-				{name:"Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:4, icon:"../GBFML/assets/ui/result_icon/art.png", open:allow_open}
+			pages = [
+				{
+					name:"Opening",
+					icon:"../GBFML/assets/ui/result_icon/scene_op.png",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:2, filename:true}
+					]
+				}
 			];
-			skycompass = [
-				["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png", true]
-			];
+			for(let i = 0; i < 20; ++i)
+			{
+				pages.push({
+					name:"Chapter " + (i+1),
+					icon:"../GBFML/assets/ui/result_icon/scene_" + ("" + (i + 1)).padStart(2, "0") + ".png",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:5+i, filename:true}
+					]
+				});
+			}
+			pages = pages.concat([
+				{
+					name:"Ending",
+					icon:"../GBFML/assets/ui/result_icon/scene_end.png",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:3, filename:true}
+					]
+				},
+				{
+					name:"Arts",
+					icon:"../GBFML/assets/ui/result_icon/art.png",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:4, filename:true}
+					]
+				},
+				{
+					name:"Skycompass",
+					icon:"../GBFML/assets/ui/result_icon/skycompass_alpha.png",
+					assets:[
+						{type:2, paths:[["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png"]], index:25, filename:true}
+					]
+				},
+			]);
 			break;
-		case "skills":
+		}
+		case GBFType.skill:
+		{
 			last_id = "sk"+id;
-			assets = [
-				{name:"Skill Icons", paths:[["sp/ui/icon/ability/m/", "png"]], index:-1, icon:"../GBFML/assets/ui/result_icon/ability.png", open:allow_open},
+			pages = [
+				{
+					name:"",
+					icon:"",
+					assets:[
+						{type:1, paths:[["sp/ui/icon/ability/m/", "png"]], special_index:"use_files", small:true}
+					]
+				}
 			];
 			files = [""+parseInt(id), ""+parseInt(id)+"_1", ""+parseInt(id)+"_2", ""+parseInt(id)+"_3", ""+parseInt(id)+"_4", ""+parseInt(id)+"_5"];
 			break;
-		case "buffs":
+		}
+		case GBFType.buff:
+		{
 			last_id = "b"+id;
-			assets = [
-				{name:"Icons", paths:[["sp/ui/icon/status/x64/status_", "png"]], index:1, icon:"../GBFML/assets/ui/result_icon/buff.png", open:allow_open, file:data[0]}
+			pages = [
+				{
+					name:"",
+					icon:"",
+					assets:[
+						{type:1, paths:[["sp/ui/icon/status/x64/status_"+data[0], "png"]], index:1, small:true}
+					]
+				}
 			];
 			break;
+		}
 		default:
+		{
+			console.error("Unknown type " + type);
 			return;
+		}
 	}
-	update_query(last_id);
+	// quit if already loaded
 	if(id == tmp_last_id && last_type == type)
-		return; // quit if already loaded
+		return;
+	// clean preview parts
+	try
+	{
+		let preview = document.getElementById("preview");
+		preview.innerHTML = "";
+		add_to(preview, "button", {
+			cls:["fullscreen-button"],
+			onclick: function() {
+				document.getElementById("preview").style.display = "none";
+			},
+			innertext: "Close"
+		});
+	} catch (err) {
+		console.error("Exception", err);
+	}
+	// set last id and update query, etc...
 	last_type = type;
+	update_query(last_id);
 	if(indexed)
 	{
 		update_history(id, type);
@@ -577,23 +829,136 @@ function load_assets(id, data, target, indexed, allow_open)
 			extra_links:extra_links
 		}
 	);
-	// add assets
-	for(let i = 0; i < assets.length; ++i)
+	// tabs
+	const tab_containers = [];
+	for(const page of pages)
 	{
-		if(assets[i].break ?? false) fragment.appendChild(document.createElement('br'));
-		load_assets_main(fragment, id, data, target, indexed, assets[i], load_assets_get_files(id, data, assets[i], files, melee), mc_skycompass, skycompass, (assets[i].lazy ?? true));
+		const tag_id = "asset-" + page.name.toLowerCase().replaceAll(" ", "-");
+		let i = tab_containers.length;
+		tab_containers.push([null, null]);
+		// button
+		tab_containers[i][0] = add_to(null, "button", {
+			cls:["tab-button", "tab-asset-button"],
+			id:"tab-" + tag_id,
+			onclick:function() {
+				open_asset_tab(tag_id)
+			}
+		});
+		add_to(tab_containers[i][0], "img", {
+			cls:["tab-button-icon"]
+		}).src = page.icon;
+		tab_containers[i][0].appendChild(document.createTextNode(page.name));
+		// tab content
+		tab_containers[i][1] = add_to(null, "div", {
+			cls:["container", "tab-asset-content"],
+			id:tag_id
+		});
+		tab_containers[i][1].style.display = "none";
+		// add assets
+		for(let j = 0; j < page.assets.length; ++j)
+		{
+			switch(page.assets[j].type ?? 0)
+			{
+				case 5: // audios
+				{
+					if(!indexed)
+						continue;
+					files = get_file_list(id, data, page.assets[j], files, melee);
+					add_audio_assets(tab_containers[i][1], id, files);
+					break;
+				}
+				case 4: // scenes with details
+				{
+					files = get_file_list(id, data, page.assets[j], files, melee);
+					const [details, div] = add_result(null, page.assets[j]);
+					if(add_scene_assets(div, id, page.assets[j], files))
+						tab_containers[i][1].appendChild(details);
+					break;
+				}
+				case 3: // scenes
+				{
+					files = get_file_list(id, data, page.assets[j], files, melee);
+					add_scene_assets(tab_containers[i][1], id, page.assets[j], files);
+					break;
+				}
+				case 2: // skycompass
+				{
+					files = get_file_list(id, data, page.assets[j], files, melee);
+					add_skycompass_assets(tab_containers[i][1], id, page.assets[j], files);
+					break;
+				}
+				case 1: // detail
+				{
+					files = get_file_list(id, data, page.assets[j], files, melee);
+					add_assets(tab_containers[i][1], id, page.assets[j], files);
+					break;
+				}
+				default:
+				{
+					files = get_file_list(id, data, page.assets[j], files, melee);
+					const [details, div] = add_result(null, page.assets[j]);
+					if(add_assets(div, id, page.assets[j], files))
+						tab_containers[i][1].appendChild(details);
+					break;
+				}
+			}
+		}
 	}
-	// add npc assets
-	if(npcdata && npcdata.length > 0)
+	// clean empty tabs
+	for(let i = 0; i < tab_containers.length;)
 	{
-		fragment.appendChild(document.createElement('br'));
-		load_assets_scene(fragment, id, npcdata, indexed, openscene);
+		if(tab_containers[i][1].childNodes.length == 0)
+			tab_containers.splice(i, 1);
+		else
+			++i;
 	}
-	// add sound assets
-	if(sounds && sounds.length > 0)
+	// add tabs
+	switch(tab_containers.length)
 	{
-		fragment.appendChild(document.createElement('br'));
-		load_assets_sound(fragment, id, sounds, indexed);
+		case 0:
+		{
+			output.innerHTML = '<img src="../GBFML/assets/ui/sorry.png"><br>No assets available';
+			return;
+		}
+		case 1:
+		{
+			if(keeptab)
+			{
+				fragment.appendChild(tab_containers[0][0]);
+				tab_containers[0][0].classList.toggle("active", true);
+			}
+			fragment.appendChild(tab_containers[0][1]);
+			tab_containers[0][1].style.display = "";
+			break;
+		}
+		default:
+		{
+			for(const tab of tab_containers)
+			{
+				fragment.appendChild(tab[0]);
+			}
+			for(const tab of tab_containers)
+			{
+				fragment.appendChild(tab[1]);
+			}
+			tab_containers[0][0].classList.toggle("active", true);
+			tab_containers[0][1].style.display = "";
+			break;
+		}
+	}
+	// add close button to bottom of preview
+	try
+	{
+		let preview = document.getElementById("preview");
+		add_to(preview, "button", {
+			cls:["fullscreen-button"],
+			onclick: function() {
+				document.getElementById("preview").style.display = "none";
+			},
+			innertext: "Close"
+		});
+	} catch (err) {
+		console.error("Exception", err);
 	}
 	// append fragment to output
 	update_next_frame(function() {
@@ -608,170 +973,235 @@ function load_assets(id, data, target, indexed, allow_open)
 	});
 }
 
-function load_assets_get_files(id, data, asset, files, melee)
+function get_file_list(id, data, asset, files, melee)
 {
 	// special exceptions
-	switch(asset.index)
+	switch(asset.special_index ?? "")
 	{
-		case -1: // for npc / skills
+		case "use_files": // for npc / skills
+		{
 			files = files;
 			break;
-		case -2: // for chara popup portraits
+		}
+		case "character_popup": // for chara popup portraits
+		{
 			files = [id, id+"_001"];
 			break;
-		case -3: // for weapon forge headers
+		}
+		case "weapon_forge_header": // for weapon forge headers
+		{
 			files = ["job/header/"+id+".png", "number/header/"+id+".png", "seraphic/header/"+id+".png", "xeno/header/"+id+".png", "bahamut/header/"+id+".png", "omega/header/"+id+".png", "draconic/header/"+id+".png", "revans/header/"+id+".png"];
 			break;
-		case -4: // for weapon forge portraits
+		}
+		case "weapon_forge_portrait": // for weapon forge portraits
+		{
 			files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
 			break;
-		case -5: // custom MC skin skills
+		}
+		case "custom_class_skill": // custom MC skin skills
+		{
 			files = [id+"_0_ability", id+"_1_ability", id+"_0_attack", id+"_1_attack"];
 			for(let i = 1; i < 5; ++i)
 				for(let j = 0; j < 2; ++j)
 					files.push(id+"_"+j+"_vs_motion_"+i);
 			break;
-		case -6: // custom character skin skills
+		}
+		case "custom_outfit_skill": // custom character skin skills
+		{
 			files = [id+"_01_attack"];
 			for(let i = 1; i < 5; ++i)
 				files.push(id+"_01_vs_motion_"+i);
 			break;
-		case -7: // custom summon quest portraits
+		}
+		case "quest_portrait": // custom summon quest portraits
+		{
 			files = [id, id+"_hard", id+"_hard_plus", id+"_ex", id+"_ex_plus", id+"_high", id+"_high_plus"]; 
 			break;
-		case -8: // character fate episode rewards & chara weapon siero training reward
+		}
+		case "reward": // character fate episode rewards & chara weapon siero training reward
+		{
 			files = [id]; 
 			break;
-		case -9: // character unlock
+		}
+		case "character_unlock": // character unlock
+		{
 			files = [id + "_char", id + "_char_w"]; 
 			break;
-		default:
-			files = data[asset.index];
-			// special exceptions
-			switch(asset.name)
-			{
-				case "Recruit Header": // gacha cover
-					files = [files[0]+"_1", files[0]+"_3"];
-					break;
-				case "News Art": // character news art
-					files = [id];
-					break;
-				case "Sprites":
-					if(melee) // melee weapon sprites
-						files = [files[0]+"_1", files[0]+"_2"];
-					break;
-			}
+		}
+		case "recruit_header": // gacha cover
+		{
+			files = [id+"_1", id+"_3"];
 			break;
+		}
+		case "news_art": // character news art
+		{
+			files = [id];
+			break;
+		}
+		case "sprite": // weapon sprites
+		{
+			if(melee) // exception for melee weapon sprites
+				files = [id+"_1", id+"_2"];
+			else
+				files = [id];
+			break;
+		}
+		case "skycompass_base": // skycompass art for base id
+		{
+			files = [id];
+			break;
+		}
+		case "skycompass_main_character": // skycompass art for main character
+		{
+			files = [id+"_0", id+"_1"];
+			break;
+		}
+		default:
+		{
+			files = data[asset.index];
+		}
 	}
 	return files;
 }
 
-function load_assets_main(fragment, id, data, target, indexed, asset, files, mc_skycompass, skycompass, lazy_loading)
+function add_assets(node, id, asset, files)
 {
-	if(files.length == 0) return null;
-	// add section
-	let div = add_result(fragment, asset.name, asset.name, (asset.icon ?? null), asset.open);
-	// add mypage preview
-	if(asset.home ?? false)
-	{
-		add_to(div, "img", {
-			cls:["clickable", "toggle-btn"],
-			onclick: toggle_preview_home
-		}).src = "../GBFML/assets/ui/mypage.png";
-	}
-	// add mypage preview
-	else if(asset.profile ?? false)
-	{
-		add_to(div, "img", {
-			cls:["clickable", "toggle-btn"],
-			onclick: toggle_preview_profile
-		}).src = "assets/ui/profile.png";
-	}
+	if(files.length == 0)
+		return false;
 	// for each path and file
 	for(const path of asset.paths)
 	{
 		for(let i = 0; i < files.length; ++i)
 		{
-			let file = files[i];
-			if((asset.file ?? null) != null)
-				file = asset.file + file;
-			if(asset.name != "Sky Compass") // event sky compass exception
-			{
-				if(!add_image(div, file, asset, path, lazy_loading))
-					continue;
-			}
-			if(skycompass != null && (asset.skycompass ?? false) && path == asset.paths[0]) // skycompass
-			{
-				for(const skyasset of skycompass)
-					add_image_skycompass(div, file, id, data, asset, skyasset, mc_skycompass);
-			}
+			add_image(node, id, files[i], asset, path);
 		}
 	}
-	return div;
-}
-
-function load_assets_scene(fragment, id, npcdata, indexed, openscene)
-{
-	if(id in index["npc_replace"]) // manual_npc_replace.json
-		id = index["npc_replace"][id];
-	let assets = [
-		{name:"Raid Bubble Arts", path:["sp/raid/navi_face/", "png"], icon:"../GBFML/assets/ui/result_icon/bubble.png"},
-		{name:"Scene Arts", path:["sp/quest/scene/character/body/", "png"], icon:"../GBFML/assets/ui/result_icon/scene.png"}
-	];
-	let first = null;
-	for(let asset of assets)
+	
+	// add preview
+	if((asset.home ?? false) || (asset.profile ?? false))
 	{
-		if(npcdata.length == 0) continue;
-		let div = add_result(fragment, asset.name, asset.name, asset.icon, openscene);
-		if(!first) first = div;
-		let count = 0;
-		for(let i = 0; i < npcdata.length; ++i)
-		{
-			let file = npcdata[i];
-			if(asset[0] == "Raid Bubble Arts" && no_speech_bubble_filter.includes(file.split("_").slice(-1)[0])) continue; // ignore those
-			add_image_scene(div, file, id, asset);
-			++count;
-		}
-		if(count == 0) div.parentNode.remove();
+		add_to(node, "br");
+		add_to(node, "button", {
+			cls:["fullscreen-button"],
+			onclick: function() {
+				document.getElementById("preview").style.display = "";
+			},
+			innertext:"Preview"
+		})
 	}
-	return first;
+	return true;
 }
 
-function load_assets_sound(fragment, id, sounds)
+function clean_asset(img)
+{
+	let parent = img.parentNode.parentNode;
+	img.parentNode.remove();
+	if(
+		parent.childNodes.length == 0 ||
+		(
+			parent.childNodes.length == 2 &&
+			(parent.childNodes[0].tagName == "BR" && parent.childNodes[1].tagName == "BUTTON")
+		)
+	)
+	{
+		if(parent.id != null && parent.id != "")
+		{
+			parent.innerHTML = '<img src="../GBFML/assets/ui/sorry.png"><br>Nothing is available in this tab';
+		}
+		else
+		{
+			let granparent = parent.parentNode;
+			parent.remove();
+			if(granparent.tagName == "DETAILS")
+			{
+				let grangranparent = granparent.parentNode;
+				granparent.remove();
+				if(grangranparent.childNodes.length == 0)
+				{
+					grangranparent.innerHTML = '<img src="../GBFML/assets/ui/sorry.png"><br>Nothing is available in this tab';
+				}
+			}
+		}
+	}
+}
+
+function add_skycompass_assets(node, id, asset, files)
+{
+	if(files.length == 0)
+		return false;
+	
+	for(const path of asset.paths)
+	{
+		for(let i = 0; i < files.length; ++i)
+		{
+			const file = files[i];
+			if(file instanceof String && file.includes("_f"))
+				continue;
+			let ref = add_to(node, "a");
+			let img = add_to(ref, "img", {
+				cls:["loading", "skycompass"],
+				onerror:function() {
+					clean_asset(this);
+				},
+				onload:function() {
+					this.classList.toggle("loading", false);
+				}
+			});
+			img.src = path[0] + file + path[1];
+			ref.setAttribute('href', img.src);
+		}
+	}
+	return true;
+}
+
+function add_scene_assets(node, id, asset, suffixes)
+{
+	if("npc_replace" in index && id in index.npc_replace) // manual_npc_replace.json
+		id = index.npc_replace[id];
+	let path = asset.bubble ? ["sp/raid/navi_face/", "png"] : ["sp/quest/scene/character/body/", "png"];
+	let files = [...suffixes];
+	for(let i = 0; i < files.length; ++i)
+	{
+		files[i] = id + files[i];
+	}
+	return add_assets(node, id, {paths:[path], filename:(asset.filename ?? false)}, files);
+}
+
+function add_audio_assets(audio, id, sounds)
 {
 	let sorted_sound = {"Generic":[]};
 	let checks = {
 		"": ["Generic", "../GBFML/assets/ui/result_icon/voice.png"],
-		"_boss_v_": ["Boss", "../GBFML/assets/ui/result_icon/v_boss.png"],
+		"_boss_v_": ["Boss", "../GBFML/assets/ui/result_icon/boss.png"],
 		"_v_": ["Standard", "../GBFML/assets/ui/result_icon/voice.png"],
-		"birthday": ["Happy Birthday", "../GBFML/assets/ui/result_icon/v_birthday.png"],
+		"birthday": ["Happy Birthday", "../GBFML/assets/ui/result_icon/birthday.png"],
 		"year": ["Happy New Year", "../GBFML/assets/ui/result_icon/art.png"],
-		"alentine": ["Valentine", "../GBFML/assets/ui/result_icon/v_valentine.png"],
-		"hite": ["White Day", "../GBFML/assets/ui/result_icon/v_valentine.png"],
-		"alloween": ["Halloween", "../GBFML/assets/ui/result_icon/v_halloween.png"],
-		"mas": ["Christmas", "../GBFML/assets/ui/result_icon/v_christmas.png"],
+		"alentine": ["Valentine", "../GBFML/assets/ui/result_icon/valentine.png"],
+		"hite": ["White Day", "../GBFML/assets/ui/result_icon/valentine.png"],
+		"alloween": ["Halloween", "../GBFML/assets/ui/result_icon/halloween.png"],
+		"mas": ["Christmas", "../GBFML/assets/ui/result_icon/christmas.png"],
 		"mypage": ["My Page", "../GBFML/assets/ui/result_icon/home.png"],
-		"introduce": ["Recruit", "../GBFML/assets/ui/result_icon/v_recruit.png"],
-		"formation": ["Add to Party", "../GBFML/assets/ui/result_icon/v_party.png"],
-		"evolution": ["Evolution", "../GBFML/assets/ui/result_icon/v_uncap.png"],
-		"zenith_": ["Extended Mastery", "../GBFML/assets/ui/result_icon/v_emp.png"],
+		"introduce": ["Recruit", "../GBFML/assets/ui/result_icon/fate.png"],
+		"formation": ["Add to Party", "../GBFML/assets/ui/result_icon/party.png"],
+		"evolution": ["Evolution", "../GBFML/assets/ui/result_icon/uncap.png"],
+		"zenith_": ["Extended Mastery", "../GBFML/assets/ui/result_icon/emp.png"],
 		"archive": ["Journal", "../GBFML/assets/ui/result_icon/journal.png"],
-		"cutin": ["Battle", "../GBFML/assets/ui/result_icon/v_battle.png"],
+		"cutin": ["Battle", "../GBFML/assets/ui/result_icon/swords.png"],
 		"attack": ["Attack", "../GBFML/assets/ui/result_icon/auto.png"],
-		"kill": ["Enemy Defeated", "../GBFML/assets/ui/result_icon/v_kill.png"],
+		"kill": ["Enemy Defeated", "../GBFML/assets/ui/result_icon/kill.png"],
 		"ability_them": ["Offensive Skill", "../GBFML/assets/ui/result_icon/skill.png"],
 		"ability_us": ["Buff Skill", "../GBFML/assets/ui/result_icon/buff.png"],
 		"ready": ["CA Ready", "../GBFML/assets/ui/result_icon/ca.png"],
 		"mortal": ["Charge Attack", "../GBFML/assets/ui/result_icon/ca.png"],
-		"chain": ["Chain Burst Banter", "../GBFML/assets/ui/result_icon/v_banter.png"],
-		"damage": ["Damaged", "../GBFML/assets/ui/result_icon/v_damaged.png"],
+		"chain": ["Chain Burst Banter", "../GBFML/assets/ui/result_icon/banter.png"],
+		"damage": ["Damaged", "../GBFML/assets/ui/result_icon/damaged.png"],
 		"healed": ["Healed", "../GBFML/assets/ui/result_icon/ability.png"],
-		"power_down": ["Debuffed", "../GBFML/assets/ui/result_icon/v_debuffed.png"],
-		"dying": ["Dying", "../GBFML/assets/ui/result_icon/v_dying.png"],
-		"lose": ["K.O.", "../GBFML/assets/ui/result_icon/v_death.png"],
-		"win": ["Win", "../GBFML/assets/ui/result_icon/v_win.png"],
-		"player": ["To Player", "../GBFML/assets/ui/result_icon/v_player.png"],
-		"pair": ["Banter", "../GBFML/assets/ui/result_icon/v_banter.png"]
+		"power_down": ["Debuffed", "../GBFML/assets/ui/result_icon/debuffed.png"],
+		"dying": ["Dying", "../GBFML/assets/ui/result_icon/dying.png"],
+		"lose": ["K.O.", "../GBFML/assets/ui/result_icon/death.png"],
+		"win": ["Win", "../GBFML/assets/ui/result_icon/win.png"],
+		"player": ["To Player", "../GBFML/assets/ui/result_icon/player.png"],
+		"pair": ["Banter", "../GBFML/assets/ui/result_icon/banter.png"]
 	};
 	for(let sound of sounds)
 	{
@@ -792,13 +1222,13 @@ function load_assets_sound(fragment, id, sounds)
 	}
 	if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
 	// loop over categories and sort
-	let first = null;
+	let valid = false;
 	for(const [k, v] of Object.entries(checks))
 	{
-		if(v[0] in sorted_sound)
+		if(v[0] in sorted_sound && sorted_sound[v[0]].length > 0)
 		{
-			let div = add_result(fragment, v[0], v[0] + " Voices", v[1]);
-			if(!first) first = div;
+			valid = true;
+			let [details, div] = add_result(audio, {name:v[0], icon:v[1]});
 			sorted_sound[v[0]].sort(sound_sort);
 			for(let sound of sorted_sound[v[0]])
 			{
@@ -806,40 +1236,42 @@ function load_assets_sound(fragment, id, sounds)
 			}
 		}
 	}
-	return first;
+	return valid;
 }
 
-function add_result(fragment, identifier, name, icon, open=false) // add an asset category
+function add_result(node, asset) // add an asset category
 {
-	let details = document.createElement("details");
-	details.open = open;
+	let details = add_to(node, "details");
+	details.open = asset.open ?? false;
 	
-	let summary = document.createElement("summary");
-	summary.classList.add("detail");
+	let summary = add_to(details, "summary", {
+		cls:["detail"]
+	});
+	let icon = asset.icon ?? null;
 	if(icon != null && icon != "")
 	{
-		let img = document.createElement("img");
-		img.classList.add("result-icon");
-		img.src = icon;
-		summary.appendChild(img);
+		add_to(summary, "img", {
+			cls:["result-icon"]
+		}).src = icon;
 	}
-	summary.appendChild(document.createTextNode(name));
+	summary.appendChild(document.createTextNode(asset.name));
 	
-	let div = document.createElement("div");
-	div.classList.add("container");
-	div.setAttribute("data-id", identifier);
-	
-	details.appendChild(summary);
-	details.appendChild(div);
-	fragment.appendChild(details);
-	return div;
+	let div = add_to(details, "div", {
+		cls:["container"]
+	});
+	return [details, div];
 }
 
-function add_image(div, file, asset, path, lazy_loading) // add an asset
+function add_image(node, id, file, asset, path) // add an asset
 {
-	if(!(asset.form ?? true) && (file.endsWith('_f') || file.endsWith('_f1'))) return false;
-	let img = document.createElement("img");
-	let ref = document.createElement('a');
+	if(!(asset.form ?? true) && (file.endsWith('_f') || file.endsWith('_f1')))
+		return;
+	let ref = add_to(node, "a", {
+		cls:["asset-link"]
+	});
+	let img = add_to(ref, "img", {
+		cls:["loading", ((asset.small ?? false) ? "asset-small" : "asset")]
+	});
 	if(file.endsWith(".png") || file.endsWith(".jpg")) // if extension is already set
 	{
 		img.src = gbf.get_endpoint() + "assets_en/img_low/" + path[0] + file;
@@ -853,108 +1285,58 @@ function add_image(div, file, asset, path, lazy_loading) // add an asset
 		img.src = gbf.get_endpoint() + "assets_en/img_low/" + path[0] + file + "." + path[1];
 	}
 	ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img")); // set link
-	img.classList.add("loading");
-	// preview stuff
-	if(asset.home ?? false)
-	{
-		if(settings.home)
-		{
-			img.classList.add("homepage-bg");
-			img.src = img.src.replace('/img_low/', '/img/');
-			ref.classList.add("homepage-ui");
-		}
-		else img.classList.add("homepage");
-	}
-	else if(asset.profile ?? false)
-	{
-		if(settings.profile)
-		{
-			img.src = img.src.replace('/img_low/', '/img/');
-			ref.classList.add("profilepage-ui");
-		}
-		img.classList.add("profilepage");
-	}
-	if(lazy_loading) img.setAttribute('loading', 'lazy');
+	if(asset.lazy ?? true)
+		img.setAttribute('loading', 'lazy');
 	img.onerror = function() {
-		let details = this.parentNode.parentNode.parentNode;
-		let result = this.parentNode.parentNode; // parent div
-		this.parentNode.remove();
-		const n = (this.classList.contains("homepage-bg") || this.classList.contains("homepage") || this.classList.contains("profilepage")) ? 1 : 0;
-		this.remove();
-		if(result.childNodes.length <= n) details.remove();
+		clean_asset(this);
 	};
 	img.onload = function() {
-		this.classList.remove("loading");
-		if(!this.classList.contains("homepage-bg") && (!this.classList.contains("profilepage") || !settings.profile))
-			this.classList.add("asset");
+		this.classList.toggle("loading", false);
 		this.onload = null;
+		if(this.text_node)
+		this.text_node.style.display = "";
 	};
-	div.appendChild(ref);
-	ref.appendChild(img);
-	return true;
-}
-
-function add_image_scene(div, file, id, asset) // add a npc/scene asset
-{
-	let img = document.createElement("img");
-	let ref = document.createElement('a');
-	img.src = gbf.get_endpoint() + "assets_en/img_low/" + asset.path[0] + id + file + "." + asset.path[1];
-	if(file != "") img.title = file.replaceAll('_', ' ').trim();
-	ref.setAttribute('href', img.src.replaceAll("img_low", "img"));
-	img.classList.add("loading");
-	img.setAttribute('loading', 'lazy');
-	img.onerror = function() {
-		let details = this.parentNode.parentNode.parentNode;
-		let result = this.parentNode.parentNode;
-		this.parentNode.remove();
-		this.remove();
-		if(result.childNodes.length <= 0) details.remove();
-	};
-	img.onload = function() {
-		this.classList.remove("loading");
-		this.classList.add("asset");
-	};
-	div.appendChild(ref);
-	ref.appendChild(img);
-}
-
-function add_image_skycompass(div, file, id, data, asset, skycompass, mc_skycompass) // add a skycompass asset
-{
-	let img = document.createElement("img");
-	img.setAttribute('loading', 'lazy');
-	let ref = document.createElement('a');
-	if(!skycompass[2]) // if false, use first file string and no uncap suffix
+	if(asset.filename ?? false)
 	{
-		if(file != data[asset.index][0]) return false;
-		ref.setAttribute('href', skycompass[0] + file.split('_')[0] + skycompass[1]);
-		img.src = skycompass[0] + file.split('_')[0] + skycompass[1];
+		// text class
+		let txt = add_to(ref, "div", {
+			cls:[((asset.small ?? false) ? "asset-text-small" : "asset-text")],
+			innertext: img.src.split("/").pop().split(".")[0].replaceAll(id, "").replaceAll("_", " ").trim()
+		});
+		txt.style.display = "none";
+		img.text_node = txt;
 	}
-	else if(mc_skycompass) // for classes only
+	
+	// preview parts
+	try
 	{
-		ref.setAttribute('href', skycompass[0] + id + '_' + file.split('_')[2] + skycompass[1]);
-		img.src = skycompass[0] + id + '_' + file.split('_')[2] + skycompass[1];
+		if(asset.home ?? false)
+		{
+			let previewref = add_to(document.getElementById("preview"), "div", {
+				cls:["preview-mypage-top"]
+			});
+			add_to(previewref, "img", {
+				cls:["preview-mypage-bg"],
+				onerror: function() {
+					this.parentNode.remove();
+				}
+			}).src = ref.href;
+		}
+		if(asset.profile ?? false)
+		{
+			let previewref = add_to(document.getElementById("preview"), "div", {
+				cls:["preview-profile-top"]
+			});
+			add_to(previewref, "img", {
+				cls:["preview-profile-bg"],
+				onerror: function() {
+					this.parentNode.remove();
+				}
+			}).src = ref.href;
+		}
+	} catch(err) {
+		console.error("Exception in add_image", err);
 	}
-	else // standard stuff
-	{
-		ref.setAttribute('href', skycompass[0] + file + skycompass[1]);
-		img.src = skycompass[0] + file + skycompass[1];
-	}
-	img.classList.add("loading");
-	img.onerror = function() {
-		let details = this.parentNode.parentNode.parentNode;
-		let result = this.parentNode.parentNode;
-		this.parentNode.remove();
-		this.remove();
-		if(result.childNodes.length <= 0) details.remove();
-	};
-	img.onload = function() {
-		this.classList.remove("loading");
-		this.classList.add("asset");
-		this.classList.add("skycompass");
-	};
-	div.appendChild(ref);
-	ref.appendChild(img);
-	return true;
 }
 
 function add_sound(div, id, sound) // add a sound asset
@@ -968,11 +1350,21 @@ function add_sound(div, id, sound) // add a sound asset
 	if(s[0] == '_') s = s.substring(1);
 	switch(s.substring(0, 3))
 	{
-		case "02_": s = "4★_" + s.substring(3); break;
-		case "03_": s = "5★_" + s.substring(3); break;
-		case "04_": s = "6★_" + s.substring(3); break;
-		case "05_": s = "7★_" + s.substring(3); break;
-		default: s = "0★_" + s; break;
+		case "02_":
+			s = "4★_" + s.substring(3);
+			break;
+		case "03_":
+			s = "5★_" + s.substring(3);
+			break;
+		case "04_":
+			s = "6★_" + s.substring(3);
+			break;
+		case "05_":
+			s = "7★_" + s.substring(3);
+			break;
+		default:
+			s = "0★_" + s;
+			break;
 	}
 	s = s.split('_');
 	let isCB = false;
@@ -986,7 +1378,7 @@ function add_sound(div, id, sound) // add a sound asset
 			case "chain4": elem.appendChild(document.createTextNode("Wind CB")); isCB = true; break;
 			case "chain5": elem.appendChild(document.createTextNode("Light CB")); isCB = true; break;
 			case "chain6": elem.appendChild(document.createTextNode("Dark CB")); isCB = true; break;
-			case "s1": elem.appendChild(document.createTextNode("Scene 1")); break;
+			case "s2": elem.appendChild(document.createTextNode("Scene 1")); break;
 			case "s2": elem.appendChild(document.createTextNode("Scene 2")); break;
 			case "s3": elem.appendChild(document.createTextNode("Scene 3")); break;
 			case "s4": elem.appendChild(document.createTextNode("Scene 4")); break;
