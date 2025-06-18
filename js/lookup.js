@@ -1148,6 +1148,8 @@ function add_skycompass_assets(node, id, asset, files)
 			if(file instanceof String && file.includes("_f"))
 				continue;
 			let ref = add_to(node, "a");
+			ref.target = "_blank";
+			ref.rel = "noopener noreferrer";
 			let img = add_to(ref, "img", {
 				cls:["loading", "skycompass"],
 				onerror:function() {
@@ -1293,6 +1295,8 @@ function add_image(node, id, file, asset, path)
 	let ref = add_to(node, "a", {
 		cls:["asset-link"]
 	});
+	ref.target = "_blank";
+	ref.rel = "noopener noreferrer";
 	// add image
 	let img = add_to(ref, "img", {
 		cls:["loading", ((asset.small ?? false) ? "asset-small" : "asset")]
@@ -1491,13 +1495,16 @@ function add_sound(node, id, sound)
 		elem.appendChild(document.createElement('br'));
 	}
 	// add link
-	add_to(elem, "a", {
+	let ref = add_to(elem, "a", {
 		cls:["sound-link"],
 		title:"Click to open the link",
 		onclick: function(event) {
 			event.stopPropagation();
 		}
-	}).href = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + id + sound + ".mp3";
+	});
+	ref.href = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + id + sound + ".mp3";
+	ref.target = "_blank";
+	ref.rel = "noopener noreferrer";
 	return elem;
 }
 
