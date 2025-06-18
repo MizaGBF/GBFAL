@@ -1158,6 +1158,8 @@ function add_skycompass_assets(node, id, asset, files)
 				}
 			});
 			img.src = path[0] + file + path[1];
+			if(asset.lazy ?? true)
+				img.setAttribute('loading', 'lazy');
 			ref.setAttribute('href', img.src);
 		}
 	}
