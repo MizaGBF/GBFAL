@@ -269,28 +269,29 @@ function load_assets(id, data, type, target, indexed, allow_open)
 	// save last_id
 	let tmp_last_id = last_id;
 	// headers
-	let include_link = false;
+	let include_link = false; // if true, will add wiki links and extra links
 	let extra_links = [];
 	// content
 	let pages = [];
 	let files = null;
 	// flags
-	let keeptab = false; // add tab to DOM if true if there is a single category
-	let melee = false; // melee weapon?
+	let keeptab = false; // add tab to DOM if true even if there is a single one
+	let melee = false; // melee weapon flag
 	
 	switch(type)
 	{
 		case GBFType.weapon:
 		{
 			include_link = true;
-			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
-			last_id = id;
+			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]]; // format is title, icon, link
+			last_id = id; // update last id
+			// tabs to display
 			pages = [
 				{
 					name:"Arts",
 					icon:"../GBFML/assets/ui/result_icon/journal.png",
 					assets:[
-						{type:1, paths:[["sp/assets/weapon/b/", "png"]], index:0},
+						{type:1, paths:[["sp/assets/weapon/b/", "png"]], index:0}, // default is type 0, see further below for types
 						{name:"Other Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"../GBFML/assets/ui/result_icon/other.png"}
 					]
 				},
@@ -326,7 +327,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		}
 		case GBFType.shield:
 		{
-			last_id = "sd"+id;
+			last_id = "sd"+id; // last id must add prefix
 			pages = [
 				{
 					name:"",
@@ -492,6 +493,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					]
 				}
 			];
+			// extra files for eternals
 			if(gbf.eternals().includes(id))
 			{
 				pages[7].assets[pages[7].assets.length - 1].paths.push(["sp/coaching/assets/eternals/", "png"]);
@@ -857,6 +859,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		// add assets
 		for(let j = 0; j < page.assets.length; ++j)
 		{
+			// tab type
 			switch(page.assets[j].type ?? 0)
 			{
 				case 5: // audios
@@ -887,7 +890,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					add_skycompass_assets(tab_containers[i][1], id, page.assets[j], files);
 					break;
 				}
-				case 1: // detail
+				case 1: // no detail element
 				{
 					files = get_file_list(id, data, page.assets[j], files, melee);
 					add_assets(tab_containers[i][1], id, page.assets[j], files);
@@ -922,7 +925,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		}
 		case 1:
 		{
-			if(keeptab)
+			if(keeptab) // still add the tab
 			{
 				fragment.appendChild(tab_containers[0][0]);
 				tab_containers[0][0].classList.toggle("active", true);
@@ -941,6 +944,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			{
 				fragment.appendChild(tab[1]);
 			}
+			// make first tab active and visible
 			tab_containers[0][0].classList.toggle("active", true);
 			tab_containers[0][1].style.display = "";
 			break;
@@ -1092,10 +1096,12 @@ function add_assets(node, id, asset, files)
 	return true;
 }
 
+// called if an asset doesn't download
 function clean_asset(img)
 {
 	let parent = img.parentNode.parentNode;
 	img.parentNode.remove();
+	// if parent is empty (or only preview button is left)
 	if(
 		parent.childNodes.length == 0 ||
 		(
@@ -1104,19 +1110,23 @@ function clean_asset(img)
 		)
 	)
 	{
+		// if parent is the tab container
 		if(parent.id != null && parent.id != "")
 		{
 			parent.innerHTML = '<img src="../GBFML/assets/ui/sorry.png"><br>Nothing is available in this tab';
 		}
+		// if parent is container under a details
 		else
 		{
 			let granparent = parent.parentNode;
 			parent.remove();
+			// check if the detail is empty
 			if(granparent.tagName == "DETAILS")
 			{
 				let grangranparent = granparent.parentNode;
 				granparent.remove();
-				if(grangranparent.childNodes.length == 0)
+				// if the whole tab is empty
+				if(grangranparent.childNodes.length == 0) // note: missing check for button preview
 				{
 					grangranparent.innerHTML = '<img src="../GBFML/assets/ui/sorry.png"><br>Nothing is available in this tab';
 				}
@@ -1129,7 +1139,7 @@ function add_skycompass_assets(node, id, asset, files)
 {
 	if(files.length == 0)
 		return false;
-	
+	// go over paths and add the images
 	for(const path of asset.paths)
 	{
 		for(let i = 0; i < files.length; ++i)
@@ -1156,10 +1166,11 @@ function add_skycompass_assets(node, id, asset, files)
 
 function add_scene_assets(node, id, asset, suffixes)
 {
-	if("npc_replace" in index && id in index.npc_replace) // manual_npc_replace.json
-		id = index.npc_replace[id];
+	if("npc_replace" in index && id in index.npc_replace) // imported manual_npc_replace.json
+		id = index.npc_replace[id]; // replace npc id
 	let path = asset.bubble ? ["sp/raid/navi_face/", "png"] : ["sp/quest/scene/character/body/", "png"];
 	let files = [...suffixes];
+	// prepare file list with id
 	for(let i = 0; i < files.length; ++i)
 	{
 		files[i] = id + files[i];
@@ -1203,6 +1214,7 @@ function add_audio_assets(audio, id, sounds)
 		"player": ["To Player", "../GBFML/assets/ui/result_icon/player.png"],
 		"pair": ["Banter", "../GBFML/assets/ui/result_icon/banter.png"]
 	};
+	// sort sounds
 	for(let sound of sounds)
 	{
 		let found = false;
@@ -1213,14 +1225,18 @@ function add_audio_assets(audio, id, sounds)
 			if(sound.includes(k))
 			{
 				found = true;
-				if(!(v[0] in sorted_sound)) sorted_sound[v[0]] = [];
+				if(!(v[0] in sorted_sound))
+					sorted_sound[v[0]] = [];
 				sorted_sound[v[0]].push(sound);
 				break;
 			}
 		}
-		if(!found) sorted_sound["Generic"].push(sound);
+		if(!found)
+			sorted_sound["Generic"].push(sound);
 	}
-	if(sorted_sound["Generic"].length == 0) delete sorted_sound["Generic"];
+	// remove generic category if empty
+	if(sorted_sound["Generic"].length == 0)
+		delete sorted_sound["Generic"];
 	// loop over categories and sort
 	let valid = false;
 	for(const [k, v] of Object.entries(checks))
@@ -1228,8 +1244,10 @@ function add_audio_assets(audio, id, sounds)
 		if(v[0] in sorted_sound && sorted_sound[v[0]].length > 0)
 		{
 			valid = true;
+			// add category
 			let [details, div] = add_result(audio, {name:v[0], icon:v[1]});
 			sorted_sound[v[0]].sort(sound_sort);
+			// populate with sounds
 			for(let sound of sorted_sound[v[0]])
 			{
 				add_sound(div, id, sound);
@@ -1239,7 +1257,8 @@ function add_audio_assets(audio, id, sounds)
 	return valid;
 }
 
-function add_result(node, asset) // add an asset category
+// add a detail element to put assets under
+function add_result(node, asset)
 {
 	let details = add_to(node, "details");
 	details.open = asset.open ?? false;
@@ -1262,16 +1281,22 @@ function add_result(node, asset) // add an asset category
 	return [details, div];
 }
 
-function add_image(node, id, file, asset, path) // add an asset
+// add an image asset
+function add_image(node, id, file, asset, path)
 {
+	// form check
 	if(!(asset.form ?? true) && (file.endsWith('_f') || file.endsWith('_f1')))
 		return;
+	// add link
 	let ref = add_to(node, "a", {
 		cls:["asset-link"]
 	});
+	// add image
 	let img = add_to(ref, "img", {
 		cls:["loading", ((asset.small ?? false) ? "asset-small" : "asset")]
 	});
+	// set path
+	// note: old code, might be worth cleaning up later
 	if(file.endsWith(".png") || file.endsWith(".jpg")) // if extension is already set
 	{
 		img.src = gbf.get_endpoint() + "assets_en/img_low/" + path[0] + file;
@@ -1284,18 +1309,23 @@ function add_image(node, id, file, asset, path) // add an asset
 	{
 		img.src = gbf.get_endpoint() + "assets_en/img_low/" + path[0] + file + "." + path[1];
 	}
-	ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img")); // set link
+	// set link to img src but with lower quality
+	ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img"));
+	// set lazy loading
 	if(asset.lazy ?? true)
 		img.setAttribute('loading', 'lazy');
+	// set events
 	img.onerror = function() {
 		clean_asset(this);
 	};
 	img.onload = function() {
 		this.classList.toggle("loading", false);
 		this.onload = null;
+		// make text visible
 		if(this.text_node)
-		this.text_node.style.display = "";
+			this.text_node.style.display = "";
 	};
+	// add filename if set
 	if(asset.filename ?? false)
 	{
 		// text class
@@ -1304,12 +1334,12 @@ function add_image(node, id, file, asset, path) // add an asset
 			innertext: img.src.split("/").pop().split(".")[0].replaceAll(id, "").replaceAll("_", " ").trim()
 		});
 		txt.style.display = "none";
-		img.text_node = txt;
+		img.text_node = txt; // add it to img text_node
 	}
-	
-	// preview parts
+	// for mypage and profile previews
 	try
 	{
+		// add the fulle preview in the dedicated part
 		if(asset.home ?? false)
 		{
 			let previewref = add_to(document.getElementById("preview"), "div", {
@@ -1339,15 +1369,24 @@ function add_image(node, id, file, asset, path) // add an asset
 	}
 }
 
-function add_sound(div, id, sound) // add a sound asset
+// add a sound asset
+function add_sound(node, id, sound)
 {
-	let elem = document.createElement("div");
-	elem.classList.add("sound-file");
-	elem.classList.add("clickable");
-	elem.title = "Click to play " + id + sound + ".mp3";
+	let elem = add_to(node, "div", {
+		cls:["sound-file", "clickable"],
+		title:"Click to play " + id + sound + ".mp3",
+		onclick: function() {
+			if(audio != null)
+				audio.pause(); // stop existing audio
+			audio = new Audio("https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + id + sound + ".mp3");
+			audio.play();
+		}
+	});
+	
 	// format element text
 	let s = sound;
-	if(s[0] == '_') s = s.substring(1);
+	if(s[0] == '_')
+		s = s.substring(1);
 	switch(s.substring(0, 3))
 	{
 		case "02_":
@@ -1372,41 +1411,91 @@ function add_sound(div, id, sound) // add a sound asset
 	{
 		switch(s[i])
 		{
-			case "chain1": elem.appendChild(document.createTextNode("Fire CB")); isCB = true; break;
-			case "chain2": elem.appendChild(document.createTextNode("Water CB")); isCB = true; break;
-			case "chain3": elem.appendChild(document.createTextNode("Earth CB")); isCB = true; break;
-			case "chain4": elem.appendChild(document.createTextNode("Wind CB")); isCB = true; break;
-			case "chain5": elem.appendChild(document.createTextNode("Light CB")); isCB = true; break;
-			case "chain6": elem.appendChild(document.createTextNode("Dark CB")); isCB = true; break;
-			case "s2": elem.appendChild(document.createTextNode("Scene 1")); break;
-			case "s2": elem.appendChild(document.createTextNode("Scene 2")); break;
-			case "s3": elem.appendChild(document.createTextNode("Scene 3")); break;
-			case "s4": elem.appendChild(document.createTextNode("Scene 4")); break;
-			case "s5": elem.appendChild(document.createTextNode("Scene 5")); break;
-			case "s6": elem.appendChild(document.createTextNode("Scene 6")); break;
-			default:
-				if(isCB) elem.appendChild(document.createTextNode(s[i] + " chains"));
-				else elem.appendChild(document.createTextNode(s[i]));
+			case "chain1":
+			{
+				elem.appendChild(document.createTextNode("Fire CB"));
+				isCB = true;
 				break;
+			}
+			case "chain2":
+			{
+				elem.appendChild(document.createTextNode("Water CB"));
+				isCB = true;
+				break;
+			}
+			case "chain3":
+			{
+				elem.appendChild(document.createTextNode("Earth CB"));
+				isCB = true;
+				break;
+			}
+			case "chain4":
+			{
+				elem.appendChild(document.createTextNode("Wind CB"));
+				isCB = true;
+				break;
+			}
+			case "chain5":
+			{
+				elem.appendChild(document.createTextNode("Light CB"));
+				isCB = true;
+				break;
+			}
+			case "chain6":
+			{
+				elem.appendChild(document.createTextNode("Dark CB"));
+				isCB = true;
+				break;
+			}
+			case "s1":
+			{
+				elem.appendChild(document.createTextNode("Scene 1"));
+				break;
+			}
+			case "s2":
+			{
+				elem.appendChild(document.createTextNode("Scene 2"));
+				break;
+			}
+			case "s3":
+			{
+				elem.appendChild(document.createTextNode("Scene 3"));
+				break;
+			}
+			case "s4":
+			{
+				elem.appendChild(document.createTextNode("Scene 4"));
+				break;
+			}
+			case "s5":
+			{
+				elem.appendChild(document.createTextNode("Scene 5"));
+				break;
+			}
+			case "s6":
+			{
+				elem.appendChild(document.createTextNode("Scene 6"));
+				break;
+			}
+			default:
+			{
+				if(isCB)
+					elem.appendChild(document.createTextNode(s[i] + " chains"));
+				else
+					elem.appendChild(document.createTextNode(s[i]));
+				break;
+			}
 		}
 		elem.appendChild(document.createElement('br'));
 	}
-	// onclick play the audio
-	elem.onclick = function() {
-		if(audio != null) audio.pause(); // stop existing audio
-		audio = new Audio("https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + id + sound + ".mp3");
-		audio.play();
-	};
 	// add link
-	let a = document.createElement("a");
-	a.href = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + id + sound + ".mp3";
-	a.classList.add("sound-link");
-	a.onclick = function(event) {
-		event.stopPropagation();
-	};
-	a.title = "Click to open the link";
-	elem.appendChild(a);
-	div.appendChild(elem);
+	add_to(elem, "a", {
+		cls:["sound-link"],
+		title:"Click to open the link",
+		onclick: function(event) {
+			event.stopPropagation();
+		}
+	}).href = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + id + sound + ".mp3";
 	return elem;
 }
 
