@@ -1508,7 +1508,7 @@ function clean_audio()
 {
 	if(audio)
 	{
-		audio.player.removeEventListener('loadedmetadata', update_duration);
+		audio.player.removeEventListener('loadedmetadata', update_audio_duration);
 		audio.player.removeEventListener('timeupdate', update_audio_time);
 		audio = null;
 	}
