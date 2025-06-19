@@ -1576,10 +1576,20 @@ function update_audio_time()
 
 function set_and_play_audio()
 {
-	audio.playing.innerText = format_sound_suffix(audio.track.value);
-	audio.player.pause();
-	audio.player.src = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + audio.id + audio.track.value + ".mp3";
-	audio.player.play();
+	let src = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + audio.id + audio.track.value + ".mp3";
+	if(audio.player.src == src)
+	{
+		audio.player.pause();
+		audio.player.currentTime = 0;
+		audio.player.play();
+	}
+	else
+	{
+		audio.playing.innerText = format_sound_suffix(audio.track.value);
+		audio.player.pause();
+		audio.player.src = src;
+		audio.player.play();
+	}
 	audio.play_button.disabled = false;
 	audio.play_button.classList.toggle("audio-player-button-paused", false);
 }
