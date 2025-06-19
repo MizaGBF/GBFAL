@@ -266,6 +266,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 {
 	beep();
 	gbf.reset_endpoint();
+	clean_audio();
 	// save last_id
 	let tmp_last_id = last_id;
 	// headers
@@ -1182,85 +1183,6 @@ function add_scene_assets(node, id, asset, suffixes)
 	return add_assets(node, id, {paths:[path], filename:(asset.filename ?? false)}, files);
 }
 
-function add_audio_assets(audio, id, sounds)
-{
-	let sorted_sound = {"Generic":[]};
-	let checks = {
-		"": ["Generic", "../GBFML/assets/ui/result_icon/voice.png"],
-		"_boss_v_": ["Boss", "../GBFML/assets/ui/result_icon/boss.png"],
-		"_v_": ["Standard", "../GBFML/assets/ui/result_icon/voice.png"],
-		"birthday": ["Happy Birthday", "../GBFML/assets/ui/result_icon/birthday.png"],
-		"year": ["Happy New Year", "../GBFML/assets/ui/result_icon/art.png"],
-		"alentine": ["Valentine", "../GBFML/assets/ui/result_icon/valentine.png"],
-		"hite": ["White Day", "../GBFML/assets/ui/result_icon/valentine.png"],
-		"alloween": ["Halloween", "../GBFML/assets/ui/result_icon/halloween.png"],
-		"mas": ["Christmas", "../GBFML/assets/ui/result_icon/christmas.png"],
-		"mypage": ["My Page", "../GBFML/assets/ui/result_icon/home.png"],
-		"introduce": ["Recruit", "../GBFML/assets/ui/result_icon/fate.png"],
-		"formation": ["Add to Party", "../GBFML/assets/ui/result_icon/party.png"],
-		"evolution": ["Evolution", "../GBFML/assets/ui/result_icon/uncap.png"],
-		"zenith_": ["Extended Mastery", "../GBFML/assets/ui/result_icon/emp.png"],
-		"archive": ["Journal", "../GBFML/assets/ui/result_icon/journal.png"],
-		"cutin": ["Battle", "../GBFML/assets/ui/result_icon/swords.png"],
-		"attack": ["Attack", "../GBFML/assets/ui/result_icon/auto.png"],
-		"kill": ["Enemy Defeated", "../GBFML/assets/ui/result_icon/kill.png"],
-		"ability_them": ["Offensive Skill", "../GBFML/assets/ui/result_icon/skill.png"],
-		"ability_us": ["Buff Skill", "../GBFML/assets/ui/result_icon/buff.png"],
-		"ready": ["CA Ready", "../GBFML/assets/ui/result_icon/ca.png"],
-		"mortal": ["Charge Attack", "../GBFML/assets/ui/result_icon/ca.png"],
-		"chain": ["Chain Burst Banter", "../GBFML/assets/ui/result_icon/banter.png"],
-		"damage": ["Damaged", "../GBFML/assets/ui/result_icon/damaged.png"],
-		"healed": ["Healed", "../GBFML/assets/ui/result_icon/ability.png"],
-		"power_down": ["Debuffed", "../GBFML/assets/ui/result_icon/debuffed.png"],
-		"dying": ["Dying", "../GBFML/assets/ui/result_icon/dying.png"],
-		"lose": ["K.O.", "../GBFML/assets/ui/result_icon/death.png"],
-		"win": ["Win", "../GBFML/assets/ui/result_icon/win.png"],
-		"player": ["To Player", "../GBFML/assets/ui/result_icon/player.png"],
-		"pair": ["Banter", "../GBFML/assets/ui/result_icon/banter.png"]
-	};
-	// sort sounds
-	for(let sound of sounds)
-	{
-		let found = false;
-		for(const [k, v] of Object.entries(checks))
-		{
-			if(k == "")
-				continue;
-			if(sound.includes(k))
-			{
-				found = true;
-				if(!(v[0] in sorted_sound))
-					sorted_sound[v[0]] = [];
-				sorted_sound[v[0]].push(sound);
-				break;
-			}
-		}
-		if(!found)
-			sorted_sound["Generic"].push(sound);
-	}
-	// remove generic category if empty
-	if(sorted_sound["Generic"].length == 0)
-		delete sorted_sound["Generic"];
-	// loop over categories and sort
-	let valid = false;
-	for(const [k, v] of Object.entries(checks))
-	{
-		if(v[0] in sorted_sound && sorted_sound[v[0]].length > 0)
-		{
-			valid = true;
-			// add category
-			let [details, div] = add_result(audio, {name:v[0], icon:v[1]});
-			sorted_sound[v[0]].sort(sound_sort);
-			// populate with sounds
-			for(let sound of sorted_sound[v[0]])
-			{
-				add_sound(div, id, sound);
-			}
-		}
-	}
-	return valid;
-}
-
 // add a detail element to put assets under
 function add_result(node, asset)
 {
@@ -1375,22 +1297,321 @@ function add_image(node, id, file, asset, path)
 	}
 }
 
-// add a sound asset
-function add_sound(node, id, sound)
+function add_audio_assets(node, id, sounds)
 {
-	let elem = add_to(node, "div", {
-		cls:["sound-file", "clickable"],
-		title:"Click to play " + id + sound + ".mp3",
-		onclick: function() {
-			if(audio != null)
-				audio.pause(); // stop existing audio
-			audio = new Audio("https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + id + sound + ".mp3");
-			audio.play();
+	let sorted_sound = {"Generic":[]};
+	let checks = {
+		"": ["Generic", "../GBFML/assets/ui/result_icon/voice.png"],
+		"_boss_v_": ["Boss", "../GBFML/assets/ui/result_icon/boss.png"],
+		"_v_": ["Standard", "../GBFML/assets/ui/result_icon/voice.png"],
+		"birthday": ["Happy Birthday", "../GBFML/assets/ui/result_icon/birthday.png"],
+		"year": ["Happy New Year", "../GBFML/assets/ui/result_icon/art.png"],
+		"alentine": ["Valentine", "../GBFML/assets/ui/result_icon/valentine.png"],
+		"hite": ["White Day", "../GBFML/assets/ui/result_icon/valentine.png"],
+		"alloween": ["Halloween", "../GBFML/assets/ui/result_icon/halloween.png"],
+		"mas": ["Christmas", "../GBFML/assets/ui/result_icon/christmas.png"],
+		"mypage": ["My Page", "../GBFML/assets/ui/result_icon/home.png"],
+		"introduce": ["Recruit", "../GBFML/assets/ui/result_icon/fate.png"],
+		"formation": ["Add to Party", "../GBFML/assets/ui/result_icon/party.png"],
+		"evolution": ["Evolution", "../GBFML/assets/ui/result_icon/uncap.png"],
+		"zenith_": ["Extended Mastery", "../GBFML/assets/ui/result_icon/emp.png"],
+		"archive": ["Journal", "../GBFML/assets/ui/result_icon/journal.png"],
+		"cutin": ["Battle", "../GBFML/assets/ui/result_icon/swords.png"],
+		"attack": ["Attack", "../GBFML/assets/ui/result_icon/auto.png"],
+		"kill": ["Enemy Defeated", "../GBFML/assets/ui/result_icon/kill.png"],
+		"ability_them": ["Offensive Skill", "../GBFML/assets/ui/result_icon/skill.png"],
+		"ability_us": ["Buff Skill", "../GBFML/assets/ui/result_icon/buff.png"],
+		"ready": ["CA Ready", "../GBFML/assets/ui/result_icon/ca.png"],
+		"mortal": ["Charge Attack", "../GBFML/assets/ui/result_icon/ca.png"],
+		"chain": ["Chain Burst Banter", "../GBFML/assets/ui/result_icon/banter.png"],
+		"damage": ["Damaged", "../GBFML/assets/ui/result_icon/damaged.png"],
+		"healed": ["Healed", "../GBFML/assets/ui/result_icon/ability.png"],
+		"power_down": ["Debuffed", "../GBFML/assets/ui/result_icon/debuffed.png"],
+		"dying": ["Dying", "../GBFML/assets/ui/result_icon/dying.png"],
+		"lose": ["K.O.", "../GBFML/assets/ui/result_icon/death.png"],
+		"win": ["Win", "../GBFML/assets/ui/result_icon/win.png"],
+		"player": ["To Player", "../GBFML/assets/ui/result_icon/player.png"],
+		"pair": ["Banter", "../GBFML/assets/ui/result_icon/banter.png"]
+	};
+	// sort sounds
+	for(let sound of sounds)
+	{
+		let found = false;
+		for(const [k, v] of Object.entries(checks))
+		{
+			if(k == "")
+				continue;
+			if(sound.includes(k))
+			{
+				found = true;
+				if(!(v[0] in sorted_sound))
+					sorted_sound[v[0]] = [];
+				sorted_sound[v[0]].push(sound);
+				break;
+			}
 		}
-	});
-	
-	// format element text
-	let s = sound;
+		if(!found)
+			sorted_sound["Generic"].push(sound);
+	}
+	// remove generic category if empty
+	if(sorted_sound["Generic"].length == 0)
+		delete sorted_sound["Generic"];
+	// sort
+	for(const [k, v] of Object.entries(checks))
+	{
+		if(v[0] in sorted_sound && sorted_sound[v[0]].length > 0)
+		{
+			sorted_sound[v[0]].sort(sound_sort);
+		}
+		else if(v[0] in sorted_sound)
+		{
+			delete sorted_sound[v[0]];
+		}
+	}
+	// check if there is at least one sound
+	if(Object.keys(sorted_sound).length == 0)
+	{
+		return false;
+	}
+	else
+	{
+		// add audio player
+		audio = {};
+		audio.id = id;
+		audio.list = sorted_sound;
+		audio.player = new Audio();
+		audio.player.preload = "none";
+		audio.player.loop = false;
+		audio.player.addEventListener('loadedmetadata', update_audio_duration);
+		audio.player.addEventListener('timeupdate', update_audio_time);
+		
+		// main node
+		audio.container = add_to(node, "div", {
+			cls:["audio-container"]
+		});
+		// playing header
+		audio.playing = add_to(audio.container, "div", {
+			cls:["audio-inner-container"],
+			innertext:"None playing"
+		});
+		
+		// custom player
+		custom_player = add_to(audio.container, "div", {
+			cls:["audio-player"]
+		});
+		// play button
+		audio.play_button = add_to(custom_player, "button", {
+			cls:["audio-player-button"],
+			onclick:audio_play_button
+		});
+		audio.play_button.disabled = true;
+		// player current time
+		audio.seek_time = add_to(custom_player, "span", {
+			cls:["audio-player-value"],
+			innertext:"00:00"
+		});
+		// seek slider
+		audio.seek_slider = add_to(custom_player, "input", {
+			cls:["audio-player-slider"]
+		});
+		audio.seek_slider.type = "range";
+		audio.seek_slider.min = "0";
+		audio.seek_slider.max = "100";
+		audio.seek_slider.value = "0";
+		audio.seek_slider.onmouseup = set_audio_current_time;
+		audio.seek_slider.ontouchend = set_audio_current_time;
+		// audio duration
+		audio.duration = add_to(custom_player, "span", {
+			cls:["audio-player-value"],
+			innertext:"00:00"
+		});
+		// special element for a line break
+		add_to(custom_player, "div", {
+			cls:["audio-player-break"]
+		});
+		// audio volume
+		audio.volume = add_to(custom_player, "span", {
+			cls:["audio-player-value"],
+			innertext:"100%"
+		});
+		// volume slider
+		audio.volume_slider = add_to(custom_player, "input", {
+			cls:["audio-player-slider"]
+		});
+		audio.volume_slider.type = "range";
+		audio.volume_slider.min = "0";
+		audio.volume_slider.max = "100";
+		audio.volume_slider.value = "100";
+		audio.volume_slider.onmouseup = set_audio_volume;
+		audio.volume_slider.ontouchend = set_audio_volume;
+		
+		// category select
+		let track_select_container = add_to(audio.container, "div", {
+			cls:["audio-inner-container"]
+		});
+		let label = add_to(track_select_container, "label", {cls:["audio-label"]});
+		label.htmlFor = "audio-category";
+		label.innerText = "Category";
+		audio.category = add_to(track_select_container, "select", {
+			cls:["audio-select"],
+			id:"audio-category"
+		});
+		let set_default = false;
+		for(const category of Object.keys(audio.list))
+		{
+			let option = add_to(audio.category, "option");
+			option.value = category;
+			option.innerText = category;
+			if(!set_default)
+			{
+				set_default = true;
+				option.selected = true;
+			}
+		}
+		audio.category.onchange = function() {
+			update_audio_tracks();
+		};
+		
+		// track select
+		track_select_container = add_to(audio.container, "div", {
+			cls:["audio-inner-container"]
+		});
+		label = add_to(track_select_container, "label", {cls:["audio-label"]});
+		label.htmlFor = "audio-track";
+		label.innerText = "Track";
+		audio.track = add_to(track_select_container, "select", {
+			cls:["audio-select"],
+			id:"audio-track"
+		});
+		update_audio_tracks();
+		
+		// buttons
+		track_select_container = add_to(audio.container, "div", {
+			cls:["audio-inner-container"]
+		});
+		add_to(track_select_container, "button", {
+			cls:["audio-button"],
+			innertext:"Set & Play",
+			onclick:set_and_play_audio
+		})
+		add_to(track_select_container, "button", {
+			cls:["audio-button"],
+			innertext:"Open in a Tab",
+			onclick:open_audio
+		})
+		return true;
+	}
+	return false;
+}
+
+function clean_audio()
+{
+	if(audio)
+	{
+		audio.player.removeEventListener('loadedmetadata', update_duration);
+		audio.player.removeEventListener('timeupdate', update_audio_time);
+		audio = null;
+	}
+}
+
+function audio_play_button()
+{
+	if(audio.player.src != "")
+	{
+		if(audio.player.paused)
+		{
+			if(audio.player.currentTime >= audio.player.duration)
+			{
+				audio.player.currentTime = 0;
+			}
+			audio.player.play();
+			audio.play_button.classList.toggle("audio-player-button-paused", false);
+		}
+		else
+		{
+			audio.player.pause();
+			audio.play_button.classList.toggle("audio-player-button-paused", true);
+		}
+	}
+}
+
+function set_audio_current_time()
+{
+	audio.player.currentTime = parseInt(audio.seek_slider.value) / 1000.0;
+	audio.seek_time.innerText = format_duration(audio.player.currentTime);
+}
+
+function set_audio_volume()
+{
+	audio.volume.innerText = audio.volume_slider.value + "%";
+	audio.player.volume = parseInt(audio.volume_slider.value) / 100.0;
+}
+
+function format_duration(d)
+{
+	if(isNaN(d))
+	{
+		return "00:00";
+	}
+	else
+	{
+		return ("" + Math.floor(d / 60)).padStart(2, "0") + ":" + ("" + Math.floor(d % 60)).padStart(2, "0");
+	}
+}
+
+function update_audio_duration()
+{
+	audio.duration.innerText = format_duration(audio.player.duration);
+	audio.seek_slider.max = "" + audio.player.duration * 1000;
+	audio.seek_slider.value = "0";
+}
+
+function update_audio_time()
+{
+	audio.seek_time.innerText = format_duration(audio.player.currentTime);
+	audio.seek_slider.value = "" + audio.player.currentTime * 1000;
+	if(audio.player.currentTime >= audio.player.duration)
+		audio.play_button.classList.toggle("audio-player-button-paused", true);
+}
+
+function set_and_play_audio()
+{
+	audio.playing.innerText = format_sound_suffix(audio.track.value);
+	audio.player.pause();
+	audio.player.src = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + audio.id + audio.track.value + ".mp3";
+	audio.player.play();
+	audio.play_button.disabled = false;
+	audio.play_button.classList.toggle("audio-player-button-paused", false);
+}
+
+function open_audio()
+{
+	let a = document.createElement("a");
+	a.setAttribute('href', "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + audio.id + audio.track.value + ".mp3");
+	a.target = "_blank";
+	a.rel = "noopener noreferrer";
+	a.click();
+}
+
+function update_audio_tracks()
+{
+	let set_default = false;
+	audio.track.innerHTML = "";
+	for(const track of audio.list[audio.category.value])
+	{
+		let option = add_to(audio.track, "option");
+		option.value = track;
+		option.innerText = format_sound_suffix(track);
+		if(!set_default)
+		{
+			set_default = true;
+			option.selected = true;
+		}
+	}
+}
+
+function format_sound_suffix(s)
+{
 	if(s[0] == '_')
 		s = s.substring(1);
 	switch(s.substring(0, 3))
@@ -1419,93 +1640,81 @@ function add_sound(node, id, sound)
 		{
 			case "chain1":
 			{
-				elem.appendChild(document.createTextNode("Fire CB"));
+				s[i] = "Fire CB";
 				isCB = true;
 				break;
 			}
 			case "chain2":
 			{
-				elem.appendChild(document.createTextNode("Water CB"));
+				s[i] = "Water CB";
 				isCB = true;
 				break;
 			}
 			case "chain3":
 			{
-				elem.appendChild(document.createTextNode("Earth CB"));
+				s[i] = "Earth CB";
 				isCB = true;
 				break;
 			}
 			case "chain4":
 			{
-				elem.appendChild(document.createTextNode("Wind CB"));
+				s[i] = "Wind CB";
 				isCB = true;
 				break;
 			}
 			case "chain5":
 			{
-				elem.appendChild(document.createTextNode("Light CB"));
+				s[i] = "Light CB";
 				isCB = true;
 				break;
 			}
 			case "chain6":
 			{
-				elem.appendChild(document.createTextNode("Dark CB"));
+				s[i] = "Dark CB";
 				isCB = true;
 				break;
 			}
 			case "s1":
 			{
-				elem.appendChild(document.createTextNode("Scene 1"));
+				s[i] = "Scene 1";
 				break;
 			}
 			case "s2":
 			{
-				elem.appendChild(document.createTextNode("Scene 2"));
+				s[i] = "Scene 2";
 				break;
 			}
 			case "s3":
 			{
-				elem.appendChild(document.createTextNode("Scene 3"));
+				s[i] = "Scene 3";
 				break;
 			}
 			case "s4":
 			{
-				elem.appendChild(document.createTextNode("Scene 4"));
+				s[i] = "Scene 4";
 				break;
 			}
 			case "s5":
 			{
-				elem.appendChild(document.createTextNode("Scene 5"));
+				s[i] = "Scene 5";
 				break;
 			}
 			case "s6":
 			{
-				elem.appendChild(document.createTextNode("Scene 6"));
+				s[i] = "Scene 6";
 				break;
 			}
 			default:
 			{
 				if(isCB)
-					elem.appendChild(document.createTextNode(s[i] + " chains"));
-				else
-					elem.appendChild(document.createTextNode(s[i]));
+					s[i] = s[i] + " chains";
 				break;
 			}
 		}
-		elem.appendChild(document.createElement('br'));
+		// capitalize
+		s[i] = s[i].charAt(0).toUpperCase() + s[i].slice(1);
 	}
-	// add link
-	let ref = add_to(elem, "a", {
-		cls:["sound-link"],
-		title:"Click to open the link",
-		onclick: function(event) {
-			event.stopPropagation();
-		}
-	});
-	ref.href = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + id + sound + ".mp3";
-	ref.target = "_blank";
-	ref.rel = "noopener noreferrer";
-	return elem;
+	return s.join(" ");
 }
 
 // random button
