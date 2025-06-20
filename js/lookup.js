@@ -713,7 +713,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Opening",
 					icon:"../GBFML/assets/ui/result_icon/scene_op.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:2, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:2, lazy:false, filename:true}
 					]
 				}
 			];
@@ -739,7 +739,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Arts",
 					icon:"../GBFML/assets/ui/result_icon/art.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:4, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:4, lazy:false, filename:true}
 					]
 				},
 				{
