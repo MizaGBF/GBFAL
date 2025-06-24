@@ -92,9 +92,19 @@
 	<!-- About tab -->
 	<div id="about" class="tab-content container" style="display:none">
 		<h3>&#x2022; What is this?</h3>
-		<p>This page catalogs assets for the mobile game <a href="https://game.granbluefantasy.jp/">Granblue Fantasy</a>.<br>Users often find themselves tinkering with URLs or utilizing Google Chrome Dev Tools when attempting to retrieve specific art pieces.<br>Please acknowledge that assets could potentially become inaccessible or undergo modifications at the discretion of Cygames.</p>
+		<p>
+		This page catalogs assets for the mobile game <a href="https://game.granbluefantasy.jp/">Granblue Fantasy</a>.<br>
+		Users often find themselves tinkering with URLs or utilizing Google Chrome Dev Tools when attempting to retrieve specific art pieces.<br>
+		Please acknowledge that assets could potentially become inaccessible or undergo modifications at the discretion of Cygames.
+		</p>
 		<h3>&#x2022; How do I use it?</h3>
-		<p>You can press the <b>Index</b> button and browse the available elements or input an ID in the search bar.<br>Most IDs can be found on the wiki, under the extra tab.<br>Then, click on images to access their highest quality.<br>You can also search Characters, Summons, Weapons, Skins, Classes and NPC having journal entries by Name or Tags.<br>Some elements require a prefix before the ID to avoid confusion:
+		<p>
+		You can press the <b>Index</b> button and browse the available elements or input an ID in the search bar.<br>
+		Most IDs can be found on the wiki, under the extra tab.<br>
+		Then, click on images to access their highest quality.<br>
+		You can also search Characters, Summons, Weapons, Skins, Classes and NPC having journal entries by Name or Tags.
+		<br>
+		Some elements require a prefix before the ID to avoid confusion:
 		<ul>
 			<li>'e' for <a href="?id=e6205703">enemies</a></li>
 			<li>'q' for <a href="?id=q230829">events</a></li>
@@ -105,43 +115,95 @@
 			<li>'sd' for <a href="?id=sd4019">shields</a></li>
 			<li>'ma' for <a href="?id=ma0008">manaturas</a></li>
 		</ul>
-		There are many exceptions and quirks for some elements, in particular for Main Stories, Events and Fate Episodes.<br>For Classes, simply input the main class ID: Example <a href="?id=450301">450301</a> for Relic Buster.<br>Character styles are part of their base characters.<br>Example: <a href="?id=3040088000">Yngwie</a>.</p>
+		There are many exceptions and quirks for some elements, in particular for Main Stories, Events and Fate Episodes.<br>
+		For Classes, simply input the main class ID: Example <a href="?id=450301">450301</a> for Relic Buster.<br>
+		Character styles are part of their base characters.<br>
+		Example: <a href="?id=3040088000">Yngwie</a>.</p>
 		<h3>&#x2022; Other tips and tricks?</h3>
-		<p>On PC, you can do CTRL+clic on an element to load it on a new tab instead of the current page.<br>You can also CTRL+clic search tags to add them to the current search.<br><br>While using this webpage, you might come across the following icons:<br>
+		<p>
+		On PC, you can do CTRL+clic on an element to load it on a new tab instead of the current page.<br>
+		You can also CTRL+clic search tags to add them to the current search.<br>
+		<br>
+		While using this webpage, you might come across the following icons:<br>
 		<ul>
 			<li><img src="../GBFML/assets/ui/more.png" class="corner-icon"> indicates that more variations of this buff icon can be found inside.</li>
 			<li><img src="../GBFML/assets/ui/link.png" class="corner-icon"> indicates that this is a direct link to a high quality asset.</li>
 			<li><img src="../GBFML/assets/ui/vs.png" class="corner-icon"> indicates that this enemy has Raid Entry spritesheets.</li>
 			<li><img src="../GBFML/assets/ui/skycompass.png" class="corner-icon"> indicates that this assets come from the <a href="https://gbf.wiki/Granblue_Fantasy_Sky_Compass">Sky Compass</a> (Note: Tie-in related content never get those type of assets).</li>
 		</ul>
-		Finally, if you see event elements with a cyan background, they will have <a href="https://gbf.wiki/Granblue_Fantasy_Sky_Compass">Sky Compass</a> assets available inside.</p>
+		Finally, if you see event elements with a cyan background, they will have <a href="https://gbf.wiki/Granblue_Fantasy_Sky_Compass">Sky Compass</a> assets available inside.
+		</p>
 		<h3>&#x2022; Can I get a crash course on IDs?</h3>
-		<p>Characters, Skins, Partners IDs are 10 digits long.<br>First Digit is a 3.<br>Second Digit is a 0 for characters, 7 for skins, 8 for partners.<br>Third digit is the rarity, from 1 for N to 4 for SSR.<br>NPCs ID are similar, except the second and third digits are 9.<br>Summons are like Characters but start with a 2.<br>Weapons too, except they start with a 1 and the fifth digit matches with the weapon type.<br>Enemies got 8 digits are a bit unclear but the first digit matches the enemy type and the second might be related to what kind of content the enemy is for.<br>Event IDs use the event start date in YYMMDD format.<br>And, of course, exceptions exist.</p>
+		<p>
+		You can refer to what I wrote on the <a href="https://gbf.wiki/User:Mizako/Frontend_Breakdown#ID_Breakdown">wiki, here</a>.<br>
+		To add to this, event IDs usually use their start date in YYMMDD format, while their thumbnails got a 5 digit ID.<br>
+		And, of course, many exceptions exist.
+		</p>
 		<h3>&#x2022; When does it get updated?</h3>
-		<p>Updates to this page require manual interventions.<br>As such, you can expect them to occur between 15:00 and 08:00 JST, when I'm available.</p>
+		<p>
+		Updates to this page require manual interventions.<br>
+		As such, you can expect them to occur between 15:00 and 08:00 JST, when I'm available.
+		</p>
 		<h3>&#x2022; What does "This element isn't indexed" mean?</h3>
-		<p>It denotes that the element you are attempting to access hasn't been fully cataloged.<br>You can expect this message to disappear after the next upate.<br>Otherwise, please bring it to my attention.</p>
+		<p>
+		It denotes that the element you are attempting to access hasn't been fully cataloged.<br>
+		You can expect this message to disappear after the next upate.<br>
+		Otherwise, please bring it to my attention.
+		</p>
 		<h3>&#x2022; When I open some asset categories, why does it load and then disappear?</h3>
-		<p>Some approximations are made for some assets (because checking everything would be a colossal task).<br>As a result, the page can't guess if they exist until you try to access them. If none exists, the section remove itself to not clutter the page.<br>For exemple, the Class Unlock section on any main character skin, or every special categories like Siero Academy, Fate episode rewards, etc... on characters.</p>
+		<p>
+		Some approximations are made for some assets (because checking everything would be a colossal task).<br>
+		As a result, the page can't guess if they exist until you try to access them. If none exists, the section remove itself to not clutter the page.<br>
+		For exemple, the Class Unlock section on any main character skin, or every special categories like Siero Academy, Fate episode rewards, etc... on characters.
+		</p>
 		<h3>&#x2022; I clicked on a 2015 NPC but it has a 2017 release date tag!</h3>
-		<p>First, most search tags come directly from the wiki. If you think there is a mistake, check the related wiki page.<br>
-		However, in the case of NPCs, those with tags coming from the wiki are also NPCs you can find in the in-game journal. Some NPCs are added to the journal way after being added to the game (years later in some cases), hence the date discrepency between their release date and their position in the ID index.<br>In conclusion, don't worry.</p>
+		<p>
+		First, most search tags come directly from the wiki. If you think there is a mistake, check the related wiki page.<br>
+		However, in the case of NPCs, those with tags coming from the wiki are also NPCs you can find in the in-game journal. Some NPCs are added to the journal way after being added to the game (years later in some cases), hence the date discrepency between their release date and their position in the ID index.<br>
+		In conclusion, don't worry.
+		</p>
 		<h3>&#x2022; I found a missing asset!</h3>
-		<p>Upon discovering a missing asset or identifying an error, please send me the asset's url and the ID of the element.<br>You can find ways to contact me on the bottom of my <a href="https://mizagbf.github.io/">home page</a>, check/open an issue on the <a href="https://github.com/MizaGBF/GBFAL/issues">GitHub repository</a> or use this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a>.<br>Please take note: While I try to keep it as complete as possible, scene arts for NPCs and events are hard to list and you can expect some to be missing.</p>
+		<p>
+		Upon discovering a missing asset or identifying an error, please send me the asset's url and the ID of the element.<br>
+		You can find ways to contact me on the bottom of my <a href="https://mizagbf.github.io/">home page</a>, check/open an issue on the <a href="https://github.com/MizaGBF/GBFAL/issues">GitHub repository</a> or use this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a>.<br>
+		Please take note: While I try to keep it as complete as possible, scene arts for NPCs and events are hard to list and you can expect some to be missing.
+		</p>
 		<h3>&#x2022; I found a bug!</h3>
-		<p>If you noticed a problem or bug on this page, you can either contact me, open an issue in the <a href="https://github.com/MizaGBF/GBFAL/issues">GitHub repository</a>  or you can also use the <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a>.<br>Try to explain clearly what the problem is and provide screenshots, if possible.</p>
+		<p>
+		If you noticed a problem or bug on this page, you can either contact me, open an issue in the <a href="https://github.com/MizaGBF/GBFAL/issues">GitHub repository</a>  or you can also use the <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a>.<br>
+		Try to explain clearly what the problem is and provide screenshots, if possible.
+		</p>
 		<h3>&#x2022; Can you add [...] ?</h3>
-		<p>The following won't be added, either for technical reasons, because it wouldn't be very useful or because it would be beyond the scope of this project:<br>Event/Enemy voice lines, SFX sound files, Music files, Items Icons, Ability/Skill spritesheets.<br>It might change in the future.<br>Add to the list anything already well documented on the <a href="https://gbf.wiki/">wiki</a> or other community-run websites, such as Stickers, Promotional arts, etc...</p>
+		<p>
+		The following won't be added, either for technical reasons, because it wouldn't be very useful or because it would be beyond the scope of this project:<br>
+		Event/Enemy voice lines, SFX sound files, Music files, Items Icons, Ability/Skill spritesheets.<br>
+		It might change in the future.<br>
+		Add to the list anything already well documented on the <a href="https://gbf.wiki/">wiki</a> or other community-run websites, such as Stickers, Promotional arts, etc...
+		</p>
 		<h3>&#x2022; About audios</h3>
-		<p>Audios are treated like a "fun" bonus added to this project.<br>A lot more haven't or can't be added, often for technical reasons, and likely won't as it's not the main focus of its project.<br>Also, a lot of Character voice lines are unused or placeholders. I can't curate those by hands all on my own so they will stay accessible. However, don't use this project to find and submit unused audios to the wiki for example. Check their <a href="https://gbf.wiki/Meta:Manual_of_Style/Character_Pages/Voice#Regarding_Audio_Files">guidelines</a> on that regard.</p>
+		<p>
+		Audios are treated like a "fun" bonus added to this project.<br>
+		A lot more haven't or can't be added, often for technical reasons, and likely won't as it's not the main focus of its project.<br>
+		Also, a lot of Character voice lines are unused or placeholders. I can't curate those by hands all on my own so they will stay accessible. However, don't use this project to find and submit unused audios to the wiki for example. Check their <a href="https://gbf.wiki/Meta:Manual_of_Style/Character_Pages/Voice#Regarding_Audio_Files">guidelines</a> on that regard.
+		</p>
 		<h3>&#x2022; Unreleased asset policy</h3>
-		<p>Concerning unreleased assets, there are instances where Cygames inadvertently makes assets from upcoming content accessible to the general public.<br>In such occurrences, to prevent any potential complications, you can expect me to promptly delist these assets, if it's apparent that they were intended to remain concealed and if Cygames hasn't already addressed the situation.<br><br>For older unreleased/unused content, you can simply search for <a href="?id=cut-content">cut-content</a>.</p>
+		<p>
+		Concerning unreleased assets, there are instances where Cygames inadvertently makes assets from upcoming content accessible to the general public.<br>
+		In such occurrences, to prevent any potential complications, you can expect me to promptly delist these assets, if it's apparent that they were intended to remain concealed and if Cygames hasn't already addressed the situation.<br>
+		<br>
+		For older unreleased/unused content, you can simply search for <a href="?id=cut-content">cut-content</a>.
+		</p>
 		<h3>&#x2022; Can I use this project?</h3>
-		<p>The project is open source, under the <a href="https://github.com/MizaGBF/GBFAL/blob/main/license">MIT License</a>.<br>In the advent that I quit or disappear, you can do whatever you want, within the license scopes, with this project.</p>
+		<p>
+		The project is open source, under the <a href="https://github.com/MizaGBF/GBFAL/blob/main/license">MIT License</a>.<br>
+		In the advent that I quit or disappear, you can do whatever you want, within the license scopes, with this project.
+		</p>
 		<h3>&#x2022; How can I support you?</h3>
-		<p>You can help filling enemies and NPC names when new ones are added by using this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a>.<br>
+		<p>
+		You can help filling enemies and NPC names when new ones are added by using this <a href="https://docs.google.com/forms/d/e/1FAIpQLSfIZNX0nliFS5QWdppIIOF7ss5lQQHxi_S9gl00FUCQmJsnyg/viewform">form</a>.<br>
 		Otherwise, you can leave a star on the <a href="https://github.com/MizaGBF/GBFAL">GitHub repository</a> to show your support.<br>
-		No need to advertise this page, bandwidth isn't unlimited.</p>
+		No need to advertise this page, bandwidth isn't unlimited.
+		</p>
 	</div>
 	<br>
 	<div class="navigation clickable" onclick="window.scroll(0,0);">▲</div>
