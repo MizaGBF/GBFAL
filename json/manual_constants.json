@@ -254,6 +254,10 @@
         "3993951000": {
             "comment": "Phantombloom Genesi",
             "unique": ["_50", "_70", "_90"]
+        },
+        "3994024000": {
+            "comment": "Plesiosaurus",
+            "base": ["_leader"]
         }
     },
     
