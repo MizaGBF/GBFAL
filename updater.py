@@ -644,8 +644,10 @@ class Updater():
             self.tasks.print(e)
             self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
-    def add(self : Updater, element_id : str, element_type : int|str) -> None:
+    def add(self : Updater, element_id : str, element_type : int|str) -> bool:
+        r : bool = (element_id, element_type) in self.addition
         self.addition.add((element_id, element_type))
+        return r
 
     # Generic GET request function
     async def get(self : Updater, url : str) -> Any:
@@ -2652,14 +2654,16 @@ class Updater():
                         case 'events':
                             if data[element_id][EVENT_CHAPTER_COUNT] == -1:
                                 data[element_id][EVENT_CHAPTER_COUNT] = 0
-                            self.add(element_id, ADD_EVENT)
+                            if not self.add(element_id, ADD_EVENT):
+                                self.tasks.print("Updated:", element_id, "for index:", index)
                             self.flags.add("found_event")
                         case 'story':
-                            self.add(element_id, ADD_STORY)
+                            if not self.add(element_id, ADD_STORY):
+                                self.tasks.print("Updated:", element_id, "for index:", index)
                         case 'fate':
-                            self.add(element_id, ADD_FATE)
+                            if not self.add(element_id, ADD_FATE):
+                                self.tasks.print("Updated:", element_id, "for index:", index)
                             self.flags.add("found_fate")
-                    self.tasks.print("Updated:", element_id, "for index:", index)
                 # raise modified flag
                 self.modified = True
 
