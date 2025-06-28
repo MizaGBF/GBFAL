@@ -879,16 +879,30 @@
                 {
                     "name": "Year 2025 (Snake)",
                     "icon": "../GBFML/assets/ui/index_icon/year_2025_(snake).png",
-                    "target": "npcs",
-                    "arg1": "99",
-                    "arg2": [
-                        3791,
-                        9999
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                3791,
+                                4050
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                4050,
+                                9000
+                            ]
+                        }
                     ]
                 },
                 {
                     "name": "Year 2024 (Dragon)",
-                    "icon": "../GBFML/assets/ui/index_icon/year_2025_(snake).png",
+                    "icon": "../GBFML/assets/ui/index_icon/year_2024_(dragon).png",
                     "childs": [
                         {
                             "name": "First Half",
