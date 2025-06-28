@@ -316,10 +316,10 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Others",
 					icon:"../GBFML/assets/ui/result_icon/siero.png",
 					assets:[
-						{type:1, paths:[["sp/gacha/cjs_cover/", "png"]], special_index:"recruit_header", lazy:false},
-						{type:1, paths:[["sp/archaic/", ""]], special_index:"weapon_forge_header", lazy:false},
-						{type:1, paths:[["sp/archaic/", ""]], special_index:"weapon_forge_portrait", lazy:false},
-						{type:1, paths:[["sp/coaching/reward_npc/assets/", "png"]], special_index:"reward", lazy:false}
+						{type:1, paths:[["sp/gacha/cjs_cover/", "png"]], special_index:"recruit_header", hidden:true, lazy:false},
+						{type:1, paths:[["sp/archaic/", ""]], special_index:"weapon_forge_header", hidden:true, lazy:false},
+						{type:1, paths:[["sp/archaic/", ""]], special_index:"weapon_forge_portrait", hidden:true, lazy:false},
+						{type:1, paths:[["sp/coaching/reward_npc/assets/", "png"]], special_index:"reward", hidden:true, lazy:false}
 					]
 				}
 			];
@@ -403,7 +403,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Others",
 					icon:"../GBFML/assets/ui/result_icon/siero.png",
 					assets:[
-						{type:1, paths:[["sp/assets/summon/qm/", "png"]], special_index:"quest_portrait", lazy:false}
+						{type:1, paths:[["sp/assets/summon/qm/", "png"]], special_index:"quest_portrait", hidden:true, lazy:false}
 					]
 				}
 			];
@@ -485,12 +485,12 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Others",
 					icon:"../GBFML/assets/ui/result_icon/siero.png",
 					assets:[
-						{name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/fate_reward.png", form:false, lazy:false},
-						{name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], special_index:"character_unlock", icon:"../GBFML/assets/ui/result_icon/recruit.png", form:false, lazy:false},
-						{name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/news.png", form:false, lazy:false},
-						{name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], special_index:"character_popup", icon:"../GBFML/assets/ui/result_icon/result.png", form:false, lazy:false},
-						{name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], special_index:"custom_outfit_skill", icon:"../GBFML/assets/ui/result_icon/custom.png", form:false, lazy:false},
-						{name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/siero.png", form:false, lazy:false}
+						{name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/fate_reward.png", form:false, hidden:true, lazy:false},
+						{name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], special_index:"character_unlock", icon:"../GBFML/assets/ui/result_icon/recruit.png", form:false, hidden:true, lazy:false},
+						{name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/news.png", form:false, hidden:true, lazy:false},
+						{name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], special_index:"character_popup", icon:"../GBFML/assets/ui/result_icon/result.png", form:false, hidden:true, lazy:false},
+						{name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], special_index:"custom_outfit_skill", icon:"../GBFML/assets/ui/result_icon/custom.png", form:false, hidden:true, lazy:false},
+						{name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/siero.png", form:false, hidden:true, lazy:false}
 					]
 				}
 			];
@@ -543,7 +543,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Arts",
 					icon:"../GBFML/assets/ui/result_icon/journal.png",
 					assets:[
-						{type:1, paths:[["sp/assets/npc/m/", "jpg"],["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], special_index:"use_files", open:allow_open},
+						{type:1, paths:[["sp/assets/npc/m/", "jpg"],["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], special_index:"use_files", open:allow_open, hidden:true, lazy:false},
 						{type:3, index:1, bubble:0, filename:true},
 						{type:3, index:1, bubble:1, filename:true}
 					]
@@ -616,7 +616,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Texts",
 					icon:"../GBFML/assets/ui/result_icon/text.png",
 					assets:[
-						{type:1, paths:[["sp/ui/job_name_tree_l/", "png"], ["sp/ui/job_name/job_change/", "png"],["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"]], index:0, lazy:false}
+						{type:1, paths:[["sp/ui/job_name_tree_l/", "png"], ["sp/ui/job_name/job_change/", "png"],["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"]], index:0, hidden:true, lazy:false}
 					]
 				},
 				{
@@ -648,7 +648,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:10, icon:"../GBFML/assets/ui/result_icon/skill.png", filename:true},
 						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:11, icon:"../GBFML/assets/ui/result_icon/skill.png", filename:true},
 						{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:12, icon:"../GBFML/assets/ui/result_icon/lock.png", filename:true},
-						{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], special_index:"custom_class_skill", icon:"../GBFML/assets/ui/result_icon/custom.png", lazy:false, filename:true}
+						{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], special_index:"custom_class_skill", icon:"../GBFML/assets/ui/result_icon/custom.png", hidden:true, lazy:false, filename:true}
 					]
 				}
 			];
@@ -760,7 +760,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"",
 					icon:"",
 					assets:[
-						{type:1, paths:[["sp/ui/icon/ability/m/", "png"]], special_index:"use_files", small:true}
+						{type:1, paths:[["sp/ui/icon/ability/m/", "png"]], special_index:"use_files", small:true, hidden:true, lazy:false}
 					]
 				}
 			];
@@ -1180,7 +1180,9 @@ function add_scene_assets(node, id, asset, suffixes)
 	{
 		files[i] = id + files[i];
 	}
-	return add_assets(node, id, {paths:[path], filename:(asset.filename ?? false)}, files);
+	let clone = {...asset};
+	clone.paths = [path];
+	return add_assets(node, id, clone, files);
 }
 
 // add a detail element to put assets under
@@ -1241,7 +1243,14 @@ function add_image(node, id, file, asset, path)
 	ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img"));
 	// set lazy loading
 	if(asset.lazy ?? true)
+	{
 		img.setAttribute('loading', 'lazy');
+	}
+	// set hidden
+	if((asset.hidden ?? false) && !(asset.lazy ?? true)) // make it uncompatible with lazy loading
+	{
+		ref.style.display = "none";
+	}
 	// set events
 	img.onerror = function() {
 		clean_asset(this);
@@ -1249,6 +1258,7 @@ function add_image(node, id, file, asset, path)
 	img.onload = function() {
 		this.classList.toggle("loading", false);
 		this.onload = null;
+		this.parentNode.style.display = "";
 		// make text visible
 		if(this.text_node)
 			this.text_node.style.display = "";
