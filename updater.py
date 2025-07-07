@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.32'
+VERSION = '3.33'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -2794,46 +2794,47 @@ class Updater():
             ch_count = evt_data[element_id][EVENT_CHAPTER_COUNT] if not forceflag and evt_data[element_id][EVENT_CHAPTER_COUNT] > 0 else EVENT_MAX_CHAPTER # get the number of chapter to check
             ts : TaskStatus
             # chapters
-            for i in range(1, ch_count+1):
+            for i in range(0, ch_count+1):
                 fn = "scene_{}{}_cp{}".format(prefix, name, str(i).zfill(2))
                 ts = TaskStatus(200, 5, running=10)
+                didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
                 for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_CHAPTER_START+i-1, IMG + "sp/quest/scene/character/body/"+fn, existings[i-1+EVENT_CHAPTER_START-EVENT_OP]), priority=2)
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP]), priority=2)
                 if i < 10:
                     fn = "scene_{}{}_cp{}".format(prefix, name, i)
                     ts = TaskStatus(200, 5, running=10)
                     for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_CHAPTER_START+i-1, IMG + "sp/quest/scene/character/body/"+fn, existings[i-1+EVENT_CHAPTER_START-EVENT_OP]), priority=2)
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP]), priority=2)
             # opening
             fn = "scene_{}{}_op".format(prefix, name)
             ts = TaskStatus(200, 5, running=10)
             for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_OP, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_OP-EVENT_OP]), priority=2)
+                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_OP, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_OP - EVENT_OP]), priority=2)
             # ending
             fn = "scene_{}{}_ed".format(prefix, name)
             ts = TaskStatus(200, 5, running=10)
             for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED-EVENT_OP]), priority=2)
+                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP]), priority=2)
             # ending 2
             fn = "scene_{}{}_ed2".format(prefix, name)
             ts = TaskStatus(200, 5, running=10)
             for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED-EVENT_OP]), priority=2)
+                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP]), priority=2)
             if element_id == "babyl0": # special exception (only for babyl right now)
                 for ss in range(1, 30):
                     fn = "scene_babeel_01_ed{}".format(ss)
                     ts = TaskStatus(200, 5, running=10)
                     for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED-EVENT_OP]), priority=2)
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP]), priority=2)
                     fn = "scene_babeel_ed{}".format(ss)
                     ts = TaskStatus(200, 5, running=10)
                     for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED-EVENT_OP]), priority=2)
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP]), priority=2)
             # others
             fn = "scene_{}{}".format(prefix, name)
             ts = TaskStatus(200, 5, running=10)
             for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_INT-EVENT_OP]), priority=2)
+                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_INT - EVENT_OP]), priority=2)
 
     ### Event Thumbnail #################################################################################################################
 
