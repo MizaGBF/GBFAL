@@ -755,7 +755,7 @@ class Updater():
         # buffs
         for i in range(10):
             for j in range(4):
-                ts = TaskStatus(i*1000+250*(j+1), 15, start=i*1000+250*j)
+                ts = TaskStatus(i*1000+250*(j+1), 20, start=i*1000+250*j)
                 n : int
                 for n in range(3):
                     self.tasks.add(self.search_buff, parameters=(ts, ))
