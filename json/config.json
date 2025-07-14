@@ -1159,11 +1159,27 @@
             "icon":"../GBFML/assets/ui/icon/fate.png",
             "childs":[
                 {
-                    "name":"SSR Characters",
+                    "name":"SSR ID 600 to 900",
                     "icon":"../GBFML/assets/ui/icon/ssr.png",
                     "target":"fate",
                     "arg1":"304",
-                    "arg2":true,
+                    "arg2":[600, 900],
+                    "reverse":1
+                },
+                {
+                    "name":"SSR ID 300 to 600",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "target":"fate",
+                    "arg1":"304",
+                    "arg2":[300, 600],
+                    "reverse":1
+                },
+                {
+                    "name":"SSR ID 000 to 300",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "target":"fate",
+                    "arg1":"304",
+                    "arg2":[0, 300],
                     "reverse":1
                 },
                 {
@@ -1171,7 +1187,7 @@
                     "icon":"../GBFML/assets/ui/icon/sr.png",
                     "target":"fate",
                     "arg1":"303",
-                    "arg2":true,
+                    "arg2":null,
                     "reverse":1
                 },
                 {
@@ -1179,7 +1195,7 @@
                     "icon":"../GBFML/assets/ui/icon/r.png",
                     "target":"fate",
                     "arg1":"302",
-                    "arg2":true,
+                    "arg2":null,
                     "reverse":1
                 },
                 {
@@ -1187,7 +1203,15 @@
                     "icon":"../GBFML/assets/ui/icon/summons.png",
                     "target":"fate",
                     "arg1":"20",
-                    "arg2":true,
+                    "arg2":null,
+                    "reverse":1
+                },
+                {
+                    "name":"Unsorted",
+                    "icon":"../GBFML/assets/ui/index_icon/unkn.png",
+                    "target":"fate",
+                    "arg1":"none",
+                    "arg2":null,
                     "reverse":1
                 }
             ]
