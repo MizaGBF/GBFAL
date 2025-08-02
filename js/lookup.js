@@ -647,6 +647,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"../GBFML/assets/ui/result_icon/ca.png", filename:true},
 						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:10, icon:"../GBFML/assets/ui/result_icon/skill.png", filename:true},
 						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:11, icon:"../GBFML/assets/ui/result_icon/skill.png", filename:true},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:13, icon:"../GBFML/assets/ui/result_icon/home.png", filename:true},
 						{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:12, icon:"../GBFML/assets/ui/result_icon/lock.png", filename:true},
 						{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], special_index:"custom_class_skill", icon:"../GBFML/assets/ui/result_icon/custom.png", hidden:true, lazy:false, filename:true}
 					]

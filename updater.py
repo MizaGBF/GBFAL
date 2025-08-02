@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.33'
+VERSION = '3.34'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/Dev'
 SAVE_VERSION = 1
@@ -72,6 +72,7 @@ JOB_SP = 9
 JOB_AB_ALL = 10
 JOB_AB = 11
 JOB_UNLOCK = 12
+JOB_MYPAGE = 13
 # summon update
 SUM_GENERAL = 0
 SUM_CALL = 1
@@ -1933,7 +1934,8 @@ class Updater():
                     except:
                         continue
             # set data
-            data = [[element_id], [element_id+"_01"], [], [], [], [], cmh, [], [], [], [], [], []] # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock
+            # main id, alt id, detailed id (main), detailed id (alt), detailed id (all), sd, mainhand, sprites, phit, sp, unlock, mypage
+            data = [[element_id], [element_id+"_01"], [], [], [], [], cmh, [], [], [], [], [], [], []]
             
             data[JOB_ALT] = [element_id+"_01"] + [element_id[:-2]+str(j).zfill(2)+"_01" for j in alts]
             data[JOB_DETAIL] = [element_id+"_"+cmh[0]+"_"+str(k)+"_01" for k in range(2)]
@@ -1951,6 +1953,11 @@ class Updater():
                         data[JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(h.split('_', 1)[0], j))
                     except:
                         pass
+            for j in range(2):
+                try:
+                    data[JOB_MYPAGE] += await self.processManifest("{}_{}_mypage".format(element_id, j))
+                except:
+                    pass
             # clean dupe
             data[JOB_UNLOCK] = list(dict.fromkeys(data[JOB_UNLOCK]))
             if self.count_file(data) > file_count:
@@ -3872,6 +3879,7 @@ class Updater():
                             file_estimation += len(v[JOB_PHIT])
                             file_estimation += len(v[JOB_SP])
                             file_estimation += len(v[JOB_UNLOCK])
+                            file_estimation += len(v[JOB_MYPAGE])
                         case "enemies":
                             if v is None or v == 0: continue
                             file_estimation += len(v[BOSS_GENERAL])
