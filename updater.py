@@ -1955,7 +1955,7 @@ class Updater():
                         pass
             for j in range(2):
                 try:
-                    data[JOB_MYPAGE] += await self.processManifest("{}_{}_mypage".format(element_id, j))
+                    data[JOB_MYPAGE] += await self.processManifest("mypage_{}_{}".format(element_id, j))
                 except:
                     pass
             # clean dupe
