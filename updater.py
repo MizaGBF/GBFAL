@@ -2902,6 +2902,8 @@ class Updater():
                 data = {k:[] for k in self.data['eventthumb']}
                 for element_id, evdata in evt_data.items():
                     if evdata[EVENT_THUMB] is not None:
+                        if str(evdata[EVENT_THUMB]) not in data:
+                            data[str(evdata[EVENT_THUMB])] = []
                         data[str(evdata[EVENT_THUMB])].append(element_id)
                 keys = list(data.keys())
                 keys.sort()
