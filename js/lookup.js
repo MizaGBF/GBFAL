@@ -1175,11 +1175,25 @@ function add_scene_assets(node, id, asset, suffixes)
 	if("npc_replace" in index && id in index.npc_replace) // imported manual_npc_replace.json
 		id = index.npc_replace[id]; // replace npc id
 	let path = asset.bubble ? ["sp/raid/navi_face/", "png"] : ["sp/quest/scene/character/body/", "png"];
-	let files = [...suffixes];
+	let files = [];
 	// prepare file list with id
-	for(let i = 0; i < files.length; ++i)
+	for(let i = 0; i < suffixes.length; ++i)
 	{
-		files[i] = id + files[i];
+		if(asset.bubble)
+		{
+			let add = true;
+			for(const bf of no_speech_bubble_filter)
+			{
+				if(suffixes[i].includes(bf))
+				{
+					add = false;
+					break;
+				}
+			}
+			if(add)
+				files.push(id + suffixes[i]);
+		}
+		else files.push(id + suffixes[i]);
 	}
 	let clone = {...asset};
 	clone.paths = [path];
