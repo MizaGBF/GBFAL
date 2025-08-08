@@ -1365,7 +1365,7 @@ class Updater():
                 fn = "{}_{}".format(element_id, uncap)
                 await self.head(IMG + "sp/assets/summon/m/{}{}.jpg".format(element_id, uncap))
                 data[SUM_GENERAL].append("{}{}".format(element_id, uncap))
-                uncaps.append("_"+uncap if uncap != "" else "")
+                uncaps.append(uncap if uncap != "" else "")
                 if uncap == "":
                     uncaps.append("_01")
             except:
