@@ -966,13 +966,9 @@ function load_assets(id, data, type, target, indexed, allow_open)
 	} catch (err) {
 		console.error("Exception", err);
 	}
+	interrupt_image_downloads(output);
 	// append fragment to output
 	update_next_frame(function() {
-		for(let img of output.getElementsByTagName("img")) // interrupt on-going downloads
-		{
-			img.src = "";
-			img.removeAttribute("src");
-		}
 		output.innerHTML = "";
 		output.appendChild(fragment);
 		output.scrollIntoView();
