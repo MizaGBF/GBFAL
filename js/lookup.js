@@ -8,6 +8,7 @@ var timestamp = Date.now(); // last updated timestamp
 var index = null;
 var last_id = null;
 var last_type = null;
+const updated_key = "gbfal-updated";
 const bookmark_key = "gbfal-bookmark";
 var bookmark_onclick = null;
 const history_key = "gbfal-history";
