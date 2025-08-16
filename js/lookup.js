@@ -70,7 +70,7 @@ function load(config, changelog)
 	if(changelog)
 	{
 		timestamp = changelog.timestamp; // start the clock
-		setInterval(clock, 1000); // start the clock
+		clock(); // start the clock
 		if(changelog.hasOwnProperty("stat")) // save stat string
 			stat_string = changelog.stat;
 		if(changelog.hasOwnProperty("issues")) // write issues if any
