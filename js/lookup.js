@@ -791,7 +791,11 @@ function load_assets(id, data, type, target, indexed, allow_open)
 	}
 	// quit if already loaded
 	if(id == tmp_last_id && last_type == type)
+	{
+		open_tab("view");
+		output.scrollIntoView();
 		return;
+	}
 	// clean preview parts
 	try
 	{
