@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.34'
+VERSION = '3.35'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/GBFAL'
 SAVE_VERSION = 1
@@ -164,7 +164,6 @@ class TaskManager():
     finished : int
     print_flag : bool
     elapsed : float
-    return_state : bool
     written_len : int
     def __init__(self : TaskManager, updater : Updater) -> None:
         self.debug = False
@@ -176,7 +175,6 @@ class TaskManager():
         self.finished = 0
         self.print_flag = False
         self.elapsed = 0
-        self.return_state = True
         self.written_len = 0
 
     # reinitialize variables
@@ -230,7 +228,6 @@ class TaskManager():
                         self.print("Can't start task, the following exception occured in queue", i)
                         self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                         self.finished += 1
-                        self.return_state = False
                         break
             # check process flags
             await self.updater.process_flags()
@@ -242,7 +239,6 @@ class TaskManager():
                     try:
                         t.result()
                     except Exception as e:
-                        self.return_state = False
                         self.print("The following exception occured:")
                         self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                     self.finished += 1
@@ -293,12 +289,8 @@ class TaskManager():
     async def start(self : TaskManager) -> bool:
         if self.is_running or self.queues_are_empty(): # return if already running or no tasks pending
             return False
-        self.return_state = True
-        asyncio.create_task(self.run())
-        await asyncio.sleep(5)
-        while self.is_running:
-            await asyncio.sleep(1)
-        return self.return_state
+        await self.run()
+        return True
 
     # print the progression string
     def print_progress(self : TaskManager) -> None:
@@ -374,7 +366,6 @@ class TaskManager():
                     print("changelog.json updated list WILL be modified" if self.updater.update_changelog else "changelog.json updated list won't be modified")
                 case 'exit':
                     print("Exiting...")
-                    self.updater.save_resume()
                     os._exit(0)
                 case _:
                     print("Process RESUMING...")
