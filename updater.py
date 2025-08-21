@@ -1185,7 +1185,7 @@ class Updater():
         if index is None: 
             if element_id in self.data.get('background', {}):
                 index = 'background'
-            elif len(element_id) >= 10:
+            elif len(element_id) == 10:
                 if element_id[0] == '2':
                     index = 'summons'
                 elif element_id[0] == '1':
@@ -1198,7 +1198,7 @@ class Updater():
                     index = 'skins'
                 elif element_id.startswith('3'):
                     index = 'characters'
-            elif len(element_id) >= 7:
+            elif len(element_id) == 7:
                 index = 'enemies'
             elif len(element_id) == 6:
                 index = 'job'
@@ -1215,9 +1215,16 @@ class Updater():
             case 'npcs':
                 await self.update_npc(element_id)
             case 'partners':
-                ts : TaskStatus = TaskStatus(1000, -1) # partner is separated in ten, because of the heavy load
-                for i in range(10):
-                    self.tasks.add(self.update_partner, parameters=(ts, element_id))
+                if element_id.endswith("000"):
+                    ts : TaskStatus = TaskStatus(1000, -1) # partner is separated in ten, because of the heavy load
+                    for i in range(10):
+                        self.tasks.add(self.update_partner, parameters=(ts, element_id))
+                else:
+                    start_index : int = int(element_id[-3:])
+                    await self.update_partner(
+                        TaskStatus(start_index + 1, 1, start=start_index),
+                        element_id[:-3] + "000"
+                    )
             case 'characters'|'skins':
                 await self.update_character(element_id)
             case 'enemies':
@@ -1655,6 +1662,23 @@ class Updater():
                 sheets : list[str] = []
                 altForm : bool = False
                 # # # Assets
+                # # # Main sheets
+                for uncap in (("0_01", "1_01", "0_02", "1_02") if is_mc else ("01", "02", "03", "04")):
+                    for gender in ("", "_0", "_1"):
+                        for ftype in ("", "_s2", "_0", "_1"):
+                            for form in ("", "_f", "_f1", "_f2"):
+                                try:
+                                    fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
+                                    if fn not in lookup:
+                                        sheets += await self.processManifest(fn, True)
+                                    if form == "":
+                                        uncaps.append(uncap)
+                                    else:
+                                        altForm = True
+                                except:
+                                    if form == "":
+                                        break
+                tmp[CHARA_SPRITE] = sheets
                 # arts
                 flags : dict[str, list[bool]] = await self.artCheck(tid, style, [])
                 targets = []
@@ -1666,22 +1690,8 @@ class Updater():
                         for m in (("_101", "_102", "_103", "_104", "_105") if (uf[1] is True) else ("",)):
                             for n in (("_01", "_02", "_03", "_04", "_05", "_06") if (uf[2] is True) else ("",)):
                                 for af in (("", "_f", "_f1", "_f2") if altForm else ("",)):
-                                    targets.append(base_fn + af + g + m + n)
+                                    targets.append(base_fn + g + af + m + n)
                 tmp[CHARA_GENERAL] = targets
-                # # # Main sheets
-                for uncap in (("0_01", "1_01", "0_02", "1_02") if is_mc else ("01", "02", "03", "04")):
-                    for gender in ("", "_0", "_1"):
-                        for ftype in ("", "_s2", "_0", "_1"):
-                            for form in ("", "_f", "_f1", "_f2"):
-                                try:
-                                    fn = "npc_{}_{}{}{}{}{}".format(tid, uncap, style, gender, form, ftype)
-                                    if fn not in lookup: sheets += await self.processManifest(fn, True)
-                                    if form == "": uncaps.append(uncap)
-                                    else: altForm = True
-                                except:
-                                    if form == "":
-                                        break
-                tmp[CHARA_SPRITE] = sheets
                 if is_mc: uncaps = ["01", "02"]
                 # # # Other sheets
                 # attack
