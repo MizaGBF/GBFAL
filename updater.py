@@ -3733,7 +3733,6 @@ class Updater():
             self.data["enemies"][element_id][BOSS_APPEAR] = appear
             self.add(element_id, ADD_BOSS)
             self.tasks.print("New appear animations for ", element_id)
-            self.tasks.print(appear, existing)
 
     # Called by maintenancesky, maintenance or process_flags
     async def maintenance_event_skycompass(self : Updater) -> None:
