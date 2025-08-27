@@ -1,5 +1,5 @@
 {
-  "timestamp":1756214509228,
+  "timestamp":1756326815463,
   "new":{
     "2025-08-22":[
       [
@@ -456,15 +456,9 @@
         "2040440000",
         2
       ]
-    ],
-    "2025-08-08":[
-      [
-        "2040430000",
-        2
-      ]
     ]
   },
-  "stat":"18,067 indexed elements, for ~650.7K files",
+  "stat":"18,067 indexed elements, for ~652.9K files",
   "issues":[],
   "help":false
 }

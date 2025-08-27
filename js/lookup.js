@@ -1327,37 +1327,38 @@ function add_audio_assets(node, id, sounds)
 {
 	let sorted_sound = {"Generic":[]};
 	let checks = {
-		"": ["Generic", "../GBFML/assets/ui/result_icon/voice.png"],
-		"_boss_v_": ["Boss", "../GBFML/assets/ui/result_icon/boss.png"],
-		"_v_": ["Standard", "../GBFML/assets/ui/result_icon/voice.png"],
-		"birthday": ["Happy Birthday", "../GBFML/assets/ui/result_icon/birthday.png"],
-		"year": ["Happy New Year", "../GBFML/assets/ui/result_icon/art.png"],
-		"alentine": ["Valentine", "../GBFML/assets/ui/result_icon/valentine.png"],
-		"hite": ["White Day", "../GBFML/assets/ui/result_icon/valentine.png"],
-		"alloween": ["Halloween", "../GBFML/assets/ui/result_icon/halloween.png"],
-		"mas": ["Christmas", "../GBFML/assets/ui/result_icon/christmas.png"],
-		"mypage": ["My Page", "../GBFML/assets/ui/result_icon/home.png"],
-		"introduce": ["Recruit", "../GBFML/assets/ui/result_icon/fate.png"],
-		"formation": ["Add to Party", "../GBFML/assets/ui/result_icon/party.png"],
-		"evolution": ["Evolution", "../GBFML/assets/ui/result_icon/uncap.png"],
-		"zenith_": ["Extended Mastery", "../GBFML/assets/ui/result_icon/emp.png"],
-		"archive": ["Journal", "../GBFML/assets/ui/result_icon/journal.png"],
-		"cutin": ["Battle", "../GBFML/assets/ui/result_icon/swords.png"],
-		"attack": ["Attack", "../GBFML/assets/ui/result_icon/auto.png"],
-		"kill": ["Enemy Defeated", "../GBFML/assets/ui/result_icon/kill.png"],
-		"ability_them": ["Offensive Skill", "../GBFML/assets/ui/result_icon/skill.png"],
-		"ability_us": ["Buff Skill", "../GBFML/assets/ui/result_icon/buff.png"],
-		"ready": ["CA Ready", "../GBFML/assets/ui/result_icon/ca.png"],
-		"mortal": ["Charge Attack", "../GBFML/assets/ui/result_icon/ca.png"],
-		"chain": ["Chain Burst Banter", "../GBFML/assets/ui/result_icon/banter.png"],
-		"damage": ["Damaged", "../GBFML/assets/ui/result_icon/damaged.png"],
-		"healed": ["Healed", "../GBFML/assets/ui/result_icon/ability.png"],
-		"power_down": ["Debuffed", "../GBFML/assets/ui/result_icon/debuffed.png"],
-		"dying": ["Dying", "../GBFML/assets/ui/result_icon/dying.png"],
-		"lose": ["K.O.", "../GBFML/assets/ui/result_icon/death.png"],
-		"win": ["Win", "../GBFML/assets/ui/result_icon/win.png"],
-		"player": ["To Player", "../GBFML/assets/ui/result_icon/player.png"],
-		"pair": ["Banter", "../GBFML/assets/ui/result_icon/banter.png"]
+		"": "Generic",
+		"_boss_v_": "Boss",
+		"_v_": "Standard",
+		"birthday": "Happy Birthday",
+		"year": "Happy New Year",
+		"alentine": "Valentine",
+		"hite": "White Day",
+		"alloween": "Halloween",
+		"mas": "Christmas",
+		"mypage": "My Page",
+		"introduce": "Recruit",
+		"formation": "Add to Party",
+		"evolution": "Evolution",
+		"zenith_": "Extended Mastery",
+		"archive": "Journal",
+		"cutin": "Battle",
+		"attack": "Attack",
+		"kill": "Enemy Defeated",
+		"ability_them": "Offensive Skill",
+		"ability_us": "Buff Skill",
+		"ready": "CA Ready",
+		"mortal": "Charge Attack",
+		"chain": "Chain Burst Banter",
+		"damage": "Damaged",
+		"healed": "Healed",
+		"hp_down": "HP Down",
+		"power_down": "Debuffed",
+		"dying": "Dying",
+		"lose": "K.O.",
+		"win": "Win",
+		"player": "To Player",
+		"pair": "Banter"
 	};
 	// sort sounds
 	for(let sound of sounds)
@@ -1370,9 +1371,9 @@ function add_audio_assets(node, id, sounds)
 			if(sound.includes(k))
 			{
 				found = true;
-				if(!(v[0] in sorted_sound))
-					sorted_sound[v[0]] = [];
-				sorted_sound[v[0]].push(sound);
+				if(!(v in sorted_sound))
+					sorted_sound[v] = [];
+				sorted_sound[v].push(sound);
 				break;
 			}
 		}
@@ -1382,18 +1383,26 @@ function add_audio_assets(node, id, sounds)
 	// remove generic category if empty
 	if(sorted_sound["Generic"].length == 0)
 		delete sorted_sound["Generic"];
-	// sort
+	// sort content
 	for(const [k, v] of Object.entries(checks))
 	{
-		if(v[0] in sorted_sound && sorted_sound[v[0]].length > 0)
+		if(v in sorted_sound && sorted_sound[v].length > 0)
 		{
-			sorted_sound[v[0]].sort(sound_sort);
+			sorted_sound[v].sort(sound_sort);
 		}
-		else if(v[0] in sorted_sound)
+		else if(v in sorted_sound)
 		{
-			delete sorted_sound[v[0]];
+			delete sorted_sound[v];
 		}
 	}
+	// sort categories
+	sorted_sound = Object.keys(sorted_sound).sort().reduce(
+		(obj, key) => {
+			obj[key] = sorted_sound[key]; 
+			return obj;
+		}, 
+		{}
+	);
 	// check if there is at least one sound
 	if(Object.keys(sorted_sound).length == 0)
 	{
