@@ -98,6 +98,7 @@
         },
         "3050001000": {
             "comment": "Vyrn NPC",
+            "end": ["_left"],
             "unique": ["_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5"]
         },
         "3992852000": {
@@ -184,6 +185,11 @@
             "comment": "Gastalga",
             "main": ["_child1", "_child2"]
         },
+        "3991340000": {
+            "comment": "Sariel",
+            "base": ["_wing1", "_wing2", "_wing3", "_wing4"],
+            "end": ["_letter", "_move"]
+        },
         "3990465000": {
             "comment": "Teepo",
             "main": ["_chara"]
@@ -259,6 +265,14 @@
         "3994024000": {
             "comment": "Plesiosaurus",
             "base": ["_leader"]
+        },
+        "3993441000": {
+            "comment": "Vyrn (New)",
+            "end": ["_left"]
+        },
+        "3994099000": {
+            "comment": "Peisma",
+            "base": ["_close2"]
         }
     },
     
