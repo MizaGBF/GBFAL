@@ -843,7 +843,7 @@ class Updater():
         for ss in ("ra", "rb", "rc"):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, 'background', "{}"+ss, 1, ["img/sp/raid/bg/{}_1.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, 'background', "{}"+ss, 2, ["img/sp/raid/bg/{}_1.jpg"]))
         bgt : tuple[str, str]
         for bgt in (("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")):
             ts = TaskStatus(1000, 50)
