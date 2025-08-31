@@ -583,7 +583,7 @@ function toggle_spark(btn) // toggle spark mode button
 function close_fullscreen() // close fullscreen popups
 {
 	beep();
-	let bgs = document.getElementsByClassName("spark-fullscreen-bg");
+	let bgs = document.getElementsByClassName("fullscreen-preview");
 	for(let bg of bgs)
 		bg.remove();
 }
@@ -791,19 +791,16 @@ function display_canvas(canvas)
 		push_popup("Complete");
 		// prepare canvas to be displayed
 		canvas.classList.add("spark-fullscreen");
-		canvas.onclick = function() {
-			close_fullscreen();
-		}
 		// add background
 		let div = document.createElement("div");
-		div.onclick = function() {
-			close_fullscreen();
-		}
-		div.classList.add("spark-fullscreen-bg");
-		document.body.appendChild(div);
+		div.classList.add("fullscreen-preview");
+		add_to(div, "button", {cls:["fullscreen-button", "user-prompt-button"], innertext:"Close", onclick:close_fullscreen
+		});
 		div.appendChild(canvas);
-		if(isOnMobile()) push_popup("Hold Touch, Save as...");
-		else push_popup("Right Click, Save as...");
+		add_to(div, "button", {cls:["fullscreen-button", "user-prompt-button"], innertext:"Close", onclick:close_fullscreen
+		});
+		document.body.appendChild(div);
+		push_popup("Right Click / Hold Touch, then Save as...");
 		canvas_state = 0;
 	}
 }
