@@ -491,7 +491,8 @@ function load_assets(id, data, type, target, indexed, allow_open)
 						{name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"../GBFML/assets/ui/result_icon/news.png", form:false, hidden:true, lazy:false},
 						{name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], special_index:"character_popup", icon:"../GBFML/assets/ui/result_icon/result.png", form:false, hidden:true, lazy:false},
 						{name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], special_index:"custom_outfit_skill", icon:"../GBFML/assets/ui/result_icon/custom.png", form:false, hidden:true, lazy:false},
-						{name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/siero.png", form:false, hidden:true, lazy:false}
+						{name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/siero.png", form:false, hidden:true, lazy:false},
+						{name:"Other Arts", paths:[["sp/shop/prebuiltset/assets/chara/", ".png"]], special_index:"reward", icon:"../GBFML/assets/ui/result_icon/other.png", form:false, hidden:true, lazy:false},
 					]
 				}
 			];
