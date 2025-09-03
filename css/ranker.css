@@ -1,0 +1,181 @@
+@keyframes danger-pulse-glow {
+	0% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(139, 0, 0, 1);
+	}
+	70% {
+		transform: scale(1.02);
+		box-shadow: 0 0 20px 30px rgba(139, 0, 0, 0);
+	}
+	100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(139, 0, 0, 0);
+	}
+}
+
+.fullscreen-element {
+	display:block;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+#prompt-text {
+	margin-top:40vh;
+}
+
+#output {
+	min-height:500px;
+}
+
+.game-ui {
+	min-width:600px;
+	max-width:600px;
+	min-height:800px;
+	max-height:800px;
+	margin:auto;
+	display: grid;
+	grid-template-rows: 50px 406px 50px;
+	grid-template-columns: 196px 208px 196px;
+	grid-gap: 0px;
+}
+
+.vs-asset {
+	display:inline-block;
+	min-width:196px;
+	max-width:196px;
+	min-height:408px;
+	max-height:408px;
+	border:none;
+}
+
+.vs-spacer {
+	display:inline-block;
+	background-image: url("../../GBFML/assets/ui/result_icon/appear.png");
+	background-repeat:no-repeat;
+	background-position: center center;
+	background-size: 50%;
+	min-width:208px;
+	max-width:208px;
+	min-height:408px;
+	max-height:408px;
+}
+
+.vs-button {
+	background: #2d2d30;
+	border-color: #000000;
+	border-radius: 5px;
+	border-style: solid;
+	border: none;
+	outline: none;
+	color: white;
+	margin: 1px;
+	font-size: 20px;
+    overflow: hidden;
+	text-overflow: ellipsis;
+    white-space: nowrap;
+	animation: danger-pulse-glow 2s infinite;
+}
+
+.vs-button:active {
+	animation: animation-button-press 0.1s;
+}
+
+.ranking-line {
+	margin-top:2px;
+	margin-bottom:2px;
+	border-radius: 30px;
+}
+
+.ranking-line-0 {
+	background-color:#a67c0060;
+}
+
+.ranking-line-1 {
+	background-color:#c0c0c060;
+}
+
+.ranking-line-2 {
+	background-color:#97754760;
+}
+
+.ranking-line-3 {
+	background-color:#00e9ff60;
+}
+
+.ranking-line-4 {
+	background-color:#00d7f860;
+}
+
+.ranking-line-5 {
+	background-color:#00bcff60;
+}
+
+.ranking-line-6 {
+	background-color:#0083ff60;
+}
+
+.ranking-line-7 {
+	background-color:#0013ff60;
+}
+
+.toggle-button {
+	position:relative;
+	top:-5px;
+	width: 80px;
+	height: 30px;
+	background: #2d2d30;
+	border-color: #000000;
+	border-radius: 5px;
+	border-style: solid;
+	border: none;
+	outline: none;
+	color: white;
+	margin: 1px;
+	margin-left: 20px;
+	font-size: 20px;
+	cursor: pointer;
+}
+
+.bullet-list {
+	text-align: left;
+	font-size: 18px;
+}
+
+/* mobile/tablet layout */
+@media (hover: none) or (pointer: coarse) {
+	@media (orientation: portrait) {
+		.game-ui {
+			min-width:400px;
+			max-width:400px;
+			min-height:350px;
+			max-height:350px;
+			grid-template-rows: 50px 250px 50px;
+			grid-template-columns: 120px 160px 120px;
+		}
+
+		.vs-grid-text {
+			font-size:20px;
+		}
+
+		.vs-asset {
+			min-width:120px;
+			max-width:120px;
+			min-height:250px;
+			max-height:250px;
+		}
+
+		.vs-spacer {
+			background-size: 50%;
+			min-width:160px;
+			max-width:160px;
+			min-height:250px;
+			max-height:250px;
+		}
+
+		.vs-button {
+			font-size: 16px;
+		}
+	}
+	@media (orientation: landscape) {
+	}
+}

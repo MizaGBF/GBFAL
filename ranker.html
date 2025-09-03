@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>GBF Asset Lookup</title>
+	<meta name="title" content="Granblue Fantasy Asset Lookup - Character Ranker">
+	<meta name="description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+	<meta name="theme-color" content="#5217b0">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://mizagbf.github.io/GBFAL/">
+	<meta property="og:title" content="Granblue Fantasy Asset Lookup">
+	<meta property="og:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+	<meta property="og:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+	<meta property="twitter:card" content="summary_large_image">
+	<meta property="twitter:url" content="https://mizagbf.github.io/GBFAL/">
+	<meta property="twitter:title" content="Granblue Fantasy Asset Lookup">
+	<meta property="twitter:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
+	<meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" type="image/png" href="assets/icon.png">
+	<link rel="stylesheet" href="../GBFML/css/style.css">
+	<script src="../GBFML/js/gbf.js"></script>
+	<script src="../GBFML/js/page.js"></script>
+	<script src="../GBFML/js/util.js"></script>
+	<script src="../GBFML/js/search.js"></script>
+	<script src="js/ranker.js"></script>
+	<link rel="stylesheet" href="css/ranker.css">
+	<link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a1-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a2-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a3-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a4-granbluefantasy.akamaized.net/" />
+	<link rel="dns-prefetch" href="https://prd-game-a5-granbluefantasy.akamaized.net/" />
+</head>
+<body onload="init()">
+	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
+	<div id="header">
+		<div>Character Ranker v1.0</div>
+		<div id="timestamp"></div>
+	</div>
+	<!-- Know issues -->
+	<div id="issues" style="display:none">
+		<h3>Known Issues</h3>
+	</div>
+	<!-- Mini buttons -->
+	<div class="margin">
+		<a class="mini-btn" href="index.html" title="Asset Lookup"><img class="mini-btn-icon" src="assets/icon.png" /></a>
+		<a class="mini-btn" href="spark.html" title="Spark Maker"><img class="mini-btn-icon" src="assets/ui/moon.png" /></a>
+		<a class="mini-btn" href="../GBFAP" title="Animation Player"><img class="mini-btn-icon" src="../GBFAP/assets/icon.png" /></a>
+	</div>
+	<!-- Ranker section -->
+	<div class="container" id="output">
+		<svg style="display:block;margin:auto;" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><style>.spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}</style><path class="spinner_0XTQ" d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z" fill="#62c1e5"/></svg>
+		<div style="height:500px"></div>
+	</div>
+	<div class="container" id="text">
+		<ul class="bullet-list">
+			<li>This uses a Tournament-style elimination, for time reason</li>
+			<li>The Character list is shuffled at the start</li>
+			<li>Toggling off a category will remove all corresponding characters</li>
+			<li>Toggling off "Multi Units" removes all characters with "and" in their names</li>
+			<li>Toggling off "Alternate Versions" removes the subsequent releases of a character</li>
+		</ul>
+	</div>
+	<!-- animation select prompt -->
+	<div class="fullscreen-preview" id="confirm-prompt" style="display:none;">
+		<span class="fullscreen-element" id="prompt-text">TEST</span>
+		<button class="fullscreen-element fullscreen-button" onclick="init_confirm();">Start</button>
+		<button class="fullscreen-element fullscreen-button" onclick="init_cancel();">Cancel</button>
+	</div>
+</body>
+<footer>
+	<div id="footer">
+		<a href="https://github.com/MizaGBF/GBFAL" title="Source Code"><img class="img-link" src="../GBFML/assets/ui/icon/github.png"></a>
+		<a href="https://mizagbf.github.io/GBFAP" title="GBF Animation Player"><img class="img-link" src="../GBFAP/assets/icon.png"></a>
+		<a href="https://mizagbf.github.io/" title="Home Page"><img class="img-link" src="../GBFML/assets/ui/mypage.png"></a>
+	</div>
+	<div id="copyright">
+		Granblue Fantasy content and materials are trademarks and copyrights of Cygames, Inc. or its licensors. All rights reserved.
+	</div>
+</footer>
+</html>
