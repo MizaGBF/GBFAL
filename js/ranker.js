@@ -323,6 +323,8 @@ function init_ranking()
 	{
 		for(const [key, input] of Object.entries(checkboxes))
 		{
+			if(key == "strict")
+				continue;
 			if(!input.checked)
 			{
 				for(let id of pools[key])
