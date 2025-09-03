@@ -505,8 +505,9 @@ function game_win(winner, loser)
 	game_data.result[game_data.result.length - 1].push(loser);
 	game_data.characters[game_data.index++] = winner;
 	game_data.characters.splice(game_data.index, 1);
-	if(game_data.index >= game_data.characters.length - 1)
+	if(game_data.index >= game_data.characters.length - 1) // end of list, cycle
 	{
+		shuffle(game_data.characters);
 		game_data.index = 0;
 		game_data.result.push([]);
 	}
