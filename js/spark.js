@@ -33,7 +33,7 @@ function load(changelog)
 	if(changelog)
 	{
 		timestamp = changelog.timestamp; // start the clock
-		setInterval(clock, 1000); // start the clock
+		clock(); // start the clock
 		if(changelog.hasOwnProperty("issues")) // write issues if any
 		{
 			issues(changelog);
