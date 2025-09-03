@@ -794,10 +794,10 @@ function display_canvas(canvas)
 		// add background
 		let div = document.createElement("div");
 		div.classList.add("fullscreen-preview");
-		add_to(div, "button", {cls:["fullscreen-button", "user-prompt-button"], innertext:"Close", onclick:close_fullscreen
+		add_to(div, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:close_fullscreen
 		});
 		div.appendChild(canvas);
-		add_to(div, "button", {cls:["fullscreen-button", "user-prompt-button"], innertext:"Close", onclick:close_fullscreen
+		add_to(div, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:close_fullscreen
 		});
 		document.body.appendChild(div);
 		push_popup("Right Click / Hold Touch, then Save as...");
