@@ -45,7 +45,7 @@
 	max-height:800px;
 	margin:auto;
 	display: grid;
-	grid-template-rows: 50px 406px 50px;
+	grid-template-rows: 50px 406px 50px 50px;
 	grid-template-columns: 196px 208px 196px;
 	grid-gap: 0px;
 }
@@ -85,11 +85,15 @@
     overflow: hidden;
 	text-overflow: ellipsis;
     white-space: nowrap;
-	animation: danger-pulse-glow 2s infinite;
+	cursor: pointer;
 }
 
 .vs-button:active {
 	animation: animation-button-press 0.1s;
+}
+
+.vs-button-animate {
+	animation: danger-pulse-glow 2s infinite;
 }
 
 .ranking-line {
@@ -161,7 +165,7 @@
 			max-width:400px;
 			min-height:350px;
 			max-height:350px;
-			grid-template-rows: 50px 250px 50px;
+			grid-template-rows: 50px 250px 50px 50px;
 			grid-template-columns: 120px 160px 120px;
 		}
 

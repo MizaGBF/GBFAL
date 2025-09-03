@@ -9,6 +9,7 @@ var output = null;
 var pools = {};
 var checkboxes = {};
 var game_data = null;
+var ui_elements = {};
 
 function init() // entry point, called by body onload
 {
@@ -346,6 +347,7 @@ function init_confirm()
 	beep();
 	document.getElementById("confirm-prompt").style.display = "none";
 	output_loading();
+	init_ui();
 	game_step();
 }
 
@@ -358,6 +360,38 @@ function init_cancel()
 function output_loading()
 {
 	output.innerHTML = '<svg style="display:block;margin:auto;" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><style>.spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}</style><path class="spinner_0XTQ" d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z" fill="#62c1e5"/></svg>';
+}
+
+function init_ui()
+{
+	ui_elements = {};
+	output.innerHTML = "";
+	let ui = add_to(output, "div", {cls:["game-ui"]});
+	// line 1
+	add_to(ui, "div");
+	ui_elements.progress = add_to(ui, "div", {cls:["small-text"]});
+	add_to(ui, "div");
+	// line 2
+	ui_elements.chara1_parent = add_to(ui, "div");
+	ui_elements.chara1 = add_to(ui_elements.chara1_parent, "img", {
+		cls:["loading", "vs-asset"]
+	});
+	add_to(ui, "div", {cls:["vs-spacer"]});
+	ui_elements.chara2_parent = add_to(ui, "div");
+	ui_elements.chara2 = add_to(ui_elements.chara2_parent, "img", {
+		cls:["loading", "vs-asset"]
+	});
+	// line 3
+	ui_elements.btn1 = add_to(ui, "button", {cls:["vs-button", "vs-button-animate"]});
+	add_to(ui, "div", {cls:["vs-grid-text"], innertext:"Your choice?"});
+	ui_elements.btn2 = add_to(ui, "button", {cls:["vs-button", "vs-button-animate"]});
+	// line 4
+	add_to(ui, "div");
+	ui_elements.random = add_to(ui, "button", {
+		cls:["vs-button"],
+		innertext:"Pick for me"
+	});
+	add_to(ui, "div");
 }
 
 function capitalize(s) {
@@ -380,43 +414,46 @@ function game_step()
 
 function game_ask(id1, id2)
 {
-	output.innerHTML = "";
-	let ui = add_to(output, "div", {cls:["game-ui"]});
-	// line 1
-	add_to(ui, "div");
-	add_to(ui, "div", {cls:["small-text"], innertext:Math.round(((game_data.count - game_data.characters.length) / game_data.count) * 10000) / 100 + "%"});
-	add_to(ui, "div");
-	// line 2
-	let chara1 = add_to(ui, "img", {
-		cls:["loading", "vs-asset"]
-	});
-	add_to(ui, "div", {cls:["vs-spacer"]});
-	let chara2 = add_to(ui, "img", {
-		cls:["loading", "vs-asset"]
-	});
-	// line 3
-	add_to(ui, "button", {
-		cls:["vs-button"],
-		innertext:capitalize(pools.list[id1]),
-		onclick:() => {
-			game_win(id1, id2);
+	// update ui
+	ui_elements.progress.textContent = Math.round(((game_data.count - game_data.characters.length) / game_data.count) * 10000) / 100 + "%";
+	ui_elements.btn1.textContent = capitalize(pools.list[id1]);
+	ui_elements.btn1.onclick = () => {
+		game_win(id1, id2);
+	};
+	ui_elements.btn2.textContent = capitalize(pools.list[id2]);
+	ui_elements.btn2.onclick = () => {
+		game_win(id2, id1);
+	};
+	ui_elements.random.onclick = () => {
+		if(Math.random() < 0.5)
+		{
+			ui_elements.btn1.click();
+			push_popup("I picked " + capitalize(pools.list[id1]));
 		}
-	});
-	add_to(ui, "div", {cls:["vs-grid-text"], innertext:"Your choice?"});
-	add_to(ui, "button", {
-		cls:["vs-button"],
-		innertext:capitalize(pools.list[id2]),
-		onclick:() => {
-			game_win(id2, id1);
+		else
+		{
+			ui_elements.btn2.click();
+			push_popup("I picked " + capitalize(pools.list[id2]));
 		}
-	});
+	}
 	// set images
+	// get urls
 	let data1 = get_character_vs(id1, index.characters[id1]);
 	let data2 = get_character_vs(id2, index.characters[id2]);
-	chara1.src = data1.path.replace("GBF/", gbf.id_to_endpoint(data1.id)).replace("npc/m/", "npc/f/");
-	chara1.onerror = data1.onerr;
-	chara2.src = data2.path.replace("GBF/", gbf.id_to_endpoint(data2.id)).replace("npc/m/", "npc/f/");
-	chara2.onerror = data2.onerr;
+	// clean up
+	ui_elements.chara1_parent.firstChild.remove();
+	ui_elements.chara1 = add_to(ui_elements.chara1_parent, "img", {
+		cls:["loading", "vs-asset"]
+	});
+	ui_elements.chara2_parent.firstChild.remove();
+	ui_elements.chara2 = add_to(ui_elements.chara2_parent, "img", {
+		cls:["loading", "vs-asset"]
+	});
+	// set
+	ui_elements.chara1.src = data1.path.replace("GBF/", gbf.id_to_endpoint(data1.id)).replace("npc/m/", "npc/f/");
+	ui_elements.chara1.onerror = data1.onerr;
+	ui_elements.chara2.src = data2.path.replace("GBF/", gbf.id_to_endpoint(data2.id)).replace("npc/m/", "npc/f/");
+	ui_elements.chara2.onerror = data2.onerr;
 }
 
 function game_win(winner, loser)
