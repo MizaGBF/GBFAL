@@ -11,6 +11,63 @@ var checkboxes = {};
 var game_data = null;
 var ui_elements = {};
 
+const options = {
+	Rarity:{
+		r:"R",
+		sr:"SR",
+		ssr:"SSR"
+	},
+	Element:{
+		fire:"Fire",
+		water:"Water",
+		earth:"Earth",
+		wind:"Wind",
+		light:"Light",
+		dark:"Dark",
+		any:"Null"
+	},
+	Gender:{
+		male:"Male",
+		female:"Female",
+		other:"Other"
+	},
+	Race:{
+		human:"Human",
+		erune:"Erune",
+		draph:"Draph",
+		harvin:"Harvin",
+		primal:"Primal",
+		unknown:"Unknown"
+	},
+	Series:{
+		none:"None",
+		grand:"Grand",
+		summer:"Summer",
+		yukata:"Yukata",
+		valentine:"Valentine",
+		halloween:"Halloween",
+		holiday:"Holiday",
+		formal:"Formal",
+		"12generals":"12 Generals",
+		fantasy:"Fantasy",
+		collab:"Collab",
+		eternals:"Eternals",
+		evokers:"Evokers",
+		"4saints":"4 Saints"
+	},
+	"Release Order":{
+		original:"First Version",
+		dupe:"Alternate Versions"
+	},
+	Others:{
+		single:"Single Units",
+		multi:"Multi Units"
+	},
+	Options:{
+		strict:"Exclude characters not matching all filters"
+	}
+};
+
 function init() // entry point, called by body onload
 {
 	output = document.getElementById("output");
@@ -62,59 +119,6 @@ function init_start_ui(clear = true)
 		output.innerHTML = "";
 	add_to(output, "button", {cls:["tab-button"], onclick:init_ranking}).innerHTML = '<img class="tab-button-icon" src="../GBFML/assets/ui/icon/view.png">Start';
 	
-	const options = {
-		Rarity:{
-			r:"R",
-			sr:"SR",
-			ssr:"SSR"
-		},
-		Element:{
-			fire:"Fire",
-			water:"Water",
-			earth:"Earth",
-			wind:"Wind",
-			light:"Light",
-			dark:"Dark",
-			any:"Null"
-		},
-		Gender:{
-			male:"Male",
-			female:"Female",
-			other:"Other"
-		},
-		Race:{
-			human:"Human",
-			erune:"Erune",
-			draph:"Draph",
-			harvin:"Harvin",
-			primal:"Primal",
-			unknown:"Unknown"
-		},
-		Series:{
-			none:"None",
-			grand:"Grand",
-			summer:"Summer",
-			yukata:"Yukata",
-			valentine:"Valentine",
-			halloween:"Halloween",
-			holiday:"Holiday",
-			formal:"Formal",
-			"12generals":"12 Generals",
-			fantasy:"Fantasy",
-			collab:"Collab",
-			eternals:"Eternals",
-			evokers:"Evokers",
-			"4saints":"4 Saints"
-		},
-		"Release Order":{
-			original:"First Version",
-			dupe:"Alternate Versions"
-		},
-		Others:{
-			single:"Single Units",
-			multi:"Multi Units"
-		}
-	};
 	for(const [title, line] of Object.entries(options))
 	{
 		div = add_to(output, "div", {cls:["search-control"]});
@@ -141,19 +145,22 @@ function init_start_ui(clear = true)
 			});
 			label.for = name;
 		}
-		const t = check_list.slice();
-		add_to(div, "button", {
-			cls:["toggle-button"],
-			innertext:"Toggle",
-			onclick:function()
-			{
-				let bool = !(t[0].checked);
-				for(let check of t)
+		if(check_list.length > 1)
+		{
+			const t = check_list.slice();
+			add_to(div, "button", {
+				cls:["toggle-button"],
+				innertext:"Toggle",
+				onclick:function()
 				{
-					check.checked = bool;
+					let bool = !(t[0].checked);
+					for(let check of t)
+					{
+						check.checked = bool;
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 }
 
@@ -253,9 +260,10 @@ function allocate_pools()
 		while(["human", "erune", "draph", "harvin", "primal", "unknown"].includes(words[offset]))
 			pools[words[offset++]].push(id); // race
 		// gender
-		if(!(["male", "female", "other"].includes(words[offset])))
-			continue;
-		pools[words[offset++]].push(id);
+		while(["male", "female", "other"].includes(words[offset]))
+		{
+			pools[words[offset++]].push(id);
+		}
 		// Date
 		offset = words.length - 1;
 		if(words[offset][4] == '-' && words[offset][7] == '-')
@@ -310,16 +318,49 @@ function init_ranking()
 	};
 	// add checked ones
 	let set = new Set(Object.keys(pools.list));
-	// remove unchecked others
-	for(const [key, input] of Object.entries(checkboxes))
+	// remove id not matching filters
+	if(checkboxes.strict.checked) // strict mode
 	{
-		if(!input.checked)
+		for(const [key, input] of Object.entries(checkboxes))
 		{
-			for(let id of pools[key])
+			if(!input.checked)
 			{
-				if(set.has(id))
+				for(let id of pools[key])
+				{
+					if(set.has(id))
+					{
+						set.delete(id);
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		for(const id of Object.keys(pools.list))
+		{
+			if(!set.has(id))
+				continue;
+			for(const [title, line] of Object.entries(options))
+			{
+				if(title == "Options")
+					continue;
+				let state = false;
+				for(const [key, name] of Object.entries(line))
+				{
+					if(pools[key].includes(id))
+					{
+						state = checkboxes[key].checked;
+						if(state)
+						{
+							break;
+						}
+					}
+				}
+				if(!state)
 				{
 					set.delete(id);
+					break;
 				}
 			}
 		}
