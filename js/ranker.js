@@ -105,10 +105,13 @@ function init_start_ui(clear = true)
 			evokers:"Evokers",
 			"4saints":"4 Saints"
 		},
+		"Release Order":{
+			original:"First Version",
+			dupe:"Alternate Versions"
+		},
 		Others:{
 			single:"Single Units",
-			multi:"Multi Units",
-			dupe:"Alternate Versions",
+			multi:"Multi Units"
 		}
 	};
 	for(const [title, line] of Object.entries(options))
@@ -196,11 +199,12 @@ function allocate_pools()
 		
 		single:[],
 		multi:[],
+		original:[],
 		dupe:[],
 		
 		list:{}
 	}
-	let name_set = new Set();
+	let releases = {};
 	for(const id of Object.keys(index.characters))
 	{
 		if(!(id in index.lookup))
@@ -230,15 +234,6 @@ function allocate_pools()
 			pools.multi.push(id);
 		else
 			pools.single.push(id);
-		// alt versions
-		if(name_set.has(name))
-		{
-			pools.dupe.push(id);
-		}
-		else
-		{
-			name_set.add(name);
-		}
 		if(["human", "erune", "draph", "harvin", "primal", "unknown"].includes(words[offset])) // no series
 		{
 			pools.none.push(id);
@@ -254,13 +249,40 @@ function allocate_pools()
 				break;
 			}
 		}
-		if(!(["human", "erune", "draph", "harvin", "primal", "unknown"].includes(words[offset]))) // check race again
-			continue;
-		pools[words[offset++]].push(id); // race
+		while(["human", "erune", "draph", "harvin", "primal", "unknown"].includes(words[offset]))
+			pools[words[offset++]].push(id); // race
 		// gender
 		if(!(["male", "female", "other"].includes(words[offset])))
 			continue;
 		pools[words[offset++]].push(id);
+		// Date
+		offset = words.length - 1;
+		if(words[offset][4] == '-' && words[offset][7] == '-')
+		{
+			if(!(words[offset] in releases))
+				releases[words[offset]] = [];
+			releases[words[offset]].push([id, name]);
+		}
+	}
+	// sort releases dates to find alternate versions
+	let dates = Object.keys(releases);
+	dates.sort();
+	let name_set = new Set();
+	for(const release_date of dates)
+	{
+		for(const [id, name] of releases[release_date])
+		{
+			// alt versions
+			if(name_set.has(name))
+			{
+				pools.dupe.push(id);
+			}
+			else
+			{
+				pools.original.push(id);
+				name_set.add(name);
+			}
+		}
 	}
 }
 

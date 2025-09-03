@@ -3517,8 +3517,11 @@ class Updater():
                                         case "id":
                                             continue
                                         case "gender":
-                                            for c in v:
-                                                looks.append({"o":"other", "m":"male", "f":"female"}.get(v, ""))
+                                            if v.lower() in {"other", "male", "female"}:
+                                                looks.append(v.lower())
+                                            else:
+                                                for c in v:
+                                                    looks.append({"o":"other", "m":"male", "f":"female"}.get(c.lower(), c.lower()))
                                         case "_pageName":
                                             wiki = "@@" + html.unescape(v).replace(' ', '_') + " "
                                         case "rarity":
