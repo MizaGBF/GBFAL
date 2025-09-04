@@ -111,6 +111,21 @@ function init_smash() // entry point, called by body onload
 		ui_elements.global.childNodes[0].remove();
 		ui_elements.name.remove();
 		ui_elements.buttons.remove();
+		
+		if(game_data.result.length > 0)
+		{
+		let formatted = [];
+		for(const id of game_data.result)
+		{
+			formatted.push([id, GBFType.character]);
+		}
+		list_elements(
+			add_to(output, "div", {cls:["ranking-line", "ranking-line-3"]}),
+			formatted
+		);
+		}
+		
+		
 		init_start_ui(false);
 	}
 	
@@ -138,6 +153,7 @@ function smash()
 			}
 		}
 	}
+	game_data.result.push(id);
 	update_table();
 	game_data.characters.shift();
 	game_step();
