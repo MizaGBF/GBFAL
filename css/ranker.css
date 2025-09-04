@@ -82,9 +82,9 @@
 	color: white;
 	margin: 1px;
 	font-size: 20px;
-    overflow: hidden;
+		overflow: hidden;
 	text-overflow: ellipsis;
-    white-space: nowrap;
+		white-space: nowrap;
 	cursor: pointer;
 }
 
@@ -155,6 +155,12 @@
 .bullet-list {
 	text-align: left;
 	font-size: 18px;
+}
+
+.tab-button {
+	margin-left: 15px;
+	margin-right: 15px;
+	margin-bottom: 30px;
 }
 
 /* mobile/tablet layout */

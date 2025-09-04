@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+<!-- This page and resources use ranker.html as a base -->
 <html lang="en">
 <head>
 	<meta charset="utf-8">
 	<title>GBF Asset Lookup</title>
-	<meta name="title" content="Granblue Fantasy Asset Lookup - Character Ranker">
+	<meta name="title" content="Granblue Fantasy Asset Lookup - Smash or Pass">
 	<meta name="description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
 	<meta name="theme-color" content="#5217b0">
 	<meta property="og:type" content="website">
@@ -23,8 +24,10 @@
 	<script src="../GBFML/js/page.js"></script>
 	<script src="../GBFML/js/util.js"></script>
 	<script src="../GBFML/js/search.js"></script>
-	<script src="js/ranker.js"></script>
+	<script src="js/ranker.js"></script> <!-- It reuses code from the Character Ranker -->
+	<script src="js/smash.js"></script>
 	<link rel="stylesheet" href="css/ranker.css">
+	<link rel="stylesheet" href="css/smash.css">
 	<link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
 	<link rel="dns-prefetch" href="https://prd-game-a1-granbluefantasy.akamaized.net/" />
 	<link rel="dns-prefetch" href="https://prd-game-a2-granbluefantasy.akamaized.net/" />
@@ -32,10 +35,10 @@
 	<link rel="dns-prefetch" href="https://prd-game-a4-granbluefantasy.akamaized.net/" />
 	<link rel="dns-prefetch" href="https://prd-game-a5-granbluefantasy.akamaized.net/" />
 </head>
-<body onload="init()">
+<body onload="init_smash()">
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>Character Ranker v1.2</div>
+		<div>Smash or Pass v1.0</div>
 		<div id="timestamp"></div>
 	</div>
 	<!-- Know issues -->
@@ -46,7 +49,7 @@
 	<div class="margin">
 		<a class="mini-btn" href="index.html" title="Asset Lookup"><img class="mini-btn-icon" src="assets/icon.png" /></a>
 		<a class="mini-btn" href="spark.html" title="Spark Maker"><img class="mini-btn-icon" src="assets/ui/moon.png" /></a>
-		<a class="mini-btn" href="smash.html" title="Smash or Pass"><img class="mini-btn-icon" src="assets/ui/smash.png" /></a>
+		<a class="mini-btn" href="ranker.html" title="Character Ranker"><img class="mini-btn-icon" src="../GBFML/assets/ui/result_icon/appear.png" /></a>
 		<a class="mini-btn" href="../GBFAP" title="Animation Player"><img class="mini-btn-icon" src="../GBFAP/assets/icon.png" /></a>
 	</div>
 	<!-- Ranker section -->
@@ -56,8 +59,7 @@
 	</div>
 	<div class="container" id="text">
 		<ul class="bullet-list">
-			<li>This uses a Tournament-style elimination, for time reason</li>
-			<li>The Character list is shuffled at the start and after each cycle through</li>
+			<li>The Character list is shuffled at the start</li>
 			<li>Toggling off a category will remove all corresponding characters from the pool</li>
 			<li>"First Version" is the first release of a character, "Alternate Versions" are the subsequent releases of a character</li>
 			<li>"Multi Units" are all characters with "and" in their names</li>

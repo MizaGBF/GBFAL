@@ -118,7 +118,11 @@ function init_start_ui(clear = true)
 	if(clear)
 		output.innerHTML = "";
 	add_to(output, "button", {cls:["tab-button"], onclick:init_ranking}).innerHTML = '<img class="tab-button-icon" src="../GBFML/assets/ui/icon/view.png">Start';
-	
+	init_checkboxes();
+}
+
+function init_checkboxes()
+{
 	for(const [title, line] of Object.entries(options))
 	{
 		div = add_to(output, "div", {cls:["search-control"]});
@@ -539,7 +543,7 @@ function game_result()
 	init_start_ui(false);
 }
 
-get_character_vs = function(id, data, _unused_a_ = null, _unused_b_ = null)
+function get_character_vs(id, data)
 {
 	if(data == null)
 		return null;

@@ -1,0 +1,138 @@
+@keyframes green-pulse-glow {
+	0% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(0, 139, 0, 1);
+	}
+	70% {
+		transform: scale(1.02);
+		box-shadow: 0 0 20px 30px rgba(0, 139, 0, 0);
+	}
+	100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 rgba(0, 139, 0, 0);
+	}
+}
+
+.smash-ui {
+	min-width:800px;
+	max-width:800px;
+	min-height:542px;
+	max-height:542px;
+	margin:auto;
+	display: grid;
+	grid-template-rows: 50px 492px;
+	grid-template-columns: 400px 400px;
+	grid-gap: 0px;
+}
+
+.smash-result-ui {
+	min-width:400px;
+	max-width:400px;
+	min-height:542px;
+	max-height:542px;
+	margin:auto;
+	display: grid;
+	grid-template-rows: 50px 492px;
+	grid-template-columns: 400px;
+	grid-gap: 0px;
+}
+
+.smash-slider-container {
+ /* min-width: 320px;
+	max-width: 320px;
+	min-height: 394px;
+	max-height: 394px;*/
+	min-width: 400px;
+	max-width: 400px;
+	min-height: 492px;
+	max-height: 492px;
+	overflow: hidden;
+	position: relative;
+}
+
+.smash-slider {
+	display: flex;
+	transition: transform 0.5s ease-in-out;
+}
+
+.smash-asset {
+	min-width: 400px;
+	max-width: 400px;
+	min-height: 492px;
+	max-height: 492px;
+	border:none;
+}
+
+.smash-table {
+	border-collapse: collapse;
+}
+
+.smash-table-tr {
+}
+
+.smash-table-cell {
+	font-size: 15px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: white;
+}
+
+.smash-table-header {
+	font-weight: bold;
+}
+
+.smash-button-container {
+	margin-top: 20px;
+}
+
+.smash-button-smash {
+	animation: danger-pulse-glow 2s infinite;
+}
+
+.smash-button-pass {
+	animation: green-pulse-glow 2s infinite;
+}
+
+/* mobile/tablet layout */
+@media (hover: none) or (pointer: coarse) {
+	@media (orientation: portrait) {
+		.smash-ui {
+			min-width:320px;
+			max-width:320px;
+			min-height:838px;
+			max-height:838px;
+			grid-template-rows: 0px 50px 394px 350px;
+			grid-template-columns: 320px;
+		}
+
+		.smash-result-ui {
+			min-width:320px;
+			max-width:320px;
+			min-height:400px;
+			max-height:400px;
+			grid-template-rows: 50px 350px;
+			grid-template-columns: 320px;
+		}
+
+		.smash-slider-container {
+			min-width: 320px;
+			max-width: 320px;
+			min-height: 394px;
+			max-height: 394px;
+		}
+
+		.smash-asset {
+			min-width: 320px;
+			max-width: 320px;
+			min-height: 394px;
+			max-height: 394px;
+			border:none;
+		}
+
+		.smash-table-cell {
+			font-size: 13px;
+		}
+	}
+	@media (orientation: landscape) {
+	}
+}
