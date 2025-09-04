@@ -7,9 +7,10 @@ Click [Here](https://mizagbf.github.io/GBFAL) to access it.
 The main page:  
 - The Asset Lookup, `index.html`, to search assets.  
   
-The bonus, fun pages:  
+The bonus pages:  
 - The Spark Maker, `spark.html`, for users to keep track of their "spark".  
-- The Character Ranker, `ranker.html`, for users to rank characters.  
+- The Character Ranker game, `ranker.html`, for users to rank characters.  
+- The Smash or Pass game, `smash.html`, for users to rank characters.  
   
 Both are using assets and codes from [GBFML](https://github.com/MizaGBF/GBFML).  
   
