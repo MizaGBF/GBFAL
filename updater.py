@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.36'
+VERSION = '3.37'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/GBFAL'
 SAVE_VERSION = 1
@@ -1957,11 +1957,6 @@ class Updater():
                         data[JOB_UNLOCK] += await self.processManifest("eventpointskin_release_{}_{}".format(h.split('_', 1)[0], j))
                     except:
                         pass
-            for j in range(2):
-                try:
-                    data[JOB_MYPAGE] += await self.processManifest("mypage_{}_{}".format(element_id, j))
-                except:
-                    pass
             # clean dupe
             data[JOB_UNLOCK] = list(dict.fromkeys(data[JOB_UNLOCK]))
             if self.count_file(data) > file_count:
@@ -2194,6 +2189,16 @@ class Updater():
                         pass
                 sheets = list(dict.fromkeys(sheets))
                 self.data['job'][jid][JOB_AB] = sheets
+                # mypage
+                sheets = []
+                for g in range(0, 2):
+                    for mh in MAINHAND:
+                        try:
+                            sheets += await self.processManifest("mypage_{}_{}_{}_01".format(jid, mh,g))
+                        except:
+                            pass
+                sheets = list(dict.fromkeys(sheets))
+                self.data['job'][jid][JOB_MYPAGE] = sheets
 
                 self.tasks.print(len(self.data['job'][jid][JOB_PHIT])+len(self.data['job'][jid][JOB_SP])+len(self.data['job'][jid][JOB_AB_ALL])+len(self.data['job'][jid][JOB_AB]),"weapon sprites set to job", jid)
                 self.data['job_wpn'][s] = jid
