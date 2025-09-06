@@ -152,6 +152,19 @@
 	cursor: pointer;
 }
 
+.toggle-button:hover {
+	outline: solid #ffffff;
+}
+
+.toggle-button:disabled {
+	color: #666666;
+	outline: none;
+}
+
+.toggle-button:active {
+	animation: animation-button-press 0.1s;
+}
+
 .bullet-list {
 	text-align: left;
 	font-size: 18px;

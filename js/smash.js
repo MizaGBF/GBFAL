@@ -9,6 +9,7 @@ var slider_index = 0;
 var slider_images = null;
 var slider_skip = false;
 var stats = {};
+var undo_stack = [];
 
 const table_columns = ["male", "female", "other", "total"];
 const table_rows = ["human", "erune", "draph", "harvin", "primal", "unknown", "total"];
@@ -30,6 +31,9 @@ function init_smash() // entry point, called by body onload
 		ui_elements.buttons = add_to(output, "div", {cls:["smash-button-container"]});
 		add_to(ui_elements.buttons, "button", {cls:["tab-button", "smash-button-smash"], onclick:smash}).innerHTML = '<img class="tab-button-icon" src="assets/ui/smash.png">Smash';
 		add_to(ui_elements.buttons, "button", {cls:["tab-button", "smash-button-pass"], onclick:pass}).innerHTML = '<img class="tab-button-icon" src="assets/ui/pass.png">Pass';
+		add_to(ui_elements.buttons, "br");
+		ui_elements.undo = add_to(ui_elements.buttons, "button", {cls:["toggle-button"], onclick:pass, innertext:"Undo", onclick:undo});
+		ui_elements.undo.disabled = true;
 		// name
 		ui_elements.name = add_to(output, "div");
 		// main ui
@@ -125,6 +129,7 @@ function init_smash() // entry point, called by body onload
 function smash()
 {
 	beep();
+	let modified_stats = [];
 	let id = game_data.characters[0];
 	for(const c of table_columns)
 	{
@@ -135,9 +140,13 @@ function smash()
 				if(r != "total" && pools[r].includes(id))
 				{
 					++stats[r + "-" + c];
+					modified_stats.push(r + "-" + c);
 					++stats[r + "-total"];
+					modified_stats.push(r + "-total");
 					++stats["total-" + c];
+					modified_stats.push("total-" + c);
 					++stats["total-total"];
+					modified_stats.push("total-total");
 				}
 			}
 		}
@@ -147,8 +156,14 @@ function smash()
 		ui_elements.smashed_list.style.display = "";
 	}
 	list_elements(ui_elements.smashed_list, [[id, GBFType.character]]);
-	
-	
+	undo_stack.push(
+		{
+			id:id,
+			stats:modified_stats,
+			smashed:true
+		}
+	);
+	ui_elements.undo.disabled = false;
 	update_table();
 	game_data.characters.shift();
 	game_step();
@@ -158,21 +173,42 @@ function pass()
 {
 	beep();
 	let id = game_data.characters[0];
-	for(const c of table_columns)
-	{
-		if(c != "total" && pools[c].includes(id))
+	++stats["total-total"];
+	undo_stack.push(
 		{
-			for(const r of table_rows)
-			{
-				if(r != "total" && pools[r].includes(id))
-				{
-					++stats["total-total"];
-				}
-			}
+			id:id,
+			stats:["total-total"],
+			smashed:false
 		}
-	}
+	);
+	ui_elements.undo.disabled = false;
 	update_table();
 	game_data.characters.shift();
+	game_step();
+}
+
+function undo()
+{
+	beep();
+	let item = undo_stack.pop();
+	game_data.characters.splice(game_data.characters, 0, item.id);
+	for(const stat_key of item.stats)
+	{
+		--stats[stat_key];
+	}
+	if(item.smashed)
+	{
+		ui_elements.smashed_list.removeChild(ui_elements.smashed_list.lastChild);
+		if(ui_elements.smashed_list.childNodes.length <= 1)
+		{
+			ui_elements.smashed_list.style.display = "none";
+		}
+	}
+	if(undo_stack.length == 0)
+	{
+		ui_elements.undo.disabled = true;
+	}
+	update_table();
 	game_step();
 }
 
