@@ -69,6 +69,10 @@ function init_smash() // entry point, called by body onload
 				stats[row + "-" + column] = 0;
 			}
 		}
+		// smashed list
+		ui_elements.smashed_list = add_to(output, "div", {cls:["ranking-line", "ranking-line-3"]});
+		ui_elements.smashed_list.style.display = "none";
+		add_to(ui_elements.smashed_list, "div", {innertext:"Smashed"});
 	}
 	game_step = function()
 	{
@@ -111,20 +115,6 @@ function init_smash() // entry point, called by body onload
 		ui_elements.global.childNodes[0].remove();
 		ui_elements.name.remove();
 		ui_elements.buttons.remove();
-		
-		if(game_data.result.length > 0)
-		{
-			let formatted = [];
-			for(const id of game_data.result)
-			{
-				formatted.push([id, GBFType.character]);
-			}
-			list_elements(
-				add_to(output, "div", {cls:["ranking-line", "ranking-line-3"]}),
-				formatted
-			);
-		}
-		
 		init_start_ui(false);
 	}
 	
@@ -152,7 +142,13 @@ function smash()
 			}
 		}
 	}
-	game_data.result.push(id);
+	if(ui_elements.smashed_list.style.display != "")
+	{
+		ui_elements.smashed_list.style.display = "";
+	}
+	list_elements(ui_elements.smashed_list, [[id, GBFType.character]]);
+	
+	
 	update_table();
 	game_data.characters.shift();
 	game_step();
