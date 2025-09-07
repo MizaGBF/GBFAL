@@ -618,7 +618,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Texts",
 					icon:"../GBFML/assets/ui/result_icon/text.png",
 					assets:[
-						{type:1, paths:[["sp/ui/job_name_tree_l/", "png"], ["sp/ui/job_name/job_change/", "png"],["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"]], index:0, hidden:true, lazy:false}
+						{type:1, paths:[["sp/ui/job_name_tree_l/", "png"], ["sp/ui/job_name/job_change/", "png"],["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"],["sp/event/common/teamraid/assets/skin_name/", "png"]], index:0, hidden:true, lazy:false}
 					]
 				},
 				{
@@ -636,7 +636,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 						{name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"../GBFML/assets/ui/result_icon/battle.png", index:3},
 						{name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:2, icon:"../GBFML/assets/ui/result_icon/other.png", lazy:false},
 						{name:"Various Big Portraits", paths:[["sp/assets/leader/zoom/", "png"], ["sp/assets/leader/p/", "png"], ["sp/assets/leader/jobon_z/", "png"]], index:3, icon:"../GBFML/assets/ui/result_icon/big_portrait.png"},
-						{name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"], ["sp/event/common/teamraid/assets/selected_skin_thumbnail/", "png"]], icon:"../GBFML/assets/ui/result_icon/portrait.png", index:3}
+						{name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"], ["sp/event/common/teamraid/assets/sd_skin/", "jpg"], ["sp/event/common/teamraid/assets/selected_skin_thumbnail/", "png"]], icon:"../GBFML/assets/ui/result_icon/portrait.png", index:3}
 					]
 				},
 				{
