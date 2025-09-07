@@ -1136,8 +1136,9 @@ class Updater():
                     except:
                         pass
             case 5:
+                baselimit : int = 15 if element_id in ("6579",) else 8
                 errlimit : int = 6 if element_id in ("1019",) else 3
-                for x in range(0, 7):
+                for x in range(0, baselimit):
                     #_0_1, _0_2...
                     n = 0
                     err = 0
