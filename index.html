@@ -23,6 +23,7 @@
 	<script src="../GBFML/js/page.js"></script>
 	<script src="../GBFML/js/util.js"></script>
 	<script src="../GBFML/js/search.js"></script>
+	<script src="../GBFML/js/audio_player.js"></script>
 	<script src="js/lookup.js"></script>
 	<link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
 	<link rel="dns-prefetch" href="https://prd-game-a1-granbluefantasy.akamaized.net/" />
@@ -34,7 +35,7 @@
 <body onload="init()">
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>v11.5</div>
+		<div>v11.6</div>
 		<div id="timestamp">Loading...</div>
 	</div>
 	<!-- Know issues -->
@@ -59,6 +60,7 @@
 		<button class="tab-button" id="tab-new" alt="updated" onclick="open_tab('new')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/new.png" />Updated</button>
 		<button class="tab-button" id="tab-history" alt="history" onclick="open_tab('history')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/history.png" />History</button>
 		<button class="tab-button" id="tab-bookmark" alt="bookmark" onclick="open_tab('bookmark')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/bookmark.png" />Bookmarks</button>
+		<button class="tab-button" id="tab-jukebox" alt="jukebox" onclick="open_tab('jukebox')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/jukebox.png" />Jukebox</button>
 		<button class="tab-button" id="tab-about" alt="about" onclick="open_tab('about')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/about.png" />About</button>
 	</div>
 	<!-- Mini buttons -->
@@ -74,6 +76,9 @@
 	</div>
 	<!-- Index tab -->
 	<div id="index" class="tab-content">
+		<svg style="display:block;margin:auto;" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><style>.spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}</style><path class="spinner_0XTQ" d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z" fill="#62c1e5"/></svg>
+		<div style="height:420px"> <!-- Placeholder for index -->
+		</div>
 	</div>
 	<!-- Asset tab -->
 	<div id="view" class="tab-content" style="display:none">
@@ -88,6 +93,9 @@
 	</div>
 	<!-- Bookmark tab -->
 	<div id="bookmark" class="tab-content container" style="display:none">
+	</div>
+	<!-- Jukebox tab -->
+	<div id="jukebox" class="tab-content container" style="display:none">
 	</div>
 	<!-- About tab -->
 	<div id="about" class="tab-content container" style="display:none">

@@ -17,6 +17,7 @@ const search_save_key = "gbfal-search";
 var dummy_scene = [];
 var no_speech_bubble_filter = [];
 var audio = null;
+var jukebox = null;
 
 function init() // entry point, called by body onload
 {
@@ -97,6 +98,11 @@ function load(config, changelog)
 		{
 			start(config, changelog);
 		}
+	});
+	fetchJSON("../GBFML/json/jukebox.json").then((value) => {
+		let node = document.getElementById("jukebox");
+		jukebox = new AudioJukeboxPlayer(node, value);
+		document.getElementById("tab-jukebox").style.display = "";
 	});
 }
 
@@ -267,7 +273,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 {
 	beep();
 	gbf.reset_endpoint();
-	clean_audio();
+	audio = null;
 	// save last_id
 	let tmp_last_id = last_id;
 	// headers
@@ -1412,355 +1418,10 @@ function add_audio_assets(node, id, sounds)
 	else
 	{
 		// add audio player
-		audio = {};
-		audio.id = id;
-		audio.list = sorted_sound;
-		audio.player = new Audio();
-		audio.player.preload = "none";
-		audio.player.loop = false;
-		audio.player.addEventListener('loadedmetadata', update_audio_duration);
-		audio.player.addEventListener('timeupdate', update_audio_time);
-		
-		// main node
-		audio.container = add_to(node, "div", {
-			cls:["audio-container"]
-		});
-		// playing header
-		audio.playing = add_to(audio.container, "div", {
-			cls:["audio-inner-container"],
-			innertext:"None playing"
-		});
-		
-		// custom player
-		custom_player = add_to(audio.container, "div", {
-			cls:["audio-player"]
-		});
-		// play button
-		audio.play_button = add_to(custom_player, "button", {
-			cls:["audio-player-button"],
-			onclick:audio_play_button
-		});
-		audio.play_button.disabled = true;
-		// player current time
-		audio.seek_time = add_to(custom_player, "span", {
-			cls:["audio-player-value"],
-			innertext:"00:00"
-		});
-		// seek slider
-		audio.seek_slider = add_to(custom_player, "input", {
-			cls:["audio-player-slider"]
-		});
-		audio.seek_slider.type = "range";
-		audio.seek_slider.min = "0";
-		audio.seek_slider.max = "100";
-		audio.seek_slider.value = "0";
-		audio.seek_slider.onmouseup = set_audio_current_time;
-		audio.seek_slider.ontouchend = set_audio_current_time;
-		// audio duration
-		audio.duration = add_to(custom_player, "span", {
-			cls:["audio-player-value"],
-			innertext:"00:00"
-		});
-		// special element for a line break
-		add_to(custom_player, "div", {
-			cls:["audio-player-break"]
-		});
-		// audio volume
-		audio.volume = add_to(custom_player, "span", {
-			cls:["audio-player-value"],
-			innertext:"100%"
-		});
-		// volume slider
-		audio.volume_slider = add_to(custom_player, "input", {
-			cls:["audio-player-slider"]
-		});
-		audio.volume_slider.type = "range";
-		audio.volume_slider.min = "0";
-		audio.volume_slider.max = "100";
-		audio.volume_slider.value = "100";
-		audio.volume_slider.onmouseup = set_audio_volume;
-		audio.volume_slider.ontouchend = set_audio_volume;
-		
-		// category select
-		let track_select_container = add_to(audio.container, "div", {
-			cls:["audio-inner-container"]
-		});
-		let label = add_to(track_select_container, "label", {cls:["audio-label"]});
-		label.htmlFor = "audio-category";
-		label.innerText = "Category";
-		audio.category = add_to(track_select_container, "select", {
-			cls:["audio-select"],
-			id:"audio-category"
-		});
-		let set_default = false;
-		for(const category of Object.keys(audio.list))
-		{
-			let option = add_to(audio.category, "option");
-			option.value = category;
-			option.innerText = category;
-			if(!set_default)
-			{
-				set_default = true;
-				option.selected = true;
-			}
-		}
-		audio.category.onchange = function() {
-			update_audio_tracks();
-		};
-		
-		// track select
-		track_select_container = add_to(audio.container, "div", {
-			cls:["audio-inner-container"]
-		});
-		label = add_to(track_select_container, "label", {cls:["audio-label"]});
-		label.htmlFor = "audio-track";
-		label.innerText = "Track";
-		audio.track = add_to(track_select_container, "select", {
-			cls:["audio-select"],
-			id:"audio-track"
-		});
-		update_audio_tracks();
-		
-		// buttons
-		track_select_container = add_to(audio.container, "div", {
-			cls:["audio-inner-container"]
-		});
-		add_to(track_select_container, "button", {
-			cls:["audio-button"],
-			innertext:"Set & Play",
-			onclick:set_and_play_audio
-		})
-		add_to(track_select_container, "button", {
-			cls:["audio-button"],
-			innertext:"Open in a Tab",
-			onclick:open_audio
-		})
+		audio = new AudioVoicePlayer(node, id, sorted_sound);
 		return true;
 	}
 	return false;
-}
-
-function clean_audio()
-{
-	if(audio)
-	{
-		audio.player.removeEventListener('loadedmetadata', update_audio_duration);
-		audio.player.removeEventListener('timeupdate', update_audio_time);
-		audio = null;
-	}
-}
-
-function audio_play_button()
-{
-	if(audio.player.src != "")
-	{
-		if(audio.player.paused)
-		{
-			if(audio.player.currentTime >= audio.player.duration)
-			{
-				audio.player.currentTime = 0;
-			}
-			audio.player.play();
-			audio.play_button.classList.toggle("audio-player-button-paused", false);
-		}
-		else
-		{
-			audio.player.pause();
-			audio.play_button.classList.toggle("audio-player-button-paused", true);
-		}
-	}
-}
-
-function set_audio_current_time()
-{
-	audio.player.currentTime = parseInt(audio.seek_slider.value) / 1000.0;
-	audio.seek_time.innerText = format_duration(audio.player.currentTime);
-}
-
-function set_audio_volume()
-{
-	audio.volume.innerText = audio.volume_slider.value + "%";
-	audio.player.volume = parseInt(audio.volume_slider.value) / 100.0;
-}
-
-function format_duration(d)
-{
-	if(isNaN(d))
-	{
-		return "00:00";
-	}
-	else
-	{
-		return ("" + Math.floor(d / 60)).padStart(2, "0") + ":" + ("" + Math.floor(d % 60)).padStart(2, "0");
-	}
-}
-
-function update_audio_duration()
-{
-	audio.duration.innerText = format_duration(audio.player.duration);
-	audio.seek_slider.max = "" + audio.player.duration * 1000;
-	audio.seek_slider.value = "0";
-}
-
-function update_audio_time()
-{
-	audio.seek_time.innerText = format_duration(audio.player.currentTime);
-	audio.seek_slider.value = "" + audio.player.currentTime * 1000;
-	if(audio.player.currentTime >= audio.player.duration)
-		audio.play_button.classList.toggle("audio-player-button-paused", true);
-}
-
-function set_and_play_audio()
-{
-	let src = "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + audio.id + audio.track.value + ".mp3";
-	if(audio.player.src == src)
-	{
-		audio.player.pause();
-		audio.player.currentTime = 0;
-		audio.player.play();
-	}
-	else
-	{
-		audio.playing.innerText = format_sound_suffix(audio.track.value);
-		audio.player.pause();
-		audio.player.src = src;
-		audio.player.play();
-	}
-	audio.play_button.disabled = false;
-	audio.play_button.classList.toggle("audio-player-button-paused", false);
-}
-
-function open_audio()
-{
-	let a = document.createElement("a");
-	a.setAttribute('href', "https://prd-game-a5-granbluefantasy.akamaized.net/assets_en/sound/voice/" + audio.id + audio.track.value + ".mp3");
-	a.target = "_blank";
-	a.rel = "noopener noreferrer";
-	a.click();
-}
-
-function update_audio_tracks()
-{
-	let set_default = false;
-	audio.track.innerHTML = "";
-	for(const track of audio.list[audio.category.value])
-	{
-		let option = add_to(audio.track, "option");
-		option.value = track;
-		option.innerText = format_sound_suffix(track);
-		if(!set_default)
-		{
-			set_default = true;
-			option.selected = true;
-		}
-	}
-}
-
-function format_sound_suffix(s)
-{
-	if(s[0] == '_')
-		s = s.substring(1);
-	switch(s.substring(0, 3))
-	{
-		case "02_":
-			s = "4★_" + s.substring(3);
-			break;
-		case "03_":
-			s = "5★_" + s.substring(3);
-			break;
-		case "04_":
-			s = "6★_" + s.substring(3);
-			break;
-		case "05_":
-			s = "7★_" + s.substring(3);
-			break;
-		default:
-			s = "0★_" + s;
-			break;
-	}
-	s = s.split('_');
-	let isCB = false;
-	for(let i = 0; i < s.length; ++i)
-	{
-		switch(s[i])
-		{
-			case "chain1":
-			{
-				s[i] = "Fire CB";
-				isCB = true;
-				break;
-			}
-			case "chain2":
-			{
-				s[i] = "Water CB";
-				isCB = true;
-				break;
-			}
-			case "chain3":
-			{
-				s[i] = "Earth CB";
-				isCB = true;
-				break;
-			}
-			case "chain4":
-			{
-				s[i] = "Wind CB";
-				isCB = true;
-				break;
-			}
-			case "chain5":
-			{
-				s[i] = "Light CB";
-				isCB = true;
-				break;
-			}
-			case "chain6":
-			{
-				s[i] = "Dark CB";
-				isCB = true;
-				break;
-			}
-			case "s1":
-			{
-				s[i] = "Scene 1";
-				break;
-			}
-			case "s2":
-			{
-				s[i] = "Scene 2";
-				break;
-			}
-			case "s3":
-			{
-				s[i] = "Scene 3";
-				break;
-			}
-			case "s4":
-			{
-				s[i] = "Scene 4";
-				break;
-			}
-			case "s5":
-			{
-				s[i] = "Scene 5";
-				break;
-			}
-			case "s6":
-			{
-				s[i] = "Scene 6";
-				break;
-			}
-			default:
-			{
-				if(isCB)
-					s[i] = s[i] + " chains";
-				break;
-			}
-		}
-		// capitalize
-		s[i] = s[i].charAt(0).toUpperCase() + s[i].slice(1);
-	}
-	return s.join(" ");
 }
 
 // random button
