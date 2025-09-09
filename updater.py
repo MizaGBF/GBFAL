@@ -3886,7 +3886,7 @@ class Updater():
                             file_estimation += len(v[JOB_ID]) * 5
                             file_estimation += len(v[JOB_ALT]) * 3
                             file_estimation += len(v[JOB_DETAIL]) * 4
-                            file_estimation += len(v[JOB_DETAIL_ALT]) * 14
+                            file_estimation += len(v[JOB_DETAIL_ALT]) * 17
                             file_estimation += len(v[JOB_DETAIL_ALL])
                             
                             file_estimation += len(v[JOB_SPRITE])
