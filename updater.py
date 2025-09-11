@@ -1572,7 +1572,7 @@ class Updater():
                     self.tasks.print("Warning: Missing uncap art", uncap, "for character:", id)
                     continue
                 uf = flags[uncap]
-                for g in (("", "_0", "_1") if (uf[0] is True) else ("",)):
+                for g in ("", "_0", "_1"):
                     for form in (("", "_f", "_f1", "_f2") if altForm else ("",)):
                         for catype in ("", "_s2", "_s3"):
                             for sub in (("",) if tid == MALINDA else ("", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_h", "_i", "_j")):
