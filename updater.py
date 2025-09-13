@@ -858,10 +858,6 @@ class Updater():
         ts = TaskStatus(1000, 5)
         for i in range(3):
             self.tasks.add(self.search_generic, parameters=(ts, 'title', "{}", 1, ["img/sp/top/bg/bg_{}.jpg"]))
-        # titles
-        ts = TaskStatus(1000, 5)
-        for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, 'title', "{}", 1, ["img/sp/top/bg/bg_{}.jpg"]))
         # sky compass title
         ts = TaskStatus(1000, 8)
         for i in range(2):
