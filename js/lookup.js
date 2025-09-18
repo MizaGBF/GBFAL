@@ -617,7 +617,8 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					assets:[
 						{type:1, paths:[["sp/assets/leader/job_change/", "png"]], index:3},
 						{type:1, paths:[["sp/assets/leader/jobtree/", "png"]], index:0},
-						{type:1, paths:[["sp/ui/icon/job/", "png"]], index:0, small:true}
+						{type:1, paths:[["sp/ui/icon/job/", "png"]], index:0, small:true},
+						{type:1, paths:[["sp/ui/icon/job_complete/", "png"]], index:0, small:true}
 					]
 				},
 				{
