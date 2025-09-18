@@ -26,7 +26,8 @@
        "alchm0":"kaitaku_renkin_hwop",
        "alchm1":"kaitaku_renkin_vtop",
        "alchm2":"kaitaku_renkin_jbop",
-       "sandb0":"arcarum_sandbox"
+       "sandb0":"arcarum_sandbox",
+       "origi0":"originclass_ep1"
     },
     
     "CUT_CONTENT" : ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"],

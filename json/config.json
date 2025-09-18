@@ -584,7 +584,8 @@
             "name": "Main Character",
             "icon": "../GBFML/assets/ui/icon/classes.png",
             "target": "job",
-            "reverse":1
+            "reverse":1,
+            "text": "ID order"
         },
         {
             "name": "Enemies",
