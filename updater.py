@@ -4193,20 +4193,20 @@ class Updater():
                 self.tasks.print("Updating", len(args.update)+len(self.data['uncap_queue']), "element(s)...")
                 await self.init_updater(wiki=True)
                 self.load_uncap_queue()
-                await self.update_all(args.update)
+                await self.update_all(list(set(args.update)))
             elif args.job is not False:
                 self.tasks.print("Searching detailed job data...")
                 await self.init_updater(wiki=False, job=True)
                 await self.search_job_detail(args.job == "full")
             elif args.sceneid is not None and len(args.sceneid) > 0:
                 self.tasks.print("Updating scene data...")
-                await self.update_all_scene_for_ids(args.sceneid)
+                await self.update_all_scene_for_ids(list(set(args.sceneid)))
             elif args.scene is not None:
                 self.tasks.print("Updating scene data...")
-                await self.update_all_scene(args.scene)
+                await self.update_all_scene(list(set(args.scene)))
             elif args.sound is not None:
                 self.tasks.print("Updating sound data...")
-                await self.update_all_sound(args.sound)
+                await self.update_all_sound(list(set(args.sound)))
             elif args.event is not None:
                 self.tasks.print("Updating event data...")
                 await self.init_updater(wiki=True)
@@ -4214,7 +4214,7 @@ class Updater():
             elif args.forceevent is not None and len(args.forceevent) > 0:
                 self.tasks.print("Updating event data...")
                 await self.init_updater(wiki=True)
-                await self.update_all_event(args.forceevent, True)
+                await self.update_all_event(list(set(args.forceevent)), True)
             elif args.newevent:
                 self.tasks.print("Searching new event data...")
                 await self.init_updater(wiki=True)
