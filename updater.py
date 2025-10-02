@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.37'
+VERSION = '3.38'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Rosetta/GBFAL'
 SAVE_VERSION = 1
@@ -2037,7 +2037,20 @@ class Updater():
                         d = a+b+c
                         if d in job_keys:
                             continue
-                        self.tasks.add(self.detail_job_search_single, parameters=(d, ))
+                        self.tasks.add(self.detail_job_search_single, parameters=(d, MAINHAND))
+        await self.tasks.start()
+
+    async def search_job_second_id(self : Updater, mhs : list[str]) -> None:
+        if len(mhs) == 0:
+            mhs = MAINHAND
+        job_keys = self.data["job_key"] # reference
+        for a in STRING_CHAR:
+            for b in STRING_CHAR:
+                for c in STRING_CHAR:
+                    d = a+b+c
+                    if d in job_keys:
+                        continue
+                    self.tasks.add(self.detail_job_search_single, parameters=(d, mhs))
         await self.tasks.start()
 
     # test a job mh
@@ -2080,8 +2093,8 @@ class Updater():
                     pass
 
     # test a job key
-    async def detail_job_search_single(self, key : str) -> None:
-        for mh in MAINHAND:
+    async def detail_job_search_single(self, key : str, mhs : list[str]) -> None:
+        for mh in mhs:
             try:
                 await self.head(MANIFEST + "{}_{}_0_01.js".format(key, mh))
                 self.data["job_key"][key] = None
@@ -4130,6 +4143,7 @@ class Updater():
             primary.add_argument('-r', '--run', help="search for new content.", action='store_const', const=True, default=False, metavar='')
             primary.add_argument('-u', '--update', help="update given elements.", nargs='+', default=None)
             primary.add_argument('-j', '--job', help="detailed job search. Add 'full' to trigger a full search.", action='store', nargs='?', default=False, metavar='FULL')
+            primary.add_argument('-jq', '--jobquick', help="search for unused job secondary IDs. Can specify mainhand keys.", action='store', nargs='*', default=False, metavar='FULL')
             
             secondary = parser.add_argument_group('secondary', 'commands to update some specific data.')
             secondary.add_argument('-si', '--sceneid', help="update scene content for given IDs.", nargs='+', default=None)
@@ -4198,6 +4212,10 @@ class Updater():
                 self.tasks.print("Searching detailed job data...")
                 await self.init_updater(wiki=False, job=True)
                 await self.search_job_detail(args.job == "full")
+            elif args.jobquick is not False:
+                self.tasks.print("Searching job secondary ID...")
+                await self.init_updater(wiki=False, job=True)
+                await self.search_job_second_id(args.jobquick)
             elif args.sceneid is not None and len(args.sceneid) > 0:
                 self.tasks.print("Updating scene data...")
                 await self.update_all_scene_for_ids(list(set(args.sceneid)))

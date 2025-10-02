@@ -56,16 +56,16 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.25
+GBFAL Updater v3.38
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
-                  [-si SCENEID [SCENEID ...]] [-sc [SCENE ...]]
-                  [-sd [SOUND ...]] [-ev [EVENT ...]]
+                  [-jq [FULL ...]] [-si SCENEID [SCENEID ...]]
+                  [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]]
                   [-fe FORCEEVENT [FORCEEVENT ...]] [-ne] [-st [LIMIT]]
                   [-ft [FATES]] [-pt] [-mn] [-ij] [-ej] [-lk] [-fj] [-it]
-                  [-et] [-mt] [-mb] [-ms] [-mu] [-js] [-au [ADDUNCAP ...]]
-                  [-nc] [-nr] [-if] [-da PATH] [-dg]
+                  [-et] [-mt] [-mb] [-ms] [-mu] [-mr] [-js]
+                  [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH] [-dg]
 
-Asset Updater v3.25 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.38 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -76,7 +76,11 @@ primary:
   -r, --run             search for new content.
   -u, --update UPDATE [UPDATE ...]
                         update given elements.
-  -j, --job [FULL]      detailed job search. Add 'full' to trigger a full search.
+  -j, --job [FULL]      detailed job search. Add 'full' to trigger a full
+                        search.
+  -jq, --jobquick [FULL ...]
+                        search for unused job secondary IDs. Can specify
+                        mainhand keys.
 
 secondary:
   commands to update some specific data.
@@ -88,12 +92,15 @@ secondary:
   -sd, --sound [SOUND ...]
                         update sound content. Add optional strings to match.
   -ev, --event [EVENT ...]
-                        update event content. Add optional event IDs to update specific events.
+                        update event content. Add optional event IDs to update
+                        specific events.
   -fe, --forceevent FORCEEVENT [FORCEEVENT ...]
                         force update event content for given event IDs.
   -ne, --newevent       check new event content.
-  -st, --story [LIMIT]  update story content. Add an optional chapter to stop at.
-  -ft, --fate [FATES]   update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.
+  -st, --story [LIMIT]  update story content. Add an optional chapter to stop
+                        at.
+  -ft, --fate [FATES]   update fate content. Add an optional fate ID to update
+                        or a range (START-END) or 'last' to update the latest.
   -pt, --partner        update all parner content. Time consuming.
   -mn, --missingnpc     search for missing NPCs. Time consuming.
 
@@ -102,17 +109,24 @@ maintenance:
 
   -ij, --importjob      import data from job_data_export.json.
   -ej, --exportjob      export data to job_data_export.json.
-  -lk, --lookup         import and update manual_lookup.json and fetch the wiki to update the lookup table.
+  -lk, --lookup         import and update manual_lookup.json and fetch the
+                        wiki to update the lookup table.
   -fj, --fatejson       import and update manual_fate.json.
   -it, --importthumb    import data from manual_event_thumbnail.json.
   -et, --exportthumb    export data to manual_event_thumbnail.json.
   -mt, --maintenance    run all existing maintenance tasks.
   -mb, --maintenancebuff
-                        maintenance task to check existing buffs for new icons.
+                        maintenance task to check existing buffs for new
+                        icons.
   -ms, --maintenancesky
-                        maintenance task to check sky compass arts for existing events.
+                        maintenance task to check sky compass arts for
+                        existing events.
   -mu, --maintenancenpcthumbnail
-                        maintenance task to check NPC thumbnails for existing NPCs.
+                        maintenance task to check NPC thumbnails for existing
+                        NPCs.
+  -mr, --maintenanceraidappear
+                        maintenance task to check Enemy Raid Appear
+                        spritesheets.
   -js, --json           import all manual JSON files.
 
 settings:
