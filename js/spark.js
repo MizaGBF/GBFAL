@@ -55,7 +55,6 @@ function load(changelog)
 	fetchJSON("../GBFML/json/jukebox.json").then((value) => {
 		let node = document.getElementById("jukebox");
 		jukebox = new AudioJukeboxPlayer(node, value);
-		document.getElementById("tab-jukebox").style.display = "";
 	});
 }
 
