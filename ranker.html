@@ -23,6 +23,7 @@
 	<script src="../GBFML/js/page.js"></script>
 	<script src="../GBFML/js/util.js"></script>
 	<script src="../GBFML/js/search.js"></script>
+	<script src="../GBFML/js/audio_player.js"></script>
 	<script src="js/ranker.js"></script>
 	<link rel="stylesheet" href="css/ranker.css">
 	<link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
@@ -35,7 +36,7 @@
 <body onload="init()">
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>Character Ranker v1.2</div>
+		<div>Character Ranker v1.3</div>
 		<div id="timestamp"></div>
 	</div>
 	<!-- Know issues -->
@@ -63,6 +64,8 @@
 			<li>"Multi Units" are all characters with "and" in their names</li>
 			<li>Newer characters might take a few days before being added to the list</li>
 		</ul>
+	</div>
+	<div id="jukebox" class="tab-content container">
 	</div>
 	<!-- animation select prompt -->
 	<div class="fullscreen-preview" id="confirm-prompt" style="display:none;">

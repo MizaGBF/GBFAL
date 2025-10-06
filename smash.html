@@ -24,6 +24,7 @@
 	<script src="../GBFML/js/page.js"></script>
 	<script src="../GBFML/js/util.js"></script>
 	<script src="../GBFML/js/search.js"></script>
+	<script src="../GBFML/js/audio_player.js"></script>
 	<script src="js/ranker.js"></script> <!-- It reuses code from the Character Ranker -->
 	<script src="js/smash.js"></script>
 	<link rel="stylesheet" href="css/ranker.css">
@@ -38,7 +39,7 @@
 <body onload="init_smash()">
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>Smash or Pass v1.3</div>
+		<div>Smash or Pass v1.4</div>
 		<div id="timestamp"></div>
 	</div>
 	<!-- Know issues -->
@@ -66,6 +67,8 @@
 			<li>"Multi Units" might count as multiple characters if there are multiple races/genders</li>
 			<li>Newer characters might take a few days before being added to the list</li>
 		</ul>
+	</div>
+	<div id="jukebox" class="tab-content container">
 	</div>
 	<!-- animation select prompt -->
 	<div class="fullscreen-preview" id="confirm-prompt" style="display:none;">

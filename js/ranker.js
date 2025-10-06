@@ -10,6 +10,9 @@ var pools = {};
 var checkboxes = {};
 var game_data = null;
 var ui_elements = {};
+// jukebox
+var audio = null;
+var jukebox = null;
 
 const options = {
 	Rarity:{
@@ -75,6 +78,11 @@ function init() // entry point, called by body onload
 	gbf = new GBF();
 	fetchJSON("json/changelog.json?" + timestamp).then((value) => {
 		load(value);
+	});
+	fetchJSON("../GBFML/json/jukebox.json").then((value) => {
+		let node = document.getElementById("jukebox");
+		jukebox = new AudioJukeboxPlayer(node, value);
+		document.getElementById("tab-jukebox").style.display = "";
 	});
 }
 
