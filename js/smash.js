@@ -77,6 +77,22 @@ function init_smash() // entry point, called by body onload
 		ui_elements.smashed_list = add_to(output, "div", {cls:["ranking-line", "ranking-line-3"]});
 		ui_elements.smashed_list.style.display = "none";
 		add_to(ui_elements.smashed_list, "div", {innertext:"Smashed"});
+		// stats
+		ui_elements.fastest_smash = add_to(output, "div", {cls:["ranking-line", "ranking-line-0"]});
+		ui_elements.fastest_smash.style.display = "none";
+		add_to(ui_elements.fastest_smash, "div", {innertext:"Fastest Smash"});
+		ui_elements.slowest_smash = add_to(output, "div", {cls:["ranking-line", "ranking-line-1"]});
+		ui_elements.slowest_smash.style.display = "none";
+		add_to(ui_elements.slowest_smash, "div", {innertext:"Slowest Smash"});
+		ui_elements.fastest_pass = add_to(output, "div", {cls:["ranking-line", "ranking-line-2"]});
+		ui_elements.fastest_pass.style.display = "none";
+		add_to(ui_elements.fastest_pass, "div", {innertext:"Fastest Pass"});
+		ui_elements.slowest_pass = add_to(output, "div", {cls:["ranking-line", "ranking-line-1"]});
+		ui_elements.slowest_pass.style.display = "none";
+		add_to(ui_elements.slowest_pass, "div", {innertext:"Slowest Pass"});
+		// hack game_data content to reuse .result
+		game_data.result = {};
+		game_data.time = null;
 	}
 	game_step = function()
 	{
@@ -109,9 +125,78 @@ function init_smash() // entry point, called by body onload
 		}
 		slider_enabled = true;
 		reset_slider();
+		// set timer
+		game_data.time = window.performance.now();
 	}
 	game_result = function()
 	{
+		// set stats
+		let fsmash = null;
+		let ssmash = null;
+		let fpass = null;
+		let spass = null;
+		for(const [id, data] of Object.entries(game_data.result))
+		{
+			if(data[0])
+			{
+				if(fsmash)
+				{
+					if(data[1] < game_data.result[fsmash][1])
+						fsmash = id;
+				}
+				else fsmash = id;
+				if(ssmash)
+				{
+					if(data[1] > game_data.result[ssmash][1])
+						ssmash = id;
+				}
+				else ssmash = id;
+			}
+			else
+			{
+				if(fpass)
+				{
+					if(data[1] < game_data.result[fpass][1])
+						fpass = id;
+				}
+				else fpass = id;
+				if(spass)
+				{
+					if(data[1] > game_data.result[spass][1])
+						spass = id;
+				}
+				else spass = id;
+			}
+		}
+		if(fsmash)
+		{
+			list_elements(ui_elements.fastest_smash, [[fsmash, GBFType.character]]);
+			ui_elements.fastest_smash.appendChild(document.createElement("br"));
+			ui_elements.fastest_smash.appendChild(document.createTextNode(format_time(game_data.result[fsmash][1])));
+			ui_elements.fastest_smash.style.display = "";
+		}
+		if(ssmash)
+		{
+			list_elements(ui_elements.slowest_smash, [[ssmash, GBFType.character]]);
+			ui_elements.slowest_smash.appendChild(document.createElement("br"));
+			ui_elements.slowest_smash.appendChild(document.createTextNode(format_time(game_data.result[ssmash][1])));
+			ui_elements.slowest_smash.style.display = "";
+		}
+		if(fpass)
+		{
+			list_elements(ui_elements.fastest_pass, [[fpass, GBFType.character]]);
+			ui_elements.fastest_pass.appendChild(document.createElement("br"));
+			ui_elements.fastest_pass.appendChild(document.createTextNode(format_time(game_data.result[fpass][1])));
+			ui_elements.fastest_pass.style.display = "";
+		}
+		if(spass)
+		{
+			list_elements(ui_elements.slowest_pass, [[spass, GBFType.character]]);
+			ui_elements.slowest_pass.appendChild(document.createElement("br"));
+			ui_elements.slowest_pass.appendChild(document.createTextNode(format_time(game_data.result[spass][1])));
+			ui_elements.slowest_pass.style.display = "";
+		}
+		// rest
 		ui_elements.progress.textContent = "Game Over";
 		ui_elements.global.classList.toggle("smash-ui", false);
 		ui_elements.global.classList.toggle("smash-result-ui", true);
@@ -126,11 +211,36 @@ function init_smash() // entry point, called by body onload
 	init();
 }
 
+function format_time(t)
+{
+	if(t < 1)
+	{
+		return "" + Math.floor(t * 1000) + "us";
+	}
+	else if(t < 1000)
+	{
+		return "" + (Math.floor(t * 100) / 100) + "ms";
+	}
+	else if(t < 60000)
+	{
+		return "" + (Math.floor(t / 100) / 10) + "s";
+	}
+	else if(t < 3600000)
+	{
+		return "" + (Math.floor(t / 600) / 100) + "m";
+	}
+	else
+	{
+		return "" + (Math.floor(t / 36000) / 100) + "h";
+	}
+}
+
 function smash()
 {
 	beep();
 	let modified_stats = [];
 	let id = game_data.characters[0];
+	game_data.result[id] = [true, window.performance.now() - game_data.time];
 	for(const c of table_columns)
 	{
 		if(c != "total" && pools[c].includes(id))
@@ -173,6 +283,7 @@ function pass()
 {
 	beep();
 	let id = game_data.characters[0];
+	game_data.result[id] = [false, window.performance.now() - game_data.time];
 	++stats["total-total"];
 	undo_stack.push(
 		{
