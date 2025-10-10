@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.39'
+VERSION = '3.40'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 1
@@ -140,7 +140,9 @@ SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
 MSQ_RECAPS : dict[str, str] = {}
 RISING : set[str] = []
+RISING_MC : list[str] = []
 RELINK : set[str] = []
+RELINK_MC : list[str] = []
 # load dynamic constants
 try:
     with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
@@ -3390,7 +3392,8 @@ class Updater():
                             else:
                                 break
                         s = " ".join(s[i:]).replace(' voiced', '').replace(' voice-only', '')
-                        if s == "" or data.get(k, "") == s: continue
+                        if s == "" or data.get(k, "") == s:
+                            continue
                         data[k] = s
                         to_save = True
                     elif not valid and k not in data:
@@ -3496,6 +3499,11 @@ class Updater():
                         l += " voiced"
                         if voice_only:
                             l += " voice-only"
+                    # spin off tags
+                    if "gbf-versus-rising" in lookup_data.get(k, ""):
+                        l += " gbf-versus-rising"
+                    if "gbf-relink" in lookup_data.get(k, ""):
+                        l += " gbf-relink"
                     if l != lookup_data.get(k, ""):
                         lookup_data[k] = l
                         modified.add(k)
@@ -3580,26 +3588,24 @@ class Updater():
                                 case _:
                                     pass
                         try:
-                            id = str(item['id']).split('_', 1)[0]
+                            eid = str(item['id']).split('_', 1)[0]
                         except:
-                            id = str(item['outfit id']).split('_', 1)[0]
-                        if t != "weapons" and "collab" not in looks and "tie-in" not in looks:
-                            for k in looks:
-                                if k in RISING:
-                                    looks.append("gbf-versus-rising")
-                            for k in looks:
-                                if k in RELINK:
-                                    looks.append("gbf-relink")
+                            eid = str(item['outfit id']).split('_', 1)[0]
                         # prepare lookup string
                         looks = wiki + html.unescape(" ".join(looks)).replace(' tie-in ', ' collab ').replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
                         # voice
-                        if len(id) == 10 and npcs.get(id, 0) != 0 and len(npcs[id][NPC_SOUND]) > 0: # npc sound
+                        if len(eid) == 10 and npcs.get(eid, 0) != 0 and len(npcs[eid][NPC_SOUND]) > 0: # npc sound
                             looks += " voiced"
-                            if not npcs[id][NPC_JOURNAL] and len(npcs[id][NPC_SCENE]) == 0:
+                            if not npcs[eid][NPC_JOURNAL] and len(npcs[eid][NPC_SCENE]) == 0:
                                 looks += " voice-only"
-                        if id not in lookup_data or lookup_data[id] != looks:
-                            lookup_data[id] = looks
-                            modified.add(id)
+                        # spin off tags
+                        if "gbf-versus-rising" in lookup_data.get(eid, ""):
+                            looks += " gbf-versus-rising"
+                        if "gbf-relink" in lookup_data.get(eid, ""):
+                            looks += " gbf-relink"
+                        if eid not in lookup_data or lookup_data[eid] != looks:
+                            lookup_data[eid] = looks
+                            modified.add(eid)
                 except Exception as e:
                     self.tasks.print(e)
                     pass
@@ -3607,6 +3613,30 @@ class Updater():
         if premium_lookup != self.data['premium']:
             self.data['premium'] = premium_lookup
             self.modified = True
+        # tag for relink / rising
+        for eid, v in lookup_data.items():
+            if len(eid) != 6 and (len(eid) != 10 or not eid.startswith("10")): # ignore job, weapons
+                s = v.split(" ")[:(2 if eid.startswith("399") else 5)]
+                if "collab" not in s and "tie-in" not in s and "gbf-versus-rising" not in s and "gbf-relink" not in s:
+                    lookup_data
+                    for w in s:
+                        if w in RISING:
+                            lookup_data[eid] += " gbf-versus-rising"
+                            break
+                    for w in s:
+                        if w in RELINK:
+                            lookup_data[eid] += " gbf-relink"
+                            break
+        for eid in RISING_MC:
+            s = lookup_data.get(eid, None)
+            if s is not None and "gbf-versus-rising":
+                lookup_data[eid] += " gbf-versus-rising"
+                modified.add(eid)
+        for eid in RELINK_MC:
+            s = lookup_data.get(eid, None)
+            if s is not None and "gbf-relink":
+                lookup_data[eid] += " gbf-relink"
+                modified.add(eid)
         # Second pass, correcting stuff
         if len(modified) > 0:
             self.tasks.print(len(modified), "element lookup(s) added/updated")
