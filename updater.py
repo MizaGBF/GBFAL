@@ -3500,9 +3500,10 @@ class Updater():
                         if voice_only:
                             l += " voice-only"
                     # spin off tags
-                    if "gbf-versus-rising" in lookup_data.get(k, ""):
+                    lk = lookup_data.get(k, "")
+                    if "gbf-versus-rising" in lk and "gbf-versus-rising" not in lk:
                         l += " gbf-versus-rising"
-                    if "gbf-relink" in lookup_data.get(k, ""):
+                    if "gbf-relink" in lk and "gbf-relink" not in lk:
                         l += " gbf-relink"
                     if l != lookup_data.get(k, ""):
                         lookup_data[k] = l
@@ -3599,9 +3600,9 @@ class Updater():
                             if not npcs[eid][NPC_JOURNAL] and len(npcs[eid][NPC_SCENE]) == 0:
                                 looks += " voice-only"
                         # spin off tags
-                        if "gbf-versus-rising" in lookup_data.get(eid, ""):
+                        if "gbf-versus-rising" in lookup_data.get(eid, "") and "gbf-versus-rising" not in looks:
                             looks += " gbf-versus-rising"
-                        if "gbf-relink" in lookup_data.get(eid, ""):
+                        if "gbf-relink" in lookup_data.get(eid, "") and "gbf-relink" not in looks:
                             looks += " gbf-relink"
                         if eid not in lookup_data or lookup_data[eid] != looks:
                             lookup_data[eid] = looks
@@ -3617,16 +3618,25 @@ class Updater():
         for eid, v in lookup_data.items():
             if len(eid) != 6 and (len(eid) != 10 or not eid.startswith("10")): # ignore job, weapons
                 s = v.split(" ")[:(2 if eid.startswith("399") else 5)]
-                if "collab" not in s and "tie-in" not in s and "gbf-versus-rising" not in s and "gbf-relink" not in s:
-                    lookup_data
-                    for w in s:
-                        if w in RISING:
-                            lookup_data[eid] += " gbf-versus-rising"
-                            break
-                    for w in s:
-                        if w in RELINK:
-                            lookup_data[eid] += " gbf-relink"
-                            break
+                if "collab" not in v and "tie-in" not in v:
+                    if "gbf-versus-rising" not in v:
+                        for w in s:
+                            if w in RISING:
+                                lookup_data[eid] += " gbf-versus-rising"
+                                modified.add(eid)
+                                break
+                    if "gbf-relink" not in v:
+                        for w in s:
+                            if w in RELINK:
+                                lookup_data[eid] += " gbf-relink"
+                                modified.add(eid)
+                                break
+            elif "gbf-versus-rising" in v:
+                lookup_data[eid] = lookup_data[eid].replace(" gbf-versus-rising", "")
+                modified.add(eid)
+            elif "gbf-relink" in v:
+                lookup_data[eid] = lookup_data[eid].replace(" gbf-relink", "")
+                modified.add(eid)
         for eid in RISING_MC:
             s = lookup_data.get(eid, None)
             if s is not None and "gbf-versus-rising":
