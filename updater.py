@@ -139,6 +139,8 @@ MALINDA : str = ""
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
 MSQ_RECAPS : dict[str, str] = {}
+RISING : set[str] = []
+RELINK : set[str] = []
 # load dynamic constants
 try:
     with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
@@ -146,6 +148,8 @@ try:
         # extra, SCENE_BUBBLE_FILTER for performance
         SCENE_BUBBLE_FILTER = {k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0}
     del f
+    RISING = set(RISING)
+    RELINK = set(RELINK)
 except Exception as e:
     print("Failed to load and set json/manual_constants.json")
     print("Please fix the file content and try again")
@@ -3579,6 +3583,13 @@ class Updater():
                             id = str(item['id']).split('_', 1)[0]
                         except:
                             id = str(item['outfit id']).split('_', 1)[0]
+                        if t != "weapons" and "collab" not in looks and "tie-in" not in looks:
+                            for k in looks:
+                                if k in RISING:
+                                    looks.append("gbf-versus-rising")
+                            for k in looks:
+                                if k in RELINK:
+                                    looks.append("gbf-relink")
                         # prepare lookup string
                         looks = wiki + html.unescape(" ".join(looks)).replace(' tie-in ', ' collab ').replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
                         # voice
@@ -3625,7 +3636,6 @@ class Updater():
                     if not check_shared:
                         count += 1
             self.tasks.print(count, "element(s) remaining without lookup data")
-        self.save()
         self.tasks.print("Done")
 
     ### Maintenance #################################################################################################################

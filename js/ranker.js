@@ -277,6 +277,8 @@ function allocate_pools()
 		}
 		// Date
 		offset = words.length - 1;
+		while(["gbf-versus-rising", "gbf-relink"].includes(words[offset]))
+			--offset;
 		if(words[offset][4] == '-' && words[offset][7] == '-')
 		{
 			if(!(words[offset] in releases))
