@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.38'
+VERSION = '3.39'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 1
@@ -1132,7 +1132,7 @@ class Updater():
                     except:
                         pass
             case 5:
-                baselimit : int = 15 if element_id in ("6579",) else 8
+                baselimit : int = 18 if element_id in ("6579",) else 10
                 errlimit : int = 6 if element_id in ("1019",) else 3
                 for x in range(0, baselimit):
                     #_0_1, _0_2...
@@ -4000,6 +4000,8 @@ class Updater():
                 self.tasks.add(self.maintenance_raid_appear, priority=0)
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
+                for element_id in (1019, ): # buffs to check for updates
+                    await self.prepare_update_buff(element_id, priority=0)
 
     # return True if the file name passes the  filters
     def file_is_matching(self : Updater, name : str, filters : list[str]) -> bool:
