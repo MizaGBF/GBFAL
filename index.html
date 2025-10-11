@@ -35,7 +35,7 @@
 <body onload="init()">
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>v11.7</div>
+		<div>v11.8</div>
 		<div id="timestamp">Loading...</div>
 	</div>
 	<!-- Know issues -->
@@ -114,19 +114,19 @@
 		<br>
 		Some elements require a prefix before the ID to avoid confusion:
 		<ul>
-			<li>'e' for <a href="?id=e6205703">enemies</a></li>
-			<li>'q' for <a href="?id=q230829">events</a></li>
-			<li>'fa' for <a href="?id=fa0912">fate episodes</a></li>
-			<li>'ms' for <a href="?id=ms124">stories</a></li>
-			<li>'sk' for <a href="?id=sk0001">skills</a></li>
-			<li>'b' for <a href="?id=b1019">buffs</a></li>
-			<li>'sd' for <a href="?id=sd4019">shields</a></li>
-			<li>'ma' for <a href="?id=ma0008">manaturas</a></li>
+			<li>'e' for <span class="click-link" onclick="lookup('e6205703')">enemies</span></li>
+			<li>'q' for <span class="click-link" onclick="lookup('q230829')">events</span></li>
+			<li>'fa' for <span class="click-link" onclick="lookup('fa0912')">fate episodes</span></li>
+			<li>'ms' for <span class="click-link" onclick="lookup('ms124')">stories</span></li>
+			<li>'sk' for <span class="click-link" onclick="lookup('sk0001')">skills</span></li>
+			<li>'b' for <span class="click-link" onclick="lookup('b1019')">buffs</span></li>
+			<li>'sd' for <span class="click-link" onclick="lookup('sd4019')">shields</span></li>
+			<li>'ma' for <span class="click-link" onclick="lookup('ma0008')">manaturas</span></li>
 		</ul>
 		There are many exceptions and quirks for some elements, in particular for Main Stories, Events and Fate Episodes.<br>
-		For Classes, simply input the main class ID: Example <a href="?id=450301">450301</a> for Relic Buster.<br>
+		For Classes, simply input the main class ID: Example <span class="click-link" onclick="lookup('450301')">450301</span> for Relic Buster.<br>
 		Character styles are part of their base characters.<br>
-		Example: <a href="?id=3040088000">Yngwie</a>.</p>
+		Example: <span class="click-link" onclick="lookup('3040088000')">Yngwie</span>.</p>
 		<h3>&#x2022; Other tips and tricks?</h3>
 		<p>
 		On PC, you can do CTRL+clic on an element to load it on a new tab instead of the current page.<br>
@@ -199,7 +199,7 @@
 		Concerning unreleased assets, there are instances where Cygames inadvertently makes assets from upcoming content accessible to the general public.<br>
 		In such occurrences, to prevent any potential complications, you can expect me to promptly delist these assets, if it's apparent that they were intended to remain concealed and if Cygames hasn't already addressed the situation.<br>
 		<br>
-		For older unreleased/unused content, you can simply search for <a href="?id=cut-content">cut-content</a>.
+		For older unreleased/unused content, you can simply search for <span class="click-link" onclick="search.m_search_bar.value = 'cut-content'; search.update(); search.m_search_bar.scrollIntoView();">cut-content</span>.
 		</p>
 		<h3>&#x2022; Can I use this project?</h3>
 		<p>
