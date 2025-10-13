@@ -19,15 +19,17 @@
        "250219":"terra_seox_tien",
        "250522":"terra_tweyen_fif",
        "250822":"terra_threo_eahta",
+       "251022":"terra_seofon_niyon",
        
        "babyl0":"babeel_01",
        "dread0":"dreadbarrage",
        "vyrn00":"sampo",
+       "sandb0":"arcarum_sandbox",
+       "origi0":"originclass_ep1",
+       
        "alchm0":"kaitaku_renkin_hwop",
        "alchm1":"kaitaku_renkin_vtop",
-       "alchm2":"kaitaku_renkin_jbop",
-       "sandb0":"arcarum_sandbox",
-       "origi0":"originclass_ep1"
+       "alchm2":"kaitaku_renkin_jbop"
     },
     
     "CUT_CONTENT" : ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"],
