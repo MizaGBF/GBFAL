@@ -273,6 +273,10 @@ function load_assets(id, data, type, target, indexed, allow_open)
 {
 	beep();
 	gbf.reset_endpoint();
+	if(typeof audio != "undefined" && audio != null && audio.player != null)
+	{
+		audio.player.pause();
+	}
 	audio = null;
 	// save last_id
 	let tmp_last_id = last_id;
