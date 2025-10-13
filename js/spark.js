@@ -19,7 +19,7 @@ const HEADERS = ["assets/spark/gem.jpg", "assets/spark/moon.jpg", "assets/spark/
 var canvas = null; // contains last canvas
 var canvas_state = 0; // 0 = not running, 1 = running, 2 = error
 var canvas_wait = 0; // used to track pending loadings
-var audio = null;
+
 var jukebox = null;
 
 function init() // entry point, called by body onload

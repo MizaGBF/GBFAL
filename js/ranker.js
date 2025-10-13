@@ -10,8 +10,7 @@ var pools = {};
 var checkboxes = {};
 var game_data = null;
 var ui_elements = {};
-// jukebox
-var audio = null;
+
 var jukebox = null;
 
 const options = {
