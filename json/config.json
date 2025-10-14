@@ -99,6 +99,12 @@
             "icon":"../GBFML/assets/ui/icon/skins.png",
             "childs":[
                 {
+                    "name":"ID 300 & more",
+                    "target":"skins",
+                    "arg1":[300, 999],
+                    "reverse":1
+                },
+                {
                     "name":"ID 200 to 299",
                     "target":"skins",
                     "arg1":[200, 300],
@@ -164,11 +170,11 @@
             "icon":"../GBFML/assets/ui/icon/summons.png",
             "childs":[
                 {
-                    "name":"SSR ID 400 to 599",
+                    "name":"SSR ID 400 & more",
                     "icon":"../GBFML/assets/ui/icon/ssr.png",
                     "target":"summons",
                     "arg1":"4",
-                    "arg2":[400, 600],
+                    "arg2":[400, 999],
                     "reverse":1
                 },
                 {
@@ -583,9 +589,22 @@
         {
             "name": "Main Character",
             "icon": "../GBFML/assets/ui/icon/classes.png",
-            "target": "job",
-            "reverse":1,
-            "text": "ID order"
+            "childs": [
+                {
+                    "name": "Classes",
+                    "icon": "../GBFML/assets/ui/icon/party.png",
+                    "target": "job",
+                    "arg1": true,
+                    "text": "ID order"
+                },
+                {
+                    "name": "Outfits",
+                    "icon": "../GBFML/assets/ui/icon/skin.png",
+                    "target": "job",
+                    "arg1": false,
+                    "text": "ID order"
+                }
+            ]
         },
         {
             "name": "Enemies",
@@ -1152,15 +1171,44 @@
         {
             "name":"Main Story",
             "icon":"../GBFML/assets/ui/icon/story.png",
-            "target":"story",
-            "reverse":1
+            "childs":[
+                {
+                    "name":"Chapters",
+                    "icon":"../GBFML/assets/ui/icon/scene_01.png",
+                    "target":"story",
+                    "arg1":"chapter",
+                    "reverse":1
+                },
+                {
+                    "name":"Recaps",
+                    "icon":"../GBFML/assets/ui/icon/scene_02.png",
+                    "target":"story",
+                    "arg1":"recap",
+                    "reverse":1
+                },
+                {
+                    "name":"Compilations",
+                    "icon":"../GBFML/assets/ui/icon/scene_03.png",
+                    "target":"story",
+                    "arg1":"compilation",
+                    "reverse":1
+                }
+            ]
         },
         {
             "name":"Fate Episodes",
             "icon":"../GBFML/assets/ui/icon/fate.png",
             "childs":[
                 {
-                    "name":"SSR ID 600 to 900",
+                    "name":"SSR ID 0900 & more",
+                    "icon":"../GBFML/assets/ui/icon/ssr.png",
+                    "target":"fate",
+                    "arg1":"304",
+                    "arg2":[900, 9999],
+                    "reverse":1
+                },
+                {
+                    "name":"SSR ID 0600 to 0900",
                     "icon":"../GBFML/assets/ui/icon/ssr.png",
                     "target":"fate",
                     "arg1":"304",
@@ -1168,7 +1216,7 @@
                     "reverse":1
                 },
                 {
-                    "name":"SSR ID 300 to 600",
+                    "name":"SSR ID 0300 to 0600",
                     "icon":"../GBFML/assets/ui/icon/ssr.png",
                     "target":"fate",
                     "arg1":"304",
@@ -1176,7 +1224,7 @@
                     "reverse":1
                 },
                 {
-                    "name":"SSR ID 000 to 300",
+                    "name":"SSR ID 0000 to 0300",
                     "icon":"../GBFML/assets/ui/icon/ssr.png",
                     "target":"fate",
                     "arg1":"304",
@@ -1427,7 +1475,7 @@
                             "target": "skills",
                             "arg1": [
                                 2750,
-                                3000
+                                9999
                             ]
                         }
                     ]

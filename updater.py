@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.40'
+VERSION = '3.41'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 1
@@ -131,6 +131,7 @@ STRING_CHAR = string.ascii_lowercase + string.digits
 # dynamic constants
 MISSING_EVENTS : list[str] = []
 SPECIAL_EVENTS : dict[str, str] = {}
+VALENTINE_EXCLUDE : set[str] = {}
 CUT_CONTENT : list[str] = []
 SHARED_LOOKUP : list[list[str]] = []
 SPECIAL_LOOKUP : dict[str, str] = {}
@@ -139,19 +140,20 @@ MALINDA : str = ""
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
 MSQ_RECAPS : dict[str, str] = {}
-RISING : set[str] = []
+RISING : set[str] = {}
 RISING_MC : list[str] = []
-RELINK : set[str] = []
+RELINK : set[str] = {}
 RELINK_MC : list[str] = []
 # load dynamic constants
 try:
     with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
         globals().update(json.load(f)) # add to global scope
-        # extra, SCENE_BUBBLE_FILTER for performance
-        SCENE_BUBBLE_FILTER = {k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0}
-    del f
+    # extra, SCENE_BUBBLE_FILTER for performance
+    SCENE_BUBBLE_FILTER = {k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0}
+    VALENTINE_EXCLUDE = set(VALENTINE_EXCLUDE)
     RISING = set(RISING)
     RELINK = set(RELINK)
+    del f # clean f
 except Exception as e:
     print("Failed to load and set json/manual_constants.json")
     print("Please fix the file content and try again")
@@ -2459,7 +2461,7 @@ class Updater():
                 case 'characters'|'skins':
                     self.add(element_id, ADD_CHAR)
             # valentine check
-            if "_white" in existing or "_valentine" in existing and element_id not in self.data['valentines']:
+            if "_white" in existing or "_valentine" in existing and element_id not in self.data['valentines'] and element_id not in VALENTINE_EXCLUDE:
                 self.data['valentines'][element_id] = 0
         # add element id and uncap to resume save
         if "scene_update" in self.flags:
