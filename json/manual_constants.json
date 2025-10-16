@@ -84,7 +84,7 @@
     "SPECIAL_LOOKUP" : {
         "3020065000": "R brown poppet trial",
         "3030158000": "SR blue poppet trial",
-        "3040097000": "SSR sierokarte trial",
+        "3040097000": "SSR sierokarte trial gbf-versus-rising gbf-relink",
         "2030004000": "fire SR cut-content",
         "2030014000": "dark SR cut-content",
         "2020001000": "earth SR goblin cut-content",
@@ -393,6 +393,7 @@
     "RELINK" : [
         "gran",
         "djeeta",
+        "sierokarte",
         "katalina",
         "rackam",
         "io",

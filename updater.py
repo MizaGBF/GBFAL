@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.41'
+VERSION = '3.42'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 1
@@ -3505,9 +3505,9 @@ class Updater():
                             l += " voice-only"
                     # spin off tags
                     lk = lookup_data.get(k, "")
-                    if "gbf-versus-rising" in lk and "gbf-versus-rising" not in lk:
+                    if "gbf-versus-rising" in lk and "gbf-versus-rising" not in l:
                         l += " gbf-versus-rising"
-                    if "gbf-relink" in lk and "gbf-relink" not in lk:
+                    if "gbf-relink" in lk and "gbf-relink" not in l:
                         l += " gbf-relink"
                     if l != lookup_data.get(k, ""):
                         lookup_data[k] = l
@@ -3604,11 +3604,12 @@ class Updater():
                             if not npcs[eid][NPC_JOURNAL] and len(npcs[eid][NPC_SCENE]) == 0:
                                 looks += " voice-only"
                         # spin off tags
-                        if "gbf-versus-rising" in lookup_data.get(eid, "") and "gbf-versus-rising" not in looks:
+                        lk = lookup_data.get(eid, "")
+                        if "gbf-versus-rising" in lk and "gbf-versus-rising" not in looks:
                             looks += " gbf-versus-rising"
-                        if "gbf-relink" in lookup_data.get(eid, "") and "gbf-relink" not in looks:
+                        if "gbf-relink" in lk and "gbf-relink" not in looks:
                             looks += " gbf-relink"
-                        if eid not in lookup_data or lookup_data[eid] != looks:
+                        if eid not in lookup_data or lk != looks:
                             lookup_data[eid] = looks
                             modified.add(eid)
                 except Exception as e:
@@ -3620,6 +3621,8 @@ class Updater():
             self.modified = True
         # tag for relink / rising
         for eid, v in lookup_data.items():
+            if eid in SPECIAL_LOOKUP:
+                continue
             if len(eid) != 6 and (len(eid) != 10 or not eid.startswith("10")): # ignore job, weapons
                 s = v.split(" ")[:(2 if eid.startswith("399") else 5)]
                 if "collab" not in v and "tie-in" not in v:
@@ -3635,6 +3638,13 @@ class Updater():
                                 lookup_data[eid] += " gbf-relink"
                                 modified.add(eid)
                                 break
+            elif len(eid) == 6: # classes are done below
+                if eid not in RISING_MC and "gbf-versus-rising" in lookup_data[eid]:
+                    lookup_data[eid] = lookup_data[eid].replace(" gbf-versus-rising", "")
+                    modified.add(eid)
+                if eid not in RELINK_MC and "gbf-relink" in lookup_data[eid]:
+                    lookup_data[eid] = lookup_data[eid].replace(" gbf-versus-relink", "")
+                    modified.add(eid)
             elif "gbf-versus-rising" in v:
                 lookup_data[eid] = lookup_data[eid].replace(" gbf-versus-rising", "")
                 modified.add(eid)
@@ -3643,12 +3653,12 @@ class Updater():
                 modified.add(eid)
         for eid in RISING_MC:
             s = lookup_data.get(eid, None)
-            if s is not None and "gbf-versus-rising":
+            if s is not None and "gbf-versus-rising" not in s:
                 lookup_data[eid] += " gbf-versus-rising"
                 modified.add(eid)
         for eid in RELINK_MC:
             s = lookup_data.get(eid, None)
-            if s is not None and "gbf-relink":
+            if s is not None and "gbf-relink" not in s:
                 lookup_data[eid] += " gbf-relink"
                 modified.add(eid)
         # Second pass, correcting stuff
