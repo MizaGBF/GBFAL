@@ -291,9 +291,13 @@
             "comment": "Peisma",
             "base": ["_close2"]
         },
-        "3993261000": {
-            "comment": "Elaine",
-            "unique": ["_laugh_letter"]
+        "3040147000": {
+            "comment": "Vajra (Zodiac)",
+            "base": ["_dog"]
+        },
+        "3991258000": {
+            "comment": "Vajra (New Year)",
+            "base": ["_dog"]
         }
     },
     

@@ -2463,6 +2463,7 @@ class Updater():
             # valentine check
             if "_white" in existing or "_valentine" in existing and element_id not in self.data['valentines'] and element_id not in VALENTINE_EXCLUDE:
                 self.data['valentines'][element_id] = 0
+            self.tasks.print("Scene file list updated for", element_id)
         # add element id and uncap to resume save
         if "scene_update" in self.flags:
             if element_id not in self.resume['done']:
@@ -3357,6 +3358,7 @@ class Updater():
         if len(existing) > len(elem_data[idx]):
             elem_data[idx] = list(existing) # no need to sort
             self.modified = True
+            self.tasks.print("Sound file list updated for", element_id)
         # Add to resume file
         if "sound_update" in self.flags:
             self.resume['done'][element_id] = 0
