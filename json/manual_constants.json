@@ -40,7 +40,8 @@
        
        "alchm0":"kaitaku_renkin_hwop",
        "alchm1":"kaitaku_renkin_vtop",
-       "alchm2":"kaitaku_renkin_jbop"
+       "alchm2":"kaitaku_renkin_jbop",
+       "alchm3":"kaitaku_renkin_hwop2"
     },
     
     "VALENTINE_EXCLUDE" : [
@@ -113,10 +114,20 @@
         "3050000000": {
             "comment": "Lyria NPC",
             "base": ["_muffler", "_swim"],
-            "unique": ["_jewel", "_jewel2", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5"]
+            "unique": ["_jewel", "_jewel2", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5", "_002"]
+        },
+        "3994037000": {
+            "comment": "Lyria NPC (New)",
+            "base": ["_muffler", "_swim"],
+            "unique": ["_jewel", "_jewel2", "_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5", "_002"]
         },
         "3050001000": {
             "comment": "Vyrn NPC",
+            "end": ["_left"],
+            "unique": ["_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5"]
+        },
+        "3993441000": {
+            "comment": "Vyrn NPC (New)",
             "end": ["_left"],
             "unique": ["_birthday", "_birthday1", "_birthday2", "_birthday3", "_birthday4", "_birthday5"]
         },
