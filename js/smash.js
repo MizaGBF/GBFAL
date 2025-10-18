@@ -20,7 +20,7 @@ function init_smash() // entry point, called by body onload
 	{
 		if(clear)
 			output.innerHTML = "";
-		add_to(output, "button", {cls:["tab-button"], onclick:init_ranking}).innerHTML = '<img class="tab-button-icon" src="assets/ui/smash.png">Smash or Pass';
+		add_to(output, "button", {cls:["tab-button"], onclick:init_ranking}).innerHTML = '<img class="tab-button-icon" src="assets/smash/smash.png">Smash or Pass';
 		init_checkboxes();
 	}
 	init_ui = function()
@@ -29,8 +29,8 @@ function init_smash() // entry point, called by body onload
 		output.innerHTML = "";
 		// buttons
 		ui_elements.buttons = add_to(output, "div", {cls:["smash-button-container"]});
-		add_to(ui_elements.buttons, "button", {cls:["tab-button", "smash-button-smash"], onclick:smash}).innerHTML = '<img class="tab-button-icon" src="assets/ui/smash.png">Smash';
-		add_to(ui_elements.buttons, "button", {cls:["tab-button", "smash-button-pass"], onclick:pass}).innerHTML = '<img class="tab-button-icon" src="assets/ui/pass.png">Pass';
+		add_to(ui_elements.buttons, "button", {cls:["tab-button", "smash-button-smash"], onclick:smash}).innerHTML = '<img class="tab-button-icon" src="assets/smash/smash.png">Smash';
+		add_to(ui_elements.buttons, "button", {cls:["tab-button", "smash-button-pass"], onclick:pass}).innerHTML = '<img class="tab-button-icon" src="assets/smash/pass.png">Pass';
 		add_to(ui_elements.buttons, "br");
 		ui_elements.undo = add_to(ui_elements.buttons, "button", {cls:["toggle-button"], onclick:pass, innertext:"Undo", onclick:undo});
 		ui_elements.undo.disabled = true;
