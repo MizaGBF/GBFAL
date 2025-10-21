@@ -2975,8 +2975,6 @@ class Updater():
                     existing = set(msq_data[k][STORY_CONTENT])
                     for n in range(10):
                         self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene_skip"+MSQ_RECAPS[k], existing), priority=2)
-                elif k[0] == "c":
-                    pass # to implement
         # chapters
         for i in range(0, limit+1):
             element_id = str(i).zfill(3)
