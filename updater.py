@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.42'
+VERSION = '3.43'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 1
@@ -1040,12 +1040,12 @@ class Updater():
             if (mode == 0 and "" in known) or (mode == 2 and i < 1000): # skip these if the condition matches
                 ts.finish()
                 continue
-            self.tasks.add(self.update_buff, parameters=(mode, ts, path, element_id, fi, known), priority=priority)
+            self.tasks.add(self.update_buff, parameters=(mode, ts, path, element_id, known), priority=priority)
 
     # Subroutine of prepare_update_buff to check for varitions
     # Mode control which variation to check
     # Mode 0 is only if "" is not in known files, Mode 2 is only for IDs lesser than 1000
-    async def update_buff(self : Updater, mode : int, ts : TaskStatus, path : list[str], element_id : str, fi : str, known : set[str]) -> None:
+    async def update_buff(self : Updater, mode : int, ts : TaskStatus, path : list[str], element_id : str, known : set[str]) -> None:
         err : int = 0
         n : int = 0
         m : int
@@ -2970,10 +2970,13 @@ class Updater():
             if k not in msq_data:
                 if k not in msq_data:
                     msq_data[k] = [[]]
-                ts = TaskStatus(200, 5, running=10)
-                existing = set(msq_data[k][STORY_CONTENT])
-                for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene_skip"+MSQ_RECAPS[k], existing), priority=2)
+                if k[0] == "r":
+                    ts = TaskStatus(200, 5, running=10)
+                    existing = set(msq_data[k][STORY_CONTENT])
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene_skip"+MSQ_RECAPS[k], existing), priority=2)
+                elif k[0] == "c":
+                    pass # to implement
         # chapters
         for i in range(0, limit+1):
             element_id = str(i).zfill(3)
@@ -4064,7 +4067,7 @@ class Updater():
                 self.tasks.add(self.maintenance_raid_appear, priority=0)
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
-                for element_id in (1019, ): # buffs to check for updates
+                for element_id in ("1019", ): # buffs to check for updates
                     await self.prepare_update_buff(element_id, priority=0)
 
     # return True if the file name passes the  filters
