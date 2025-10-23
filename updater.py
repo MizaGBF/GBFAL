@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.43'
+VERSION = '3.44'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 1
@@ -139,7 +139,7 @@ UNIQUE_SKIN : list[str] = []
 MALINDA : str = ""
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
-MSQ_RECAPS : dict[str, str] = {}
+MSQ_SPECIALS : dict[str, str] = {}
 RISING : set[str] = {}
 RISING_MC : list[str] = []
 RELINK : set[str] = {}
@@ -2491,6 +2491,8 @@ class Updater():
     async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str]) -> tuple:
         is_tuto = "tuto_scene" in base_url # check for MSQ tutorial
         Z = 1 if is_tuto else 2 # zfill value used in the filename, for MSQ tutorial
+        loop_limit = 300 if index == "story" and element_id == "191" else 100
+        loop_err_limit = 60 if index == "story" and element_id == "191" else 10
         suffix : str
         stem_suffix : str
         while not ts.complete:
@@ -2577,7 +2579,8 @@ class Updater():
                 err = 0
                 i = 1
                 # now test ALL numbered variations
-                while i < 100 and err < 10: # they are in sequence usually, I check until 100 or if we go 10 in a row without a single match
+                # they are in sequence usually
+                while i < loop_limit and err < loop_err_limit:
                     k = str(i).zfill(Z)
                     try:
                         suffix = "_"+k
@@ -2603,46 +2606,6 @@ class Updater():
                                 for kkk in ss:
                                     try:
                                         suffix = "_" + k + "_" + kk + kkk
-                                        stem_suffix = stem + suffix
-                                        if stem_suffix not in existing:
-                                            await self.head(url + suffix + ".png")
-                                            existing.add(stem_suffix)
-                                        found = True
-                                    except:
-                                        break
-                            if not found:
-                                break
-                    except:
-                        err += 1
-                    i += 1
-                i = 1
-                # now test ALL numbered variations
-                while i < 100 and err < 10: # they are in sequence usually, I check until 100 or if we go 10 in a row without a single match
-                    k = str(i).zfill(Z)
-                    try:
-                        suffix = "_"+k
-                        stem_suffix = stem + suffix
-                        if stem_suffix not in existing:
-                            await self.head(url + suffix + ".png")
-                            existing.add(stem_suffix)
-                        good = True
-                        err = 0
-                        # these variations are only possible if the above file exists (in theory)
-                        for kk in string.ascii_lowercase:
-                            found = False
-                            try:
-                                suffix = "_"+k+"_"+kk
-                                stem_suffix = stem + suffix
-                                if stem_suffix not in existing:
-                                    await self.head(url + suffix + ".png")
-                                    existing.add(stem_suffix)
-                                found = True
-                            except:
-                                pass
-                            for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
-                                for kkk in ss:
-                                    try:
-                                        suffix = "_"+k+"_"+kk+kkk
                                         stem_suffix = stem + suffix
                                         if stem_suffix not in existing:
                                             await self.head(url + suffix + ".png")
@@ -2682,7 +2645,7 @@ class Updater():
                 # set data
                 data[element_id][idx] = list(existing)
                 # and sort
-                data[element_id][idx].sort()
+                data[element_id][idx].sort(key=lambda s: "_".join([w.zfill(8) if w.isdigit() else w for w in s.split("_")]))
                 # add to changelog (and set flag) if not done yet (using self.addition to check)
                 if element_id not in self.addition:
                     match index:
@@ -2966,31 +2929,45 @@ class Updater():
         ts : TaskStatus
         # special recap chapters
         msq_data = self.data['story'] # reference
-        for k in MSQ_RECAPS:
+        for k in MSQ_SPECIALS:
             if k not in msq_data:
                 if k not in msq_data:
                     msq_data[k] = [[]]
-                if k[0] == "r":
-                    ts = TaskStatus(200, 5, running=10)
-                    existing = set(msq_data[k][STORY_CONTENT])
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene_skip"+MSQ_RECAPS[k], existing), priority=2)
+                ts : TaskStatus
+                f : str
+                match k[0]:
+                    case "r":
+                        ts = TaskStatus(200, 10, running=10)
+                        f = "_skip" + MSQ_SPECIALS[k]
+                    case "c":
+                        ts = TaskStatus(200, 10, running=10)
+                        f = MSQ_SPECIALS[k]
+                    case _:
+                        match k:
+                            case "191": # ending I
+                                ts = TaskStatus(200, 10, running=10)
+                                f = MSQ_SPECIALS[k]
+                            case _:
+                                continue
+                existing = set(msq_data[k][STORY_CONTENT])
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene" + f, existing), priority=2)
         # chapters
-        for i in range(0, limit+1):
+        for i in range(0, 0):
             element_id = str(i).zfill(3)
-            if element_id not in msq_data:
+            if element_id not in msq_data and element_id not in MSQ_SPECIALS:
                 msq_data[element_id] = [[]]
                 # set file name
                 if i == 0:
                     fn = "tuto_scene"
                 else:
                     fn = "scene_cp{}".format(i)
-                ts = TaskStatus(200, 5, running=10)
+                ts = TaskStatus(200, 10, running=10)
                 existing = set(msq_data[element_id][STORY_CONTENT])
                 for n in range(10):
                     self.tasks.add(self.update_chapter, parameters=(ts, 'story', element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn, existing), priority=2)
                 for q in range(1, 6):
-                    ts = TaskStatus(200, 5, running=10)
+                    ts = TaskStatus(200, 10, running=10)
                     for n in range(10):
                         self.tasks.add(self.update_chapter, parameters=(ts, 'story', element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn + "_q" + str(q), existing), priority=2)
         await self.tasks.start()

@@ -319,7 +319,7 @@
         }
     },
     
-    "MSQ_RECAPS" : {
+    "MSQ_SPECIALS" : {
         "r00" : "",
         "r01" : "_cp1-12",
         "r02" : "_cp13-28",
@@ -330,7 +330,20 @@
         "r07" : "_cp90-100",
         "r08" : "_cp101-114",
         "r09" : "_cp115-132",
-        "r10" : "_cp133-155"
+        "r10" : "_cp133-155",
+        
+        "c00" : "_retold_cp000",
+        "c01" : "_retold_cp001",
+        "c02" : "_retold_cp002",
+        "c03" : "_retold_cp003",
+        "c04" : "_retold_cp004",
+        "c05" : "_retold_cp005",
+        "c06" : "_retold_cp006",
+        "c07" : "_retold_cp007",
+        "c08" : "_retold_cp008",
+        "c09" : "_retold_cp009",
+        
+        "191" : "_cped"
     },
     
     "RISING" : [
