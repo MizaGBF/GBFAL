@@ -318,7 +318,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Sprites",
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
-						{type:1, paths:[["sp/cjs/", "png"]], special_index:"sprite", filename:true, lazy:false},
+						{type:1, paths:[["sp/cjs/", "png"]], special_index:"sprite", lazy:false},
 						{name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
 						{name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/icon/ca.png", filename:true}
 					]
@@ -1059,10 +1059,19 @@ function get_file_list(id, data, asset, files, melee)
 		}
 		case "sprite": // weapon sprites
 		{
-			if(melee) // exception for melee weapon sprites
-				files = [id+"_1", id+"_2"];
-			else
-				files = [id];
+			files = [];
+			for(const entry of data[0])
+			{
+				if(melee) // exception for melee weapon sprites
+				{
+					files.push(entry + "_1");
+					files.push(entry + "_2");
+				}
+				else
+				{
+					files.push(entry);
+				}
+			}
 			break;
 		}
 		case "skycompass_base": // skycompass art for base id

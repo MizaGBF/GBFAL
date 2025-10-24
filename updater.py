@@ -2491,8 +2491,7 @@ class Updater():
     async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str]) -> tuple:
         is_tuto = "tuto_scene" in base_url # check for MSQ tutorial
         Z = 1 if is_tuto else 2 # zfill value used in the filename, for MSQ tutorial
-        loop_limit = 300 if index == "story" and element_id == "191" else 100
-        loop_err_limit = 60 if index == "story" and element_id == "191" else 10
+        loop_err_limit = 60 if index == "story" and element_id == "191" else 30
         suffix : str
         stem_suffix : str
         while not ts.complete:
@@ -2580,7 +2579,7 @@ class Updater():
                 i = 1
                 # now test ALL numbered variations
                 # they are in sequence usually
-                while i < loop_limit and err < loop_err_limit:
+                while i < 1000 and err < loop_err_limit:
                     k = str(i).zfill(Z)
                     try:
                         suffix = "_"+k
