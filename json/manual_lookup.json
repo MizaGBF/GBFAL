@@ -3526,6 +3526,7 @@
 "3994117000":"aglovale human male アグロヴァル tatsuhisa suzuki 鈴木達央",
 "3994119000":"gran human male グラン",
 "3994120000":"djeeta human female ジータ",
+"3994129000":"biyao mingyou unknown 筆冥 aoi ichikawa 市川蒼",
 "3994130000":"demiurge unknown male デミウルゴス akira ishida 石田彰",
 "3994131000":"quasi-omnipotent antigonelos unknown 疑似創世神アンティゴネロス akira ishida 石田彰",
 "3994132000":"black cat",
@@ -3535,6 +3536,14 @@
 "3994136000":"quasi-omnipotent antigonelos unknown 疑似創世神アンティゴネロス akira ishida 石田彰",
 "3994137000":"dex unknown male デアン kenji nomura 乃村健次",
 "3994138000":"seofon eternals human male シエテ junichi suwabe 諏訪部順一",
+"3994139000":"siwen unknown スェン ko bonkobara minami shindo 盆子原康 新藤みなみ",
+"3994140000":"siwen unknown スェン ko bonkobara minami shindo 盆子原康 新藤みなみ",
+"3994141000":"siwen unknown スェン ko bonkobara minami shindo 盆子原康 新藤みなみ",
+"3994142000":"taishang laojun primal male 太上老君 ko bonkobara 盆子原康",
+"3994143000":"taishang laojun primal male 太上老君 ko bonkobara 盆子原康",
+"3994144000":"nuwa/xuwen primal ジョカ/シュエン mamiko noto 能登麻美子",
+"3994145000":"nuwa/xuwen primal ジョカ/シュエン mamiko noto 能登麻美子",
+"3994146000":"biyao mingyou unknown 筆冥 aoi ichikawa 市川蒼",
 "3994176000":"vyrn dragon of destruction form unknown other ビィ 破壊の竜の姿 rie kugimiya 釘宮理恵",
 "3994177000":"loki the wayfaring astral unknown male 星の旅人 ロキ ryoko shiraishi 白石涼子",
 "1100021":"cave bat $$dark",
@@ -6293,5 +6302,7 @@
 "9102693":"pijiu $$light",
 "9102703":"nadatsugami $$water",
 "9102713":"tart man $$wind",
-"9102723":"demiurge $$dark"
+"9102723":"demiurge $$dark",
+"9102733":"biyao mingyou $$dark",
+"9102753":"biyao mingyou $$dark"
 }
