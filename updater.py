@@ -109,9 +109,12 @@ FATE_TRANSCENDENCE_CONTENT = 2
 FATE_OTHER_CONTENT = 3
 FATE_LINK = 4
 # buff suffix list
-BUFF_LIST_EXTENDED =  ["", "_1", "_2", "_10", "_11", "_101", "_110", "_111", "_20", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10", "_1_20", "_2_10"]
+BUFF_LIST_EXTENDED =  ["", "_1", "_2", "_10", "_11", "_101", "_110", "_111", "_20", "_30", "1", "_1_1", "_2_1", "_0_10", "_1_10", "_1_20", "_2_10", "1_1", "2_1", "3_1"]
 BUFF_LIST =  BUFF_LIST_EXTENDED.copy()
-BUFF_LIST.pop(BUFF_LIST.index("1"))
+BUFF_LIST.pop(BUFF_LIST.index("1")) # remove the ones not intended for ID < 1000
+BUFF_LIST.pop(BUFF_LIST.index("1_1"))
+BUFF_LIST.pop(BUFF_LIST.index("2_1"))
+BUFF_LIST.pop(BUFF_LIST.index("3_1"))
 # job update
 MAINHAND = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'] # weapon type keywords
 # CDN endpoints
@@ -1033,11 +1036,12 @@ class Updater():
             buffs[element_id] = [[str(int(element_id))], []]
         known : set[str] = set(buffs.get(element_id, [[], []])[1])
         path : list[str] = [IMG, "sp/ui/icon/status/x64/status_", fi, "", ".png"]
-        ts : TaskStatus = TaskStatus(1, 1, running=6)
+        mode_count : int = 7
+        ts : TaskStatus = TaskStatus(1, 1, running=mode_count)
         
         # add tasks to verify variations
-        for mode in range(6):
-            if (mode == 0 and "" in known) or (mode == 2 and i < 1000): # skip these if the condition matches
+        for mode in range(mode_count):
+            if (mode == 0 and "" in known) or (mode == 2 and i < 1000) or (mode == 6 and i < 1000): # skip these if the condition matches
                 ts.finish()
                 continue
             self.tasks.add(self.update_buff, parameters=(mode, ts, path, element_id, known), priority=priority)
@@ -1076,7 +1080,7 @@ class Updater():
                     n += 1
             case 2:
                 # 1, 2...
-                while err < 3:
+                while err < 5:
                     path[3] = str(n)
                     if path[3] in known:
                         err = 0
@@ -1141,13 +1145,33 @@ class Updater():
                         pass
             case 5:
                 baselimit : int = 18 if element_id in ("6579",) else 10
-                errlimit : int = 6 if element_id in ("1019",) else 3
+                errlimit : int = 6 if element_id in ("1019",) else 4
                 for x in range(0, baselimit):
                     #_0_1, _0_2...
                     n = 0
                     err = 0
                     while err < errlimit:
                         path[3] = "_" + str(x) + "_" + str(n)
+                        if path[3] in known:
+                            err = 0
+                        else:
+                            try:
+                                if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                                    raise Exception()
+                                known.add("_" + str(x) + "_" + str(n))
+                                err = 0
+                            except:
+                                err += 1
+                        n += 1
+            case 6:
+                baselimit : int = 10
+                errlimit : int = 4
+                for x in range(0, baselimit):
+                    #0_1, 0_2...
+                    n = 0
+                    err = 0
+                    while err < errlimit:
+                        path[3] = str(x) + "_" + str(n)
                         if path[3] in known:
                             err = 0
                         else:
