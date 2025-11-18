@@ -3673,12 +3673,12 @@ class Updater():
                     check_shared = False
                     if k not in lookup_data or lookup_data[k] is None:
                         if k in SPECIAL_LOOKUP:
-                            lookup_data[k] = SPECIAL_LOOKUP[k]
+                            lookup_data[k] = SPECIAL_LOOKUP[k].lower()
                         else:
                             check_shared = True
                     else:
                         if k not in modified and k in SPECIAL_LOOKUP and lookup_data[k] != SPECIAL_LOOKUP[k]:
-                            lookup_data[k] = SPECIAL_LOOKUP[k]
+                            lookup_data[k] = SPECIAL_LOOKUP[k].lower()
                         check_shared = True
                     if check_shared:
                         for l in SHARED_LOOKUP:
