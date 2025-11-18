@@ -303,15 +303,15 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Arts",
 					icon:"../GBFML/assets/ui/icon/journal.png",
 					assets:[
-						{type:1, paths:[["sp/assets/weapon/b/", "png"]], index:0}, // default is type 0, see further below for types
-						{name:"Other Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"../GBFML/assets/ui/icon/other_category.png"}
+						{type:1, paths:[["sp/assets/weapon/b/", "png"]], index:DataIdx.WEAP_GENERAL}, // default is type 0, see further below for types
+						{name:"Other Arts", paths:[["sp/assets/weapon/weapon_evolution/main/", "png"], ["sp/assets/weapon/g/", "png"], ["sp/gacha/header/", "png"]], index:DataIdx.WEAP_GENERAL, icon:"../GBFML/assets/ui/icon/other_category.png"}
 					]
 				},
 				{
 					name:"Portraits",
 					icon:"../GBFML/assets/ui/icon/portrait.png",
 					assets:[
-						{type:1, paths:[["sp/assets/weapon/m/", "jpg"], ["sp/assets/weapon/s/", "jpg"], ["sp/assets/weapon/ls/", "jpg"]], index:0, lazy:false}
+						{type:1, paths:[["sp/assets/weapon/m/", "jpg"], ["sp/assets/weapon/s/", "jpg"], ["sp/assets/weapon/ls/", "jpg"]], index:DataIdx.WEAP_GENERAL, lazy:false}
 					]
 				},
 				{
@@ -319,8 +319,8 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
 						{type:1, paths:[["sp/cjs/", "png"]], special_index:"sprite", lazy:false},
-						{name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
-						{name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/icon/ca.png", filename:true}
+						{name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:DataIdx.WEAP_PHIT, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
+						{name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:DataIdx.WEAP_SP, icon:"../GBFML/assets/ui/icon/ca.png", filename:true}
 					]
 				},
 				{
@@ -375,8 +375,8 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Arts",
 					icon:"../GBFML/assets/ui/icon/journal.png",
 					assets:[
-						{type:1, paths:[["sp/assets/summon/b/", "png"]], index:0},
-						{name:"Other Arts", paths:[["sp/assets/summon/summon_evolution/main/", "png"], ["sp/assets/summon/g/", "png"], ["sp/gacha/header/", "png"]], index:0, icon:"../GBFML/assets/ui/icon/other_category.png"},
+						{type:1, paths:[["sp/assets/summon/b/", "png"]], index:DataIdx.SUM_GENERAL},
+						{name:"Other Arts", paths:[["sp/assets/summon/summon_evolution/main/", "png"], ["sp/assets/summon/g/", "png"], ["sp/gacha/header/", "png"]], index:DataIdx.SUM_GENERAL, icon:"../GBFML/assets/ui/icon/other_category.png"},
 					]
 				},
 				{
@@ -390,24 +390,24 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Home",
 					icon:"../GBFML/assets/ui/icon/home.png",
 					assets:[
-						{type:1, paths:[["sp/assets/summon/my/", "png"]], index:0, home:true}
+						{type:1, paths:[["sp/assets/summon/my/", "png"]], index:DataIdx.SUM_GENERAL, home:true}
 					]
 				},
 				{
 					name:"Portraits",
 					icon:"../GBFML/assets/ui/icon/portrait.png",
 					assets:[
-						{type:1, paths:[["sp/assets/summon/m/", "jpg"], ["sp/assets/summon/s/", "jpg"], ["sp/assets/summon/party_main/", "jpg"], ["sp/assets/summon/party_sub/", "jpg"], ["sp/assets/summon/detail/", "png"]], index:0, lazy:false},
-						{name:"Battle Portraits", paths:[["sp/assets/summon/raid_normal/", "jpg"], ["sp/assets/summon/btn/", "png"]], index:0, icon:"../GBFML/assets/ui/icon/battle.png"}
+						{type:1, paths:[["sp/assets/summon/m/", "jpg"], ["sp/assets/summon/s/", "jpg"], ["sp/assets/summon/party_main/", "jpg"], ["sp/assets/summon/party_sub/", "jpg"], ["sp/assets/summon/detail/", "png"]], index:DataIdx.SUM_GENERAL, lazy:false},
+						{name:"Battle Portraits", paths:[["sp/assets/summon/raid_normal/", "jpg"], ["sp/assets/summon/btn/", "png"]], index:DataIdx.SUM_GENERAL, icon:"../GBFML/assets/ui/icon/battle.png"}
 					]
 				},
 				{
 					name:"Sprites",
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
-						{name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/icon/summon_call.png", filename:true},
-						{name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/icon/summon_call.png", filename:true},
-						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/icon/home.png", filename:true}
+						{name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_CALL, icon:"../GBFML/assets/ui/icon/summon_call.png", filename:true},
+						{name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_DAMAGE, icon:"../GBFML/assets/ui/icon/summon_call.png", filename:true},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png", filename:true}
 					]
 				},
 				{
@@ -430,66 +430,66 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Arts",
 					icon:"../GBFML/assets/ui/icon/journal.png",
 					assets:[
-						{type:1, paths:[["sp/assets/npc/zoom/", "png"]], index:5, form:false, open:allow_open},
-						{name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:5, icon:"../GBFML/assets/ui/icon/journal.png", form:false},
-						{name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:6, icon:"../GBFML/assets/ui/icon/other_category.png", form:false},
-						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"../GBFML/assets/ui/icon/cb.png", form:false}
+						{type:1, paths:[["sp/assets/npc/zoom/", "png"]], index:DataIdx.CHARA_GENERAL, form:false, open:allow_open},
+						{name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/journal.png", form:false},
+						{name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:DataIdx.CHARA_SD, icon:"../GBFML/assets/ui/icon/other_category.png", form:false},
+						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/cb.png", form:false}
 					]
 				},
 				{
 					name:"Skycompass",
 					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
 					assets:[
-						{type:2, paths:[["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png"]], index:5}
+						{type:2, paths:[["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png"]], index:DataIdx.CHARA_GENERAL}
 					]
 				},
 				{
 					name:"Home",
 					icon:"../GBFML/assets/ui/icon/home.png",
 					assets:[
-						{type:1, paths:[["sp/assets/npc/my/", "png"]], index:5, form:false, home:true}
+						{type:1, paths:[["sp/assets/npc/my/", "png"]], index:DataIdx.CHARA_GENERAL, form:false, home:true}
 					]
 				},
 				{
 					name:"Portraits",
 					icon:"../GBFML/assets/ui/icon/portrait.png",
 					assets:[
-						{type:1, paths:[["sp/assets/npc/m/", "jpg"], ["sp/assets/npc/s/", "jpg"], ["sp/assets/npc/f/", "jpg"], ["sp/assets/npc/qm/", "png"], ["sp/assets/npc/quest/", "jpg"], ["sp/assets/npc/t/", "png"], ["sp/assets/npc/result_lvup/", "png"], ["sp/assets/npc/detail/", "png"], ["sp/assets/npc/sns/", "jpg"]], index:5, form:false},
-						{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"../GBFML/assets/ui/icon/battle.png"},
-						{name:"Fire Outfit", paths:[["sp/assets/npc/s/skin/", "_s1.jpg"], ["sp/assets/npc/f/skin/", "_s1.jpg"], ["sp/assets/npc/t/skin/", "_s1.png"]], index:5, icon:"../GBFML/assets/ui/icon/fire.png", form:false},
-						{name:"Water Outfit", paths:[["sp/assets/npc/s/skin/", "_s2.jpg"], ["sp/assets/npc/f/skin/", "_s2.jpg"], ["sp/assets/npc/t/skin/", "_s2.png"]], index:5, icon:"../GBFML/assets/ui/icon/water.png", form:false},
-						{name:"Earth Outfit", paths:[["sp/assets/npc/s/skin/", "_s3.jpg"], ["sp/assets/npc/f/skin/", "_s3.jpg"], ["sp/assets/npc/t/skin/", "_s3.png"]], index:5, icon:"../GBFML/assets/ui/icon/earth.png", form:false},
-						{name:"Wind Outfit", paths:[["sp/assets/npc/s/skin/", "_s4.jpg"], ["sp/assets/npc/f/skin/", "_s4.jpg"], ["sp/assets/npc/t/skin/", "_s4.png"]], index:5, icon:"../GBFML/assets/ui/icon/wind.png", form:false},
-						{name:"Light Outfit", paths:[["sp/assets/npc/s/skin/", "_s5.jpg"], ["sp/assets/npc/f/skin/", "_s5.jpg"], ["sp/assets/npc/t/skin/", "_s5.png"]], index:5, icon:"../GBFML/assets/ui/icon/light.png", form:false},
-						{name:"Dark Outfit", paths:[["sp/assets/npc/s/skin/", "_s6.jpg"], ["sp/assets/npc/f/skin/", "_s6.jpg"], ["sp/assets/npc/t/skin/", "_s6.png"]], index:5, icon:"../GBFML/assets/ui/icon/dark.png", form:false}
+						{type:1, paths:[["sp/assets/npc/m/", "jpg"], ["sp/assets/npc/s/", "jpg"], ["sp/assets/npc/f/", "jpg"], ["sp/assets/npc/qm/", "png"], ["sp/assets/npc/quest/", "jpg"], ["sp/assets/npc/t/", "png"], ["sp/assets/npc/result_lvup/", "png"], ["sp/assets/npc/detail/", "png"], ["sp/assets/npc/sns/", "jpg"]], index:DataIdx.CHARA_GENERAL, form:false},
+						{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/battle.png"},
+						{name:"Fire Outfit", paths:[["sp/assets/npc/s/skin/", "_s1.jpg"], ["sp/assets/npc/f/skin/", "_s1.jpg"], ["sp/assets/npc/t/skin/", "_s1.png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/fire.png", form:false},
+						{name:"Water Outfit", paths:[["sp/assets/npc/s/skin/", "_s2.jpg"], ["sp/assets/npc/f/skin/", "_s2.jpg"], ["sp/assets/npc/t/skin/", "_s2.png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/water.png", form:false},
+						{name:"Earth Outfit", paths:[["sp/assets/npc/s/skin/", "_s3.jpg"], ["sp/assets/npc/f/skin/", "_s3.jpg"], ["sp/assets/npc/t/skin/", "_s3.png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/earth.png", form:false},
+						{name:"Wind Outfit", paths:[["sp/assets/npc/s/skin/", "_s4.jpg"], ["sp/assets/npc/f/skin/", "_s4.jpg"], ["sp/assets/npc/t/skin/", "_s4.png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/wind.png", form:false},
+						{name:"Light Outfit", paths:[["sp/assets/npc/s/skin/", "_s5.jpg"], ["sp/assets/npc/f/skin/", "_s5.jpg"], ["sp/assets/npc/t/skin/", "_s5.png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/light.png", form:false},
+						{name:"Dark Outfit", paths:[["sp/assets/npc/s/skin/", "_s6.jpg"], ["sp/assets/npc/f/skin/", "_s6.jpg"], ["sp/assets/npc/t/skin/", "_s6.png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/dark.png", form:false}
 					]
 				},
 				{
 					name:"Sprites",
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
-						{type:1, paths:[["sp/gacha/assets/balloon_s/", "png"], ["sp/assets/npc/sd/", "png"]], index:6, form:false, lazy:false},
-						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", filename:true, index:0},
-						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
-						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
-						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
-						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
-						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"../GBFML/assets/ui/icon/home.png", filename:true}
+						{type:1, paths:[["sp/gacha/assets/balloon_s/", "png"], ["sp/assets/npc/sd/", "png"]], index:DataIdx.CHARA_SD, form:false, lazy:false},
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", filename:true, index:DataIdx.CHARA_SPRITE},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_PHIT, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_SP, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
+						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_AB_ALL, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
+						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_AB, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png", filename:true}
 					]
 				},
 				{
 					name:"Scenes",
 					icon:"../GBFML/assets/ui/icon/scene.png",
 					assets:[
-						{type:3, index:7, bubble:0, filename:true},
-						{type:3, index:7, bubble:1, filename:true}
+						{type:3, index:DataIdx.CHARA_SCENE, bubble:0, filename:true},
+						{type:3, index:DataIdx.CHARA_SCENE, bubble:1, filename:true}
 					]
 				},
 				{
 					name:"Audios",
 					icon:"../GBFML/assets/ui/icon/audio.png",
 					assets:[
-						{type:5, index:8}
+						{type:5, index:DataIdx.CHARA_SOUND}
 					]
 				},
 				{
@@ -498,7 +498,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					assets:[
 						{name:"Fate Episode Reward", paths:[["sp/assets/npc/reward/", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/icon/fate_episode.png", form:false, hidden:true, lazy:false},
 						{name:"Recruit Arts", paths:[["sp/cjs/npc_get_master_", "png"]], special_index:"character_unlock", icon:"../GBFML/assets/ui/icon/recruit.png", form:false, hidden:true, lazy:false},
-						{name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:6, icon:"../GBFML/assets/ui/icon/news.png", form:false, hidden:true, lazy:false},
+						{name:"News Art", paths:[["sp/banner/notice/update_char_", "png"]], index:DataIdx.CHARA_SD, icon:"../GBFML/assets/ui/icon/news.png", form:false, hidden:true, lazy:false},
 						{name:"Result Popup", paths:[["sp/result/popup_char/", "png"]], special_index:"character_popup", icon:"../GBFML/assets/ui/icon/result.png", form:false, hidden:true, lazy:false},
 						{name:"Custom Skill Previews", paths:[["sp/assets/npc/sd_ability/", "png"]], special_index:"custom_outfit_skill", icon:"../GBFML/assets/ui/icon/custom.png", form:false, hidden:true, lazy:false},
 						{name:"Siero's Academy", paths:[["sp/coaching/chara/", "png"], ["sp/coaching/reward_npc/assets/", "jpg"], ["sp/coaching/reward_npc/assets/name_", "png"]], special_index:"reward", icon:"../GBFML/assets/ui/icon/siero.png", form:false, hidden:true, lazy:false},
@@ -526,20 +526,20 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Portraits",
 					icon:"../GBFML/assets/ui/icon/portrait.png",
 					assets:[
-						{name:"Party Portraits", paths:[["sp/assets/npc/quest/", "jpg"]], index:5, icon:"../GBFML/assets/ui/icon/portrait.png", form:false, open:allow_open},
-						{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:5, icon:"../GBFML/assets/ui/icon/battle.png"},
-						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:5, icon:"../GBFML/assets/ui/icon/cb.png", form:false}
+						{name:"Party Portraits", paths:[["sp/assets/npc/quest/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/portrait.png", form:false, open:allow_open},
+						{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/battle.png"},
+						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/cb.png", form:false}
 					]
 				},
 				{
 					name:"Sprites",
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
-						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", index:0},
-						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/icon/auto.png"},
-						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/icon/ca.png"},
-						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/icon/skill.png"},
-						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/icon/skill.png"}
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", index:DataIdx.CHARA_SPRITE},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_PHIT, icon:"../GBFML/assets/ui/icon/auto.png"},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_SP, icon:"../GBFML/assets/ui/icon/ca.png"},
+						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_AB_ALL, icon:"../GBFML/assets/ui/icon/skill.png"},
+						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_AB, icon:"../GBFML/assets/ui/icon/skill.png"}
 					]
 				}
 			];
@@ -556,15 +556,15 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/ui/icon/journal.png",
 					assets:[
 						{type:1, paths:[["sp/assets/npc/m/", "jpg"],["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], special_index:"use_files", open:allow_open, hidden:true, lazy:false},
-						{type:3, index:1, bubble:0, filename:true},
-						{type:3, index:1, bubble:1, filename:true}
+						{type:3, index:DataIdx.NPC_SCENE, bubble:0, filename:true},
+						{type:3, index:DataIdx.NPC_SCENE, bubble:1, filename:true}
 					]
 				},
 				{
 					name:"Audios",
 					icon:"../GBFML/assets/ui/icon/audio.png",
 					assets:[
-						{type:5, index:2, name:"Audios", icon:"../GBFML/assets/ui/icon/audio.png", open:allow_open}
+						{type:5, index:DataIdx.NPC_SOUND, name:"Audios", icon:"../GBFML/assets/ui/icon/audio.png", open:allow_open}
 					]
 				}
 			];
@@ -584,12 +584,12 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"",
 					icon:"",
 					assets:[
-						{name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:0, icon:"../GBFML/assets/ui/icon/eicon.png", open:allow_open},
-						{name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:2, icon:"../GBFML/assets/ui/icon/appear.png", open:allow_open, filename:true},
-						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:1, icon:"../GBFML/assets/ui/icon/spritesheet.png", filename:true},
-						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:3, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
-						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:4, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
-						{name:"AOE Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:5, icon:"../GBFML/assets/ui/icon/ca.png", filename:true}
+						{name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:DataIdx.BOSS_GENERAL, icon:"../GBFML/assets/ui/icon/eicon.png", open:allow_open},
+						{name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_APPEAR, icon:"../GBFML/assets/ui/icon/appear.png", open:allow_open, filename:true},
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SPRITE, icon:"../GBFML/assets/ui/icon/spritesheet.png", filename:true},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_HIT, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
+						{name:"AOE Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP_ALL, icon:"../GBFML/assets/ui/icon/ca.png", filename:true}
 					]
 				}
 			];
@@ -605,7 +605,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Home",
 					icon:"../GBFML/assets/ui/icon/home.png",
 					assets:[
-						{type:1, paths:[["sp/assets/leader/my/", "png"]], index:3, home:true}
+						{type:1, paths:[["sp/assets/leader/my/", "png"]], index:DataIdx.JOB_DETAIL_ALT, home:true}
 					]
 				},
 				{
@@ -619,49 +619,49 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Arts",
 					icon:"../GBFML/assets/ui/icon/journal.png",
 					assets:[
-						{type:1, paths:[["sp/assets/leader/job_change/", "png"]], index:3},
-						{type:1, paths:[["sp/assets/leader/jobtree/", "png"]], index:0},
-						{type:1, paths:[["sp/ui/icon/job/", "png"]], index:0, small:true},
-						{type:1, paths:[["sp/ui/icon/job_complete/", "png"]], index:0, small:true}
+						{type:1, paths:[["sp/assets/leader/job_change/", "png"]], index:DataIdx.JOB_DETAIL_ALT},
+						{type:1, paths:[["sp/assets/leader/jobtree/", "png"]], index:DataIdx.JOB_ID},
+						{type:1, paths:[["sp/ui/icon/job/", "png"]], index:DataIdx.JOB_ID, small:true},
+						{type:1, paths:[["sp/ui/icon/job_complete/", "png"]], index:DataIdx.JOB_ID, small:true}
 					]
 				},
 				{
 					name:"Texts",
 					icon:"../GBFML/assets/ui/icon/text.png",
 					assets:[
-						{type:1, paths:[["sp/ui/job_name_tree_l/", "png"], ["sp/ui/job_name/job_change/", "png"],["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"],["sp/event/common/teamraid/assets/skin_name/", "png"]], index:0, hidden:true, lazy:false}
+						{type:1, paths:[["sp/ui/job_name_tree_l/", "png"], ["sp/ui/job_name/job_change/", "png"],["sp/ui/job_name/job_list/", "png"],["sp/assets/leader/job_name_ml/", "png"],["sp/assets/leader/job_name_pp/", "png"],["sp/event/common/teamraid/assets/skin_name/", "png"]], index:DataIdx.JOB_ID, hidden:true, lazy:false}
 					]
 				},
 				{
 					name:"Profile",
 					icon:"../GBFML/assets/ui/icon/profile.png",
 					assets:[
-						{type:1, paths:[["sp/assets/leader/pm/", "png"]], index:3, profile:true}
+						{type:1, paths:[["sp/assets/leader/pm/", "png"]], index:DataIdx.JOB_DETAIL_ALT, profile:true}
 					]
 				},
 				{
 					name:"Portraits",
 					icon:"../GBFML/assets/ui/icon/portrait.png",
 					assets:[
-						{type:1, paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:1},
-						{name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"../GBFML/assets/ui/icon/battle.png", index:3},
-						{name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:2, icon:"../GBFML/assets/ui/icon/other_category.png", lazy:false},
-						{name:"Various Big Portraits", paths:[["sp/assets/leader/zoom/", "png"], ["sp/assets/leader/p/", "png"], ["sp/assets/leader/jobon_z/", "png"], ["sp/assets/leader/coop/", "png"]], index:3, icon:"../GBFML/assets/ui/icon/big_portrait.png"},
-						{name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"], ["sp/event/common/teamraid/assets/sd_skin/", "jpg"], ["sp/event/common/teamraid/assets/selected_skin_thumbnail/", "png"], ["sp/event/common/teamraid/assets/skin_info_thumbnail/", "png"]], icon:"../GBFML/assets/ui/icon/portrait.png", index:3}
+						{type:1, paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:DataIdx.JOB_ALT},
+						{name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"../GBFML/assets/ui/icon/battle.png", index:DataIdx.JOB_DETAIL_ALT},
+						{name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:DataIdx.JOB_DETAIL, icon:"../GBFML/assets/ui/icon/other_category.png", lazy:false},
+						{name:"Various Big Portraits", paths:[["sp/assets/leader/zoom/", "png"], ["sp/assets/leader/p/", "png"], ["sp/assets/leader/jobon_z/", "png"], ["sp/assets/leader/coop/", "png"]], index:DataIdx.JOB_DETAIL_ALT, icon:"../GBFML/assets/ui/icon/big_portrait.png"},
+						{name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"], ["sp/event/common/teamraid/assets/sd_skin/", "jpg"], ["sp/event/common/teamraid/assets/selected_skin_thumbnail/", "png"], ["sp/event/common/teamraid/assets/skin_info_thumbnail/", "png"]], icon:"../GBFML/assets/ui/icon/portrait.png", index:DataIdx.JOB_DETAIL_ALT}
 					]
 				},
 				{
 					name:"Sprites",
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
-						{name:"Sprites", paths:[["sp/assets/leader/sd/", "png"]], icon:"../GBFML/assets/ui/icon/sprite.png", index:4, filename:true},
-						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", index:7, filename:true},
-						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:8, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
-						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:9, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
-						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:10, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
-						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:11, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
-						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:13, icon:"../GBFML/assets/ui/icon/home.png", filename:true},
-						{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:12, icon:"../GBFML/assets/ui/icon/lock.png", filename:true},
+						{name:"Sprites", paths:[["sp/assets/leader/sd/", "png"]], icon:"../GBFML/assets/ui/icon/sprite.png", index:DataIdx.JOB_DETAIL_ALL, filename:true},
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", index:DataIdx.JOB_SPRITE, filename:true},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_PHIT, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_SP, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
+						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_AB_ALL, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
+						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_AB, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png", filename:true},
+						{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_UNLOCK, icon:"../GBFML/assets/ui/icon/lock.png", filename:true},
 						{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], special_index:"custom_class_skill", icon:"../GBFML/assets/ui/icon/custom.png", hidden:true, lazy:false, filename:true}
 					]
 				}
@@ -676,7 +676,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"",
 					icon:"",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:0, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.STORY_CONTENT, filename:true}
 					]
 				}
 			];
@@ -691,28 +691,28 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Base",
 					icon:"../GBFML/assets/ui/icon/art.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:0, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_CONTENT, filename:true}
 					]
 				},
 				{
 					name:"Uncap",
 					icon:"../GBFML/assets/ui/icon/uncap.png",
 					assets:[
-						{type:1, name:"Uncap Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:1, filename:true}
+						{type:1, name:"Uncap Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_UNCAP_CONTENT, filename:true}
 					]
 				},
 				{
 					name:"Transcendence",
 					icon:"../GBFML/assets/ui/icon/transcendence.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:2, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_TRANSCENDENCE_CONTENT, filename:true}
 					]
 				},
 				{
 					name:"Others",
 					icon:"../GBFML/assets/ui/icon/party.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:3, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_OTHER_CONTENT, filename:true}
 					]
 				}
 			];
@@ -727,17 +727,17 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Opening",
 					icon:"../GBFML/assets/ui/icon/scene_op.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:2, lazy:false, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_OP, lazy:false, filename:true}
 					]
 				}
 			];
-			for(let i = 0; i < 20; ++i)
+			for(let i = 0; i < DataIdx.EVENT_MAX_CHAPTER; ++i)
 			{
 				pages.push({
 					name:"Chapter " + (i+1),
 					icon:"../GBFML/assets/ui/icon/scene_" + ("" + (i + 1)).padStart(2, "0") + ".png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:5+i, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_CHAPTER_START + i, filename:true}
 					]
 				});
 			}
@@ -746,21 +746,21 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Ending",
 					icon:"../GBFML/assets/ui/icon/scene_end.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:3, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_ED, filename:true}
 					]
 				},
 				{
 					name:"Arts",
 					icon:"../GBFML/assets/ui/icon/art.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:4, lazy:false, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_INT, lazy:false, filename:true}
 					]
 				},
 				{
 					name:"Skycompass",
 					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
 					assets:[
-						{type:2, paths:[["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png"]], index:25, filename:true}
+						{type:2, paths:[["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png"]], index:DataIdx.EVENT_SKY, filename:true}
 					]
 				},
 			]);
@@ -1060,7 +1060,7 @@ function get_file_list(id, data, asset, files, melee)
 		case "sprite": // weapon sprites
 		{
 			files = [];
-			for(const entry of data[0])
+			for(const entry of data[DataIdx.WEAP_GENERAL])
 			{
 				if(melee) // exception for melee weapon sprites
 				{
