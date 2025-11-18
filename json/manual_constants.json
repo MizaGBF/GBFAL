@@ -345,7 +345,32 @@
         
         "191" : "_cped"
     },
-    
+    "NPC_RELATION_TRIGGER" : [
+        "father",
+        "mother",
+        "sister",
+        "brother",
+        "youngest",
+        "older",
+        "middle",
+        "grandfather",
+        "grandmother",
+        "aunt",
+        "uncle",
+        "dog",
+        "cat",
+        "kitten",
+        "pet",
+        "familiar",
+        "hounds",
+        "stuffed toy",
+        "space ship",
+        "guide",
+        "maid",
+        "servant",
+        "gearcycle",
+        "glasses"
+    ],
     "RISING" : [
         "lyria",
         "vyrn",

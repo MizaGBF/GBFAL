@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.44'
+VERSION = '3.45'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 1
@@ -143,6 +143,7 @@ MALINDA : str = ""
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
 MSQ_SPECIALS : dict[str, str] = {}
+NPC_RELATION_TRIGGER : list[str] = []
 RISING : set[str] = {}
 RISING_MC : list[str] = []
 RELINK : set[str] = {}
@@ -3375,6 +3376,7 @@ class Updater():
         npcs = self.data['npcs'] # reference
         lookup_data = self.data['lookup'] # reference
         modified = set()
+        relations : dict[str, list[str]] = {}
         # Read manual_lookup.json and update data.json
         try:
             self.tasks.print("Importing manual_lookup.json ...")
@@ -3404,6 +3406,14 @@ class Updater():
                     elif not valid and k not in data:
                         data[k] = None
                         to_save = True
+                    # relations
+                    if t == "npcs" and data.get(k, None) is not None:
+                        parts : list[str] = data[k].split("'s ", 1)
+                        if len(parts) == 2:
+                            for prefix in NPC_RELATION_TRIGGER:
+                                if parts[1].startswith(prefix):
+                                    relations[k] = parts[0] + "'s " + prefix + " "
+                                    break
             if to_save:
                 keys = list(data.keys())
                 keys.sort(key=lambda s : (10 - len(s), s))
@@ -3436,10 +3446,12 @@ class Updater():
                                 lookup_data[k] = l
                                 modified.add(k)
                         continue
-                    if "$$" not in v and "$" in v: self.tasks.print("Missing $ Warning for", k, "in manual_lookup.json")
+                    if "$$" not in v and "$" in v:
+                        self.tasks.print("Missing $ Warning for", k, "in manual_lookup.json")
                     match len(k):
                         case 10: # npc
-                            if "@@" in lookup_data.get(k, ""): continue
+                            if "@@" in lookup_data.get(k, ""):
+                                continue
                             if "$$" in v:
                                 v = " ".join(v.split("$$")[0])
                             append = ""
@@ -3598,7 +3610,7 @@ class Updater():
                         except:
                             eid = str(item['outfit id']).split('_', 1)[0]
                         # prepare lookup string
-                        looks = wiki + html.unescape(" ".join(looks)).replace(' tie-in ', ' collab ').replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
+                        looks = wiki + relations.get(eid, "") + html.unescape(" ".join(looks)).replace(' tie-in ', ' collab ').replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
                         # voice
                         if len(eid) == 10 and npcs.get(eid, 0) != 0 and len(npcs[eid][NPC_SOUND]) > 0: # npc sound
                             looks += " voiced"
