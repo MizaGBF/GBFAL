@@ -347,7 +347,7 @@ function get_character_smash(id, data)
 	if(data == null)
 		return null;
 	let suffixes = [];
-	for(const el of data[5])
+	for(const el of data[DataIdx.CHARA_GENERAL])
 	{
 		if(el.includes("_f"))
 			continue;
