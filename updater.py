@@ -3610,20 +3610,23 @@ class Updater():
                         except:
                             eid = str(item['outfit id']).split('_', 1)[0]
                         # prepare lookup string
-                        looks = wiki + relations.get(eid, "") + html.unescape(" ".join(looks)).replace(' tie-in ', ' collab ').replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
+                        lookup_string : str = html.unescape(" ".join(looks)).replace(' tie-in ', ' collab ').replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
+                        if relations.get(eid, "") != "" and relations[eid] not in lookup_string:
+                            lookup_string = relations[eid] + lookup_string
+                        lookup_string = wiki + lookup_string
                         # voice
                         if len(eid) == 10 and npcs.get(eid, 0) != 0 and len(npcs[eid][NPC_SOUND]) > 0: # npc sound
-                            looks += " voiced"
+                            lookup_string += " voiced"
                             if not npcs[eid][NPC_JOURNAL] and len(npcs[eid][NPC_SCENE]) == 0:
-                                looks += " voice-only"
+                                lookup_string += " voice-only"
                         # spin off tags
                         lk = lookup_data.get(eid, "")
-                        if "gbf-versus-rising" in lk and "gbf-versus-rising" not in looks:
-                            looks += " gbf-versus-rising"
-                        if "gbf-relink" in lk and "gbf-relink" not in looks:
-                            looks += " gbf-relink"
-                        if eid not in lookup_data or lk != looks:
-                            lookup_data[eid] = looks
+                        if "gbf-versus-rising" in lk and "gbf-versus-rising" not in lookup_string:
+                            lookup_string += " gbf-versus-rising"
+                        if "gbf-relink" in lk and "gbf-relink" not in lookup_string:
+                            lookup_string += " gbf-relink"
+                        if eid not in lookup_data or lk != lookup_string:
+                            lookup_data[eid] = lookup_string
                             modified.add(eid)
                 except Exception as e:
                     self.tasks.print(e)
