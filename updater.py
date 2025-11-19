@@ -3533,7 +3533,15 @@ class Updater():
         premium_lookup = {}
         weapon_associations = {}
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']} # table of data index == wiki cargo tables
-        fields = {'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date,obtain,join_weapon', 'weapons':'id,element,type,rarity,name,series,jpname,release_date,character_unlock', 'summons':'id,element,rarity,name,series,jpname,release_date,obtain', 'classes':'id,name,jpname,release_date', 'mc_outfits':'outfit_id,outfit_name,release_date', 'character_outfits':'outfit_id,outfit_name,character_name,release_date', 'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'}
+        fields = {
+            'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date,obtain,join_weapon',
+            'weapons':'id,element,type,rarity,name,series,jpname,release_date,character_unlock',
+            'summons':'id,element,rarity,name,series,jpname,release_date,obtain',
+            'classes':'id,name,jpname,release_date',
+            'mc_outfits':'outfit_id,outfit_name,release_date',
+            'character_outfits':'outfit_id,outfit_name,character_name,release_date',
+            'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'
+        }
         # above are the cargo table to access and the fields we want for each of them
         for t in LOOKUP_TYPES:
             for table in tables.get(t, [t]):
@@ -3546,7 +3554,7 @@ class Updater():
                         # check main infos
                         match table:
                             case "classes"|"mc_outfits":
-                                looks = ["gran", "djeeta"]
+                                looks = ["main", "character's", "related"]
                             case _:
                                 looks = []
                         if item.get('element', '') == 'any':
@@ -3595,6 +3603,13 @@ class Updater():
                                                     premium_lookup[str(item["id"])] = None
                                         case _:
                                             looks.append(v.lower())
+                                            match k:
+                                                case "name":
+                                                    if table == "classes":
+                                                        looks.append("class")
+                                                case "character name":
+                                                    if table == "character_outfits":
+                                                        looks = [v.lower() + "'s relation"] + looks
                                 case list():
                                     for e in v:
                                         if k == "obtain":
@@ -3610,7 +3625,14 @@ class Updater():
                         except:
                             eid = str(item['outfit id']).split('_', 1)[0]
                         # prepare lookup string
-                        lookup_string : str = html.unescape(" ".join(looks)).replace(' tie-in ', ' collab ').replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('<br />', ' ').replace('<br />', ' ').replace('  ', ' ').replace('  ', ' ').strip()
+                        lookup_string : str = (
+                            html.unescape(" ".join(looks))
+                            .replace(' tie-in ', ' collab ')
+                            .replace('　', ' ') # IDSP character
+                            .replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ')
+                            .replace(',', ' ').replace('、', ' ').replace('<br />', ' ')
+                            .replace('  ', ' ').replace('  ', ' ').strip()
+                        )
                         if relations.get(eid, "") != "" and relations[eid] not in lookup_string:
                             lookup_string = relations[eid] + lookup_string
                         lookup_string = wiki + lookup_string

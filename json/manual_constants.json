@@ -346,6 +346,10 @@
         "191" : "_cped"
     },
     "NPC_RELATION_TRIGGER" : [
+        "family",
+        "friend",
+        "husband",
+        "wife",
         "father",
         "mother",
         "sister",
@@ -357,6 +361,8 @@
         "grandmother",
         "aunt",
         "uncle",
+        "son",
+        "daugther",
         "dog",
         "cat",
         "kitten",
@@ -369,7 +375,12 @@
         "maid",
         "servant",
         "gearcycle",
-        "glasses"
+        "glasses",
+        "form",
+        "relation",
+        "duo",
+        "trio",
+        "group"
     ],
     "RISING" : [
         "lyria",
