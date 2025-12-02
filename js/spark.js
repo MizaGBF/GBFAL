@@ -69,6 +69,8 @@ function start(changelog)
 			"sum":["", GBFType.summon],
 			"cha":["", GBFType.character]
 		},
+		null,
+		false,
 		false
 	);
 	// add search event listeners

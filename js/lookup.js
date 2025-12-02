@@ -108,6 +108,8 @@ function load(config, changelog)
 
 function start(config, changelog)
 {
+	init_lists(changelog, index_onclick);
+	init_index(config, changelog, index_onclick);
 	search = new Search(
 		document.getElementById("filter"),
 		document.getElementById("search-area"),
@@ -129,11 +131,11 @@ function start(config, changelog)
 			GBFType.job,
 			GBFType.enemy
 		],
-		(config.allow_id_input ?? false)
+		(config.allow_id_input ?? false),
+		true
 	);
 	search.populate_search_area();
-	init_lists(changelog, index_onclick);
-	init_index(config, changelog, index_onclick);
+	search.load_url_param();
 	let id = get_url_params().get("id");
 	if(id != null)
 	{
