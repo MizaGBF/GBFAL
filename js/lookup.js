@@ -29,7 +29,8 @@ function init() // entry point, called by body onload
 		"sk": GBFType.skill,
 		"fa": GBFType.fate,
 		"b": GBFType.buff,
-		"ms": GBFType.story,
+		"m1": GBFType.story0,
+		"m2": GBFType.story1,
 		"sd": GBFType.shield,
 		"ma": GBFType.manatura
 	});
@@ -678,9 +679,23 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			];
 			break;
 		}
-		case GBFType.story:
+		case GBFType.story0:
 		{
-			last_id = "ms"+id;
+			last_id = "m1"+id;
+			pages = [
+				{
+					name:"",
+					icon:"",
+					assets:[
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.STORY_CONTENT, filename:true}
+					]
+				}
+			];
+			break;
+		}
+		case GBFType.story1:
+		{
+			last_id = "m2"+id;
 			pages = [
 				{
 					name:"",
@@ -853,7 +868,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			id:id,
 			target:target,
 			navigation:indexed,
-			navigation_special_targets:["story", "fate", "events"],
+			navigation_special_targets:["story0", "story1", "fate", "events"],
 			lookup:indexed,
 			related:indexed,
 			link:include_link,

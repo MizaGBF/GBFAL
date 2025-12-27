@@ -17,10 +17,10 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.45'
+VERSION = '3.46'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
-SAVE_VERSION = 1
+SAVE_VERSION = 2
 # limit
 HTTP_CONN_LIMIT = 80
 LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
@@ -37,10 +37,11 @@ ADD_EVENT = 7
 ADD_SKILL = 8
 ADD_BUFF = 9
 ADD_BG = 10
-ADD_STORY = 11
+ADD_STORY0 = 11
 ADD_FATE = 12
 ADD_SHIELD = 13
 ADD_MANATURA = 14
+ADD_STORY1 = 15
 ADD_SINGLE_ASSET = ["title", "subskills", "suptix", "mypage_bg", "sky_title"]
 # chara/skin/partner update
 CHARA_SPRITE = 0
@@ -142,7 +143,8 @@ UNIQUE_SKIN : list[str] = []
 MALINDA : str = ""
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
-MSQ_SPECIALS : dict[str, str] = {}
+MSQ_LAST_CHAPTER : list[int] = []
+MSQ_SPECIALS : list[dict[str, str]] = []
 NPC_RELATION_TRIGGER : list[str] = []
 RISING : set[str] = {}
 RISING_MC : list[str] = []
@@ -487,7 +489,8 @@ class Updater():
             "subskills":{},
             'buffs':{},
             'eventthumb':{},
-            "story":{},
+            "story0":{},
+            "story1":{},
             "fate":{},
             "premium":{},
             "npc_replace":{}
@@ -546,6 +549,8 @@ class Updater():
         version = data.get("version", 0)
         if version == 0:
             self.tasks.print("This version is unsupported and might not work properly")
+        elif version == 1:
+            data["story0"] = data["story"]
         data["version"] = SAVE_VERSION
         return data
 
@@ -2516,7 +2521,7 @@ class Updater():
     async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str]) -> tuple:
         is_tuto = "tuto_scene" in base_url # check for MSQ tutorial
         Z = 1 if is_tuto else 2 # zfill value used in the filename, for MSQ tutorial
-        loop_err_limit = 60 if index == "story" and element_id == "191" else 30
+        loop_err_limit = 60 if index == "story0" and element_id == "191" else 30
         suffix : str
         stem_suffix : str
         while not ts.complete:
@@ -2660,11 +2665,11 @@ class Updater():
                 # create data if not initialized
                 if element_id not in data:
                     match index:
-                        case 'events':
+                        case "events":
                             data[element_id] = self.create_event_container()
-                        case 'story':
+                        case "story0"|"story1":
                             data[element_id] = [[]]
-                        case 'fate':
+                        case "fate":
                             data[element_id] = [[],[],[],[],None]
                 # set data
                 data[element_id][idx] = list(existing)
@@ -2673,16 +2678,19 @@ class Updater():
                 # add to changelog (and set flag) if not done yet (using self.addition to check)
                 if element_id not in self.addition:
                     match index:
-                        case 'events':
+                        case "events":
                             if data[element_id][EVENT_CHAPTER_COUNT] == -1:
                                 data[element_id][EVENT_CHAPTER_COUNT] = 0
                             if not self.add(element_id, ADD_EVENT):
                                 self.tasks.print("Updated:", element_id, "for index:", index)
                             self.flags.add("found_event")
-                        case 'story':
-                            if not self.add(element_id, ADD_STORY):
+                        case "story0":
+                            if not self.add(element_id, ADD_STORY0):
                                 self.tasks.print("Updated:", element_id, "for index:", index)
-                        case 'fate':
+                        case "story1":
+                            if not self.add(element_id, ADD_STORY1):
+                                self.tasks.print("Updated:", element_id, "for index:", index)
+                        case "fate":
                             if not self.add(element_id, ADD_FATE):
                                 self.tasks.print("Updated:", element_id, "for index:", index)
                             self.flags.add("found_fate")
@@ -2933,27 +2941,18 @@ class Updater():
     ### Story #################################################################################################################
 
     # Update every (unset) story chapters
-    async def update_all_story(self : Updater, limit : int|None = None) -> None:
+    async def update_all_story(self : Updater, arc : int, limit : int|None) -> None:
         if limit is None or limit < 1: # upate limit accordingly
-            if not self.use_wiki:
-                self.tasks.print("Can't access the wiki to update the story")
-                return
             try:
-                # retrieve current last chapter from wiki
-                m = CHAPTER_REGEX.findall((await self.get_wiki("https://gbf.wiki/Main_Quest")).decode('utf-8'))
-                s = set()
-                for i in m:
-                    for j in i:
-                        if j != "": s.add(int(j.replace('-', '')))
-                limit = max(s)
+                limit = MSQ_LAST_CHAPTER[arc]
             except:
                 self.tasks.print("An error occured while attempting to retrieve the MSQ Chapter count from gbf.wiki")
                 return
         existing : set[str]
         ts : TaskStatus
         # special recap chapters
-        msq_data = self.data['story'] # reference
-        for k in MSQ_SPECIALS:
+        msq_data = self.data["story" + str(arc)] # reference
+        for k in MSQ_SPECIALS[arc]:
             if k not in msq_data:
                 if k not in msq_data:
                     msq_data[k] = [[]]
@@ -2962,38 +2961,47 @@ class Updater():
                 match k[0]:
                     case "r":
                         ts = TaskStatus(200, 10, running=10)
-                        f = "_skip" + MSQ_SPECIALS[k]
+                        f = "_skip" + MSQ_SPECIALS[arc][k]
                     case "c":
                         ts = TaskStatus(200, 10, running=10)
-                        f = MSQ_SPECIALS[k]
+                        f = MSQ_SPECIALS[arc][k]
                     case _:
                         match k:
                             case "191": # ending I
                                 ts = TaskStatus(200, 10, running=10)
-                                f = MSQ_SPECIALS[k]
+                                f = MSQ_SPECIALS[arc][k]
                             case _:
                                 continue
                 existing = set(msq_data[k][STORY_CONTENT])
                 for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, 'story', k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene" + f, existing), priority=2)
+                    self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene" + f, existing), priority=2)
         # chapters
-        for i in range(0, 0):
+        for i in range(0, limit + 1):
             element_id = str(i).zfill(3)
-            if element_id not in msq_data and element_id not in MSQ_SPECIALS:
+            if element_id not in msq_data and element_id not in MSQ_SPECIALS[arc]:
                 msq_data[element_id] = [[]]
                 # set file name
-                if i == 0:
-                    fn = "tuto_scene"
-                else:
-                    fn = "scene_cp{}".format(i)
+                match arc:
+                    case 1:
+                        if i == 0:
+                            fn = "scene_pt02_cpop"
+                        else:
+                            fn = "scene_pt02_cp{}".format(element_id)
+                    case 0:
+                        if i == 0:
+                            fn = "tuto_scene"
+                        else:
+                            fn = "scene_cp{}".format(i)
+                    case _:
+                        break
                 ts = TaskStatus(200, 10, running=10)
                 existing = set(msq_data[element_id][STORY_CONTENT])
                 for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, 'story', element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn, existing), priority=2)
+                    self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn, existing), priority=2)
                 for q in range(1, 6):
                     ts = TaskStatus(200, 10, running=10)
                     for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'story', element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn + "_q" + str(q), existing), priority=2)
+                        self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn + "_q" + str(q), existing), priority=2)
         await self.tasks.start()
 
     ### Fate #################################################################################################################
@@ -3165,9 +3173,10 @@ class Updater():
             self.resume['name'] = "sound"
         if 'done' not in self.resume:
             self.resume['done'] = {}
-        for index in ("characters", "skins", 'npcs'):
+        """for index in ("characters", "skins", 'npcs'):
             for element_id in self.data[index]:
-                self.tasks.add(self.update_sound_of, parameters=(element_id, index, filters))
+                self.tasks.add(self.update_sound_of, parameters=(element_id, index, filters))"""
+        self.tasks.add(self.update_sound_of, parameters=("3994075000", "npcs", filters))
         self.tasks.print("Updating sounds for {} elements...".format(self.tasks.total))
         await self.tasks.start()
         self.clear_resume()
@@ -4256,7 +4265,8 @@ class Updater():
             secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
             secondary.add_argument('-fe', '--forceevent', help="force update event content for given event IDs.", nargs='+', default=None)
             secondary.add_argument('-ne', '--newevent', help="check new event content.", action='store_const', const=True, default=False, metavar='')
-            secondary.add_argument('-st', '--story', help="update story content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
+            secondary.add_argument('-st1', '--story1', help="update story arc 1 content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
+            secondary.add_argument('-st2', '--story2', help="update story arc 2 content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
             secondary.add_argument('-ft', '--fate', help="update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.", action='store', nargs='?', default="", metavar='FATES')
             secondary.add_argument('-pt', '--partner', help="update all parner content. Time consuming.", action='store_const', const=True, default=False, metavar='')
             secondary.add_argument('-mn', '--missingnpc', help="search for missing NPCs. Time consuming.", action='store_const', const=True, default=False, metavar='')
@@ -4341,10 +4351,12 @@ class Updater():
                 self.tasks.print("Searching new event data...")
                 await self.init_updater(wiki=True)
                 await self.check_new_event()
-            elif args.story is None or args.story > 0:
-                self.tasks.print("Searching new story data...")
-                await self.init_updater(wiki=True)
-                await self.update_all_story(args.story)
+            elif args.story1 is None or args.story1 > 0:
+                self.tasks.print("Searching new story arc 1 data...")
+                await self.update_all_story(0, args.story1)
+            elif args.story2 is None or args.story2 > 0:
+                self.tasks.print("Searching new story arc 2 data...")
+                await self.update_all_story(1, args.story2)
             elif args.fate is None or args.fate != "":
                 self.tasks.print("Searching fate episode data...")
                 await self.update_all_fate(args.fate)

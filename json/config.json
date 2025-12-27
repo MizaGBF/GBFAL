@@ -1173,25 +1173,64 @@
             "icon":"../GBFML/assets/ui/icon/story.png",
             "childs":[
                 {
-                    "name":"Chapters",
-                    "icon":"../GBFML/assets/ui/icon/scene_01.png",
-                    "target":"story",
-                    "arg1":"chapter",
-                    "reverse":1
+                    "name":"Arc 1",
+                    "icon":"../GBFML/assets/ui/icon/arc_1.png",
+                    "childs":[
+                        {
+                            "name":"Chapters",
+                            "icon":"../GBFML/assets/ui/icon/scene_01.png",
+                            "target":"story0",
+                            "arg1":0,
+                            "arg2":"chapter",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Recaps",
+                            "icon":"../GBFML/assets/ui/icon/scene_02.png",
+                            "target":"story0",
+                            "arg1":0,
+                            "arg2":"recap",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Compilations",
+                            "icon":"../GBFML/assets/ui/icon/scene_03.png",
+                            "target":"story0",
+                            "arg1":0,
+                            "arg2":"compilation",
+                            "reverse":1
+                        }
+                    ]
                 },
                 {
-                    "name":"Recaps",
-                    "icon":"../GBFML/assets/ui/icon/scene_02.png",
-                    "target":"story",
-                    "arg1":"recap",
-                    "reverse":1
-                },
-                {
-                    "name":"Compilations",
-                    "icon":"../GBFML/assets/ui/icon/scene_03.png",
-                    "target":"story",
-                    "arg1":"compilation",
-                    "reverse":1
+                    "name":"Arc 2",
+                    "icon":"../GBFML/assets/ui/icon/arc_2.png",
+                    "childs":[
+                        {
+                            "name":"Chapters",
+                            "icon":"../GBFML/assets/ui/icon/scene_01.png",
+                            "target":"story1",
+                            "arg1":1,
+                            "arg2":"chapter",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Recaps",
+                            "icon":"../GBFML/assets/ui/icon/scene_02.png",
+                            "target":"story1",
+                            "arg1":1,
+                            "arg2":"recap",
+                            "reverse":1
+                        },
+                        {
+                            "name":"Compilations",
+                            "icon":"../GBFML/assets/ui/icon/scene_03.png",
+                            "target":"story1",
+                            "arg1":1,
+                            "arg2":"compilation",
+                            "reverse":1
+                        }
+                    ]
                 }
             ]
         },
