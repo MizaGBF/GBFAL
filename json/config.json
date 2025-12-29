@@ -1333,6 +1333,13 @@
                     "text": "No particular order"
                 },
                 {
+                    "name": "Year 2026 (Horse)",
+                    "icon": "../GBFML/assets/ui/icon/year_2026_(horse).png",
+                    "target": "events",
+                    "arg1": "26",
+                    "reverse": 1
+                },
+                {
                     "name": "Year 2025 (Snake)",
                     "icon": "../GBFML/assets/ui/icon/year_2025_(snake).png",
                     "target": "events",
