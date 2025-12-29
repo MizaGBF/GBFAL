@@ -9,10 +9,17 @@
             "icon":"../GBFML/assets/ui/icon/characters.png",
             "childs":[
                 {
+                    "name":"Year 2026 (Horse)",
+                    "icon":"../GBFML/assets/ui/icon/year_2026_(horse).png",
+                    "target":"characters",
+                    "arg1":[0, -1, 0, -1, 635, 999],
+                    "reverse":1
+                },
+                {
                     "name":"Year 2025 (Snake)",
                     "icon":"../GBFML/assets/ui/icon/year_2025_(snake).png",
                     "target":"characters",
-                    "arg1":[0, -1, 0, -1, 571, 999],
+                    "arg1":[0, -1, 0, -1, 571, 635],
                     "reverse":1
                 },
                 {
@@ -897,6 +904,16 @@
                     ]
                 },
                 {
+                    "name": "Year 2026 (Horse)",
+                    "icon": "../GBFML/assets/ui/icon/year_2026_(horse).png",
+                    "target": "npcs",
+                    "arg1": "99",
+                    "arg2": [
+                        4277,
+                        9000
+                    ]
+                },
+                {
                     "name": "Year 2025 (Snake)",
                     "icon": "../GBFML/assets/ui/icon/year_2025_(snake).png",
                     "childs": [
@@ -915,7 +932,7 @@
                             "arg1": "99",
                             "arg2": [
                                 4040,
-                                9000
+                                4277
                             ]
                         }
                     ]
