@@ -56,14 +56,15 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.38
+GBFAL Updater v3.46
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-jq [FULL ...]] [-si SCENEID [SCENEID ...]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]]
-                  [-fe FORCEEVENT [FORCEEVENT ...]] [-ne] [-st [LIMIT]]
-                  [-ft [FATES]] [-pt] [-mn] [-ij] [-ej] [-lk] [-fj] [-it]
-                  [-et] [-mt] [-mb] [-ms] [-mu] [-mr] [-js]
-                  [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH] [-dg]
+                  [-fe FORCEEVENT [FORCEEVENT ...]] [-ne] [-st1 [LIMIT]]
+                  [-st2 [LIMIT]] [-ft [FATES]] [-pt] [-mn] [-ij] [-ej]
+                  [-lk] [-fj] [-it] [-et] [-mt] [-mb] [-ms] [-mu] [-mr]
+                  [-js] [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH]
+                  [-dg]
 
 Asset Updater v3.38 for GBFAL https://mizagbf.github.io/GBFAL/
 
@@ -97,8 +98,10 @@ secondary:
   -fe, --forceevent FORCEEVENT [FORCEEVENT ...]
                         force update event content for given event IDs.
   -ne, --newevent       check new event content.
-  -st, --story [LIMIT]  update story content. Add an optional chapter to stop
-                        at.
+  -st, --story1 [LIMIT] update story arc 1 content. Add an optional chapter to
+                        stop at.
+  -st, --story2 [LIMIT] update story arc 2 content. Add an optional chapter to
+                        stop at.
   -ft, --fate [FATES]   update fate content. Add an optional fate ID to update
                         or a range (START-END) or 'last' to update the latest.
   -pt, --partner        update all parner content. Time consuming.
