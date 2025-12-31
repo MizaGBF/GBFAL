@@ -3173,10 +3173,9 @@ class Updater():
             self.resume['name'] = "sound"
         if 'done' not in self.resume:
             self.resume['done'] = {}
-        """for index in ("characters", "skins", 'npcs'):
+        for index in ("characters", "skins", 'npcs'):
             for element_id in self.data[index]:
-                self.tasks.add(self.update_sound_of, parameters=(element_id, index, filters))"""
-        self.tasks.add(self.update_sound_of, parameters=("3994075000", "npcs", filters))
+                self.tasks.add(self.update_sound_of, parameters=(element_id, index, filters))
         self.tasks.print("Updating sounds for {} elements...".format(self.tasks.total))
         await self.tasks.start()
         self.clear_resume()
