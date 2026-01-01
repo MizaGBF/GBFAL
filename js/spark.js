@@ -404,7 +404,7 @@ function confirm_spark_clear() // open popup when pressing reset button
 	else
 	{
 		let div = document.createElement("div");
-		div.classList.add("spark-fullscreen-bg");
+		div.classList.add("fullscreen-preview");
 		div.innerHTML = '<div class="spark-delete-confirm">Are you certain that you want to reset the spark screen?<br><button class="std-button" onclick="close_fullscreen(); spark_clear();">Yes</button><button class="std-button" onclick="close_fullscreen();">No</button></div>';
 		document.body.appendChild(div);
 	}
