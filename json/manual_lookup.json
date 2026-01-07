@@ -3638,6 +3638,8 @@
 "3994250000":"white knight human male 白騎士 yūki kaji 梶裕貴",
 "3994251000":"white knight human male 白騎士 yūki kaji 梶裕貴",
 "3994271000":"sandira 12generals human female サンチラ megumi nakajima 中島愛",
+"3994272000":"huanglong's form virtuous huanglong",
+"3994273000":"qilin's form stygian qilin",
 "3994275000":"fylkis unknown female フィルキス misaki akiyama 秋山実咲",
 "3994276000":"fylkis unknown female フィルキス misaki akiyama 秋山実咲",
 "1100021":"cave bat $$dark",
@@ -6427,5 +6429,7 @@
 "9102953":"homa $$fire",
 "9102963":"klesha of forgetfulness $$fire",
 "9102973":"bonitomurai $$null",
+"9102983":"virtuous huanglong $$light",
+"9102993":"stygian qilin $$dark",
 "9103003":"bonitomurai $$null"
 }
