@@ -118,11 +118,10 @@ function is_summon(cid)
 	return cid.startsWith("20");
 }
 
-function is_valid_mode(cid, mode)
+function is_valid_mode(cid, mode, gbtype)
 {
-	const isSummon = is_summon(drag_id);
-	if(isSummon && mode != STONE) return false;
-	if(!isSummon && mode == STONE) return false;
+	if(gbtype == GBFType.summon && mode != STONE) return false;
+	if(gbtype != GBFType.summon && mode == STONE) return false;
 	return true;
 }
 
@@ -141,7 +140,7 @@ function set_spark_list()
 			const ret = get_character(id, null, [-1, -1, -1, -1, 0, 1000]);
 			if(ret != null)
 			{
-				items[id] = add_image_spark(frag, ret[0]); // display and memorize in items
+				items[id] = add_image_spark(frag, ret[0], GBFType.character); // display and memorize in items
 			}
 		}
 	}
@@ -151,7 +150,7 @@ function set_spark_list()
 		const ret = get_character(id, (index["characters"][id] !== 0 ? index["characters"][id] : null), [-1, -1, -1, -1, 0, 1000]);
 		if(ret != null)
 		{
-			items[id] = add_image_spark(frag, ret[0]); // display and memorize in items
+			items[id] = add_image_spark(frag, ret[0], GBFType.character); // display and memorize in items
 		}
 	}
 	node.appendChild(frag);
@@ -169,7 +168,7 @@ function set_spark_list()
 			const ret = get_summon(id, null, "4", [0, 1000]);
 			if(ret != null)
 			{
-				items[id] = add_image_spark(frag, ret[0]); // display and memorize in items
+				items[id] = add_image_spark(frag, ret[0], GBFType.summon); // display and memorize in items
 			}
 		}
 	}
@@ -179,17 +178,18 @@ function set_spark_list()
 		const ret = get_summon(id, (index["summons"][id] !== 0 ? index["summons"][id] : null), "4", [0, 1000]);
 		if(ret != null)
 		{
-			items[id] = add_image_spark(frag, ret[0]); // display and memorize in items
+			items[id] = add_image_spark(frag, ret[0], GBFType.summon); // display and memorize in items
 		}
 	}
 	node.appendChild(frag);
 }
 
-function add_image_spark(node, data) // add an image to the selector
+function add_image_spark(node, data, gbtype) // add an image to the selector
 {
 	let img = document.createElement("img");
 	img.title = data.id;
 	img.dataset.id = data.id;
+	img.gbtype = gbtype;
 	img.classList.add("loading");
 	img.classList.add("spark-image");
 	img.setAttribute('loading', 'lazy');
@@ -200,7 +200,6 @@ function add_image_spark(node, data) // add an image to the selector
 		};
 	}
 	else img.onerror = data.onerr;
-	const isSummon = is_summon(data.id);
 	const cid = data.id;
 	img.onload = function() {
 		this.classList.remove("loading");
@@ -215,13 +214,13 @@ function add_image_spark(node, data) // add an image to the selector
 			{
 				canvas = null;
 				beep();
-				if(!isSummon && (window.event.shiftKey || document.getElementById("moon-check").classList.contains("active"))) // add to moon
+				if(this.gbtype == GBFType.character && (window.event.shiftKey || document.getElementById("moon-check").classList.contains("active"))) // add to moon
 				{
 					add_image_result_spark(MOON, cid, this);
 				}
 				else
 				{
-					add_image_result_spark(isSummon ? STONE : NPC, cid, this); // add to npc or stone
+					add_image_result_spark(this.gbtype == GBFType.summon ? STONE : NPC, cid, this); // add to npc or stone
 				}
 				document.getElementById("spark-container").scrollIntoView(); // recenter view
 				spark_save_settings();
@@ -485,7 +484,7 @@ function update_drag_state(event)
 		remove_image_result_spark(drag_placeholder_div);
 		drag_placeholder_div = null;
 	}
-	if(is_valid_mode(drag_id, mode))
+	if(is_valid_mode(drag_id, mode, items[drag_id].gbtype))
 	{
 		const img = items[drag_id];
 		if(!img) return;
@@ -544,7 +543,7 @@ function handle_drop(event)
 		const img = items[drag_id];
 		if(!img) return;
 
-		if(!is_valid_mode(drag_id, drag_mode)) return;
+		if(!is_valid_mode(drag_id, drag_mode, img.gbtype)) return;
 
 		if(drag_placeholder_div)
 		{
