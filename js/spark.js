@@ -616,6 +616,7 @@ function handle_dragend(event)
 			if(is_valid_mode(drag_id, drag_mode, img.gbtype))
 			{
 				const div = add_image_result_spark(drag_mode, drag_id, img, drag_position);
+				drag_position++; // for the deletion of the placeholder
 				if(drag_is_spark)
 				{
 					add_spark(div);
