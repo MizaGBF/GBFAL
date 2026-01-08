@@ -120,8 +120,10 @@ function is_summon(cid)
 
 function is_valid_mode(cid, mode, gbtype)
 {
-	if(gbtype == GBFType.summon && mode != STONE) return false;
-	if(gbtype != GBFType.summon && mode == STONE) return false;
+	if(gbtype == GBFType.summon && mode != STONE)
+		return false;
+	if(gbtype != GBFType.summon && mode == STONE)
+		return false;
 	return true;
 }
 
@@ -308,7 +310,8 @@ function toggle_spark_state(div) // toggle spark icon
 
 function add_spark(div) // add spark icon
 {
-	if(div.classList.contains("sparked")) return;
+	if(div.classList.contains("sparked"))
+		return;
 	let img = document.createElement("img");
 	img.classList.add("spark-icon");
 	img.src = "assets/spark/spark.png";
@@ -319,7 +322,8 @@ function add_spark(div) // add spark icon
 
 function remove_spark(div) // remove spark icon
 {
-	if(!div.classList.contains("sparked")) return;
+	if(!div.classList.contains("sparked"))
+		return;
 	div.removeChild(div.childNodes[1]);
 	div.classList.remove("sparked");
 }
@@ -362,7 +366,8 @@ function is_draggable(element)
 
 function handle_dragstart(event)
 {
-	if(!is_draggable(event.target)) return;
+	if(!is_draggable(event.target))
+		return;
 	if(canvas_state > 0) // if canvas processing
 	{
 		push_popup("Wait for the image to be processed");
@@ -390,7 +395,8 @@ function handle_dragstart(event)
 			drag_position = Array.from(section.children).indexOf(drag_original_div);
 
 			const img = items[drag_id];
-			if(!img) return;
+			if(!img)
+				return;
 			// hide the element that's being dragged and create a placeholder in its place
 			setTimeout(function() {
 				// need to use setTimeout here because otherwise the dragged image isn't displayed correctly
@@ -411,7 +417,8 @@ function handle_dragstart(event)
 
 function handle_dragend(event)
 {
-	if(!is_valid_drag_event(event)) return;
+	if(!is_valid_drag_event(event))
+		return;
 	if(drag_placeholder_div)
 	{
 		remove_image_result_spark(drag_placeholder_div);
@@ -476,7 +483,8 @@ function update_drag_state(event)
 		default: return;
 	}
 	const position = find_position(section, event);
-	if(drag_mode === mode && drag_position === position) return;
+	if(drag_mode === mode && drag_position === position)
+		return;
 	drag_mode = mode;
 	drag_position = position;
 	if(drag_placeholder_div)
@@ -487,7 +495,8 @@ function update_drag_state(event)
 	if(is_valid_mode(drag_id, mode, items[drag_id].gbtype))
 	{
 		const img = items[drag_id];
-		if(!img) return;
+		if(!img)
+			return;
 		drag_placeholder_div = add_image_result_spark(mode, drag_id, img, drag_position);
 		drag_placeholder_div.classList.add("placeholder");
 		if(drag_is_spark)
@@ -498,7 +507,8 @@ function update_drag_state(event)
 
 function handle_dragover(event)
 {
-	if(!is_valid_drag_event(event)) return;
+	if(!is_valid_drag_event(event))
+		return;
 	if(canvas_state > 0) // if canvas processing
 	{
 		push_popup("Wait for the image to be processed");
@@ -512,8 +522,10 @@ function handle_dragover(event)
 
 function handle_dragenter(event)
 {
-	if(!is_valid_drag_event(event)) return;
-	if(event.currentTarget.contains(event.relatedTarget)) return;
+	if(!is_valid_drag_event(event))
+		return;
+	if(event.currentTarget.contains(event.relatedTarget))
+		return;
 	const section = event.target.closest(".spark-section");
 	section.classList.add("spark-section-highlight");
 	update_drag_state(event);
@@ -521,8 +533,10 @@ function handle_dragenter(event)
 
 function handle_dragleave(event)
 {
-	if(!is_valid_drag_event(event)) return;
-	if(event.currentTarget.contains(event.relatedTarget)) return;
+	if(!is_valid_drag_event(event))
+		return;
+	if(event.currentTarget.contains(event.relatedTarget))
+		return;
 	const section = event.target.closest(".spark-section");
 	section.classList.remove("spark-section-highlight");
 	update_drag_state(event);
@@ -530,7 +544,8 @@ function handle_dragleave(event)
 
 function handle_drop(event)
 {
-	if(!is_valid_drag_event(event)) return;
+	if(!is_valid_drag_event(event))
+		return;
 	if(canvas_state > 0) // if canvas processing
 	{
 		push_popup("Wait for the image to be processed");
@@ -543,7 +558,8 @@ function handle_drop(event)
 		const img = items[drag_id];
 		if(!img) return;
 
-		if(!is_valid_mode(drag_id, drag_mode, img.gbtype)) return;
+		if(!is_valid_mode(drag_id, drag_mode, img.gbtype))
+			return;
 
 		if(drag_placeholder_div)
 		{
@@ -591,7 +607,8 @@ function update_node(mode, addition) // update spark column
 		default: return;
 	}
 	update_rate(false); // update rate text
-	if(node.childNodes.length == 0) return; // quit if empty
+	if(node.childNodes.length == 0)
+		return; // quit if empty
 	// get node size
 	const nw = node.offsetWidth - 5;
 	const nh = node.offsetHeight - 5;
@@ -781,10 +798,13 @@ function load_settings() // load settings from localstorage
 	try
 	{
 		let tmp = localStorage.getItem("gbfal-spark-settings");
-		if(tmp == null) return;
+		if(tmp == null)
+			return;
 		tmp = JSON.parse(tmp);
-		if(tmp[0]) document.getElementById("moon-check").classList.add("active");
-		if(tmp[1]) document.getElementById("spark-check").classList.add("active");
+		if(tmp[0])
+			document.getElementById("moon-check").classList.add("active");
+		if(tmp[1])
+			document.getElementById("spark-check").classList.add("active");
 	}
 	catch(err)
 	{
@@ -959,7 +979,8 @@ function draw_spark(canvas) // draw the spark on the canvas
 
 function draw_spark_middle(ctx) // draw the spark content
 {
-	if(canvas_state == 2) return;
+	if(canvas_state == 2)
+		return;
 	if(canvas_wait > 1)
 	{
 		setTimeout(draw_spark_middle, 50, ctx);
@@ -979,7 +1000,8 @@ function draw_spark_middle(ctx) // draw the spark content
 
 function draw_spark_end(ctx, sparkIcon_list) // draw the spark icons
 {
-	if(canvas_state == 2) return;
+	if(canvas_state == 2)
+		return;
 	if(canvas_wait > 1)
 	{
 		setTimeout(draw_spark_end, 50, ctx, sparkIcon_list);
@@ -1018,7 +1040,8 @@ function draw_image(ctx, src, x, y, w, h) // draw an image at the specified src 
 function draw_column(ctx, offset, content)
 {
 	const imgcount = content.length;
-	if(imgcount == 0) return []; // if no image, stop now
+	if(imgcount == 0)
+		return []; // if no image, stop now
 	const RECT_CONTENT = [offset+50, 100+50+50, 640-100, 1080-200-50];
 	let size = [RECT_CONTENT[2], RECT_CONTENT[2]*DEFAULT_SIZE[1]/DEFAULT_SIZE[0]]; // default image size (make it fit the area horizontally, keeping the aspect ratio)
 	let grid = [0, 0]; // will contain the number of horizontal and vertical elements
