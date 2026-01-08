@@ -290,13 +290,13 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 
 function toggle_spark_state(div) // toggle spark icon
 {
-	if(div.childNodes.length == 2) remove_spark(div);
-	else if(div.childNodes.length == 1) add_spark(div);
+	if(div.classList.contains("sparked")) remove_spark(div);
+	else add_spark(div);
 }
 
 function add_spark(div) // add spark icon
 {
-	if(div.childNodes.length == 2) return;
+	if(div.classList.contains("sparked")) return;
 	let img = document.createElement("img");
 	img.classList.add("spark-icon");
 	img.src = "assets/spark/spark.png";
@@ -307,7 +307,7 @@ function add_spark(div) // add spark icon
 
 function remove_spark(div) // remove spark icon
 {
-	if(div.childNodes.length != 2) return;
+	if(!div.classList.contains("sparked")) return;
 	div.removeChild(div.childNodes[1]);
 	div.classList.remove("sparked");
 }
