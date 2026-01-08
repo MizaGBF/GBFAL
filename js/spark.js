@@ -451,7 +451,18 @@ function is_valid_drag_event(event)
 
 function find_position(section, event)
 {
-	return 0; // hard-coded for now
+	const children = section.children;
+	let position = 0;
+	for(let i = 0; i < children.length; ++i)
+	{
+		const rect = children[i].getBoundingClientRect();
+		if(event.clientY < rect.top)
+			break;
+		else if(event.clientY < rect.bottom && event.clientX < rect.left)
+			break;
+		position = i;
+	}
+	return position;
 }
 
 function update_drag_state(event)
