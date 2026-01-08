@@ -560,6 +560,16 @@ function update_all() // update all three columns
 	update_node(STONE, false);
 }
 
+function count_visible_nodes(list)
+{
+	let count = 0;
+	for(let i = 0; i < list.length; ++i)
+	{
+		if(list[i].style.display != "none") ++count;
+	}
+	return count;
+}
+
 function update_node(mode, addition) // update spark column
 {
 	let node;
@@ -586,11 +596,12 @@ function update_node(mode, addition) // update spark column
 		sizes[mode] = null;
 	}
 	let changed = false;
+	const visibleNodesCount = count_visible_nodes(node.childNodes);
 	while(true)
 	{
 		const cw = Math.floor(nw/current_size[0]); // number of element in a row inside the node
 		const ch = Math.floor(nh/current_size[1]) - 1; // number of element in a column inside the node (-1 to assure some space)
-		if(node.childNodes.length <= cw*ch) // if the total number of element is greater to our number of ssr
+		if(visibleNodesCount <= cw*ch) // if the total number of element is greater to our number of ssr
 		{
 			break;
 		}
@@ -638,8 +649,11 @@ function update_rate(to_update) // update ssr rate text
 			let s = 0; // sparked
 			for(let i = 0; i < COUNT; ++i)
 				for(let j = 0; j < lists[i].length; ++j)
-					if(lists[i][j][1].childNodes.length == 2) ++s;
-					else ++c;
+					if(lists[i][j][1].style.display != "none")
+					{
+						if(lists[i][j][1].childNodes.length == 2) ++s;
+						else ++c;
+					}
 			if(v < c) v = c;
 			document.getElementById("spark-rate").innerHTML = "" + c + " / " + v + (s > 0 ? " +" + s + " sparked": "") + "<br>" + (Math.round(c / v * 1000) / 10) + "% SSR";
 		}
