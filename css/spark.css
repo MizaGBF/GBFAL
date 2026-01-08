@@ -12,11 +12,6 @@
 	touch-action: none;
 }
 
-.spark-disable-interactions {
-	/* Add this class during dragging for performance */
-	pointer-events: none !important;
-}
-
 .spark-manual {
 	background: #181818;
 	color: #ffffff;
@@ -159,6 +154,17 @@ td {
 	position: relative;
 	-webkit-animation: spark-img-fadein .5s;
 	animation: spark-img-fadein .5s;
+}
+
+.spark-drag-ghost {
+	width: 105px;
+	height: 60px;
+    position: fixed !important;
+    pointer-events: none;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    will-change: transform; 
 }
 
 .spark-result.placeholder {

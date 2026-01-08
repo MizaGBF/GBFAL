@@ -6,7 +6,6 @@ var timestamp = Date.now();
 var index = null;
 var items = {};
 var lists = [[], [], []];
-var sizes = [null, null, null];
 var spark_container = null;
 var spark_sections = null;
 const NPC = 0;
@@ -22,6 +21,7 @@ var canvas = null; // contains last canvas
 var canvas_state = 0; // 0 = not running, 1 = running, 2 = error
 var canvas_wait = 0; // used to track pending loadings
 // drag and drop
+var drag_state = 0; // 0 = not running, 1 = drag check, 2 = running
 var drag_event = null; // contains the last event received to process
 var drag_original_div = null; // the div that the user clicked on when dragging
 var drag_placeholder_div = null; // placeholder div that is displayed to the user during drag-and-drop
@@ -31,7 +31,7 @@ var drag_mode = null; // the mode (NPC/MOON/STONE) of the currently dragged item
 var drag_position = null; // the position of the currently dragged item
 var drag_coords = {x:0, y:0}; // pointer coordinates
 var drag_is_complete = true; // whether the last drag event was completed successfully
-
+var drag_ghost = null; // container of a "ghost" of the dragged image
 
 var jukebox = null;
 
@@ -199,6 +199,8 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 	let img = document.createElement("img");
 	img.title = data.id;
 	img.dataset.id = data.id;
+	img.spark_draggable = true;
+	img.draggable = false; // important for event interaction
 	img.gbtype = gbtype;
 	img.classList.add("loading");
 	img.classList.add("spark-image");
@@ -211,7 +213,7 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 	}
 	else img.onerror = data.onerr;
 	const cid = data.id;
-	img.onload = function() {
+	img.onload = function(event) {
 		this.classList.remove("loading");
 		this.classList.add("clickable");
 		this.onclick = function()
@@ -252,7 +254,7 @@ function remove_image_result_spark(div) // remove image from the spark result
 			{
 				lists[mode].splice(i, 1);
 				div.remove();
-				update_node(mode, false);
+				update_node(mode);
 				return;
 			}
 		}
@@ -271,9 +273,9 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 	}
 	let div = document.createElement("div");
 	div.dataset.id = id;
+	div.draggable = false;
+	div.spark_draggable = true;
 	div.classList.add("spark-result");
-	div.draggable = true;
-	const cmode = mode;
 	div.onclick = function()
 	{
 		if(canvas_state > 0) // if canvas processing
@@ -294,20 +296,23 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 				remove_image_result_spark(this);
 			}
 			spark_save_settings();
+			
 		}
 	};
+	const cmode = mode;
 	let img = document.createElement("img");
-	img.draggable = false;
-	img.classList.add("spark-result");
+	img.draggable = false; // important  for event interaction
+	img.classList.add("spark-result-img");
 	img.src = base_img.src;
 	img.onerror = base_img.onerror;
 	div.appendChild(img);
 
-	if(position === undefined) position = lists[mode].length;
+	if(position === undefined)
+		position = lists[mode].length;
 	node.insertBefore(div, node.children[position]);
 	lists[mode].splice(position, 0, [id, div]);
 
-	update_node(mode, true);
+	update_node(mode);
 	return div;
 }
 
@@ -324,7 +329,6 @@ function add_spark(div) // add spark icon
 	let img = document.createElement("img");
 	img.classList.add("spark-icon");
 	img.src = "assets/spark/spark.png";
-	img.draggable = false;
 	div.appendChild(img);
 	div.classList.add("sparked");
 }
@@ -346,27 +350,30 @@ addEventListener("resize", (event) => { // capture window resize event and call 
 function init_drag_and_drop()
 {
 	// general drag events
-	addEventListener("dragstart", handle_dragstart);
-	addEventListener("dragend", handle_dragend);
-	// sections drag events
-	for(let i = 0; i < spark_sections.length; ++i)
-	{
-		spark_sections[i].addEventListener("dragover", handle_dragover);
-		spark_sections[i].addEventListener("dragenter", handle_dragenter);
-		spark_sections[i].addEventListener("dragleave", handle_dragleave);
-		spark_sections[i].addEventListener("drop", handle_drop);
-	}
+	document.addEventListener("pointerdown", handle_dragstart);
 }
 
-function is_draggable(element)
+function find_target(base_target)
 {
-	const classList = element.classList;
-	return (classList.contains("spark-image") && classList.contains("clickable")) || classList.contains("spark-result");
+	// for pointer events,
+	// event.target sometimes catch the underlying image
+	return (
+		base_target.classList.contains("spark-image") ?
+		base_target :
+		(
+			base_target.classList.contains("spark-result-img") ?
+			base_target.parentNode : // catch the parent div
+			base_target
+		)
+	);
 }
 
 function handle_dragstart(event)
 {
-	if(!is_draggable(event.target))
+	if(drag_state) // don't start if already on going
+		return;
+	const target = find_target(event.target);
+	if(target.spark_draggable !== true)
 		return;
 	if(canvas_state > 0) // if canvas processing
 	{
@@ -374,15 +381,17 @@ function handle_dragstart(event)
 	}
 	else
 	{
-		event.dataTransfer.setData("custom-drag-event", "");
-		event.dataTransfer.effectAllowed = "move";
-		const section = event.target.closest(".spark-section");
-		drag_is_complete = false;
-		drag_id = event.target.dataset.id;
-		if(section) // the user is dragging from one of the three spark result sections
+		// get and check id
+		drag_id = target.dataset.id;
+		if(!(drag_id in items))
+			return;
+		// check if the user is dragging from one of the three spark result sections
+		const section = target.closest(".spark-section");
+		if(section)
 		{
-			drag_original_div = event.target;
-			drag_is_spark = event.target.classList.contains("sparked");
+			// store the neccesary info
+			drag_original_div = target;
+			drag_is_spark = target.classList.contains("sparked");
 			let mode;
 			switch(section.id)
 			{
@@ -393,69 +402,25 @@ function handle_dragstart(event)
 			}
 			drag_mode = mode;
 			drag_position = Array.from(section.children).indexOf(drag_original_div);
-
-			const img = items[drag_id];
-			if(!img)
-				return;
-			// hide the element that's being dragged and create a placeholder in its place
-			setTimeout(function() {
-				// need to use setTimeout here because otherwise the dragged image isn't displayed correctly
-				drag_original_div.style.display = "none";
-				drag_placeholder_div = add_image_result_spark(mode, drag_id, img, drag_position);
-				drag_placeholder_div.classList.add("placeholder");
-				if(drag_is_spark)
-					add_spark(drag_placeholder_div);
-				update_rate(false);
-			}, 0);
+			// the rest of the initializaion is done in update_drag_state()
 		}
 		else // the user is dragging from the select filter
 		{
 			// do nothing
 		}
+		// set state
+		drag_state = 1;
+		drag_is_complete = false;
+		drag_coords.x = event.clientX;
+		drag_coords.y = event.clientY;
+		drag_ghost = null;
+		// enable listeners
+		document.addEventListener("pointermove", handle_dragmove);
+		document.addEventListener("pointerup", handle_dragend);
 	}
 }
 
-function handle_dragend(event)
-{
-	if(!is_valid_drag_event(event))
-		return;
-	if(drag_placeholder_div)
-	{
-		lists[drag_mode].splice(drag_position, 1);
-		drag_placeholder_div.remove();
-		drag_placeholder_div = null;
-	}
-	if(drag_original_div)
-	{
-		if(drag_is_complete)
-		{
-			remove_image_result_spark(drag_original_div);
-		}
-		else
-		{
-			drag_original_div.style.display = null;
-			update_rate(false);
-		}
-		spark_save_settings();
-	}
-	drag_coords = {x:0, y:0};
-	drag_original_div = null;
-	drag_placeholder_div = null;
-	drag_id = null;
-	drag_is_spark = null;
-	drag_mode = null;
-	drag_position = null;
-	for(let i = 0; i < spark_sections.length; ++i)
-	{
-		spark_sections[i].classList.remove("spark-section-highlight");
-	}
-}
-
-function is_valid_drag_event(event)
-{
-	return event.dataTransfer.types.includes("custom-drag-event");
-}
-
+// find position in index from pointer coordinate
 function find_position(section, event)
 {
 	const children = section.children;
@@ -472,13 +437,27 @@ function find_position(section, event)
 	return position;
 }
 
+// return the section we're hovering, or null
+function find_section(event)
+{
+	if(drag_ghost)
+		drag_ghost.style.display = 'none';
+    const targetBelow = document.elementFromPoint(event.clientX, event.clientY);
+	if(drag_ghost)
+		drag_ghost.style.display = null;
+    if(!targetBelow)
+		return null;
+    return targetBelow.closest(".spark-section");
+}
+
+// queue an event for processing
 function queue_drag_state(event)
 {
 	const event_pending = drag_event != null;
 	drag_event = event;
 	if(!event_pending)
 	{
-		// only process the last event at the next frame
+		// only process the last received event at the next frame
 		requestAnimationFrame(() => {
 			const ev = drag_event;
 			drag_event = null;
@@ -490,56 +469,126 @@ function queue_drag_state(event)
 	}
 }
 
+// processing the event
 function update_drag_state(event)
 {
+	switch(drag_state)
+	{
+		case 1: // drag initialization
+		{
+			// check how much we moved since click down
+			const delta = {
+				x: event.clientX - drag_coords.x,
+				y: event.clientY == drag_coords.y
+			};
+			// check for accidental drags
+			// by looking for a movement of more than 5px
+			if(delta.x * delta.x + delta.y * delta.y > 25)
+			{
+				// initialize dragging
+				drag_state = 2;
+				// create ghost
+				// don't clone, in case the img isn't loaded
+				drag_ghost = document.createElement("img");
+				drag_ghost.src = items[drag_id].src;
+				drag_ghost.classList.add("spark-drag-ghost");
+				document.body.appendChild(drag_ghost);
+				// hide initial div and create placeholder
+				if(drag_original_div)
+				{
+					const img = items[drag_id];
+					drag_original_div.style.display = "none";
+					drag_placeholder_div = add_image_result_spark(drag_mode, drag_id, img, drag_position);
+					drag_placeholder_div.classList.add("placeholder");
+					if(drag_is_spark)
+						add_spark(drag_placeholder_div);
+					update_rate(false);
+				}
+			}
+			else return;
+		}
+		case 0: // not dragging
+		{
+			return;
+		}
+	}
 	if(!event.clientX && !event.clientY)
 		return;
 	// only update if moved
 	if(event.clientX == drag_coords.x && event.clientY == drag_coords.y)
 		return;
+	// update coordinates
 	drag_coords.x = event.clientX;
 	drag_coords.y = event.clientY;
-	
-	const section = event.target.closest(".spark-section");
+	if(drag_ghost) // use gpu via translate to avoid layout recalcul
+		drag_ghost.style.transform = `translate(${drag_coords.x - 52}px, ${drag_coords.y - 30}px)`;
+	const target = find_target(event.target);
+	let section = find_section(event);
+	const img = items[drag_id];
 	let mode;
-	switch(section.id)
+	if(section)
 	{
-		case "spark-npc": mode = NPC; break;
-		case "spark-moon": mode = MOON; break;
-		case "spark-summon": mode = STONE; break;
-		default: return;
+		switch(section.id)
+		{
+			case "spark-npc": mode = NPC; break;
+			case "spark-moon": mode = MOON; break;
+			case "spark-summon": mode = STONE; break;
+			default: return;
+		}
 	}
+	// check if the targeted section is valid
+	if(!img || !is_valid_mode(drag_id, mode, img.gbtype))
+		section = null;
+	if(section == null)
+	{
+		// if not, remove hightlight and placeholder
+		for(const s of spark_sections)
+		{
+			s.classList.toggle("spark-section-highlight", false);
+		}
+		if(drag_placeholder_div)
+		{
+			lists[drag_mode].splice(drag_position, 1);
+			drag_placeholder_div.remove();
+			drag_placeholder_div = null;
+			drag_mode = -1;
+			drag_position = -1;
+		}
+		return;
+	}
+	// find position
 	const position = find_position(section, event);
+	// and check if it changed
 	if(drag_mode === mode && drag_position === position)
 		return;
+	// add the highlight
 	for(const s of spark_sections)
 	{
 		s.classList.toggle("spark-section-highlight", s == section);
 	}
+	// remove previous placeholder
 	if(drag_placeholder_div)
 	{
 		lists[drag_mode].splice(drag_position, 1);
 		drag_placeholder_div.remove();
 		drag_placeholder_div = null;
 	}
+	// update mode and position
 	drag_mode = mode;
 	drag_position = position;
-	if(is_valid_mode(drag_id, mode, items[drag_id].gbtype))
-	{
-		const img = items[drag_id];
-		if(!img)
-			return;
-		drag_placeholder_div = add_image_result_spark(mode, drag_id, img, drag_position);
-		drag_placeholder_div.classList.add("placeholder");
-		if(drag_is_spark)
-			add_spark(drag_placeholder_div);
-		update_rate(false);
-	}
+	// set new placeholder
+	drag_placeholder_div = add_image_result_spark(mode, drag_id, img, drag_position);
+	drag_placeholder_div.classList.add("placeholder");
+	if(drag_is_spark)
+		add_spark(drag_placeholder_div);
+	update_node(mode);
+	update_rate(false);
 }
 
-function handle_dragover(event)
+// triggered when moving the mouse
+function handle_dragmove(event)
 {
-	if(!is_valid_drag_event(event))
+	if(!drag_state)
 		return;
 	if(canvas_state > 0) // if canvas processing
 	{
@@ -549,75 +598,86 @@ function handle_dragover(event)
 	queue_drag_state(event);
 }
 
-function handle_dragenter(event)
+// triggered when releasing the mouse
+function handle_dragend(event)
 {
-	if(!is_valid_drag_event(event))
+	if(drag_state == 0)
 		return;
-	if(event.currentTarget.contains(event.relatedTarget))
-		return;
-	queue_drag_state(event);
-}
-
-function handle_dragleave(event)
-{
-	if(!is_valid_drag_event(event))
-		return;
-	if(event.currentTarget.contains(event.relatedTarget))
-		return;
-	queue_drag_state(event);
-}
-
-function handle_drop(event)
-{
-	if(!is_valid_drag_event(event))
-		return;
-	if(canvas_state > 0) // if canvas processing
+	if(drag_ghost)
+		drag_ghost.remove();
+	// flag to check if we dragging went through
+	const process_drag = canvas_state == 0 && drag_state == 2;
+	// remove listeners
+	document.removeEventListener("pointermove", handle_dragmove);
+	document.removeEventListener("pointerup", handle_dragend);
+	if(process_drag && drag_mode != -1)
 	{
-		push_popup("Wait for the image to be processed");
-	}
-	else
-	{
-		// force process last event
-		if(drag_event != null)
-		{
-			const ev = drag_event;
-			drag_event = null;
-			update_drag_state(ev);
-		}
-		const section = event.target.closest(".spark-section");
-		section.classList.remove("spark-section-highlight");
-		queue_drag_state(event);
+		// force process the queued last event
+		drag_event = null;
+		update_drag_state(event);
 		const img = items[drag_id];
-		if(!img)
-			return;
-
-		if(!is_valid_mode(drag_id, drag_mode, img.gbtype))
-			return;
-
-		if(drag_placeholder_div)
+		if(img)
 		{
-			lists[drag_mode].splice(drag_position, 1);
-			drag_placeholder_div.remove();
-			drag_placeholder_div = null;
+			// check validity and add to list
+			if(is_valid_mode(drag_id, drag_mode, img.gbtype))
+			{
+				const div = add_image_result_spark(drag_mode, drag_id, img, drag_position);
+				if(drag_is_spark)
+				{
+					add_spark(div);
+				}
+				drag_is_complete = true;
+			}
 		}
-
-		beep();
-		const div = add_image_result_spark(drag_mode, drag_id, img, drag_position);
-		if(drag_is_spark)
-			add_spark(div);
-		update_rate(false);
-		spark_save_settings();
-		drag_is_complete = true;
 	}
+	// remove placeholder
+	if(drag_placeholder_div)
+	{
+		lists[drag_mode].splice(drag_position, 1);
+		drag_placeholder_div.remove();
+		drag_placeholder_div = null;
+	}
+	// remove or restore original div
+	if(drag_original_div)
+	{
+		if(drag_is_complete || drag_mode == -1)
+		{
+			remove_image_result_spark(drag_original_div);
+			drag_is_complete = true; // for the beep below
+		}
+		else
+		{
+			drag_original_div.style.display = null;
+		}
+	}
+	if(drag_is_complete)
+		beep();
+	// reset everything else
+	drag_state = 0;
+	drag_coords = {x:0, y:0};
+	drag_original_div = null;
+	drag_placeholder_div = null;
+	drag_id = null;
+	drag_is_spark = null;
+	drag_mode = null;
+	drag_position = null;
+	for(let i = 0; i < spark_sections.length; ++i)
+	{
+		spark_sections[i].classList.remove("spark-section-highlight");
+	}
+	// update and save
+	update_all();
+	update_rate(false);
+	spark_save_settings();
 }
 
 function update_all() // update all three columns
 {
 	clearTimeout(resize_timer);
 	resize_timer = null;
-	update_node(NPC, false);
-	update_node(MOON, false);
-	update_node(STONE, false);
+	update_node(NPC);
+	update_node(MOON);
+	update_node(STONE);
 }
 
 function count_visible_nodes(list)
@@ -630,7 +690,7 @@ function count_visible_nodes(list)
 	return count;
 }
 
-function update_node(mode, addition) // update spark column
+function update_node(mode) // update spark column
 {
 	let node;
 	switch(mode)
@@ -646,16 +706,7 @@ function update_node(mode, addition) // update spark column
 	// get node size
 	const nw = node.offsetWidth - 5;
 	const nh = node.offsetHeight - 5;
-	let current_size;
-	if(addition) // get last size if we just added a new element
-	{
-		current_size = sizes[mode];
-	}
-	if(current_size == null)
-	{
-		current_size = DEFAULT_SIZE; // get default size otherwise
-		sizes[mode] = null;
-	}
+	let current_size = DEFAULT_SIZE; // get default size otherwise
 	let changed = false;
 	const visibleNodesCount = count_visible_nodes(node.childNodes);
 	while(true)
@@ -666,15 +717,18 @@ function update_node(mode, addition) // update spark column
 		{
 			break;
 		}
-		sizes[mode] = [current_size[0]*0.9, current_size[1]*0.9]; // else, reduce size by 10% and try again
-		current_size = sizes[mode];
+		// else, reduce size by 10% and try again
+		current_size = [
+			current_size[0] * 0.9,
+			current_size[1] * 0.9
+		];
 		changed = true;
 	}
 	if(changed) // if size changed
 	{
 		for(let i = 0; i < node.childNodes.length; ++i) // resize all elements
 		{
-			if(sizes[mode] == null)
+			if(current_size == null)
 			{
 				node.childNodes[i].style.minWidth = null;
 				node.childNodes[i].style.minHeight = null;
@@ -683,10 +737,10 @@ function update_node(mode, addition) // update spark column
 			}
 			else
 			{
-				node.childNodes[i].style.minWidth = "" + Math.max(1, sizes[mode][0]) + "px"; // min needed for mobile
-				node.childNodes[i].style.minHeight = "" + Math.max(1, sizes[mode][1]) + "px";
-				node.childNodes[i].style.maxWidth = "" + Math.max(1, sizes[mode][0]) + "px";
-				node.childNodes[i].style.maxHeight = "" + Math.max(1, sizes[mode][1]) + "px";
+				node.childNodes[i].style.minWidth = "" + Math.max(1, current_size[0]) + "px"; // min needed for mobile
+				node.childNodes[i].style.minHeight = "" + Math.max(1, current_size[1]) + "px";
+				node.childNodes[i].style.maxWidth = "" + Math.max(1, current_size[0]) + "px";
+				node.childNodes[i].style.maxHeight = "" + Math.max(1, current_size[1]) + "px";
 			}
 		}
 	}
