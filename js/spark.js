@@ -220,17 +220,20 @@ function add_image_spark(node, data) // add an image to the selector
 	return img;
 }
 
-function remove_image_result_spark(mode, div) // remove image from the spark result
+function remove_image_result_spark(div) // remove image from the spark result
 {
-	for(let i = 0; i < lists[mode].length; ++i) // look for it and remove
+	for(let mode = 0; mode < COUNT; ++mode)
 	{
-		if(div === lists[mode][i][1])
+		for(let i = 0; i < lists[mode].length; ++i) // look for it and remove
 		{
-			lists[mode].splice(i, 1);
+			if(div === lists[mode][i][1])
+			{
+				lists[mode].splice(i, 1);
+				div.remove();
+				update_node(mode, false);
+			}
 		}
 	}
-	div.remove();
-	update_node(mode, false);
 }
 
 function add_image_result_spark(mode, id, base_img, position) // add image to the spark result
@@ -265,7 +268,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 			}
 			else
 			{
-				remove_image_result_spark(cmode, this);
+				remove_image_result_spark(this);
 			}
 			spark_save_settings();
 		}
