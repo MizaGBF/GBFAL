@@ -173,6 +173,7 @@ function add_image_spark(node, data) // add an image to the selector
 {
 	let img = document.createElement("img");
 	img.title = data.id;
+	img.dataset.id = data.id;
 	img.classList.add("loading");
 	img.classList.add("spark-image");
 	img.setAttribute('loading', 'lazy');
@@ -227,6 +228,7 @@ function add_image_result_spark(mode, id, base_img) // add image to the spark re
 		default: return;
 	}
 	let div = document.createElement("div");
+	div.dataset.id = id;
 	div.classList.add("spark-result");
 	div.draggable = true;
 	const cmode = mode;
