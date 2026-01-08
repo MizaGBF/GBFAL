@@ -472,6 +472,8 @@ function find_position(section, event)
 
 function update_drag_state(event)
 {
+	if(!event.clientX && !event.clientY)
+		return;
 	const section = event.target.closest(".spark-section");
 	let mode;
 	switch(section.id)
