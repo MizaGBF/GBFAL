@@ -120,11 +120,10 @@ function is_summon(cid)
 
 function is_valid_mode(cid, mode, gbtype)
 {
-	if(gbtype == GBFType.summon && mode != STONE)
-		return false;
-	if(gbtype != GBFType.summon && mode == STONE)
-		return false;
-	return true;
+	return (
+		(gbtype == GBFType.summon && mode == STONE) ||
+		(gbtype != GBFType.summon && mode != STONE)
+	);
 }
 
 function set_spark_list()
