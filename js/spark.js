@@ -12,7 +12,6 @@ const NPC = 0;
 const MOON = 1;
 const STONE = 2;
 const COUNT = 3;
-const HEIGHT = 50;
 const DEFAULT_SIZE = [140, 80];
 var resize_timer = null;
 // image generation
@@ -119,11 +118,6 @@ function open_spark_tab(tabName) // reset and then select a tab
 function default_onerror() // overwrite definition
 {
 	this.remove();
-}
-
-function is_summon(cid)
-{
-	return cid.startsWith("20");
 }
 
 function is_valid_mode(cid, mode, gbtype)
@@ -479,7 +473,7 @@ function update_drag_state(event)
 			// check how much we moved since click down
 			const delta = {
 				x: event.clientX - drag_coords.x,
-				y: event.clientY == drag_coords.y
+				y: event.clientY - drag_coords.y
 			};
 			// check for accidental drags
 			// by looking for a movement of more than 5px
