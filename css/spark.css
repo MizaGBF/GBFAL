@@ -92,7 +92,11 @@ td {
 }
 
 .spark-section-highlight {
-	border-color: #ffffff;
+	background-color: #0000ff0d;
+}
+
+.spark-section-highlight-enabled {
+	background-color: #00ff000d;
 }
 
 .spark-ui-container {

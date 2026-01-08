@@ -498,6 +498,16 @@ function update_drag_state(event)
 						add_spark(drag_placeholder_div);
 					update_rate(false);
 				}
+				// add the highlight
+				let drag_highlight_range = (
+					items[drag_id].gbtype == GBFType.summon ?
+					[2, 3] :
+					[0, 2]
+				);
+				for(let i = drag_highlight_range[0]; i < drag_highlight_range[1]; ++i)
+				{
+					spark_sections[i].classList.toggle("spark-section-highlight", true);
+				}
 			}
 			else return;
 		}
@@ -535,10 +545,10 @@ function update_drag_state(event)
 		section = null;
 	if(section == null)
 	{
-		// if not, remove hightlight and placeholder
+		// if not, remove highlight and placeholder
 		for(const s of spark_sections)
 		{
-			s.classList.toggle("spark-section-highlight", false);
+			s.classList.toggle("spark-section-highlight-enabled", false);
 		}
 		if(drag_placeholder_div)
 		{
@@ -558,7 +568,7 @@ function update_drag_state(event)
 	// add the highlight
 	for(const s of spark_sections)
 	{
-		s.classList.toggle("spark-section-highlight", s == section);
+		s.classList.toggle("spark-section-highlight-enabled", s == section);
 	}
 	// remove previous placeholder
 	if(drag_placeholder_div)
@@ -658,7 +668,8 @@ function handle_dragend(event)
 	drag_position = null;
 	for(let i = 0; i < spark_sections.length; ++i)
 	{
-		spark_sections[i].classList.remove("spark-section-highlight");
+		spark_sections[i].classList.toggle("spark-section-highlight", false);
+		spark_sections[i].classList.toggle("spark-section-highlight-enabled", false);
 	}
 	// update and save
 	update_all();
