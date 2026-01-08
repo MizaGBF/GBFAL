@@ -105,6 +105,11 @@ function default_onerror() // overwrite definition
 	this.remove();
 }
 
+function is_summon(cid)
+{
+	return cid.startsWith("20");
+}
+
 function set_spark_list()
 {
 	// for each characters
@@ -178,7 +183,7 @@ function add_image_spark(node, data) // add an image to the selector
 		};
 	}
 	else img.onerror = data.onerr;
-	const isSummon = data.id.startsWith("20");
+	const isSummon = is_summon(data.id);
 	const cid = data.id;
 	img.onload = function() {
 		this.classList.remove("loading");
