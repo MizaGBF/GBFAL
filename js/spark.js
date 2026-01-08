@@ -19,6 +19,8 @@ const HEADERS = ["assets/spark/gem.jpg", "assets/spark/moon.jpg", "assets/spark/
 var canvas = null; // contains last canvas
 var canvas_state = 0; // 0 = not running, 1 = running, 2 = error
 var canvas_wait = 0; // used to track pending loadings
+var drag_id = null; // the ID of the character or summon that is being dragged
+var drag_is_spark = null; // whether the dragged element is sparked or not
 
 var jukebox = null;
 
@@ -28,6 +30,7 @@ function init() // entry point, called by body onload
 	fetchJSON("json/changelog.json?" + timestamp).then((value) => {
 		load(value);
 	});
+	init_drag_and_drop();
 }
 
 function load(changelog)
@@ -303,6 +306,99 @@ addEventListener("resize", (event) => { // capture window resize event and call 
 		clearTimeout(resize_timer);
 	resize_timer = setTimeout(update_all, 300);
 });
+
+function init_drag_and_drop()
+{
+	addEventListener("dragstart", handle_dragstart);
+	addEventListener("dragend", handle_dragend);
+
+	const sections = document.querySelectorAll(".spark-section");
+	for(let i = 0; i < sections.length; ++i)
+	{
+		sections[i].addEventListener("dragover", handle_dragover);
+		sections[i].addEventListener("drop", handle_drop);
+	}
+}
+
+function is_draggable(element)
+{
+	const classList = element.classList;
+	return (classList.contains("spark-image") && classList.contains("clickable")) || classList.contains("spark-result");
+}
+
+function handle_dragstart(event)
+{
+	if(!is_draggable(event.target)) return;
+	if(canvas_state > 0) // if canvas processing
+	{
+		push_popup("Wait for the image to be processed");
+	}
+	else
+	{
+		event.dataTransfer.setData("custom-drag-event", "");
+		event.dataTransfer.effectAllowed = "move";
+		drag_id = event.target.dataset.id;
+		drag_is_spark = event.target.classList.contains("sparked");
+	}
+}
+
+function handle_dragend(event)
+{
+	if(!is_valid_drag_event(event)) return;
+	drag_id = null;
+	drag_is_spark = null;
+}
+
+function is_valid_drag_event(event)
+{
+	return event.dataTransfer.types.includes("custom-drag-event");
+}
+
+function handle_dragover(event)
+{
+	if(!is_valid_drag_event(event)) return;
+	if(canvas_state > 0) // if canvas processing
+	{
+		push_popup("Wait for the image to be processed");
+	}
+	else
+	{
+		event.preventDefault();
+	}
+}
+
+function handle_drop(event)
+{
+	if(!is_valid_drag_event(event)) return;
+	if(canvas_state > 0) // if canvas processing
+	{
+		push_popup("Wait for the image to be processed");
+	}
+	else
+	{
+		const section = event.target.closest(".spark-section");
+		let mode;
+		switch(section.id)
+		{
+			case "spark-npc": mode = NPC; break;
+			case "spark-moon": mode = MOON; break;
+			case "spark-summon": mode = STONE; break;
+			default: return;
+		}
+		const img = items[drag_id];
+		if(!img) return;
+
+		const isSummon = is_summon(drag_id);
+		if(isSummon && mode != STONE) return;
+		if(!isSummon && mode == STONE) return;
+
+		beep();
+		const div = add_image_result_spark(mode, drag_id, img);
+		if(drag_is_spark)
+			add_spark(div);
+		spark_save_settings();
+	}
+}
 
 function update_all() // update all three columns
 {
