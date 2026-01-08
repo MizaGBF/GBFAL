@@ -318,18 +318,27 @@ addEventListener("resize", (event) => { // capture window resize event and call 
 	resize_timer = setTimeout(update_all, 300);
 });
 
-function init_drag_and_drop()
+function init_drag()
 {
 	addEventListener("dragstart", handle_dragstart);
 	addEventListener("dragend", handle_dragend);
+}
 
+function init_drop(element)
+{
+	element.addEventListener("dragover", handle_dragover);
+	element.addEventListener("dragenter", handle_dragenter);
+	element.addEventListener("dragleave", handle_dragleave);
+	element.addEventListener("drop", handle_drop);
+}
+
+function init_drag_and_drop()
+{
+	init_drag();
 	const sections = document.querySelectorAll(".spark-section");
 	for(let i = 0; i < sections.length; ++i)
 	{
-		sections[i].addEventListener("dragover", handle_dragover);
-		sections[i].addEventListener("dragenter", handle_dragenter);
-		sections[i].addEventListener("dragleave", handle_dragleave);
-		sections[i].addEventListener("drop", handle_drop);
+		init_drop(sections[i]);
 	}
 }
 
