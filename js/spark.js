@@ -220,7 +220,7 @@ function add_image_spark(node, data) // add an image to the selector
 	return img;
 }
 
-function add_image_result_spark(mode, id, base_img) // add image to the spark result
+function add_image_result_spark(mode, id, base_img, position) // add image to the spark result
 {
 	let node;
 	switch(mode)
@@ -271,8 +271,11 @@ function add_image_result_spark(mode, id, base_img) // add image to the spark re
 	img.src = base_img.src;
 	img.onerror = base_img.onerror;
 	div.appendChild(img);
-	node.appendChild(div);
-	lists[mode].push([id, div]);
+
+	if(position === undefined) position = lists[mode].length;
+	node.insertBefore(div, node.children[position]);
+	lists[mode].splice(position, 0, [id, div]);
+
 	update_node(mode, true);
 	return div;
 }
