@@ -501,6 +501,7 @@ function update_drag_state(event)
 					if(drag_is_spark)
 						add_spark(drag_placeholder_div);
 					update_rate(false);
+					// note: No need for update_node()
 				}
 				// add the highlight
 				let drag_highlight_range = (
@@ -559,6 +560,7 @@ function update_drag_state(event)
 			lists[drag_mode].splice(drag_position, 1);
 			drag_placeholder_div.remove();
 			drag_placeholder_div = null;
+			update_node(drag_mode);
 			drag_mode = -1;
 			drag_position = -1;
 		}
@@ -580,6 +582,7 @@ function update_drag_state(event)
 		lists[drag_mode].splice(drag_position, 1);
 		drag_placeholder_div.remove();
 		drag_placeholder_div = null;
+		update_node(drag_mode);
 	}
 	// update mode and position
 	drag_mode = mode;
@@ -589,7 +592,7 @@ function update_drag_state(event)
 	drag_placeholder_div.classList.add("placeholder");
 	if(drag_is_spark)
 		add_spark(drag_placeholder_div);
-	update_node(mode);
+	update_node(drag_mode);
 	update_rate(false);
 }
 
