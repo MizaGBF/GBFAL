@@ -316,6 +316,8 @@ function init_drag_and_drop()
 	for(let i = 0; i < sections.length; ++i)
 	{
 		sections[i].addEventListener("dragover", handle_dragover);
+		sections[i].addEventListener("dragenter", handle_dragenter);
+		sections[i].addEventListener("dragleave", handle_dragleave);
 		sections[i].addEventListener("drop", handle_drop);
 	}
 }
@@ -367,6 +369,22 @@ function handle_dragover(event)
 	}
 }
 
+function handle_dragenter(event)
+{
+	if(!is_valid_drag_event(event)) return;
+	if(event.currentTarget.contains(event.relatedTarget)) return;
+	const section = event.target.closest(".spark-section");
+	section.classList.add("spark-section-highlight");
+}
+
+function handle_dragleave(event)
+{
+	if(!is_valid_drag_event(event)) return;
+	if(event.currentTarget.contains(event.relatedTarget)) return;
+	const section = event.target.closest(".spark-section");
+	section.classList.remove("spark-section-highlight");
+}
+
 function handle_drop(event)
 {
 	if(!is_valid_drag_event(event)) return;
@@ -377,6 +395,7 @@ function handle_drop(event)
 	else
 	{
 		const section = event.target.closest(".spark-section");
+		section.classList.remove("spark-section-highlight");
 		let mode;
 		switch(section.id)
 		{
