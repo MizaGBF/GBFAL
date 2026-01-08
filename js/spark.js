@@ -601,6 +601,8 @@ function handle_dragmove(event)
 {
 	if(!drag_state)
 		return;
+	if(!(event.target instanceof HTMLElement))
+		return;
 	if(canvas_state > 0) // if canvas processing
 	{
 		return;
