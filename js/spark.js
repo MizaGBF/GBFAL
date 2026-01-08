@@ -383,19 +383,23 @@ function handle_dragstart(event)
 		const section = target.closest(".spark-section");
 		if(section)
 		{
-			// store the neccesary info
-			drag_original_div = target;
-			drag_is_spark = target.classList.contains("sparked");
-			let mode;
-			switch(section.id)
+			// if ctrlKey is pressed, we make a new element instead
+			if(!event.ctrlKey)
 			{
-				case "spark-npc": mode = NPC; break;
-				case "spark-moon": mode = MOON; break;
-				case "spark-summon": mode = STONE; break;
-				default: return;
+				// store the neccesary info
+				drag_original_div = target;
+				drag_is_spark = target.classList.contains("sparked");
+				let mode;
+				switch(section.id)
+				{
+					case "spark-npc": mode = NPC; break;
+					case "spark-moon": mode = MOON; break;
+					case "spark-summon": mode = STONE; break;
+					default: return;
+				}
+				drag_mode = mode;
+				drag_position = Array.from(section.children).indexOf(drag_original_div);
 			}
-			drag_mode = mode;
-			drag_position = Array.from(section.children).indexOf(drag_original_div);
 			// the rest of the initializaion is done in update_drag_state()
 		}
 		else // the user is dragging from the select filter
