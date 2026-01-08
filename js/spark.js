@@ -228,6 +228,7 @@ function add_image_result_spark(mode, id, base_img) // add image to the spark re
 	}
 	let div = document.createElement("div");
 	div.classList.add("spark-result");
+	div.draggable = true;
 	const cmode = mode;
 	div.onclick = function()
 	{
@@ -260,6 +261,7 @@ function add_image_result_spark(mode, id, base_img) // add image to the spark re
 		}
 	};
 	let img = document.createElement("img");
+	img.draggable = false;
 	img.classList.add("spark-result-img");
 	img.src = base_img.src;
 	img.onerror = base_img.onerror;
@@ -282,6 +284,7 @@ function add_spark(div) // add spark icon
 	let img = document.createElement("img");
 	img.classList.add("spark-icon");
 	img.src = "assets/spark/spark.png";
+	img.draggable = false;
 	div.appendChild(img);
 	div.classList.add("sparked");
 }
