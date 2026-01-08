@@ -149,6 +149,10 @@ td {
 	animation: spark-img-fadein .5s;
 }
 
+.spark-result.placeholder {
+	opacity: 50%;
+}
+
 .spark-result-img {
 	display: block;
 	min-width: 100%;
