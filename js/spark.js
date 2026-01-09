@@ -616,6 +616,7 @@ function handle_dragend(event)
 		return;
 	if(drag_ghost)
 		drag_ghost.remove();
+	drag_ghost = null;
 	// flag to check if we dragging went through
 	const process_drag = canvas_state == 0 && drag_state == 2;
 	// remove listeners
