@@ -145,6 +145,7 @@ td {
 .spark-select {
 	width: 100%;
 	height: calc((100% - 52px * 2)* 0.25);
+	overflow-x: hidden;
 	overflow-y: scroll;
 	contain: strict;
 }
