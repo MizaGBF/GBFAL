@@ -322,6 +322,7 @@ function add_spark(div) // add spark icon
 		return;
 	let img = document.createElement("img");
 	img.classList.add("spark-icon");
+	img.draggable = false;
 	img.src = "assets/spark/spark.png";
 	div.appendChild(img);
 	div.classList.add("sparked");
@@ -355,7 +356,10 @@ function find_target(base_target)
 		base_target.classList.contains("spark-image") ?
 		base_target :
 		(
-			base_target.classList.contains("spark-result-img") ?
+			(
+				base_target.classList.contains("spark-result-img") ||
+				base_target.classList.contains("spark-icon")
+			) ?
 			base_target.parentNode : // catch the parent div
 			base_target
 		)
