@@ -490,6 +490,7 @@ function update_drag_state(event)
 				drag_ghost = document.createElement("img");
 				drag_ghost.src = items[drag_id].src;
 				drag_ghost.classList.add("spark-drag-ghost");
+				drag_ghost.style.transform = `translate(${event.clientX - 52}px, ${event.clientY - 30}px)`;
 				document.body.appendChild(drag_ghost);
 				// hide initial div and create placeholder
 				if(drag_original_div)
@@ -600,6 +601,8 @@ function update_drag_state(event)
 function handle_dragmove(event)
 {
 	if(!drag_state)
+		return;
+	if(!(event.target instanceof HTMLElement))
 		return;
 	if(canvas_state > 0) // if canvas processing
 	{
