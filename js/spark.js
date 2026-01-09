@@ -371,7 +371,7 @@ function handle_dragstart(event)
 	if(drag_state) // don't start if already on going
 		return;
 	const target = find_target(event.target);
-	if(target.spark_draggable !== true)
+	if(target.spark_draggable !== true || target.classList.contains("loading"))
 		return;
 	if(canvas_state > 0) // if canvas processing
 	{
