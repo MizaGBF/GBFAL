@@ -346,7 +346,7 @@ function init_drag_and_drop()
 {
 	// general drag events
 	document.addEventListener("pointerdown", handle_dragstart);
-	document.addEventListener("pointercancel", handle_dragend);
+	document.addEventListener("pointercancel", (event) => {handle_dragend(event, false)});
 }
 
 function find_target(base_target)
@@ -621,7 +621,7 @@ function handle_dragmove(event)
 }
 
 // triggered when releasing the mouse
-function handle_dragend(event)
+function handle_dragend(event, allow_beep = true)
 {
 	if(drag_state == 0)
 		return;
@@ -674,7 +674,7 @@ function handle_dragend(event)
 			drag_original_div.style.display = null;
 		}
 	}
-	if(drag_is_complete)
+	if(drag_is_complete && allow_beep)
 		beep();
 	// reset everything else
 	drag_state = 0;
