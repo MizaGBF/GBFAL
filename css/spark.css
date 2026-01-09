@@ -42,6 +42,9 @@
 	box-sizing: border-box;
 	content-visibility: auto-pointer-events; 
     contain-intrinsic-size: 80px;
+	/* related to dragging feature */
+	touch-action: pan-y;
+    -webkit-user-drag: none;
 }
 
 #spark-main {

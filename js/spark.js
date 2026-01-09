@@ -346,6 +346,7 @@ function init_drag_and_drop()
 {
 	// general drag events
 	document.addEventListener("pointerdown", handle_dragstart);
+	document.addEventListener("pointercancel", handle_dragend);
 }
 
 function find_target(base_target)
@@ -606,13 +607,16 @@ function handle_dragmove(event)
 {
 	if(!drag_state)
 		return;
+	if(event.cancelable)
+	{
+        event.preventDefault();
+    }
 	if(!(event.target instanceof HTMLElement))
 		return;
 	if(canvas_state > 0) // if canvas processing
 	{
 		return;
 	}
-	event.preventDefault();
 	queue_drag_state(event);
 }
 
