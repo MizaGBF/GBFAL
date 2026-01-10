@@ -9,7 +9,6 @@
 	/* disable selection for performance */
 	user-select: none;
     -webkit-user-select: none;
-	touch-action: none;
 }
 
 .spark-manual {
@@ -162,6 +161,7 @@ td {
 	position: relative;
 	-webkit-animation: spark-img-fadein .5s;
 	animation: spark-img-fadein .5s;
+	touch-action: none;
 }
 
 .spark-drag-ghost {
