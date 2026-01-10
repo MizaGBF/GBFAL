@@ -335,10 +335,10 @@ function remove_spark(div) // remove spark icon
 	div.classList.remove("sparked");
 }
 
-addEventListener("resize", (event) => { // capture window resize event and call update_all() (after 300ms)
+addEventListener("resize", (event) => { // capture window resize event and call update_all_spark_result_size() (after 300ms)
 	if(resize_timer != null)
 		clearTimeout(resize_timer);
-	resize_timer = setTimeout(update_all, 300);
+	resize_timer = setTimeout(update_all_spark_result_size, 300);
 });
 
 function init_drag_and_drop()
@@ -666,7 +666,7 @@ function handle_dragend(event, allow_beep = true)
 		beep();
 	handle_dragstop();
 	// update and save
-	update_all();
+	update_all_spark_result_size();
 	update_rate(false);
 	spark_save_settings();
 }
@@ -702,7 +702,7 @@ function handle_dragstop()
 	}
 }
 
-function update_all() // update all three columns
+function update_all_spark_result_size() // update all three columns
 {
 	clearTimeout(resize_timer);
 	resize_timer = null;
@@ -845,7 +845,7 @@ function spark_clear() // clear everything
 		node.innerHTML = "";
 	}
 	document.getElementById("spark-roll-input").value = 300;
-	update_all();
+	update_all_spark_result_size();
 	update_rate(false);
 }
 
