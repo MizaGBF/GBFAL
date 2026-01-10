@@ -247,7 +247,7 @@ function remove_image_result_spark(div) // remove image from the spark result
 			{
 				lists[mode].splice(i, 1);
 				div.remove();
-				update_node(mode);
+				update_spark_result_size(mode);
 				return;
 			}
 		}
@@ -305,7 +305,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 	node.insertBefore(div, node.children[position]);
 	lists[mode].splice(position, 0, [id, div]);
 
-	update_node(mode);
+	update_spark_result_size(mode);
 	return div;
 }
 
@@ -443,7 +443,7 @@ function handle_draginit(event)
 		if(drag_is_spark)
 			add_spark(drag_placeholder_div);
 		update_rate(false);
-		// note: No need for update_node()
+		// note: No need for update_spark_result_size()
 	}
 	// add the highlight
 	let drag_highlight_range = (
@@ -550,7 +550,7 @@ function update_drag_state(event)
 			lists[drag_mode].splice(drag_position, 1);
 			drag_placeholder_div.remove();
 			drag_placeholder_div = null;
-			update_node(drag_mode);
+			update_spark_result_size(drag_mode);
 			drag_mode = -1;
 			drag_position = -1;
 		}
@@ -572,7 +572,7 @@ function update_drag_state(event)
 		lists[drag_mode].splice(drag_position, 1);
 		drag_placeholder_div.remove();
 		drag_placeholder_div = null;
-		update_node(drag_mode);
+		update_spark_result_size(drag_mode);
 	}
 	// update mode and position
 	drag_mode = mode;
@@ -582,7 +582,7 @@ function update_drag_state(event)
 	drag_placeholder_div.classList.add("placeholder");
 	if(drag_is_spark)
 		add_spark(drag_placeholder_div);
-	update_node(drag_mode);
+	update_spark_result_size(drag_mode);
 	update_rate(false);
 }
 
@@ -706,9 +706,9 @@ function update_all() // update all three columns
 {
 	clearTimeout(resize_timer);
 	resize_timer = null;
-	update_node(NPC);
-	update_node(MOON);
-	update_node(STONE);
+	update_spark_result_size(NPC);
+	update_spark_result_size(MOON);
+	update_spark_result_size(STONE);
 }
 
 function count_visible_nodes(list)
@@ -721,7 +721,7 @@ function count_visible_nodes(list)
 	return count;
 }
 
-function update_node(mode) // update spark column
+function update_spark_result_size(mode) // update spark column
 {
 	let node;
 	switch(mode)
