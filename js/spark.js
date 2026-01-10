@@ -640,7 +640,6 @@ function handle_dragend(event, allow_beep = true)
 			if(is_valid_mode(drag_id, drag_mode, img.gbtype))
 			{
 				const div = add_image_result_spark(drag_mode, drag_id, img, drag_position);
-				drag_position++; // for the deletion of the placeholder in handle_dragstop
 				if(drag_is_spark)
 				{
 					add_spark(div);
@@ -681,8 +680,7 @@ function handle_dragstop()
 	// remove placeholder
 	if(drag_placeholder_div)
 	{
-		lists[drag_mode].splice(drag_position, 1);
-		drag_placeholder_div.remove();
+		remove_image_result_spark(drag_placeholder_div);
 		drag_placeholder_div = null;
 	}
 	// reset everything else
