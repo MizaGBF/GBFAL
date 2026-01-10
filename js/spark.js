@@ -346,7 +346,7 @@ function init_drag_and_drop()
 {
 	// general drag events
 	document.addEventListener("pointerdown", handle_dragstart);
-	document.addEventListener("pointercancel", (event) => {handle_dragend(event, false)});
+	document.addEventListener("pointercancel", handle_dragstop);
 }
 
 function find_target(base_target)
@@ -423,6 +423,45 @@ function handle_dragstart(event)
 	}
 }
 
+// finish initialization of dragging system
+// called by handle_dragmove
+function handle_draginit(event)
+{
+	if(drag_state != 1)
+		return;
+	// initialize dragging
+	drag_state = 2;
+	// create ghost
+	// don't clone, in case the img isn't loaded
+	drag_ghost = document.createElement("img");
+	drag_ghost.src = items[drag_id].src;
+	drag_ghost.classList.add("spark-drag-ghost");
+	drag_ghost.style.transform = `translate(${event.clientX - 52}px, ${event.clientY - 30}px)`;
+	document.body.appendChild(drag_ghost);
+	// hide initial div and create placeholder
+	if(drag_original_div)
+	{
+		const img = items[drag_id];
+		drag_original_div.style.display = "none";
+		drag_placeholder_div = add_image_result_spark(drag_mode, drag_id, img, drag_position);
+		drag_placeholder_div.classList.add("placeholder");
+		if(drag_is_spark)
+			add_spark(drag_placeholder_div);
+		update_rate(false);
+		// note: No need for update_node()
+	}
+	// add the highlight
+	let drag_highlight_range = (
+		items[drag_id].gbtype == GBFType.summon ?
+		[2, 3] : 	// stone
+		[0, 2]		// npc, moon
+	);
+	for(let i = drag_highlight_range[0]; i < drag_highlight_range[1]; ++i)
+	{
+		spark_sections[i].classList.toggle("spark-section-highlight", true);
+	}
+}
+
 // find position in index from pointer coordinate
 function find_position(section, event)
 {
@@ -475,58 +514,8 @@ function queue_drag_state(event)
 // processing the event
 function update_drag_state(event)
 {
-	switch(drag_state)
-	{
-		case 1: // drag initialization
-		{
-			// check how much we moved since click down
-			const delta = {
-				x: event.clientX - drag_coords.x,
-				y: event.clientY - drag_coords.y
-			};
-			// check for accidental drags
-			// by looking for a movement of more than 5px
-			if(delta.x * delta.x + delta.y * delta.y > 25)
-			{
-				// initialize dragging
-				drag_state = 2;
-				// create ghost
-				// don't clone, in case the img isn't loaded
-				drag_ghost = document.createElement("img");
-				drag_ghost.src = items[drag_id].src;
-				drag_ghost.classList.add("spark-drag-ghost");
-				drag_ghost.style.transform = `translate(${event.clientX - 52}px, ${event.clientY - 30}px)`;
-				document.body.appendChild(drag_ghost);
-				// hide initial div and create placeholder
-				if(drag_original_div)
-				{
-					const img = items[drag_id];
-					drag_original_div.style.display = "none";
-					drag_placeholder_div = add_image_result_spark(drag_mode, drag_id, img, drag_position);
-					drag_placeholder_div.classList.add("placeholder");
-					if(drag_is_spark)
-						add_spark(drag_placeholder_div);
-					update_rate(false);
-					// note: No need for update_node()
-				}
-				// add the highlight
-				let drag_highlight_range = (
-					items[drag_id].gbtype == GBFType.summon ?
-					[2, 3] :
-					[0, 2]
-				);
-				for(let i = drag_highlight_range[0]; i < drag_highlight_range[1]; ++i)
-				{
-					spark_sections[i].classList.toggle("spark-section-highlight", true);
-				}
-			}
-			else return;
-		}
-		case 0: // not dragging
-		{
-			return;
-		}
-	}
+	if(drag_state != 2)
+		return;
 	if(!event.clientX && !event.clientY)
 		return;
 	// only update if moved
@@ -607,15 +596,26 @@ function handle_dragmove(event)
 {
 	if(!drag_state)
 		return;
-	if(event.cancelable)
-	{
-        event.preventDefault();
-    }
 	if(!(event.target instanceof HTMLElement))
 		return;
 	if(canvas_state > 0) // if canvas processing
 	{
 		return;
+	}
+	event.preventDefault();
+	if(drag_state === 1)
+	{
+		const delta = {
+				x: Math.abs(event.clientX - drag_coords.x),
+				y: Math.abs(event.clientY - drag_coords.y)
+		};
+		// check for accidental drags
+		// by looking for a movement of more than 5px
+		if(delta.x + delta.y > 5)
+		{
+			handle_draginit(event);
+		}
+		else return;
 	}
 	queue_drag_state(event);
 }
@@ -645,7 +645,7 @@ function handle_dragend(event, allow_beep = true)
 			if(is_valid_mode(drag_id, drag_mode, img.gbtype))
 			{
 				const div = add_image_result_spark(drag_mode, drag_id, img, drag_position);
-				drag_position++; // for the deletion of the placeholder
+				drag_position++; // for the deletion of the placeholder in handle_dragstop
 				if(drag_is_spark)
 				{
 					add_spark(div);
@@ -653,13 +653,6 @@ function handle_dragend(event, allow_beep = true)
 				drag_is_complete = true;
 			}
 		}
-	}
-	// remove placeholder
-	if(drag_placeholder_div)
-	{
-		lists[drag_mode].splice(drag_position, 1);
-		drag_placeholder_div.remove();
-		drag_placeholder_div = null;
 	}
 	// remove or restore original div
 	if(drag_original_div)
@@ -676,6 +669,28 @@ function handle_dragend(event, allow_beep = true)
 	}
 	if(drag_is_complete && allow_beep)
 		beep();
+	handle_dragstop();
+	// update and save
+	update_all();
+	update_rate(false);
+	spark_save_settings();
+}
+
+// the drag system stop and reset function
+function handle_dragstop()
+{
+	if(drag_state == 0)
+		return;
+	if(drag_ghost)
+		drag_ghost.remove();
+	drag_ghost = null;
+	// remove placeholder
+	if(drag_placeholder_div)
+	{
+		lists[drag_mode].splice(drag_position, 1);
+		drag_placeholder_div.remove();
+		drag_placeholder_div = null;
+	}
 	// reset everything else
 	drag_state = 0;
 	drag_coords = {x:0, y:0};
@@ -690,10 +705,6 @@ function handle_dragend(event, allow_beep = true)
 		spark_sections[i].classList.toggle("spark-section-highlight", false);
 		spark_sections[i].classList.toggle("spark-section-highlight-enabled", false);
 	}
-	// update and save
-	update_all();
-	update_rate(false);
-	spark_save_settings();
 }
 
 function update_all() // update all three columns
