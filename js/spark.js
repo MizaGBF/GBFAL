@@ -666,7 +666,6 @@ function handle_dragend(event, allow_beep = true)
 		beep();
 	handle_dragstop();
 	// update and save
-	update_all_spark_result_size();
 	update_rate(false);
 	spark_save_settings();
 }
@@ -700,6 +699,7 @@ function handle_dragstop()
 		spark_sections[i].classList.toggle("spark-section-highlight", false);
 		spark_sections[i].classList.toggle("spark-section-highlight-enabled", false);
 	}
+	update_all_spark_result_size();
 }
 
 function update_all_spark_result_size() // update all three columns
