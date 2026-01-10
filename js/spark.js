@@ -193,7 +193,6 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 	let img = document.createElement("img");
 	img.title = data.id;
 	img.dataset.id = data.id;
-	img.spark_draggable = true;
 	img.draggable = false; // important for event interaction
 	img.gbtype = gbtype;
 	img.classList.add("loading");
@@ -354,16 +353,12 @@ function find_target(base_target)
 	// for pointer events,
 	// event.target sometimes catch the underlying image
 	return (
-		base_target.classList.contains("spark-image") ?
-		base_target :
 		(
-			(
-				base_target.classList.contains("spark-result-img") ||
-				base_target.classList.contains("spark-icon")
-			) ?
-			base_target.parentNode : // catch the parent div
-			base_target
-		)
+			base_target.classList.contains("spark-result-img") ||
+			base_target.classList.contains("spark-icon")
+		) ?
+		base_target.parentNode : // catch the parent div
+		base_target
 	);
 }
 
