@@ -6,6 +6,9 @@
 	padding: 5px;
 	margin: 10px auto;
 	position: relative;
+	/* disable selection for performance */
+	user-select: none;
+    -webkit-user-select: none;
 }
 
 .spark-manual {
@@ -36,6 +39,11 @@
 .spark-image {
 	max-height: 80px;
 	box-sizing: border-box;
+	content-visibility: auto-pointer-events; 
+    contain-intrinsic-size: 80px;
+	/* related to dragging feature */
+	touch-action: pan-y;
+    -webkit-user-drag: none;
 }
 
 #spark-main {
@@ -79,6 +87,18 @@ td {
 	line-height: 0;
 	padding-top: 2px;
 	padding-bottom: 2px;
+	border-width: 2px;
+	border-style: solid;
+	border-color: transparent;
+	border-radius: 5px;
+}
+
+.spark-section-highlight {
+	background-color: #0000ff0d;
+}
+
+.spark-section-highlight-enabled {
+	background-color: #00ff000d;
 }
 
 .spark-ui-container {
@@ -127,7 +147,9 @@ td {
 .spark-select {
 	width: 100%;
 	height: calc((100% - 52px * 2)* 0.25);
+	overflow-x: hidden;
 	overflow-y: scroll;
+	contain: strict;
 }
 
 .spark-result {
@@ -137,6 +159,27 @@ td {
 	margin: 0px;
 	box-sizing: border-box;
 	position: relative;
+	-webkit-animation: spark-img-fadein .5s;
+	animation: spark-img-fadein .5s;
+	touch-action: none;
+}
+
+.spark-drag-ghost {
+	width: 105px;
+	height: 60px;
+    position: fixed !important;
+    pointer-events: none;
+    z-index: 9999;
+	opacity: 50%;
+    left: 0;
+    top: 0;
+    will-change: transform; 
+}
+
+.spark-result.placeholder {
+	opacity: 50%;
+	-webkit-animation-duration: spark-img-fadein .5s;
+	animation-duration: 0s;
 }
 
 .spark-result-img {
@@ -145,8 +188,6 @@ td {
 	min-height: 100%;
 	max-width: 100%;
 	max-height: 100%;
-	-webkit-animation: spark-img-fadein .5s;
-	animation: spark-img-fadein .5s;
 }
 
 .sparked {
@@ -279,6 +320,7 @@ td {
 		
 		.spark-image {
 			max-height: 60px;
+			contain-intrinsic-size: 60px;
 		}
 
 		.spark-ui-element {
