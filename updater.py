@@ -664,7 +664,7 @@ class Updater():
     # Generic GET request function
     async def get(self : Updater, url : str) -> Any:
         async with self.http_sem:
-            response : aiohttp.HTTPResponse = await self.client.get(url, headers={'connection':'keep-alive'})
+            response : aiohttp.HTTPResponse = await self.client.get(url, headers={'connection':'keep-alive', 'accept-encoding':'gzip'})
             async with response:
                 if response.status != 200:
                     raise Exception("HTTP error {}".format(response.status))
