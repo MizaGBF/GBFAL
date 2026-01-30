@@ -109,8 +109,6 @@ function load(config, changelog)
 
 function start(config, changelog)
 {
-	init_lists(changelog, index_onclick);
-	init_index(config, changelog, index_onclick);
 	search = new Search(
 		document.getElementById("filter"),
 		document.getElementById("search-area"),
@@ -137,6 +135,8 @@ function start(config, changelog)
 	);
 	search.populate_search_area();
 	search.load_url_param();
+	init_lists(changelog, index_onclick);
+	init_index(config, changelog, index_onclick);
 	let id = get_url_params().get("id");
 	if(id != null)
 	{
