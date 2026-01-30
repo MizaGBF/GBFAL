@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.46'
+VERSION = '3.47'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
@@ -706,14 +706,40 @@ class Updater():
     # Extract json data from a GBF animation manifest file
     async def processManifest(self, file : str, verify_file : bool = False) -> list:
         # request the file
-        manifest = (await self.get(MANIFEST + file + ".js")).decode('utf-8')
-        # fine start and end of object part
-        st = manifest.find('manifest:') + len('manifest:')
-        ed = manifest.find(']', st) + 1
-        # format and load as json
-        data : dict[str, str] = json.loads(manifest[st:ed].replace('Game.imgUri+', '').replace('src:', '"src":').replace('type:', '"type":').replace('id:', '"id":'))
-        # list image srcs
-        res : list[str] = [src for l in data if (src := l['src'].split('?')[0].split('/')[-1])]
+        manifest = await self.get(MANIFEST + file + ".js")
+        # parse the content
+        res : list[str] = []
+        cur : int = 0
+        lstart : int = len(b'Game.imgUri+"')
+        while True:
+            # search start of img path
+            cur = manifest.find(b'Game.imgUri+"', cur)
+            if cur == -1:
+                break
+            cur += lstart
+            # search end of img path
+            a = manifest.find(b'?', cur)
+            b = manifest.find(b'",', cur)
+            p : bytes
+            if a == -1 and b == -1:
+                break
+            elif b == -1:
+                p = manifest[cur:a]
+                cur = a
+            elif a == -1:
+                p = manifest[cur:b]
+                cur = b
+            elif a < b:
+                p = manifest[cur:a]
+                cur = a
+            else:
+                p = manifest[cur:b]
+                cur = b
+            # check validity
+            if not p.endswith((b'.png', b'.jpg', b'.jpeg')):
+                continue
+            # add result
+            res.append(p.decode("ascii"))
         # check if at least one file is accessible
         if verify_file:
             path : list[str] = [IMG, "sp/cjs/", ""]
@@ -2435,7 +2461,8 @@ class Updater():
         # list all files to test
         for base in bases:
             f = uncap + base
-            if f in existing or base == "" or not self.file_is_matching(f, filters): # exists OR empty (later is already tested by run() and update())
+            # exists OR empty (later is already tested by run() and update())
+            if f in existing or base == "" or (len(filters) > 0 and not self.file_is_matching(f, filters)):
                 continue
             files.append(f)
         if len(files) > 0: # for each file
@@ -2463,7 +2490,7 @@ class Updater():
                 continue
             for suffix in suffixes:
                 g : str = f + suffix
-                if suffix == "" or g in existing or not self.file_is_matching(g, filters):
+                if suffix == "" or g in existing or (len(filters) > 0 and not self.file_is_matching(g, filters)):
                     continue
                 files.append(g)
         if len(files) > 0: # for each file
@@ -3255,7 +3282,8 @@ class Updater():
         # TaskStatus for all tasks
         ts = TaskStatus(1, 1, running=(len(bs) * len(uncaps) + 1))
         # banter files
-        if self.file_is_matching("_pair_", filters): # don't start this task if it doesn't match filter
+        # don't start this task if it doesn't match filter
+        if len(filters) == 0 or self.file_is_matching("_pair_", filters):
             self.tasks.add(self.update_sound_banter, parameters=(index, element_id, idx, existing, ts, filters), priority=0)
         else:
             ts.finish()
@@ -3266,7 +3294,8 @@ class Updater():
             else:
                 u = "_" + u
             for sound_string in bs: # for each string
-                if self.file_is_matching(sound_string[0], filters): # don't start this task if it doesn't match filter
+                # don't start this task if it doesn't match filter
+                if len(filters) == 0 or self.file_is_matching(sound_string[0], filters):
                     self.tasks.add(self.update_sound, parameters=(index, element_id, idx, existing, ts, u, sound_string), priority=0)
                 else:
                     ts.finish()
@@ -4114,9 +4143,8 @@ class Updater():
                     await self.prepare_update_buff(element_id, priority=0)
 
     # return True if the file name passes the  filters
+    # don't call it if filters is empty
     def file_is_matching(self : Updater, name : str, filters : list[str]) -> bool:
-        if len(filters) == 0:
-            return True
         f : str
         for f in filters:
             if f in name:
