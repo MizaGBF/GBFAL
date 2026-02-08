@@ -17,7 +17,7 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.47'
+VERSION = '3.48'
 CONCURRENT_TASKS = 90
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
@@ -3814,14 +3814,14 @@ class Updater():
                         continue
                     if bid not in buffs:
                         # check if icon exists
-                        if not await self.head_nx("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/ui/icon/status/x64/status_" + icon + ".png"):
+                        if not await self.head_nx(IMG + "sp/ui/icon/status/x64/status_" + icon + ".png"):
                             continue
                         buffs[bid] = [[str(int(bid))], [ext]]
                         self.modified = True
                         self.add(bid, ADD_BUFF)
                         count += 1
                     elif ext not in buffs[bid][1]:
-                        if not await self.head_nx("https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/ui/icon/status/x64/status_" + icon + ".png"):
+                        if not await self.head_nx(IMG + "sp/ui/icon/status/x64/status_" + icon + ".png"):
                             continue
                         buffs[bid][1].append(ext)
                         buffs[bid][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))

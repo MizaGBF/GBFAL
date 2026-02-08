@@ -371,7 +371,7 @@ function get_character_smash(id, data)
 	}
 	for(let i = 0; i < suffixes.length; ++i)
 	{
-		suffixes[i] = gbf.id_to_endpoint(id) + "assets_en/img_low/sp/assets/npc/result_lvup/"+id+"_"+suffixes[i]+".png";
+		suffixes[i] = gbf.endpoint + "assets_en/img_low/sp/assets/npc/result_lvup/"+id+"_"+suffixes[i]+".png";
 	}
 	return suffixes; // actually list of urls
 }
