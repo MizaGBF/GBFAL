@@ -505,9 +505,9 @@ function game_ask(id1, id2)
 		cls:["loading", "vs-asset"]
 	});
 	// set
-	ui_elements.chara1.src = data1.path.replace("GBF/", gbf.endpoint).replace("npc/m/", "npc/f/");
+	ui_elements.chara1.src = data1.path.replace("GBF/", gbf.endpoint()).replace("npc/m/", "npc/f/");
 	ui_elements.chara1.onerror = data1.onerr;
-	ui_elements.chara2.src = data2.path.replace("GBF/", gbf.endpoint).replace("npc/m/", "npc/f/");
+	ui_elements.chara2.src = data2.path.replace("GBF/", gbf.endpoint()).replace("npc/m/", "npc/f/");
 	ui_elements.chara2.onerror = data2.onerr;
 }
 
@@ -579,7 +579,7 @@ function get_character_vs(id, data)
 	if(suffixes.length > 1)
 	{
 		onerr = function() {
-			this.src=gbf.endpoint + "assets_en/img_low/sp/assets/npc/f/"+id+"_"+suffixes[1]+".jpg";
+			this.src=gbf.endpoint() + "assets_en/img_low/sp/assets/npc/f/"+id+"_"+suffixes[1]+".jpg";
 			this.onerror=default_onerror;
 		};
 	}

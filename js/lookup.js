@@ -1290,15 +1290,15 @@ function add_image(node, id, file, asset, path)
 	// note: old code, might be worth cleaning up later
 	if(file.endsWith(".png") || file.endsWith(".jpg")) // if extension is already set
 	{
-		img.src = gbf.endpoint + "assets_en/img_low/" + path[0] + file;
+		img.src = gbf.endpoint() + "assets_en/img_low/" + path[0] + file;
 	}
 	else if(path[1].endsWith(".png") || path[1].endsWith(".jpg"))
 	{
-		img.src = gbf.endpoint + "assets_en/img_low/" + path[0] + file + path[1];
+		img.src = gbf.endpoint() + "assets_en/img_low/" + path[0] + file + path[1];
 	}
 	else
 	{
-		img.src = gbf.endpoint + "assets_en/img_low/" + path[0] + file + "." + path[1];
+		img.src = gbf.endpoint() + "assets_en/img_low/" + path[0] + file + "." + path[1];
 	}
 	// set link to img src but with lower quality
 	ref.setAttribute('href', img.src.replace("img_low", "img").replace("img_mid", "img"));

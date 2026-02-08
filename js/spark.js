@@ -232,7 +232,7 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 			}
 		};
 	};
-	img.src = data.path.replace("GBF/", gbf.endpoint);
+	img.src = data.path.replace("GBF/", gbf.endpoint());
 	node.appendChild(img);
 	return img;
 }
