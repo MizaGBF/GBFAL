@@ -4,7 +4,7 @@ from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone, UTC
 import asyncio
-import aiohttp
+from pyreqwest.client import ClientBuilder, Client
 import os
 import sys
 import re
@@ -17,8 +17,8 @@ import signal
 import argparse
 
 ### Constant variables
-VERSION = '3.48'
-CONCURRENT_TASKS = 90
+VERSION = '3.49'
+CONCURRENT_TASKS = 100
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
 # limit
@@ -435,9 +435,8 @@ class TaskStatus():
 @dataclass(slots=True)
 class Updater():
     # other init
-    client : aiohttp.ClientSession|None
+    client : Client|None
     flags : set[str]
-    http_sem : asyncio.Semaphore
     tasks : TaskManager
     use_wiki : bool
     update_changelog : bool
@@ -456,7 +455,6 @@ class Updater():
         # other init
         self.client = None # the http client
         self.flags = set() # to contain and manage various flag values
-        self.http_sem = asyncio.Semaphore(HTTP_CONN_LIMIT) # http semaphor to limit http connections
         self.tasks = TaskManager(self) # the task manager
         self.use_wiki = False # flag to see if the wiki usable
         self.update_changelog  = True # flag to enable or disable the generation of changelog.json
@@ -663,45 +661,59 @@ class Updater():
 
     # Generic GET request function
     async def get(self : Updater, url : str) -> Any:
-        async with self.http_sem:
-            response : aiohttp.HTTPResponse = await self.client.get(url, headers={'connection':'keep-alive', 'accept-encoding':'gzip'})
-            async with response:
-                if response.status != 200:
-                    raise Exception(f"HTTP error {response.status}")
-                return await response.content.read()
+        response = (
+            await self.client.get(url)
+            .header("Accept-Encoding", "gzip")
+            .build()
+            .send()
+        )
+        if response.status != 200:
+            raise Exception(f"HTTP error {response.status}")
+        return (await response.bytes()).to_bytes()
 
     # Same as GET but for gbf.wiki
     async def get_wiki(self : Updater, url : str, *, get_json : bool = False) -> Any:
-        async with self.http_sem:
-            response : aiohttp.HTTPResponse = await self.client.get(url, headers={'User-Agent':USER_AGENT}, timeout=10)
-            async with response:
-                if response.status != 200: raise Exception(f"HTTP error {response.status}")
-                if get_json:
-                    return await response.json()
-                return await response.content.read()
+        response = (
+            await self.client.get(url)
+            .header("Accept-Encoding", "gzip")
+            .header('User-Agent', USER_AGENT)
+            .build()
+            .send()
+        )
+        if response.status != 200:
+            raise Exception(f"HTTP error {response.status}")
+        if get_json:
+            return await response.json()
+        return (await response.bytes()).to_bytes()
 
     # Generic HEAD request function
     async def head(self : Updater, url : str) -> Any:
-        async with self.http_sem:
-            response : aiohttp.HTTPResponse = await self.client.head(url, headers={'connection':'keep-alive'})
-            async with response:
-                if response.status != 200:
-                    raise Exception(f"HTTP error {response.status}")
-                return response.headers
+        response = (
+            await self.client.head(url)
+            .header("Accept-Encoding", "") # workaround for a bug
+            .build()
+            .send()
+        )
+        if response.status != 200:
+            raise Exception(f"HTTP error {response.status}")
+        return response.headers
 
     # wrapper of head() if the exception isn't needed (return None in case of error instead)
     async def head_nx(self : Updater, url : str):
         # copy paste to avoid a needless functions call and exception
-        async with self.http_sem:
-            try:
-                response : aiohttp.HTTPResponse = await self.client.head(url, headers={'connection':'keep-alive'})
-            except Exception as e:
-                self.tasks.print(f"The following exception occured in head_nx():\nURL: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                return None
-            async with response:
-                if response.status != 200:
-                    return None
-                return response.headers
+        try:
+            response = (
+                await self.client.head(url)
+                .header("Accept-Encoding", "")
+                .build()
+                .send()
+            )
+        except Exception as e:
+            self.tasks.print(f"The following exception occured in head_nx():\nURL: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            return None
+        if response.status != 200:
+            return None
+        return response.headers
 
     # Extract json data from a GBF animation manifest file
     async def processManifest(self, file : str, verify_file : bool = False) -> list:
@@ -4266,7 +4278,17 @@ class Updater():
 
     # Start function
     async def start(self : Updater) -> None:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=50)) as self.client:
+        async with (
+            ClientBuilder().user_agent(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+            )
+            .gzip(True)
+            .brotli(False)
+            .zstd(False)
+            .deflate(False)
+            .http2(True)
+            .build()
+        ) as self.client:
             self.tasks.print(f"GBFAL Updater v{VERSION}")
             # set Ctrl+C
             try: # unix
