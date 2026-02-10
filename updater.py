@@ -21,7 +21,7 @@ VERSION = '3.49'
 CONCURRENT_TASKS = 100
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
-# limit
+# other
 LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
 UPDATABLE = {"characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job", "shields"}
 # addition type
