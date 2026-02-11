@@ -3778,7 +3778,7 @@ class Updater():
             await self.prepare_update_buff(element_id)
         await self.tasks.start()
 
-    # Called by maintenancebuff, maintenance or process_flags
+    # Called by maintenancebuff, maintenance or raise_flag
     async def maintenance_compare_wiki_buff(self : Updater) -> None:
         try:
             if not self.use_wiki or "maintenance_buff_wiki" in self.flags:
@@ -3836,7 +3836,7 @@ class Updater():
             self.tasks.print("An error occured while comparing with gbf.wiki buff list")
             self.tasks.print(self.print("".join(traceback.format_exception(type(e), e, e.__traceback__))))
 
-    # Called by maintenancenpcthumbnail, maintenance or process_flags
+    # Called by maintenancenpcthumbnail, maintenance or raise_flag
     async def maintenance_npc_thumbnail(self : Updater) -> None:
         if "maintenance_npc_thumbnail" in self.flags:
             return
@@ -3856,7 +3856,7 @@ class Updater():
         except:
             pass
 
-    # Called by maintenanceraidappear, maintenance or process_flags
+    # Called by maintenanceraidappear, maintenance or raise_flag
     async def maintenance_raid_appear(self : Updater) -> None:
         if "maintenanceraidappear" in self.flags:
             return
@@ -3889,7 +3889,7 @@ class Updater():
             self.add(element_id, ADD_BOSS)
             self.tasks.print("New appear animations for ", element_id)
 
-    # Called by maintenancesky, maintenance or process_flags
+    # Called by maintenancesky, maintenance or raise_flag
     async def maintenance_event_skycompass(self : Updater) -> None:
         if "maintenance_event_skycompass" in self.flags:
             return
@@ -4138,7 +4138,7 @@ class Updater():
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
                 for element_id in ("1019", ): # buffs to check for updates
-                    self.tasks.add(self.prepare_update_buff, parameters=(element_id, 0), priority=0)
+                    self.tasks.add(self.prepare_update_buff, parameters=(element_id,), priority=0)
 
     # return True if the file name passes the  filters
     # don't call it if filters is empty
