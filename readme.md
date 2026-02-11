@@ -56,7 +56,7 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.46
+GBFAL Updater v3.50
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-jq [FULL ...]] [-si SCENEID [SCENEID ...]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]]

@@ -15,10 +15,11 @@ import html
 import traceback
 import signal
 import argparse
+from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.49'
-CONCURRENT_TASKS = 100
+VERSION = '3.50'
+CONCURRENT_TASKS = 200
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
 # other
@@ -172,23 +173,23 @@ class TaskManager():
     is_running : bool
     updater : Updater
     queues : tuple[deque, ...]
-    running : deque[asyncio.Task]
+    running : set[asyncio.Task]
     total : int
     finished : int
     print_flag : bool
     elapsed : float
-    written_len : int
+    pbar : tqdm|None
     def __init__(self : TaskManager, updater : Updater) -> None:
         self.debug = False
         self.is_running = False
         self.updater = updater
         self.queues = (deque(), deque(), deque(), deque(), deque())
-        self.running = deque()
+        self.running = set()
         self.total = 0
         self.finished = 0
         self.print_flag = False
         self.elapsed = 0
-        self.written_len = 0
+        self.pbar = None
 
     # reinitialize variables
     def reset(self : TaskManager) -> None:
@@ -215,88 +216,73 @@ class TaskManager():
 
     # run tasks in queue
     async def run(self : TaskManager, *, skip : int = 0) -> None:
-        if self.is_running:
-            self.print("ERROR: run() is already running, ignoring...)")
-            return
-        self.is_running = True
-        start_time : float = time.time()
-        self.elapsed : float = start_time
-        to_sleep : bool = False
-        i : int
-        # loop
-        while len(self.running) > 0 or not self.queues_are_empty():
-            # remove from queue and run
-            for i, q in enumerate(self.queues):
-                while len(self.running) < CONCURRENT_TASKS and len(q) > 0:
-                    try:
-                        t : Task = q.popleft()
-                        if skip <= 0:
-                            if t.parameters is not None:
-                                self.running.append(asyncio.create_task(t.awaitable(*t.parameters)))
-                            else:
-                                self.running.append(asyncio.create_task(t.awaitable()))
-                        else:
-                            skip -= 1
-                    except Exception as e:
-                        self.print("Can't start task, the following exception occured in queue", i)
-                        self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                        self.finished += 1
-                        break
-            # check process flags
-            await self.updater.process_flags()
-            # remove completed tasks
-            prev : int = self.finished
-            for i in range(len(self.running)):
-                t : asyncio.Task = self.running.popleft()
-                if t.done():
-                    try:
-                        t.result()
-                    except Exception as e:
-                        self.print("The following exception occured:")
-                        self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                    self.finished += 1
-                    # t is discarded
-                else:
-                    self.running.append(t) # put back in
-            # update status
-            if prev != self.finished: # number of finished task changed
-                # print t he progress
-                self.print_progress()
+        try:
+            if self.is_running:
+                self.print("ERROR: run() is already running, ignoring...)")
+                return
+            self.is_running = True
+            start_time : float = time.time()
+            self.elapsed : float = start_time
+            i : int
+            self.running = set()
+            self.pbar = tqdm(
+                total=self.total,
+                unit=" Task",
+                unit_scale=True,
+                unit_divisor=1000,
+                mininterval=1,
+                bar_format='{percentage:3.1f}%|{bar}{r_bar}'
+            )
+            # loop
+            while len(self.running) > 0 or not self.queues_are_empty():
+                # remove from queue and run
+                n_step : int = 0
+                for i, q in enumerate(self.queues):
+                    while len(self.running) < CONCURRENT_TASKS and len(q) > 0:
+                        try:
+                            task : Task = q.popleft()
+                            if skip > 0:
+                                skip -= 1
+                                n_step += 1
+                                continue
+                            # Create the task
+                            coro = (
+                                task.awaitable(*task.parameters)
+                                if task.parameters
+                                else task.awaitable()
+                            )
+                            t = asyncio.create_task(coro)
+                            self.running.add(t)
+                        except Exception as e:
+                            self.print("Can't start task, the following exception occured in queue", i)
+                            self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                            n_step += 1
+                            break
+                if n_step > 0:
+                    self.progress_step(n_step)
+                if len(self.running) > 0:
+                    done, _ = await asyncio.wait(
+                        self.running, 
+                        timeout=60.0, # wake up every minute
+                        return_when=asyncio.FIRST_COMPLETED
+                    )
+                    for t in done:
+                        try:
+                            self.running.remove(t)
+                            t.result()
+                        except Exception as e:
+                            self.print("The following exception occured:")
+                            self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    self.progress_step(len(done))
                 # auto save if needed
                 if time.time() - self.elapsed >= 3600:
-                    if self.updater.modified:
-                        self.print(f"Progress: {self.finished} / {self.total} Tasks, autosaving...")
-                    self.updater.save()
-                    self.updater.save_resume()
-                    self.elapsed = time.time()
-                to_sleep = False
-            else:
-                to_sleep = True
-            # ... and sleep if we haven't finished tasks
-            if to_sleep:
-                await asyncio.sleep(0.1)
-            # if ALL tasks are done, check flags
-            if len(self.running) == 0 and self.queues_are_empty():
-                await self.updater.process_flags()
-        self.print("Complete")
-        # finished
-        diff : float = time.time() - start_time # elapsed time
-        # format to H:M:S
-        elapsed_s : int = int(diff)
-        h : int = elapsed_s // 3600 # hours
-        m : int = (elapsed_s % 3600) // 60 # minutes
-        s : int = elapsed_s % 60 # seconds
-        strings : list[str] = ["Run time: "]
-        if h > 0:
-            strings.append(str(h).zfill(2))
-            strings.append('h')
-        if m > 0:
-            strings.append(str(m).zfill(2))
-            strings.append('m')
-        strings.append(str(s).zfill(2))
-        strings.append('s')
-        self.reset()
-        print("".join(strings))
+                    self.autosave()
+        finally:
+            if self.pbar is not None:
+                self.pbar.close()
+            self.pbar = None
+            self.is_running = False
+            self.print("Complete")
 
     # start to run queued tasks
     async def start(self : TaskManager) -> bool:
@@ -305,41 +291,32 @@ class TaskManager():
         await self.run()
         return True
 
-    # print the progression string
-    def print_progress(self : TaskManager) -> None:
-        if self.running and self.total > 0:
-            if self.print_flag:
-                sys.stdout.write("\r")
-                if self.written_len > 0:
-                    sys.stdout.write((" " * self.written_len) + "\r")
-            else:
-                self.print_flag = True
-            if self.debug:
-                self.written_len = sys.stdout.write(f"P:{self.finished}/{self.total} | R:{len(self.running)} | Q:{len(self.queues[0])} {len(self.queues[1])} {len(self.queues[2])} {len(self.queues[3])} {len(self.queues[4])}")
-            else:
-                self.written_len = sys.stdout.write(f"Progress: {self.finished} / {self.total} Tasks")
-            sys.stdout.flush()
+    def autosave(self : TaskManager) -> None:
+        if self.updater.modified:
+            self.print(f"Progress: {self.finished} / {self.total} Tasks, autosaving...")
+        self.updater.save()
+        self.updater.save_resume()
+        self.elapsed = time.time()
+
+    # update the tqdm progress bar
+    def progress_step(self : TaskManager, step : int) -> None:
+        self.finished += step
+        self.pbar.total = self.total # update total in case it changed
+        self.pbar.update(step)
 
     # print whatever you want, to use instead of print to handle the \r
     def print(self : TaskManager, *args) -> None:
-        if self.print_flag:
-            self.print_flag = False
-            sys.stdout.write("\r")
-            if self.written_len > 0:
-                sys.stdout.write((" " * self.written_len) + "\r")
-        print(*args)
-        self.print_progress()
+        if self.pbar is not None:
+            self.pbar.write(" ".join(map(str, args)))
+            self.pbar.refresh()
+        else:
+            print(*args)
 
     # called when CTRL+C is used
     def interrupt(self : TaskManager, *args) -> None:
         if self.total <= 0 or self.finished >= self.total:
             return
-        if self.print_flag:
-            self.print_flag = False
-            sys.stdout.write("\r")
-            if self.written_len > 0:
-                sys.stdout.write((" " * self.written_len) + "\r")
-        print("Process PAUSED")
+        print("\nProcess PAUSED")
         print(f"{self.finished} / {self.total} Tasks completed")
         print(f"{len(self.running)} Tasks running")
         for i, q in enumerate(self.queues):
@@ -383,6 +360,8 @@ class TaskManager():
                 case _:
                     print("Process RESUMING...")
                     break
+        if self.pbar is not None:
+            self.pbar.refresh()
 
 # A queued task
 @dataclass(frozen=True, slots=True)
@@ -778,7 +757,7 @@ class Updater():
 
     # called by -run
     async def run(self : Updater) -> None:
-        self.flags.add("run_process")
+        self.raise_flag("run_process")
         i : int
         j : int
         r : int
@@ -1233,7 +1212,7 @@ class Updater():
             buffs[element_id][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
             self.modified = True
             self.add(element_id, ADD_BUFF)
-            self.flags.add("found_buff")
+            self.raise_flag("found_buff")
             self.tasks.print("Updated:", element_id, "for index:", 'buffs')
 
     ### Update #################################################################################################################
@@ -1679,7 +1658,7 @@ class Updater():
             self.tasks.add(self.update_scenes_of, parameters=(element_id, index))
             self.tasks.add(self.update_sound_of, parameters=(element_id, index))
             self.add(element_id, ADD_CHAR)
-            self.flags.add("found_character")
+            self.raise_flag("found_character")
             # updating corresponding fate episode
             if index == 'characters':
                 for k, v in self.data['fate'].items():
@@ -1832,7 +1811,7 @@ class Updater():
                 partners[element_id][i] = list(set(partners[element_id][i] + data[i]))
                 partners[element_id][i].sort()
             self.add(element_id, ADD_PARTNER)
-            self.flags.add("found_character")
+            self.raise_flag("found_character")
             self.tasks.print("Updated:", element_id, "for index:", 'partners')
             self.remove_from_uncap_queue(element_id)
 
@@ -1899,7 +1878,7 @@ class Updater():
             self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
             self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
             self.add(element_id, ADD_NPC)
-            self.flags.add("found_character")
+            self.raise_flag("found_character")
             self.tasks.print("Updated:", element_id, "for index:", 'npcs', "(Queuing secondary updates...)")
             self.remove_from_uncap_queue(element_id)
 
@@ -2331,8 +2310,8 @@ class Updater():
 
     # update ALL npc/character/skin scene files, time consuming, can be resumed, can be filtered
     async def update_all_scene(self : Updater, filters : list[str] = []) -> None:
-        self.flags.add("use_resume")
-        self.flags.add("scene_update")
+        self.raise_flag("use_resume")
+        self.raise_flag("scene_update")
         self.load_resume("scene")
         if len(self.resume.get('done', {})) != 0:
             self.tasks.print("Note: Resuming the previous run...")
@@ -2721,7 +2700,7 @@ class Updater():
                                 data[element_id][EVENT_CHAPTER_COUNT] = 0
                             if not self.add(element_id, ADD_EVENT):
                                 self.tasks.print("Updated:", element_id, "for index:", index)
-                            self.flags.add("found_event")
+                            self.raise_flag("found_event")
                         case "story0":
                             if not self.add(element_id, ADD_STORY0):
                                 self.tasks.print("Updated:", element_id, "for index:", index)
@@ -2731,7 +2710,7 @@ class Updater():
                         case "fate":
                             if not self.add(element_id, ADD_FATE):
                                 self.tasks.print("Updated:", element_id, "for index:", index)
-                            self.flags.add("found_fate")
+                            self.raise_flag("found_fate")
                 # raise modified flag
                 self.modified = True
 
@@ -2789,7 +2768,7 @@ class Updater():
 
     # also a pretty implicit name
     async def check_new_event(self : Updater) -> None:
-        self.flags.add("checking_event")
+        self.raise_flag("checking_event")
         evt_data = self.data['events'] # reference
         # get today date
         nowd : datetime = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=32400)
@@ -3140,7 +3119,7 @@ class Updater():
             if param is None or param == "":
                 raise Exception()
             elif param == "last":
-                self.flags.add("checking_event")
+                self.raise_flag("checking_event")
                 max_chapter = self.get_latest_fate() + 5
                 min_chapter = max_chapter - 8
             else:
@@ -3200,8 +3179,8 @@ class Updater():
     # the functions are similar to scene ones
     # this one update the sound data of all elements and support resuming and filtering
     async def update_all_sound(self : Updater, filters : list[str] = []) -> None:
-        self.flags.add("use_resume")
-        self.flags.add("sound_update")
+        self.raise_flag("use_resume")
+        self.raise_flag("sound_update")
         self.load_resume("sound")
         if len(self.resume.get('done', {})) != 0:
             self.tasks.print("Note: Resuming the previous run...")
@@ -3420,7 +3399,7 @@ class Updater():
     async def lookup(self : Updater) -> None:
         if not self.use_wiki or 'lookup_updated' in self.flags:
             return
-        self.flags.add('lookup_updated')
+        self.raise_flag('lookup_updated')
         npcs = self.data['npcs'] # reference
         lookup_data = self.data['lookup'] # reference
         modified = set()
@@ -3590,6 +3569,13 @@ class Updater():
             'character_outfits':'outfit_id,outfit_name,character_name,release_date',
             'npc_characters':'id,name,series,race,gender,jpname,va,jpva,release_date'
         }
+        # table used to ensure we're checking fields in a specific order
+        possible_fields = {}
+        for k, v in fields.items():
+            possible_fields[k] = [None] + v.split(",")
+            for i in range(1, len(possible_fields[k])):
+                possible_fields[k][i] = possible_fields[k][i].replace("_", " ")
+            possible_fields[k][0] = "_pageName"
         # above are the cargo table to access and the fields we want for each of them
         for t in LOOKUP_TYPES:
             for table in tables.get(t, [t]):
@@ -3609,7 +3595,8 @@ class Updater():
                             continue
                         # read all infos
                         wiki = ""
-                        for k, v in item.items():
+                        for k in possible_fields.get(table):
+                            v = item.get(k, None)
                             match v:
                                 case str():
                                     match k:
@@ -3784,7 +3771,7 @@ class Updater():
     async def maintenance_buff(self : Updater) -> None:
         if "maintenance_buff" in self.flags:
             return
-        self.flags.add("maintenance_buff")
+        self.raise_flag("maintenance_buff")
         self.tasks.add(self.maintenance_compare_wiki_buff)
         self.tasks.print("Starting tasks to update known Buffs...")
         for element_id in self.data['buffs']:
@@ -3796,7 +3783,7 @@ class Updater():
         try:
             if not self.use_wiki or "maintenance_buff_wiki" in self.flags:
                 return
-            self.flags.add("maintenance_buff_wiki")
+            self.raise_flag("maintenance_buff_wiki")
             buffs = self.data['buffs'] # reference
             self.tasks.print("Comparing data with gbf.wiki buff list...")
             checked : set[str] = set()
@@ -3853,7 +3840,7 @@ class Updater():
     async def maintenance_npc_thumbnail(self : Updater) -> None:
         if "maintenance_npc_thumbnail" in self.flags:
             return
-        self.flags.add("maintenance_npc_thumbnail")
+        self.raise_flag("maintenance_npc_thumbnail")
         self.tasks.print("Starting tasks to update known NPC thumbnails...")
         for element_id in self.data['npcs']:
             if not isinstance(self.data['npcs'][element_id], int) and not self.data['npcs'][element_id][NPC_JOURNAL]:
@@ -3873,7 +3860,7 @@ class Updater():
     async def maintenance_raid_appear(self : Updater) -> None:
         if "maintenanceraidappear" in self.flags:
             return
-        self.flags.add("maintenanceraidappear")
+        self.raise_flag("maintenanceraidappear")
         self.tasks.print("Starting tasks to update known enemies raid appear animations...")
         for element_id in self.data['enemies']:
             if not isinstance(self.data['enemies'][element_id], int):
@@ -3906,7 +3893,7 @@ class Updater():
     async def maintenance_event_skycompass(self : Updater) -> None:
         if "maintenance_event_skycompass" in self.flags:
             return
-        self.flags.add("maintenance_event_skycompass")
+        self.raise_flag("maintenance_event_skycompass")
         self.tasks.print("Starting tasks to update known Events Skycompass Arts...")
         for ev in self.data['events']:
             if self.data['events'][ev][EVENT_THUMB] is not None:
@@ -3985,7 +3972,7 @@ class Updater():
                     self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
                     self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
                     self.add(element_id, ADD_NPC)
-                    self.flags.add("found_character")
+                    self.raise_flag("found_character")
                     self.tasks.print("Found NPC:", element_id, "(Queuing secondary updates...)")
                     ts.bad() # to force stop the other tasks
             except Exception as e:
@@ -4109,7 +4096,7 @@ class Updater():
                 self.resume = json.load(f)
                 if name != self.resume['name'] or not isinstance(self.resume, dict):
                     raise Exception()
-                self.flags.add("resume_loaded")
+                self.raise_flag("resume_loaded")
         except:
             self.resume = {}
 
@@ -4131,13 +4118,13 @@ class Updater():
             if not self.use_resume:
                 return
             if "resume_loaded" in self.flags:
-                with open("resume", mode="r", encoding="utf-8") as f:
-                    json.dump({}, f)
+                os.remove("resume")
         except:
             pass
 
-    # called by TaskManager, check raised flags and start tasks accordingly
-    async def process_flags(self : Updater) -> None:
+    # raised flags and start tasks accordingly
+    def raise_flag(self : Updater, flag : str) -> None:
+        self.flags.add(flag)
         if "run_process" in self.flags:
             if "found_character" in self.flags and "checking_event" not in self.flags:
                 self.flags.add("checking_event")
@@ -4151,7 +4138,7 @@ class Updater():
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
                 for element_id in ("1019", ): # buffs to check for updates
-                    await self.prepare_update_buff(element_id, priority=0)
+                    self.tasks.add(self.prepare_update_buff, parameters=(element_id, 0), priority=0)
 
     # return True if the file name passes the  filters
     # don't call it if filters is empty
