@@ -45,7 +45,8 @@
        "alchm0":"kaitaku_renkin_hwop",
        "alchm1":"kaitaku_renkin_vtop",
        "alchm2":"kaitaku_renkin_jbop",
-       "alchm3":"kaitaku_renkin_hwop2"
+       "alchm3":"kaitaku_renkin_hwop2",
+       "alchm4":"kaitaku_renkin_vtop2"
     },
     
     "VALENTINE_EXCLUDE" : [
