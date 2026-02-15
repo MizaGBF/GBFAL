@@ -668,7 +668,6 @@ class Updater():
     async def head(self : Updater, url : str) -> Any:
         response = (
             await self.client.head(url)
-            .header("Accept-Encoding", "") # workaround for a bug
             .build()
             .send()
         )
@@ -682,7 +681,6 @@ class Updater():
         try:
             response = (
                 await self.client.head(url)
-                .header("Accept-Encoding", "")
                 .build()
                 .send()
             )
