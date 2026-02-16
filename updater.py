@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.50'
+VERSION = '3.51'
 CONCURRENT_TASKS = 200
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
@@ -1049,6 +1049,8 @@ class Updater():
 
     # Prepare the update_buff tasks
     async def prepare_update_buff(self : Updater, element_id : str, *, priority : int = -1) -> None:
+        if element_id == "1019": # ensure this buff is always run with low priority
+            priority = 0
         buffs = self.data['buffs'] # reference
         i : int = int(element_id)
         fi : str = str(i)
@@ -1180,7 +1182,7 @@ class Updater():
                                     raise Exception()
                                 known.add("_" + str(x) + "_" + str(n))
                                 err = 0
-                            except:
+                            except Exception:
                                 err += 1
                         n += 1
             case 6:
