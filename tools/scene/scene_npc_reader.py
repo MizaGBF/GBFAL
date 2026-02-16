@@ -13,14 +13,16 @@ def print_help():
     print("\t'report' to print the data")
     print("\t'copy' to copy the data")
 
-
 def read(data):
     try:
         j = json.loads(pyperclip.paste())
         for f in j["files"]:
             sp = f.split("_", 1)
             if len(sp) == 2:
-                data["suffixes"].add("_" + sp[1])
+                sp[1] = "_" + sp[1]
+                if sp[1] not in data["suffixes"]:
+                    data["suffixes"][sp[1]] = set()
+                data["suffixes"][sp[1]].add(sp[0])
             data["ids"].add(sp[0])
         for k, v in j["names"].items():
             if k not in data["names"]:
@@ -35,7 +37,9 @@ def read(data):
 def report(data):
     print(f"# ID list ({len(data['ids'])})")
     print(" ".join(list(data['ids'])))
-    print(f"# Suffix list ({len(data['suffixes'])}")
+    print(f"# Suffix list ({len(data['suffixes'])})")
+    for k, v in data['suffixes'].items():
+        print(f"{k}: {", ".join(list(v))}")
     print(" ".join(list(data['suffixes'])))
     print(f"# Name list ({len(data['names'])}")
     for k, v in data['names'].items():
@@ -48,7 +52,7 @@ def copy(data):
     except:
         print("An unexpected error occured")
 
-data = {"ids":set(), "suffixes":set(), "names":{}}
+data = {"ids":set(), "suffixes":{}, "names":{}}
 print_help()
 while True:
     match input().lower():

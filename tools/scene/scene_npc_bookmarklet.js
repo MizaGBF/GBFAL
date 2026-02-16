@@ -1,6 +1,7 @@
 javascript:(function () {
 let obj = {files:new Set(), names:{}};
-for(const line of Game.view.scene_view.eventSceneView.scenarioCollection.models)
+let scenes = ("eventSceneView" in Game.view) ? Game.view.eventSceneView : Game.view.scene_view.eventSceneView;
+for(const line of scenes.scenarioCollection.models)
 {
 	const attr = line.attributes;
 	if(attr && attr.charcter1_big_image && attr.charcter1_big_image != "" && attr.charcter1_big_image.includes("character/body/3"))
