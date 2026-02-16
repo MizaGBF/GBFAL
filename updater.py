@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.51'
+VERSION = '3.52'
 CONCURRENT_TASKS = 200
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
@@ -2447,23 +2447,17 @@ class Updater():
         # check other base strings
         base : str
         f : str # file
-        files : list[str] = []
-        # list all files to test
+        # test all base files
+        ts = TaskStatus(1, 1, running=0)
         for base in bases:
-            f = uncap + base
-            # exists OR empty (later is already tested by run() and update())
-            if f in existing or base == "" or (len(filters) > 0 and not self.file_is_matching(f, filters)):
+            if base == "":
                 continue
-            files.append(f)
-        if len(files) > 0: # for each file
-            ts = TaskStatus(1, 1, running=len(files))
-            for i in range(len(files)): # make ONE check task
-                self.tasks.add(self.update_scene_check, parameters=(ts, file_id, files[i], existing), priority=1)
-            # and queue next step
-            self.tasks.add(self.update_scene_continue, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes, filters), priority=1)
-        else:
-            # no file, directly go to next step
-            await self.update_scene_continue(TaskStatus(0, 1), index, element_id, idx, uncap, existing, bases, suffixes, filters)
+            f = uncap + base
+            if f in existing or (len(filters) > 0 and not self.file_is_matching(f, filters)):
+                continue
+            ts.running += 1
+            self.tasks.add(self.update_scene_check, parameters=(ts, file_id, f, existing), priority=1)
+        await self.update_scene_continue(ts, index, element_id, idx, uncap, existing, bases, suffixes, filters)
 
     # part 2 of the function, wait for TaskStatus completion
     async def update_scene_continue(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str], filters : list[str]) -> None:
@@ -2471,26 +2465,22 @@ class Updater():
         while not ts.finished:
             await asyncio.sleep(1)
         file_id : str = self.data['npc_replace'].get(element_id, element_id)
-        files : list[str] = []
         suffix : str
         # search variations now, make a list of file again
+        ts = TaskStatus(1, 1, running=0)
         for base in bases:
             f : str = uncap + base
             if base != "" and f not in existing:
                 continue
             for suffix in suffixes:
-                g : str = f + suffix
-                if suffix == "" or g in existing or (len(filters) > 0 and not self.file_is_matching(g, filters)):
+                if suffix == "":
                     continue
-                files.append(g)
-        if len(files) > 0: # for each file
-            ts = TaskStatus(1, 1, running=len(files))
-            for i in range(len(files)): # make ONE check task
-                self.tasks.add(self.update_scene_check, parameters=(ts, file_id, files[i], existing), priority=1)
-            # and queue final step
-            self.tasks.add(self.update_scene_end, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes), priority=1)
-        else: # else go to end
-            await self.update_scene_end(TaskStatus(0, 1), index, element_id, idx, uncap, existing, bases, suffixes)
+                g : str = f + suffix
+                if g in existing or (len(filters) > 0 and not self.file_is_matching(g, filters)):
+                    continue
+                ts.running += 1
+                self.tasks.add(self.update_scene_check, parameters=(ts, file_id, g, existing), priority=1)
+        self.tasks.add(self.update_scene_end, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes), priority=1)
 
     # part 3 of the function, wait for TaskStatus completion
     async def update_scene_end(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str]) -> None:
