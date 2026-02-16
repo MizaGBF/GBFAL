@@ -1182,7 +1182,7 @@ class Updater():
                                     raise Exception()
                                 known.add("_" + str(x) + "_" + str(n))
                                 err = 0
-                            except Exception:
+                            except:
                                 err += 1
                         n += 1
             case 6:
