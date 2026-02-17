@@ -165,6 +165,11 @@ except Exception as e:
     print("Please fix the file content and try again")
     print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
     raise Exception("Failed to load GBFAL Constants")
+SCENE_BASE_LIST : list[str] = (
+    SCENE_SUFFIXES.get("default", {}).get("base", [])
+    + SCENE_SUFFIXES.get("default", {}).get("main", [])
+    + SCENE_SUFFIXES.get("default", {}).get("unique", [])
+)
 
 # Handle tasks
 @dataclass(slots=True)
@@ -1833,7 +1838,7 @@ class Updater():
                 return # don't continue for special npcs
         if not exist:
             # base scene
-            base_target, main_x, uncap_x = self.generate_scene_file_list(element_id)
+            base_target = self.get_scene_file_list_base(element_id)
             path : list[str] = [IMG, "", element_id, "", "", ".png"]
             for u in ("", "_02", "_03"):
                 for f in base_target:
@@ -2328,8 +2333,16 @@ class Updater():
         await self.tasks.start()
         self.clear_resume()
     
+    def get_scene_file_list_base(self : Updater, element_id : str = "") -> list[str]:
+        ret : list[str] = SCENE_BASE_LIST.copy()
+        if element_id in SCENE_SUFFIXES:
+            ret.extend(SCENE_SUFFIXES[element_id].get("base", []))
+            ret.extend(SCENE_SUFFIXES[element_id].get("main", []))
+            ret.extend(SCENE_SUFFIXES[element_id].get("unique", []))
+        return ret
+    
     # set self.scene_strings if needed and return them along with base strings
-    def generate_scene_file_list(self, element_id : str = "") -> tuple[list[str], list[str], list[str]]:
+    def generate_scene_file_list(self : Updater, element_id : str = "") -> tuple[list[str], list[str], list[str]]:
         # set scene strings
         # it's mostly a concatenation work
         if self.scene_strings is None:
