@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone, UTC
 import asyncio
 from pyreqwest.client import ClientBuilder, Client
+import pyreqwest.runtime as runtime
 import os
 import sys
 import re
@@ -3959,9 +3960,8 @@ class Updater():
         # other
         count : int = 0
         for s in scene_strings:
-            for u in ("", "_02", "_03"):
-                uris.append((f"{IMG}sp/quest/scene/character/body/{{}}{u}{s}.png", NPC_SCENE))
-                uris.append((f"{IMG}sp/raid/navi_face/{{}}{u}{s}.png", NPC_SCENE))
+            uris.append((f"{IMG}sp/quest/scene/character/body/{{}}{s}.png", NPC_SCENE))
+            uris.append((f"{IMG}sp/raid/navi_face/{{}}{s}.png", NPC_SCENE))
         for s in sound_strings:
             uris.append((f"{SOUND}voice/{{}}{s}.mp3", NPC_SOUND))
         for i in range(0, highest+5):
@@ -3969,7 +3969,7 @@ class Updater():
             if npcs.get(fid, 0) == 0:
                 count += 1
                 ts : TaskStatus = TaskStatus(len(uris), 1)
-                for n in range(20):
+                for n in range(CONCURRENT_TASKS):
                     self.tasks.add(self.test_missing_npc, parameters=(fid, ts, uris))
         self.tasks.print("Testing", count, "NPCs...")
         await self.tasks.start()
@@ -3977,15 +3977,15 @@ class Updater():
     async def test_missing_npc(self : Updater, element_id : str, ts : TaskStatus, uris : list[str]) -> None:
         npcs = self.data['npcs'] # reference
         while not ts.complete:
-            await asyncio.sleep(1)
-            url, idx = uris[ts.get_next_index()]
+            uri, idx = uris[ts.get_next_index()]
             try:
                 if element_id in npcs:
                     break
-                await self.head(url.format(element_id))
+                url = uri.format(element_id)
+                await self.head(url)
                 self.modified = True
                 npcs[element_id] = [False, [], []]
-                npcs[element_id][idx].append(url.format(element_id).split('/')[-1].split('.')[0])
+                npcs[element_id][idx].append(url.rsplit('/', 1)[-1].split('.')[0])
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
                 self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
                 self.add(element_id, ADD_NPC)
@@ -3996,7 +3996,6 @@ class Updater():
                 if str(e) != "HTTP error 404":
                     self.tasks.print(url.format(element_id))
                     self.tasks.print(e)
-        self.tasks.print(element_id, "over")
 
     # simply call update_element on each partner id
     async def update_all_partner(self : Updater) -> None:
@@ -4282,8 +4281,11 @@ class Updater():
 
     # Start function
     async def start(self : Updater) -> None:
+        runtime.runtime_multithreaded_default(True)
+        runtime.runtime_worker_threads(8)
         async with (
             ClientBuilder()
+            .runtime_multithreaded(True)
             .user_agent(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
             )
@@ -4293,6 +4295,7 @@ class Updater():
             .deflate(False)
             .http2(True)
             .pool_max_idle_per_host(1)
+            .max_connections(70)
             .http2_prior_knowledge()
             .http2_keep_alive_interval(timedelta(days=1))
             .http2_keep_alive_timeout(timedelta(days=1))
