@@ -2335,12 +2335,14 @@ class Updater():
     
     # used by update_npc
     def get_scene_file_list_base(self : Updater, element_id : str = "") -> list[str]:
-        ret : list[str] = SCENE_BASE_LIST.copy()
         if element_id in SCENE_SUFFIXES:
+            ret : list[str] = SCENE_BASE_LIST.copy()
             ret.extend(SCENE_SUFFIXES[element_id].get("base", []))
             ret.extend(SCENE_SUFFIXES[element_id].get("main", []))
             ret.extend(SCENE_SUFFIXES[element_id].get("unique", []))
-        return ret
+            return ret 
+        else:
+            return SCENE_BASE_LIST
     
     # set self.scene_strings if needed and return them along with base strings
     def generate_scene_file_list(self : Updater, element_id : str = "") -> tuple[list[str], list[str], list[str]]:
