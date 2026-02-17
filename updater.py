@@ -3944,8 +3944,14 @@ class Updater():
         except:
             return
         # scene
-        base_target, main_x, uncap_x = self.generate_scene_file_list()
+        base_target, main_x, _ = self.generate_scene_file_list()
         scene_strings : list[str] = base_target + main_x
+        for k in SCENE_SUFFIXES: # add exclusive ones to ensure thorough search
+            if k == "default":
+                scene_strings.extend(SCENE_SUFFIXES[k].get("base", []))
+                scene_strings.extend(SCENE_SUFFIXES[k].get("main", []))
+                scene_strings.extend(SCENE_SUFFIXES[k].get("unique", []))
+        scene_strings = list(set(scene_strings))
         # sound
         sound_strings : list[str] = (["_v_" + str(i).zfill(3) for i in range(5, 200, 5)] + ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_3", "_boss_v_4", "_boss_v_5", "_boss_v_10", "_boss_v_15", "_boss_v_20", "_boss_v_25", "_boss_v_30", "_boss_v_35", "_boss_v_45", "_boss_v_50", "_boss_v_55", "_boss_v_60", "_boss_v_65", "_boss_v_70", "_boss_v_75", "d_boss_v_1"])
         # concat
@@ -3963,7 +3969,7 @@ class Updater():
             if npcs.get(fid, 0) == 0:
                 count += 1
                 ts : TaskStatus = TaskStatus(len(uris), 1)
-                for j in range(20):
+                for n in range(20):
                     self.tasks.add(self.test_missing_npc, parameters=(fid, ts, uris))
         self.tasks.print("Testing", count, "NPCs...")
         await self.tasks.start()
@@ -3971,23 +3977,26 @@ class Updater():
     async def test_missing_npc(self : Updater, element_id : str, ts : TaskStatus, uris : list[str]) -> None:
         npcs = self.data['npcs'] # reference
         while not ts.complete:
+            await asyncio.sleep(1)
             url, idx = uris[ts.get_next_index()]
             try:
+                if element_id in npcs:
+                    break
                 await self.head(url.format(element_id))
-                if element_id not in npcs:
-                    self.modified = True
-                    npcs[element_id] = [False, [], []]
-                    npcs[element_id][idx].append(url.format(element_id).split('/')[-1].split('.')[0])
-                    self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
-                    self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
-                    self.add(element_id, ADD_NPC)
-                    self.raise_flag("found_character")
-                    self.tasks.print("Found NPC:", element_id, "(Queuing secondary updates...)")
-                    ts.bad() # to force stop the other tasks
+                self.modified = True
+                npcs[element_id] = [False, [], []]
+                npcs[element_id][idx].append(url.format(element_id).split('/')[-1].split('.')[0])
+                self.tasks.add(self.update_scenes_of, parameters=(element_id, 'npcs'))
+                self.tasks.add(self.update_sound_of, parameters=(element_id, 'npcs'))
+                self.add(element_id, ADD_NPC)
+                self.raise_flag("found_character")
+                self.tasks.print("Found NPC:", element_id, "(Queuing secondary updates...)")
+                ts.bad() # to force stop the other tasks
             except Exception as e:
                 if str(e) != "HTTP error 404":
                     self.tasks.print(url.format(element_id))
                     self.tasks.print(e)
+        self.tasks.print(element_id, "over")
 
     # simply call update_element on each partner id
     async def update_all_partner(self : Updater) -> None:
@@ -4283,6 +4292,11 @@ class Updater():
             .zstd(False)
             .deflate(False)
             .http2(True)
+            .pool_max_idle_per_host(1)
+            .http2_prior_knowledge()
+            .http2_keep_alive_interval(timedelta(days=1))
+            .http2_keep_alive_timeout(timedelta(days=1))
+            .http2_keep_alive_while_idle(True)
             .build()
         ) as self.client:
             self.tasks.print(f"GBFAL Updater v{VERSION}")
