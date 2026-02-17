@@ -2333,6 +2333,7 @@ class Updater():
         await self.tasks.start()
         self.clear_resume()
     
+    # used by update_npc
     def get_scene_file_list_base(self : Updater, element_id : str = "") -> list[str]:
         ret : list[str] = SCENE_BASE_LIST.copy()
         if element_id in SCENE_SUFFIXES:
