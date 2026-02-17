@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.52'
+VERSION = '3.53'
 CONCURRENT_TASKS = 200
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
@@ -142,7 +142,6 @@ SPECIAL_LOOKUP : dict[str, str] = {}
 UNIQUE_SKIN : list[str] = []
 MALINDA : str = ""
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
-SCENE_BUBBLE_FILTER : dict[str, dict[Any]] = {}
 MSQ_LAST_CHAPTER : list[int] = []
 MSQ_SPECIALS : list[dict[str, str]] = []
 NPC_RELATION_TRIGGER : list[str] = []
@@ -155,7 +154,6 @@ try:
     with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
         globals().update(json.load(f)) # add to global scope
     # extra, SCENE_BUBBLE_FILTER for performance
-    SCENE_BUBBLE_FILTER = {k[1:] for k in SCENE_SUFFIXES["default"]["end"] if len(k) > 0}
     VALENTINE_EXCLUDE = set(VALENTINE_EXCLUDE)
     RISING = set(RISING)
     RELINK = set(RELINK)
@@ -385,6 +383,7 @@ class TaskStatus():
     err : int
     max_err : int
     running : int
+    _finished_event : asyncio.Event
     
     def __init__(self : TaskStatus, max_index : int, max_err : int, *, start : int = 0, running : int = 0):
         self.index = start
@@ -392,6 +391,7 @@ class TaskStatus():
         self.err = 0
         self.max_err = max_err
         self.running = running
+        self._finished_event = asyncio.Event()
 
     def get_next_index(self : TaskStatus) -> int:
         i : int = self.index
@@ -410,10 +410,16 @@ class TaskStatus():
 
     def finish(self : TaskStatus) -> None:
         self.running -= 1
+        if self.running <= 0:
+            self._finished_event.set()
 
     @property
     def finished(self : TaskStatus) -> bool:
         return self.running <= 0
+
+    async def wait_finish(self : TaskStatus) -> None:
+        if self.running > 0:
+            await self._finished_event.wait()
 
 @dataclass(slots=True)
 class Updater():
@@ -682,7 +688,7 @@ class Updater():
 
     # wrapper of head() if the exception isn't needed (return None in case of error instead)
     async def head_nx(self : Updater, url : str):
-        # copy paste to avoid a needless functions call and exception
+        # copy paste to avoid a needless functions call and exception raise
         try:
             response = (
                 await self.client.head(url)
@@ -955,7 +961,7 @@ class Updater():
                 else:
                     #Note: 6200483, 6099502 and possibly more got no icons and raid_appear must be checked instead
                     try:
-                        await self.head(ENDPOINT + f"img/sp/assets/enemy/s/{sfi}.png")
+                        await self.head(f"{ENDPOINT}img/sp/assets/enemy/s/{sfi}.png")
                         self.tasks.print("Found:", sfi, "for index:", 'enemies')
                         enemies[sfi] = 0 # set data to 0 (until it's updated)
                         self.modified = True
@@ -1303,45 +1309,42 @@ class Updater():
         data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
         # icon
         try:
-            await self.head(IMG + f"sp/assets/enemy/s/{element_id}.png")
+            await self.head(f"{IMG}sp/assets/enemy/s/{element_id}.png")
             data[BOSS_GENERAL].append(element_id)
         except:
             try:
-                await self.head(IMG + f"sp/assets/enemy/m/{element_id}.png")
+                await self.head(f"{IMG}sp/assets/enemy/m/{element_id}.png")
                 data[BOSS_GENERAL].append(element_id)
             except:
                 pass
         # sprite
         try:
-            fn = f"enemy_{element_id}"
-            data[BOSS_SPRITE] += await self.processManifest(fn)
+            data[BOSS_SPRITE] += await self.processManifest("enemy_" + element_id)
         except:
             pass
         # appear
+        fn = "raid_appear_" + element_id
         for k in ("", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_shade"):
             try:
-                fn = f"raid_appear_{element_id}{k}"
-                data[BOSS_APPEAR] += await self.processManifest(fn)
+                data[BOSS_APPEAR] += await self.processManifest(fn + k)
             except:
                 pass
         if self.count_file(data) == 0:
             return
         # ehit
         try:
-            fn = f"ehit_{element_id}"
-            data[BOSS_HIT] += await self.processManifest(fn)
+            data[BOSS_HIT] += await self.processManifest("ehit_" + element_id)
         except:
             pass
         # esp
+        fn = "esp_" + element_id
         for i in range(0, 20):
             try:
-                fn = f"esp_{element_id}_{i:02}"
-                data[BOSS_SP] += await self.processManifest(fn)
+                data[BOSS_SP] += await self.processManifest(f"{fn}_{i:02}")
             except:
                 pass
             try:
-                fn = f"esp_{element_id}_{i:02}_all"
-                data[BOSS_SP_ALL] += await self.processManifest(fn)
+                data[BOSS_SP_ALL] += await self.processManifest(f"{fn}_{i:02}_all")
             except:
                 pass
         if self.count_file(data) > file_count:
@@ -1416,10 +1419,11 @@ class Updater():
         uncaps : list[str] = []
         # main sheet
         uncap : str
+        fn : str = f"{IMG}sp/assets/summon/m/{element_id}"
         for uncap in ("", "_02", "_03", "_04"):
             try:
-                await self.head(IMG + f"sp/assets/summon/m/{element_id}{uncap}.jpg")
-                data[SUM_GENERAL].append(f"{element_id}{uncap}")
+                await self.head(f"{fn}{uncap}.jpg")
+                data[SUM_GENERAL].append(element_id + uncap)
                 uncaps.append(uncap if uncap != "" else "")
                 if uncap == "":
                     uncaps.append("_01")
@@ -1431,7 +1435,6 @@ class Updater():
             data[SUM_GENERAL].append(element_id)
             uncaps = ["", "_01"]
         # attack
-        fn : str
         u : str
         m : str
         for u in uncaps:
@@ -1444,7 +1447,7 @@ class Updater():
         data[SUM_CALL] = list(dict.fromkeys(data[SUM_CALL]))
         # damage
         try:
-            data[SUM_DAMAGE] += await self.processManifest(f"summon_{element_id}") # old summons
+            data[SUM_DAMAGE] += await self.processManifest("summon_" + element_id) # old summons
         except:
             pass
         for u in uncaps:
@@ -1488,11 +1491,12 @@ class Updater():
                 g : str
                 m : str
                 n : str
+                fn : str = f"{IMG}sp/assets/npc/raid_normal/{element_id}"
                 async with asyncio.TaskGroup() as tg:
                     for g in ("_1", ""): # gender
                         for m in ("_101", ""): # multi
                             for n in ("_01", ""): # null
-                                tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(IMG + f"sp/assets/npc/raid_normal/{element_id}_{uncap}{style}{g}{m}{n}.jpg"))
+                                tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(f"{fn}_{uncap}{style}{g}{m}{n}.jpg"))
                 positive : bool = False
                 for tup, task in tasks.items():
                     if task.result() is not None:
@@ -1514,8 +1518,8 @@ class Updater():
         chara_data = self.data[index] # reference
         # get existing file_count
         try:
-            
-            if self.ignore_file_count: raise Exception()
+            if self.ignore_file_count:
+                raise Exception()
             file_count = self.count_file(chara_data[element_id])
         except:
             file_count = 0
@@ -1570,7 +1574,7 @@ class Updater():
                     # different sprites
                     if g != "":
                         try:
-                            await self.head(IMG + f"/sp/assets/npc/sd/{base_fn}{g}.png")
+                            await self.head(f"{IMG}/sp/assets/npc/sd/{base_fn}{g}.png")
                             sd.append(base_fn + g)
                         except:
                             pass
@@ -1786,7 +1790,8 @@ class Updater():
                 for el in range(1, 15):
                     try:
                         fn = f"ab_all_{tid}{style}_{el:02}"
-                        if fn not in lookup: attacks += await self.processManifest(fn, True)
+                        if fn not in lookup:
+                            attacks += await self.processManifest(fn, True)
                     except:
                         pass
                 tmp[CHARA_AB_ALL] = attacks
@@ -1830,7 +1835,7 @@ class Updater():
             data[NPC_SOUND] = npcs[element_id][NPC_SOUND]
         exist : bool = False
         try:
-            await self.head(IMG + f"sp/assets/npc/m/{element_id}_01.jpg")
+            await self.head(f"{IMG}sp/assets/npc/m/{element_id}_01.jpg")
             data[NPC_JOURNAL] = True
             exist = True
         except:
@@ -1865,11 +1870,11 @@ class Updater():
             # base sound
             if not exist:
                 base_target = ["_v_001", "_boss_v_1", "_boss_v_2", "_boss_v_10", "_boss_v_20"]
+                fn = f"{SOUND}voice/{element_id}"
                 for k in base_target:
                     try:
                         if k not in data[NPC_SOUND]:
-                            f = f"{element_id}{k}"
-                            await self.head(SOUND + "voice/" + f + ".mp3")
+                            await self.head(f"{fn}{k}.mp3")
                             data[NPC_SOUND].append(k)
                             exist = True
                         else:
@@ -1902,8 +1907,8 @@ class Updater():
         for s in ("", "_02", "_03"):
             # art
             try:
-                await self.head(IMG + f"sp/assets/weapon/m/{element_id}{s}.jpg")
-                data[WEAP_GENERAL].append(f"{element_id}{s}")
+                await self.head(f"{IMG}sp/assets/weapon/m/{element_id}{s}.jpg")
+                data[WEAP_GENERAL].append(element_id + s)
             except:
                 if s == "":
                     return
@@ -1915,8 +1920,7 @@ class Updater():
             for u in ("", "_2", "_3", "_4"):
                 for g in ("", "_0", "_1"):
                     try:
-                        fn = f"phit_{element_id}{s}{g}{u}"
-                        data[WEAP_PHIT] += await self.processManifest(fn)
+                        data[WEAP_PHIT] += await self.processManifest(f"phit_{element_id}{s}{g}{u}")
                     except:
                         if g == '_0':
                             break
@@ -1926,8 +1930,7 @@ class Updater():
                 for t in ("", "_s2", "_s3"):
                     for g in ("", "_0", "_1"):
                         try:
-                            fn = f"sp_{element_id}{s}{g}{u}{t}"
-                            data[WEAP_SP] += await self.processManifest(fn)
+                            data[WEAP_SP] += await self.processManifest(f"sp_{element_id}{s}{g}{u}{t}")
                         except:
                             if g == '_0':
                                 break
@@ -1947,7 +1950,7 @@ class Updater():
         if element_id not in shields:
             # art check
             try:
-                await self.head(IMG + f"sp/assets/shield/m/{element_id}.jpg")
+                await self.head(f"{IMG}sp/assets/shield/m/{element_id}.jpg")
             except:
                 return
         elif isinstance(shields[element_id], list):
@@ -1972,20 +1975,22 @@ class Updater():
         colors = [int(element_id[-1])]
         alts = []
         # mh check
+        fn = f"{IMG}sp/assets/leader/raid_normal/{element_id}"
         for mh in MAINHAND:
             try:
-                await self.head(IMG + f"sp/assets/leader/raid_normal/{element_id}_{mh}_0_01.jpg")
+                await self.head(f"{fn}_{mh}_0_01.jpg")
                 cmh.append(mh)
             except:
                 continue
         if len(cmh) > 0:
             # alt check
             if colors[0] == 1:
+                fn = f"{IMG}sp/assets/leader/sd/{element_id[:-2]}"
                 for j in (2, 3, 4, 5, 80):
                     try:
-                        await self.head(IMG + f"sp/assets/leader/sd/{element_id[:-2]}{j:02}_{cmh[0]}_0_01.png")
+                        await self.head(f"{fn}{j:02}_{cmh[0]}_0_01.png")
                         if element_id in UNIQUE_SKIN:
-                            await self.update_job(element_id[:-2]+str(j).zfill(2))
+                            await self.update_job(element_id[:-2] + str(j).zfill(2))
                         else:
                             colors.append(j)
                             if j >= 80:
@@ -2055,7 +2060,7 @@ class Updater():
     # Subroutine for init_job_list
     async def init_job_list_check(self, eid : str) -> str|None:
         try:
-            await self.head(IMG + f"sp/assets/leader/m/{eid}_01.jpg")
+            await self.head(f"{IMG}sp/assets/leader/m/{eid}_01.jpg")
             return eid
         except:
             return None
@@ -2124,7 +2129,7 @@ class Updater():
                 passed = True
                 for mh in cmh:
                     try:
-                        await self.head(MANIFEST + f"{d}_{mh}_0_01.js")
+                        await self.head(f"{MANIFEST}{d}_{mh}_0_01.js")
                     except:
                         passed = False
                         break
@@ -2155,7 +2160,7 @@ class Updater():
     async def detail_job_search_single(self, key : str, mhs : list[str]) -> None:
         for mh in mhs:
             try:
-                await self.head(MANIFEST + f"{key}_{mh}_0_01.js")
+                await self.head(f"{MANIFEST}{key}_{mh}_0_01.js")
                 self.data["job_key"][key] = None
                 self.modified = True
                 self.tasks.print("\nUnknown job key", key, "for mh", mh)
@@ -2441,7 +2446,7 @@ class Updater():
         base_target, main_x, uncap_x = self.generate_scene_file_list(element_id) # we save memory this way as most elements share the same strings, instead of building them on the spot
         # for each uncap...
         for u in uncaps:
-            if u in ("", "01"):
+            if u in {"", "01"}:
                 u = ""
             else:
                 u = "_" + u
@@ -2473,13 +2478,12 @@ class Updater():
                 continue
             ts.running += 1
             self.tasks.add(self.update_scene_check, parameters=(ts, file_id, f, existing), priority=1)
-        await self.update_scene_continue(ts, index, element_id, idx, uncap, existing, bases, suffixes, filters)
+        self.tasks.add(self.update_scene_continue, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes, filters))
 
     # part 2 of the function, wait for TaskStatus completion
     async def update_scene_continue(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str], filters : list[str]) -> None:
         # wait previous tasks completion
-        while not ts.finished:
-            await asyncio.sleep(1)
+        await ts.wait_finish()
         file_id : str = self.data['npc_replace'].get(element_id, element_id)
         suffix : str
         # search variations now, make a list of file again
@@ -2501,8 +2505,7 @@ class Updater():
     # part 3 of the function, wait for TaskStatus completion
     async def update_scene_end(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str]) -> None:
         # wait previous tasks completion
-        while not ts.finished:
-            await asyncio.sleep(1)
+        await ts.wait_finish()
         # check if the data has new strings
         if len(existing) > len(self.data[index][element_id][idx]):
             self.data[index][element_id][idx] = list(existing) # set it
@@ -2525,16 +2528,16 @@ class Updater():
 
     # request scene assets
     async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str]) -> None:
+        file : str = f"{file_id}{f}.png"
         try:
-            await self.head(IMG + f"sp/quest/scene/character/body/{file_id}{f}.png") # check if scene file exists
+            await self.head(f"{IMG}sp/quest/scene/character/body/{file}")
             existing.add(f)
         except:
-            if (f == "" or f.split("_")[-1] not in SCENE_BUBBLE_FILTER):
-                try:
-                    await self.head(IMG + f"sp/raid/navi_face/{file_id}{f}.png") # or check navi_face is the file name matches the SCENE_BUBBLE_FILTER
-                    existing.add(f)
-                except:
-                    pass
+            try:
+                await self.head(f"{IMG}sp/raid/navi_face/{file}")
+                existing.add(f)
+            except:
+                pass
         ts.finish() # task ended
 
     ### Generic Chapter Update #################################################################################################################
@@ -2807,9 +2810,9 @@ class Updater():
         for i in range(0, EVENT_MAX_CHAPTER): # create takes for each chapter and possible sub episode and quest
             for j in range(1, 3):
                 for k in range(1, 3):
-                    self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, VOICE + f"scene_evt{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
+                    self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
                     if new_format: # bandaid
-                        self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, VOICE + f"scene_evt20{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
+                        self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt20{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
 
     # check voice line existence
     async def check_event_voice_line(self : Updater, ts : TaskStatus, element_id : str, cp : int, uri : str) -> None:
@@ -2818,7 +2821,7 @@ class Updater():
             if cp <= ts.index:
                 break
             try:
-                await self.head(uri + f"_{m}.mp3") # note: we don't bother checking for variations, this function is simply trying to find ONE file
+                await self.head(f"{uri}_{m}.mp3") # note: we don't bother checking for variations, this function is simply trying to find ONE file
                 if cp > ts.index:
                     ts.index = cp # we use the TaskStatus index variable to store the highest chapter we encountered
                 break
@@ -2907,7 +2910,7 @@ class Updater():
                 i : int = start+ts.get_next_index() # get next id
                 f : str = f"{i}0"
                 if f not in eventthumb:
-                    await self.head(IMG + f"sp/archive/assets/island_m2/{f}.png") # try to request
+                    await self.head(f"{IMG}sp/archive/assets/island_m2/{f}.png") # try to request
                     eventthumb[f] = 0 # set it in memory
                     self.modified = True
                     self.tasks.print("New event thumbnail", f)
@@ -3009,7 +3012,7 @@ class Updater():
                         if i == 0:
                             fn = "scene_pt02_cpop"
                         else:
-                            fn = f"scene_pt02_cp{element_id}"
+                            fn = "scene_pt02_cp" + element_id
                     case 0:
                         if i == 0:
                             fn = "tuto_scene"
@@ -3318,7 +3321,7 @@ class Updater():
                     existing.add(f)
                 else:
                     try:
-                        await self.head(VOICE + f"{element_id}{f}.mp3")
+                        await self.head(f"{VOICE}{element_id}{f}.mp3")
                         existing.add(f)
                     except:
                         pass
@@ -3338,7 +3341,7 @@ class Updater():
                         f = uncap + suffix.format(str(current).zfill(zfill)) + p
                         if f not in existing:
                             try:
-                                await self.head(VOICE + f"{element_id}{f}.mp3")
+                                await self.head(f"{VOICE}{element_id}{f}.mp3")
                                 found = True
                                 existing.add(f)
                             except:
@@ -3366,7 +3369,7 @@ class Updater():
                     try:
                         f = f"_pair_{A}_{B:0{i}}"
                         if f not in existing:
-                            await self.head(VOICE + f"{element_id}{f}.mp3")
+                            await self.head(f"{VOICE}{element_id}{f}.mp3")
                         existing.add(f)
                         success = True
                         Z = i
@@ -3856,7 +3859,7 @@ class Updater():
     # maintenance_npc_thumbnail() subroutine
     async def update_npc_thumb(self : Updater, element_id : str) -> None: # subroutine
         try:
-            await self.head(IMG + f"sp/assets/npc/m/{element_id}_01.jpg")
+            await self.head(f"{IMG}sp/assets/npc/m/{element_id}_01.jpg")
             self.data['npcs'][element_id][NPC_JOURNAL] = True
             self.modified = True
         except:
@@ -3951,10 +3954,10 @@ class Updater():
         count : int = 0
         for s in scene_strings:
             for u in ("", "_02", "_03"):
-                uris.append((IMG + f"sp/quest/scene/character/body/{{}}{u}{s}.png", NPC_SCENE))
-                uris.append((IMG + f"sp/raid/navi_face/{{}}{u}{s}.png", NPC_SCENE))
+                uris.append((f"{IMG}sp/quest/scene/character/body/{{}}{u}{s}.png", NPC_SCENE))
+                uris.append((f"{IMG}sp/raid/navi_face/{{}}{u}{s}.png", NPC_SCENE))
         for s in sound_strings:
-            uris.append((SOUND + f"voice/{{}}{s}.mp3", NPC_SOUND))
+            uris.append((f"{SOUND}voice/{{}}{s}.mp3", NPC_SOUND))
         for i in range(0, highest+5):
             fid : str = f"399{i:04}000"
             if npcs.get(fid, 0) == 0:
