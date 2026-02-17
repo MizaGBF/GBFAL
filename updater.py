@@ -3969,7 +3969,7 @@ class Updater():
             if npcs.get(fid, 0) == 0:
                 count += 1
                 ts : TaskStatus = TaskStatus(len(uris), 1)
-                for n in range(CONCURRENT_TASKS):
+                for n in range(50):
                     self.tasks.add(self.test_missing_npc, parameters=(fid, ts, uris))
         self.tasks.print("Testing", count, "NPCs...")
         await self.tasks.start()
