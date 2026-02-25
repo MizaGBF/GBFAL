@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.53'
+VERSION = '3.54'
 CONCURRENT_TASKS = 120
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
@@ -483,7 +483,6 @@ class Updater():
             "premium":{},
             "npc_replace":{}
         }
-        self.load() # load self.data NOW
         self.modified = False # if set to true, data.json will be written on the next call of save()
         self.resume = {} # list of items completed (for the resume file)
         self.stat_string = None # set and updated by make_stats
@@ -4355,6 +4354,8 @@ class Updater():
             settings.add_argument('-da', '--gbfdaio', help="import index.json from GBFDAIO.", action='store', nargs=1, type=str, metavar='PATH')
             settings.add_argument('-dg', '--debug', help="enable the debug infos in the progress string.", action='store_const', const=True, default=False, metavar='')
             args : argparse.Namespace = parser.parse_args()
+            # load self.data NOW
+            self.load()
             # settings
             run_help : bool = True
             if args.nochange:
