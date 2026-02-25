@@ -21,7 +21,8 @@ from tqdm import tqdm
 ### Constant variables
 VERSION = '3.54'
 CONCURRENT_TASKS = 120
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Rosetta/GBFAL_' + VERSION
+BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
+USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 2
 # other
 LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
@@ -4286,7 +4287,7 @@ class Updater():
             ClientBuilder()
             .runtime_multithreaded(True)
             .user_agent(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+                BASE_USER_AGENT
             )
             .gzip(True)
             .brotli(False)
