@@ -4281,6 +4281,61 @@ class Updater():
 
     # Start function
     async def start(self : Updater) -> None:
+        self.tasks.print(f"GBFAL Updater v{VERSION}")
+        # set Ctrl+C
+        try: # unix
+            asyncio.get_event_loop().add_signal_handler(signal.SIGINT, self.tasks.interrupt)
+        except: # windows fallback
+            signal.signal(signal.SIGINT, self.tasks.interrupt)
+        # parse parameters
+        prog_name : str
+        try: prog_name = sys.argv[0].replace('\\', '/').split('/')[-1]
+        except: prog_name = "updater.py" # fallback to default
+        # Set Argument Parser
+        parser : argparse.ArgumentParser = argparse.ArgumentParser(prog=prog_name, description=f"Asset Updater v{VERSION} for GBFAL https://mizagbf.github.io/GBFAL/")
+        primary = parser.add_argument_group('primary', 'main commands to update the data.')
+        primary.add_argument('-r', '--run', help="search for new content.", action='store_const', const=True, default=False, metavar='')
+        primary.add_argument('-u', '--update', help="update given elements.", nargs='+', default=None)
+        primary.add_argument('-j', '--job', help="detailed job search. Add 'full' to trigger a full search.", action='store', nargs='?', default=False, metavar='FULL')
+        primary.add_argument('-jq', '--jobquick', help="search for unused job secondary IDs. Can specify mainhand keys.", action='store', nargs='*', default=False, metavar='FULL')
+        
+        secondary = parser.add_argument_group('secondary', 'commands to update some specific data.')
+        secondary.add_argument('-si', '--sceneid', help="update scene content for given IDs.", nargs='+', default=None)
+        secondary.add_argument('-sc', '--scene', help="update scene content. Add optional strings to match.", nargs='*', default=None)
+        secondary.add_argument('-sd', '--sound', help="update sound content. Add optional strings to match.", nargs='*', default=None)
+        secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
+        secondary.add_argument('-fe', '--forceevent', help="force update event content for given event IDs.", nargs='+', default=None)
+        secondary.add_argument('-ne', '--newevent', help="check new event content.", action='store_const', const=True, default=False, metavar='')
+        secondary.add_argument('-st1', '--story1', help="update story arc 1 content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
+        secondary.add_argument('-st2', '--story2', help="update story arc 2 content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
+        secondary.add_argument('-ft', '--fate', help="update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.", action='store', nargs='?', default="", metavar='FATES')
+        secondary.add_argument('-pt', '--partner', help="update all parner content. Time consuming.", action='store_const', const=True, default=False, metavar='')
+        secondary.add_argument('-mn', '--missingnpc', help="search for missing NPCs. Time consuming.", action='store_const', const=True, default=False, metavar='')
+        
+        maintenance = parser.add_argument_group('maintenance', 'commands to perform specific maintenance tasks.')
+        maintenance.add_argument('-ij', '--importjob', help="import data from job_data_export.json.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-ej', '--exportjob', help="export data to job_data_export.json.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-lk', '--lookup', help="import and update manual_lookup.json and fetch the wiki to update the lookup table.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-fj', '--fatejson', help="import and update manual_fate.json.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-it', '--importthumb', help="import data from manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-et', '--exportthumb', help="export data to manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-mt', '--maintenance', help="run all existing maintenance tasks.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-mb', '--maintenancebuff', help="maintenance task to check existing buffs for new icons.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-ms', '--maintenancesky', help="maintenance task to check sky compass arts for existing events.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-mu', '--maintenancenpcthumbnail', help="maintenance task to check NPC thumbnails for existing NPCs.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-mr', '--maintenanceraidappear', help="maintenance task to check Enemy Raid Appear spritesheets.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
+        
+        settings = parser.add_argument_group('settings', 'commands to alter the updater behavior.')
+        settings.add_argument('-au', '--adduncap', help="add elements to be updated during the next run.", nargs='*', default=None)
+        settings.add_argument('-nc', '--nochange', help="disable update of the New category of changelog.json.", action='store_const', const=True, default=False, metavar='')
+        settings.add_argument('-nr', '--noresume', help="disable the use of the resume file.", action='store_const', const=True, default=False, metavar='')
+        settings.add_argument('-if', '--ignorefilecount', help="ignore known file count when updating elements.", action='store_const', const=True, default=False, metavar='')
+        settings.add_argument('-da', '--gbfdaio', help="import index.json from GBFDAIO.", action='store', nargs=1, type=str, metavar='PATH')
+        settings.add_argument('-dg', '--debug', help="enable the debug infos in the progress string.", action='store_const', const=True, default=False, metavar='')
+        args : argparse.Namespace = parser.parse_args()
+        
+        # init HTTP client
         runtime.runtime_multithreaded_default(True)
         runtime.runtime_worker_threads(8)
         async with (
@@ -4302,59 +4357,6 @@ class Updater():
             .http2_keep_alive_while_idle(True)
             .build()
         ) as self.client:
-            self.tasks.print(f"GBFAL Updater v{VERSION}")
-            # set Ctrl+C
-            try: # unix
-                asyncio.get_event_loop().add_signal_handler(signal.SIGINT, self.tasks.interrupt)
-            except: # windows fallback
-                signal.signal(signal.SIGINT, self.tasks.interrupt)
-            # parse parameters
-            prog_name : str
-            try: prog_name = sys.argv[0].replace('\\', '/').split('/')[-1]
-            except: prog_name = "updater.py" # fallback to default
-            # Set Argument Parser
-            parser : argparse.ArgumentParser = argparse.ArgumentParser(prog=prog_name, description=f"Asset Updater v{VERSION} for GBFAL https://mizagbf.github.io/GBFAL/")
-            primary = parser.add_argument_group('primary', 'main commands to update the data.')
-            primary.add_argument('-r', '--run', help="search for new content.", action='store_const', const=True, default=False, metavar='')
-            primary.add_argument('-u', '--update', help="update given elements.", nargs='+', default=None)
-            primary.add_argument('-j', '--job', help="detailed job search. Add 'full' to trigger a full search.", action='store', nargs='?', default=False, metavar='FULL')
-            primary.add_argument('-jq', '--jobquick', help="search for unused job secondary IDs. Can specify mainhand keys.", action='store', nargs='*', default=False, metavar='FULL')
-            
-            secondary = parser.add_argument_group('secondary', 'commands to update some specific data.')
-            secondary.add_argument('-si', '--sceneid', help="update scene content for given IDs.", nargs='+', default=None)
-            secondary.add_argument('-sc', '--scene', help="update scene content. Add optional strings to match.", nargs='*', default=None)
-            secondary.add_argument('-sd', '--sound', help="update sound content. Add optional strings to match.", nargs='*', default=None)
-            secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
-            secondary.add_argument('-fe', '--forceevent', help="force update event content for given event IDs.", nargs='+', default=None)
-            secondary.add_argument('-ne', '--newevent', help="check new event content.", action='store_const', const=True, default=False, metavar='')
-            secondary.add_argument('-st1', '--story1', help="update story arc 1 content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
-            secondary.add_argument('-st2', '--story2', help="update story arc 2 content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
-            secondary.add_argument('-ft', '--fate', help="update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.", action='store', nargs='?', default="", metavar='FATES')
-            secondary.add_argument('-pt', '--partner', help="update all parner content. Time consuming.", action='store_const', const=True, default=False, metavar='')
-            secondary.add_argument('-mn', '--missingnpc', help="search for missing NPCs. Time consuming.", action='store_const', const=True, default=False, metavar='')
-            
-            maintenance = parser.add_argument_group('maintenance', 'commands to perform specific maintenance tasks.')
-            maintenance.add_argument('-ij', '--importjob', help="import data from job_data_export.json.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-ej', '--exportjob', help="export data to job_data_export.json.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-lk', '--lookup', help="import and update manual_lookup.json and fetch the wiki to update the lookup table.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-fj', '--fatejson', help="import and update manual_fate.json.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-it', '--importthumb', help="import data from manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-et', '--exportthumb', help="export data to manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-mt', '--maintenance', help="run all existing maintenance tasks.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-mb', '--maintenancebuff', help="maintenance task to check existing buffs for new icons.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-ms', '--maintenancesky', help="maintenance task to check sky compass arts for existing events.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-mu', '--maintenancenpcthumbnail', help="maintenance task to check NPC thumbnails for existing NPCs.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-mr', '--maintenanceraidappear', help="maintenance task to check Enemy Raid Appear spritesheets.", action='store_const', const=True, default=False, metavar='')
-            maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
-            
-            settings = parser.add_argument_group('settings', 'commands to alter the updater behavior.')
-            settings.add_argument('-au', '--adduncap', help="add elements to be updated during the next run.", nargs='*', default=None)
-            settings.add_argument('-nc', '--nochange', help="disable update of the New category of changelog.json.", action='store_const', const=True, default=False, metavar='')
-            settings.add_argument('-nr', '--noresume', help="disable the use of the resume file.", action='store_const', const=True, default=False, metavar='')
-            settings.add_argument('-if', '--ignorefilecount', help="ignore known file count when updating elements.", action='store_const', const=True, default=False, metavar='')
-            settings.add_argument('-da', '--gbfdaio', help="import index.json from GBFDAIO.", action='store', nargs=1, type=str, metavar='PATH')
-            settings.add_argument('-dg', '--debug', help="enable the debug infos in the progress string.", action='store_const', const=True, default=False, metavar='')
-            args : argparse.Namespace = parser.parse_args()
             # load self.data NOW
             self.load()
             # settings
