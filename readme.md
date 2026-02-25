@@ -56,7 +56,7 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.50
+GBFAL Updater v3.54
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-jq [FULL ...]] [-si SCENEID [SCENEID ...]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]]
@@ -66,7 +66,7 @@ usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-js] [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH]
                   [-dg]
 
-Asset Updater v3.38 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.54 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
