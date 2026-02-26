@@ -16,6 +16,8 @@ def print_help():
 def read(data):
     try:
         j = json.loads(pyperclip.paste())
+        assert("files" in j)
+        assert("names" in j)
         for f in j["files"]:
             sp = f.split("_", 1)
             if len(sp) == 2:
@@ -34,20 +36,30 @@ def read(data):
         print("Can't read clipboard data:", e)
         return
 
+def to_ordered_id(data):
+    return {
+        "ids": sorted(list(data["ids"])),
+        "suffixes": {k: sorted(list(v)) for k, v in sorted(data["suffixes"].items())},
+        "names": {k: sorted(list(v)) for k, v in sorted(data["names"].items())}
+    }
+
 def report(data):
-    print(f"# ID list ({len(data['ids'])})")
-    print(" ".join(list(data['ids'])))
-    print(f"# Suffix list ({len(data['suffixes'])})")
-    for k, v in data['suffixes'].items():
+    ordered = to_ordered_id(data)
+    print(f"# ID list ({len(ordered['ids'])})")
+    print(" ".join(list(ordered['ids'])))
+    print(f"# Suffix list ({len(ordered['suffixes'])})")
+    for k, v in ordered['suffixes'].items():
         print(f"{k}: {", ".join(list(v))}")
-    print(" ".join(list(data['suffixes'])))
-    print(f"# Name list ({len(data['names'])}")
-    for k, v in data['names'].items():
+    print(" ".join(list(ordered['suffixes'])))
+    print(f"# Name list ({len(ordered['names'])})")
+    for k, v in ordered['names'].items():
         print(f"{k}: {", ".join(list(v))}")
 
 def copy(data):
     try:
-        pyperclip.copy(json.dumps(data, default=list, indent=4, ensure_ascii=False))
+        j = to_ordered_id(data)
+        j["ids"] = " ".join(j["ids"])
+        pyperclip.copy(json.dumps(j, default=list, indent=4, ensure_ascii=False))
         print("Data has been copied to your clipboard")
     except:
         print("An unexpected error occured")
