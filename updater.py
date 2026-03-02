@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.54'
+VERSION = '3.55'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
@@ -3483,8 +3483,6 @@ class Updater():
                                 lookup_data[k] = l
                                 modified.add(k)
                         continue
-                    if "$$" not in v and "$" in v:
-                        self.tasks.print("Missing $ Warning for", k, "in manual_lookup.json")
                     match len(k):
                         case 10: # npc
                             if "@@" in lookup_data.get(k, ""):
@@ -3495,7 +3493,7 @@ class Updater():
                         case 7: # enemy
                             if "$$" in v:
                                 vs = v.split("$$")
-                                if vs[1] not in ("fire", "water", "earth", "wind", "light", "dark", "null", "unknown-element"):
+                                if vs[1] not in {"fire", "water", "earth", "wind", "light", "dark", "null", "unknown-element"}:
                                     self.tasks.print("Element Warning for", k, "in manual_lookup.json")
                                 v = vs[1] + " " + vs[0]
                             else:
@@ -3598,7 +3596,7 @@ class Updater():
                         # check main infos
                         match table:
                             case "classes"|"mc_outfits":
-                                looks = ["main", "character's", "related"]
+                                looks = ["main", "character's", "relation"]
                             case _:
                                 looks = []
                         if item.get('element', '') == 'any':
