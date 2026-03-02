@@ -578,7 +578,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					]
 				}
 			];
-			if("lookup" in index && id in index.lookup && index.lookup[id].includes("voice-only"))
+			if("lookup" in index && id in index.lookup && index.lookup[id].includes("/!!"))
 				pages.splice(0, 1);
 			
 			files = [id + "_01"];

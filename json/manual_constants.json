@@ -54,6 +54,7 @@
     ],
     
     "CUT_CONTENT" : ["2040145000","2040146000","2040147000","2040148000","2040149000","2040150000","2040151000","2040152000","2040153000","2040154000","2040200000","2020001000"],
+    "OTHER_CUT_CONTENT" : ["1020200000", "1040100100", "1040200100", "1040400000", "1040400100", "1040500100", "1040600100", "1030100300", "1040000200", "1040100200", "1040300300", "1030400500", "1040000400", "1040100400", "1040200500", "1040100500", "1040200400", "1040400500", "1030200600", "1030100700", "1040000700", "1040100600", "1040400600", "1040100700", "1040200600", "1040400700", "1010001100", "1020000900", "1020300900", "1030100900", "1030000900", "1030000800", "1040000800", "1040100900", "1020101200", "1010101500", "1010301400", "1010101700", "1010101600", "1010201600", "1030002000", "1040505600", "1040400400", "6099502"],
     "SHARED_LOOKUP" : [
         ["2030081000", "2030082000", "2030083000", "2030084000"],
         ["2030085000", "2030086000", "2030087000", "2030088000"],
@@ -88,19 +89,19 @@
         ["2040306000","2040200000"]
     ],
     "SPECIAL_LOOKUP" : {
-        "3020065000": "r brown poppet trial",
-        "3030158000": "sr blue poppet trial",
-        "3040097000": "ssr sierokarte trial gbf-versus-rising gbf-relink",
-        "2030004000": "fire sr cut-content",
-        "2030014000": "dark sr cut-content",
-        "2020001000": "earth sr goblin cut-content",
-        "3040114000": "ssr cut-content",
-        "3710196000": "@@Cassius cassius parasol and hakama of prosperity カシウス masaya matsukaze 松風 雅也",
-        "3710117000": "@@Meteon meteon a comet's calm ミュオン masakazu morita 森田成一",
-        "3710183000": "@@Young_Cat young cat black with golden eyes 猫 daiki yamashita 山下大輝",
-        "3710184000": "@@Young_Cat young cat ginger tabby 猫 daiki yamashita 山下大輝",
-        "3710182000": "@@Young_Cat young cat milky white shorthair 猫 daiki yamashita 山下大輝",
-        "3710015000": "@@Lina lina tie-in human female balanced sabre リナ＝インバース megumi hayashibara 林原めぐみ"
+        "3020065000": "/a r /n brown poppet /c trial",
+        "3030158000": "/a sr /n blue poppet /c trial",
+        "3040097000": "/a ssr /n sierokarte /c trial /b harvin /s female /1 /2",
+        "2030004000": "/e fire /a sr /c cut-content",
+        "2030014000": "/e dark /a sr /c cut-content",
+        "2020001000": "/e earth /a sr /n goblin /c cut-content",
+        "3040114000": "/a ssr /c cut-content",
+        "3710196000": "/w Cassius /n cassius /k parasol and hakama of prosperity /y カシウス masaya matsukaze 松風 雅也",
+        "3710117000": "/w Meteon /n meteon /k a comet's calm /y ミュオン masakazu morita 森田成一",
+        "3710183000": "/w Young_Cat /n young cat /k black with golden eyes /y 猫 daiki yamashita 山下大輝",
+        "3710184000": "/w Young_Cat /n young cat /k ginger tabby /y 猫 daiki yamashita 山下大輝",
+        "3710182000": "/w Young_Cat /n young cat /k milky white shorthair /y 猫 daiki yamashita 山下大輝",
+        "3710015000": "/w Lina /n lina /c collab /b human /s female /t balanced /p sabre /y リナ＝インバース megumi hayashibara 林原めぐみ"
     },
     
     "UNIQUE_SKIN" : ["311301", "311302", "311303", "360301", "360302", "360303"],
@@ -364,44 +365,6 @@
         {
         }
     ],
-    "NPC_RELATION_TRIGGER" : [
-        "family",
-        "friend",
-        "husband",
-        "wife",
-        "father",
-        "mother",
-        "daughter",
-        "sister",
-        "brother",
-        "youngest",
-        "older",
-        "middle",
-        "grandfather",
-        "grandmother",
-        "aunt",
-        "uncle",
-        "son",
-        "daugther",
-        "dog",
-        "cat",
-        "kitten",
-        "pet",
-        "familiar",
-        "hounds",
-        "stuffed toy",
-        "space ship",
-        "guide",
-        "maid",
-        "servant",
-        "gearcycle",
-        "glasses",
-        "form",
-        "relation",
-        "duo",
-        "trio",
-        "group"
-    ],
     "RISING" : [
         "lyria",
         "vyrn",
@@ -473,7 +436,6 @@
         "370801",
         "360001"
     ],
-    
     "RELINK" : [
         "gran",
         "djeeta",

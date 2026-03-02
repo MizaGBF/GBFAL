@@ -227,9 +227,100 @@ function allocate_pools()
 	{
 		if(!(id in index.lookup))
 			continue;
-		if(index.lookup[id].includes("cut-content") || index.lookup[id].includes("missing-help-wanted") || index.lookup[id].includes("voice-only"))
+		if(
+			index.lookup[id].includes("cut-content")
+			|| index.lookup[id].includes("/$")
+			|| index.lookup[id].includes("/!!")
+			|| !index.lookup[id].includes("/n")
+		)
+		{
 			continue;
+		}
 		let words = index.lookup[id].split(" ");
+		let last_token = "";
+		let name = [];
+		let dual = false;
+		let no_series = true;
+		let date = null;
+		for(const w of words)
+		{
+			if(GBF.c_special_tokens.has(w))
+			{
+				last_token = w;
+			}
+			else
+			{
+				switch(last_token)
+				{
+					case "/a":
+					{
+						if(["r", "sr", "ssr"].includes(w))
+							pools[w].push(id);
+						break;
+					}
+					case "/e":
+					{
+						if(["fire", "water", "earth", "wind", "light", "dark", "any"].includes(w))
+							pools[w].push(id);
+						break;
+					}
+					case "/b": // race
+					{
+						if(w in pools)
+							pools[w].push(id);
+						break;
+					}
+					case "/n": // name
+					{
+						name.push(w);
+						if(w == "and")
+							dual = true;
+						break;
+					}
+					case "/c": // series
+					{
+						if(w in pools)
+						{
+							pools[w].push(id);
+							no_series = false;
+						}
+						break;
+					}
+					case "/s": // gender
+					{
+						if(w in pools)
+							pools[w].push(id);
+						break;
+					}
+					case "/y": // metadata
+					{
+						if(w.length == 10 && w[4] == '-' && w[7] == '-')
+						{
+							date = w;
+						}
+						break;
+					}
+				}
+			}
+		}
+		if(no_series)
+			pools.none.push(id);
+		if(dual)
+			pools.multi.push(id);
+		else
+			pools.single.push(id);
+		name = name.join(" ");
+		pools.list[id] = name;
+		if(date != null)
+		{
+			if(!(date in releases))
+				releases[date] = [];
+			releases[date].push([id, name]);
+		}
+		
+		
+		/*
+		
 		let offset = words[0].startsWith("@@") ? 1 : 0; // skip wiki
 		// element (always the first)
 		if(!(["fire", "water", "earth", "wind", "light", "dark", "any"].includes(words[offset])))
@@ -283,7 +374,7 @@ function allocate_pools()
 			if(!(words[offset] in releases))
 				releases[words[offset]] = [];
 			releases[words[offset]].push([id, name]);
-		}
+		}*/
 	}
 	// sort releases dates to find alternate versions
 	let dates = Object.keys(releases);

@@ -139,6 +139,7 @@ MISSING_EVENTS : list[str] = []
 SPECIAL_EVENTS : dict[str, str] = {}
 VALENTINE_EXCLUDE : set[str] = {}
 CUT_CONTENT : list[str] = []
+OTHER_CUT_CONTENT : list[str] = []
 SHARED_LOOKUP : list[list[str]] = []
 SPECIAL_LOOKUP : dict[str, str] = {}
 UNIQUE_SKIN : list[str] = []
@@ -146,7 +147,6 @@ MALINDA : str = ""
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 MSQ_LAST_CHAPTER : list[int] = []
 MSQ_SPECIALS : list[dict[str, str]] = []
-NPC_RELATION_TRIGGER : list[str] = []
 RISING : set[str] = {}
 RISING_MC : list[str] = []
 RELINK : set[str] = {}
@@ -3413,44 +3413,65 @@ class Updater():
         npcs = self.data['npcs'] # reference
         lookup_data = self.data['lookup'] # reference
         modified = set()
-        relations : dict[str, list[str]] = {}
-        # Read manual_lookup.json and update data.json
+        relations : dict[str, str] = {}
+        # Special delimiter/tag Note:
+        # /a rarity
+        # /b race
+        # /c series
+        # /e element
+        # /f boss fight type
+        # /k outfit name
+        # /m main character class indicator
+        # /n name
+        # /p proficiency
+        # /s gender
+        # /t character/weapon type
+        # /w wiki
+        # /x relation
+        # /y metadata
+        # /_ young marker
+        # /! voice mode
+        # /!! voice-only mode
+        # /1 rising tag
+        # /2 relink tag
+        # /$ missing data
+        # /% multi npc support
         try:
             self.tasks.print("Importing manual_lookup.json ...")
             with open("json/manual_lookup.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
             # check entries
-            to_save = False
+            empty_manual_entry : int = 0
+            to_save : int = False
             for t in ('npcs', "enemies"):
                 for k in self.data[t]:
                     s = lookup_data.get(k, None)
-                    valid = s is not None and s != "" and not s.startswith("missing-help-wanted")
-                    if valid and data.get(k, None) is None:
-                        if '@@' in s:
-                            s = s.split("@@", 1)[1].split(" ", 1)[1]
-                        s = s.split(" ")
-                        i = 0
-                        while i < len(s):
-                            if s[i] in ("/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr", "sabre", "axe", "spear", "gun", "staff", "melee", "harp", "katana", "bow", "dagger", "fire", "water", "earth", "wind", "light", "dark"):
-                                i += 1
-                            else:
-                                break
-                        s = " ".join(s[i:]).replace(' voiced', '').replace(' voice-only', '')
-                        if s == "" or data.get(k, "") == s:
-                            continue
+                    valid = s is not None and s != "" and not s.startswith("/$")
+                    mdata = data.get(k, None)
+                    if mdata is None:
+                        empty_manual_entry += 1
+                    else:
+                        # those three npcs are unknown
+                        if k not in {"3990310000", "3990379000", "3990380000"}:
+                            if mdata.count("/x ") > 1:
+                                self.tasks.print(f"Element {k} has multiple '/x' tokens")
+                            elif mdata.find("/n ") == -1:
+                                self.tasks.print(f"Element {k} has no '/n' token")
+                    if valid and mdata is None:
+                        if "/w " in s:
+                            s = s.split("/w ", 1)[1].split(" ", 1)[1]
                         data[k] = s
                         to_save = True
+                        continue
                     elif not valid and k not in data:
                         data[k] = None
                         to_save = True
+                        continue
                     # relations
-                    if t == "npcs" and data.get(k, None) is not None:
-                        parts : list[str] = data[k].split("'s ", 1)
-                        if len(parts) == 2:
-                            for prefix in NPC_RELATION_TRIGGER:
-                                if parts[1].startswith(prefix):
-                                    relations[k] = parts[0] + "'s " + prefix + " "
-                                    break
+                    if t == "npcs" and mdata is not None:
+                        if "/x " in mdata:
+                            r = mdata.split("/x ", 1)[1].split(" /", 1)[0]
+                            relations[k] = r
             if to_save:
                 keys = list(data.keys())
                 keys.sort(key=lambda s : (10 - len(s), s))
@@ -3458,112 +3479,113 @@ class Updater():
                 with open("json/manual_lookup.json", mode="w", encoding="utf-8") as f:
                     json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
                 self.tasks.print("json/manual_lookup.json updated with new entries")
+            if empty_manual_entry > 0:
+                self.tasks.print(f"{empty_manual_entry} empty entries remain in manual_lookup.json")
         except OSError as e:
             self.tasks.print("Couldn't open json/manual_lookup.json")
-            self.tasks.print(e)
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
             data = {}
         except Exception as e:
             self.tasks.print("Couldn't load json/manual_lookup.json")
-            self.tasks.print(e)
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
             data = {}
-        # Fill manual_lookup.json
         try:
             for k, v in data.items():
                 try:
                     voice = (len(k) == 10 and npcs.get(k, 0) != 0 and len(npcs[k][NPC_SOUND]) > 0)
                     voice_only = voice and not npcs[k][NPC_JOURNAL] and len(npcs[k][NPC_SCENE]) == 0
                     if v is None or v == "":
-                        if lookup_data.get(k, "missing-help-wanted").startswith("missing-help-wanted"):
-                            l = "missing-help-wanted"
+                        if lookup_data.get(k, "/$").startswith("/$"):
+                            l = "/$"
                             if voice:
-                                l += " voiced"
+                                l += " /!"
                                 if not voice_only:
-                                    l += " voice-only"
+                                    l += " /!!"
                             if l != lookup_data.get(k, None):
                                 lookup_data[k] = l
                                 modified.add(k)
                         continue
+                    append = ""
                     match len(k):
                         case 10: # npc
-                            if "@@" in lookup_data.get(k, ""):
+                            if "/w " in lookup_data.get(k, ""):
                                 continue
-                            if "$$" in v:
-                                v = " ".join(v.split("$$")[0])
                             append = ""
                         case 7: # enemy
-                            if "$$" in v:
-                                vs = v.split("$$")
-                                if vs[1] not in {"fire", "water", "earth", "wind", "light", "dark", "null", "unknown-element"}:
-                                    self.tasks.print("Element Warning for", k, "in manual_lookup.json")
-                                v = vs[1] + " " + vs[0]
-                            else:
-                                self.tasks.print("Element Warning for", k, "in manual_lookup.json")
+                            if "/e" not in v:
+                                self.tasks.print("Missing Element for", k, "in manual_lookup.json")
+                            append = " /f "
                             match k[:2]:
                                 case "11":
-                                    append = " flying-boss"
+                                    append += "flying-boss"
                                 case "12":
-                                    append = " beast-boss"
+                                    append += "beast-boss"
                                 case "13":
-                                    append = " monster-boss"
+                                    append += "monster-boss"
                                 case "21":
-                                    append = " plant-boss"
+                                    append += "plant-boss"
                                 case "22":
-                                    append = " insect-boss"
+                                    append += "insect-boss"
                                 case "31":
-                                    append = " fish-boss"
+                                    append += "fish-boss"
                                 case "41":
-                                    append = " golem-boss"
+                                    append += "golem-boss"
                                 case "42":
-                                    append = " aberration-boss"
+                                    append += "aberration-boss"
                                 case "43":
-                                    append = " machine-boss"
+                                    append += "machine-boss"
                                 case "51":
-                                    append = " otherworld-boss"
+                                    append += "otherworld-boss"
                                 case "52":
-                                    append = " undead-boss"
+                                    append += "undead-boss"
                                 case "61":
-                                    append = " goblin-boss"
+                                    append += "goblin-boss"
                                 case "62":
-                                    append = " people-boss"
+                                    append += "people-boss"
                                 case "63":
-                                    append = " fairy-boss"
+                                    append += "fairy-boss"
                                 case "71":
-                                    append = " wyvern-boss"
+                                    append += "wyvern-boss"
                                 case "72":
-                                    append = " reptile-boss"
+                                    append += "reptile-boss"
                                 case "73":
-                                    append = " dragon-boss"
+                                    append += "dragon-boss"
                                 case "81":
-                                    append = " primal-boss"
+                                    append += "primal-boss"
                                 case "82":
-                                    append = " elemental-boss"
+                                    append += "elemental-boss"
                                 case "83":
-                                    append = " core-boss"
+                                    append += "core-boss"
                                 case "91":
-                                    append = " other-boss"
+                                    append += "other-boss"
                                 case _:
-                                    append =" unknown-boss"
-                    vs = v.split(" ")
-                    if vs[0] in ("/", "N", "R", "SR", "SSR", "n", "r", "sr", "ssr"):
-                        vs = vs[1:]
-                    l = (" ".join(vs) + append).lower().strip().replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('  ', ' ').replace('  ', ' ')
+                                    append += "unknown-boss"
+                    l = (v + append).split(" ")
+                    end_index = 0
+                    # remove special delimiters
+                    while end_index < len(l):
+                        if l[end_index] in {"/!", "/!!", "/1", "/2"}:
+                            break
+                        end_index += 1
+                    l = " ".join(l[:end_index])
                     if voice:
-                        l += " voiced"
+                        l += " /!"
                         if voice_only:
-                            l += " voice-only"
-                    # spin off tags
+                            l += " /!!"
+                    # spin off game tags
                     lk = lookup_data.get(k, "")
-                    if "gbf-versus-rising" in lk and "gbf-versus-rising" not in l:
-                        l += " gbf-versus-rising"
-                    if "gbf-relink" in lk and "gbf-relink" not in l:
-                        l += " gbf-relink"
-                    if l != lookup_data.get(k, ""):
+                    for gt in (" /1", " /2"):
+                        if gt in lk and gt not in l:
+                            l += gt
+                    l = l.lower().strip().replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ').replace(',', ' ').replace('、', ' ').replace('  ', ' ').replace('  ', ' ')
+                    if l != lk:
                         lookup_data[k] = l
                         modified.add(k)
                 except:
                     pass
         except Exception as e:
-            self.tasks.print("An error occured while updating the lookup table with json/manual_lookup.json", e)
+            self.tasks.print("An error occured while updating the lookup table with json/manual_lookup.json")
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
         # Wiki stuff
         premium_lookup = {}
         weapon_associations = {}
@@ -3592,17 +3614,27 @@ class Updater():
                     data = (await self.get_wiki(f"https://gbf.wiki/index.php?title=Special:CargoExport&tables={table}&fields=_pageName,{fields.get(table)}&format=json&limit=20000", get_json=True))
                     await asyncio.sleep(0.2)
                     # read items in the table
+                    id_seen : set[str] = set()
                     for item in data:
                         # check main infos
                         match table:
                             case "classes"|"mc_outfits":
-                                looks = ["main", "character's", "relation"]
+                                # init directly with relation tag
+                                looks = ["/x", "main", "character"]
                             case _:
                                 looks = []
                         if item.get('element', '') == 'any':
                             continue
+                        try:
+                            eid = str(item['id']).split('_', 1)[0]
+                        except:
+                            eid = str(item['outfit id']).split('_', 1)[0]
+                        if eid in id_seen:
+                            continue
+                        id_seen.add(eid)
                         # read all infos
-                        wiki = ""
+                        wiki : str = ""
+                        metadata_flag : bool = False
                         for k in possible_fields.get(table):
                             v = item.get(k, None)
                             match v:
@@ -3613,22 +3645,26 @@ class Updater():
                                         case "id":
                                             continue
                                         case "gender":
+                                            looks.append("/s")
                                             if v.lower() in {"other", "male", "female"}:
                                                 looks.append(v.lower())
                                             else:
                                                 for c in v:
                                                     looks.append({"o":"other", "m":"male", "f":"female"}.get(c.lower(), c.lower()))
                                         case "_pageName":
-                                            wiki = "@@" + html.unescape(v).replace(' ', '_') + " "
+                                            wiki = "/w " + html.unescape(v).replace(' ', '_') + " "
                                         case "rarity":
+                                            looks.append("/a")
                                             looks.append(v.lower())
                                         case "race":
+                                            looks.append("/b")
                                             if v == "Other":
                                                 looks.append("unknown")
                                             else:
                                                 looks.append(v.lower())
                                         case "series":
-                                            looks.append(v.lower().replace(';', ' '))
+                                            looks.append("/c")
+                                            looks.append(v.lower().replace(';', ' ').replace("tie-in", "collab"))
                                         case "join weapon":
                                             if len(item.get("obtain", [])) > 0:
                                                 obtain = set(item["obtain"][0].split(","))
@@ -3645,102 +3681,133 @@ class Updater():
                                                 if "classic" in obtain or  "classic2" in obtain or "flash" in obtain or "premium" in obtain:
                                                     premium_lookup[str(item["id"])] = None
                                         case _:
-                                            looks.append(v.lower())
                                             match k:
+                                                case "element":
+                                                    looks.append("/e")
+                                                case "va"|"jpva"|"jpname"|"release date":
+                                                    if not metadata_flag:
+                                                        looks.append("/y")
+                                                        metadata_flag = True
+                                                case "outfit name":
+                                                    if metadata_flag:
+                                                        raise Exception(k)
+                                                    looks.append("/k")
+                                                case "type":
+                                                    looks.append("/t")
                                                 case "name":
-                                                    if table == "classes":
-                                                        looks.append("class")
+                                                    looks.append("/n")
                                                 case "character name":
                                                     if table == "character_outfits":
-                                                        looks = [v.lower() + "'s relation"] + looks
+                                                        looks = ["/x", v.lower()] + looks
+                                                    looks.append("/n")
+                                                case _:
+                                                    raise Exception(f"Unknown tag {k}")
+                                            looks.append(v.lower())
+                                            if table == "classes" and k == "name":
+                                                looks.append("/m")
+                                                looks.append("class")
                                 case list():
-                                    for e in v:
-                                        if k == "obtain":
-                                            continue
-                                        elif k == "race" and e == "Other":
-                                            looks.append("unknown")
-                                        elif e != "-":
-                                            looks.append(e.lower())
+                                    if len(v) > 0:
+                                        match k:
+                                            case "va"|"jpva"|"jpname":
+                                                if not metadata_flag:
+                                                    looks.append("/y")
+                                                    metadata_flag = True
+                                            case "weapon":
+                                                looks.append("/p")
+                                            case "race":
+                                                looks.append("/b")
+                                            case "obtain":
+                                                continue
+                                        for e in v:
+                                            if k == "race" and e == "Other":
+                                                looks.append("unknown")
+                                            elif e != "-":
+                                                looks.append(e.lower())
                                 case _:
                                     pass
-                        try:
-                            eid = str(item['id']).split('_', 1)[0]
-                        except:
-                            eid = str(item['outfit id']).split('_', 1)[0]
                         # prepare lookup string
                         lookup_string : str = (
                             html.unescape(" ".join(looks))
-                            .replace(' tie-in ', ' collab ')
                             .replace('　', ' ') # IDSP character
                             .replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ')
                             .replace(',', ' ').replace('、', ' ').replace('<br />', ' ')
                             .replace('  ', ' ').replace('  ', ' ').strip()
                         )
-                        if relations.get(eid, "") != "" and relations[eid] not in lookup_string:
-                            lookup_string = relations[eid] + lookup_string
                         lookup_string = wiki + lookup_string
+                        # relations
+                        prepend = ""
+                        if eid in relations:
+                            prepend += "/x " + relations[eid] + " "
+                        lookup_string = prepend + lookup_string
                         # voice
                         if len(eid) == 10 and npcs.get(eid, 0) != 0 and len(npcs[eid][NPC_SOUND]) > 0: # npc sound
-                            lookup_string += " voiced"
+                            lookup_string += " /!"
                             if not npcs[eid][NPC_JOURNAL] and len(npcs[eid][NPC_SCENE]) == 0:
-                                lookup_string += " voice-only"
+                                lookup_string += " /!!"
                         # spin off tags
                         lk = lookup_data.get(eid, "")
-                        if "gbf-versus-rising" in lk and "gbf-versus-rising" not in lookup_string:
-                            lookup_string += " gbf-versus-rising"
-                        if "gbf-relink" in lk and "gbf-relink" not in lookup_string:
-                            lookup_string += " gbf-relink"
+                        for st in (" /1", " /2"):
+                            if st in lk and st not in lookup_string:
+                                lookup_string += st
                         if eid not in lookup_data or lk != lookup_string:
                             lookup_data[eid] = lookup_string
                             modified.add(eid)
                 except Exception as e:
-                    self.tasks.print(e)
+                    self.tasks.print("Error for wiki cargo entry")
+                    self.tasks.print(item)
+                    self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                     pass
         # update premium table if different
         if premium_lookup != self.data['premium']:
             self.data['premium'] = premium_lookup
             self.modified = True
+        # cur content
+        for eid in OTHER_CUT_CONTENT: ####
+            if eid not in lookup_data:
+                lookup_data[eid] = "/c cut-content"
+                modified.add(eid)
         # tag for relink / rising
         for eid, v in lookup_data.items():
             if eid in SPECIAL_LOOKUP:
                 continue
             if len(eid) != 6 and (len(eid) != 10 or not eid.startswith("10")): # ignore job, weapons
-                s = v.split(" ")[:(2 if eid.startswith("399") else 5)]
-                if "collab" not in v and "tie-in" not in v:
-                    if "gbf-versus-rising" not in v:
-                        for w in s:
-                            if w in RISING:
-                                lookup_data[eid] += " gbf-versus-rising"
-                                modified.add(eid)
-                                break
-                    if "gbf-relink" not in v:
-                        for w in s:
-                            if w in RELINK:
-                                lookup_data[eid] += " gbf-relink"
-                                modified.add(eid)
-                                break
-            elif len(eid) == 6: # classes are done below
-                if eid not in RISING_MC and "gbf-versus-rising" in lookup_data[eid]:
-                    lookup_data[eid] = lookup_data[eid].replace(" gbf-versus-rising", "")
+                if "collab" not in v:
+                    try:
+                        s = v.split("/n ", 1)[1].split(" /")[0]
+                    except:
+                        # no name
+                        continue
+                    if " /1" not in v:
+                        if s in RISING:
+                            lookup_data[eid] += " /1"
+                            modified.add(eid)
+                    if " /2" not in v:
+                        if s in RELINK:
+                            lookup_data[eid] += " /2"
+                            modified.add(eid)
+            elif len(eid) == 6: # classes are done below, so we remove any
+                if eid not in RISING_MC and " /1" in lookup_data[eid]:
+                    lookup_data[eid] = lookup_data[eid].replace(" /1", "")
                     modified.add(eid)
-                if eid not in RELINK_MC and "gbf-relink" in lookup_data[eid]:
-                    lookup_data[eid] = lookup_data[eid].replace(" gbf-versus-relink", "")
+                if eid not in RELINK_MC and " /2" in lookup_data[eid]:
+                    lookup_data[eid] = lookup_data[eid].replace(" /2", "")
                     modified.add(eid)
-            elif "gbf-versus-rising" in v:
-                lookup_data[eid] = lookup_data[eid].replace(" gbf-versus-rising", "")
+            elif " /1" in v:
+                lookup_data[eid] = lookup_data[eid].replace(" /1", "")
                 modified.add(eid)
-            elif "gbf-relink" in v:
-                lookup_data[eid] = lookup_data[eid].replace(" gbf-relink", "")
+            elif " /2" in v:
+                lookup_data[eid] = lookup_data[eid].replace(" /2", "")
                 modified.add(eid)
         for eid in RISING_MC:
             s = lookup_data.get(eid, None)
-            if s is not None and "gbf-versus-rising" not in s:
-                lookup_data[eid] += " gbf-versus-rising"
+            if s is not None and " /1" not in s:
+                lookup_data[eid] += " /1"
                 modified.add(eid)
         for eid in RELINK_MC:
             s = lookup_data.get(eid, None)
-            if s is not None and "gbf-relink" not in s:
-                lookup_data[eid] += " gbf-relink"
+            if s is not None and " /2" not in s:
+                lookup_data[eid] += " /2"
                 modified.add(eid)
         # Second pass, correcting stuff
         if len(modified) > 0:
@@ -3842,7 +3909,7 @@ class Updater():
                 self.tasks.print("Updated", count, "buff(s)")
         except Exception as e:
             self.tasks.print("An error occured while comparing with gbf.wiki buff list")
-            self.tasks.print(self.print("".join(traceback.format_exception(type(e), e, e.__traceback__))))
+            self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
     # Called by maintenancenpcthumbnail, maintenance or raise_flag
     async def maintenance_npc_thumbnail(self : Updater) -> None:
