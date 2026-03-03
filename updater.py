@@ -3591,7 +3591,7 @@ class Updater():
         weapon_associations = {}
         tables = {'job':['classes', 'mc_outfits'], 'skins':['character_outfits'], 'npcs':['npc_characters']} # table of data index == wiki cargo tables
         fields = {
-            'characters':'id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date,obtain,join_weapon',
+            'characters':'style_id,id,element,rarity,name,series,race,gender,type,weapon,jpname,va,jpva,release_date,obtain,join_weapon',
             'weapons':'id,element,type,rarity,name,series,jpname,release_date,character_unlock',
             'summons':'id,element,rarity,name,series,jpname,release_date,obtain',
             'classes':'id,name,jpname,release_date',
@@ -3624,6 +3624,8 @@ class Updater():
                             case _:
                                 looks = []
                         if item.get('element', '') == 'any':
+                            continue
+                        if t == "characters" and item.get("style id", "1") == 2:
                             continue
                         try:
                             eid = str(item['id']).split('_', 1)[0]
