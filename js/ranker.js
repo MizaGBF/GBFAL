@@ -260,8 +260,17 @@ function allocate_pools()
 					}
 					case "/e":
 					{
-						if(["fire", "water", "earth", "wind", "light", "dark", "any"].includes(w))
-							pools[w].push(id);
+						if(["fire", "water", "earth", "wind", "light", "dark", "any", "null"].includes(w))
+						{
+							if(w == "null")
+							{
+								pools["any"].push(id);
+							}
+							else
+							{
+								pools[w].push(id);
+							}
+						}
 						break;
 					}
 					case "/b": // race
