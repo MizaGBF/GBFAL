@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.55'
+VERSION = '3.56'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
@@ -1567,11 +1567,11 @@ class Updater():
                 sd.append(base_fn)
                 # other portraits
                 uf = flags[uncap]
-                for g in (["", "_0", "_1"] if (uf[0] is True) else [""]):
-                    for m in (["", "_101", "_102", "_103", "_104", "_105"] if (uf[1] is True) else [""]):
-                        for n in (["", "_01", "_02", "_03", "_04", "_05", "_06"] if (uf[2] is True) else [""]):
-                            for af in (["", "_f", "_f1", "_f2"] if altForm else [""]):
-                                targets.append(base_fn + af + g + m + n)
+                for n in (("", "_01", "_02", "_03", "_04", "_05", "_06") if (uf[2] is True) else ("",)):
+                    for g in (("", "_0", "_1") if (uf[0] is True) else ("",)):
+                        for m in (("", "_101", "_102", "_103", "_104", "_105") if (uf[1] is True) else ("",)):
+                            for af in (("", "_f", "_f1", "_f2") if altForm else ("",)):
+                                targets.append(base_fn + af + n + g + m)
                     # different sprites
                     if g != "":
                         try:
@@ -1746,11 +1746,11 @@ class Updater():
                     # main
                     base_fn = f"{tid}_{uncap}{style}"
                     uf = flags[uncap]
-                    for g in (("_0", "_1") if (uf[0] is True) else ("",)):
-                        for m in (("_101", "_102", "_103", "_104", "_105") if (uf[1] is True) else ("",)):
-                            for n in (("_01", "_02", "_03", "_04", "_05", "_06") if (uf[2] is True) else ("",)):
+                    for n in (("_01", "_02", "_03", "_04", "_05", "_06") if (uf[2] is True) else ("",)):
+                        for g in (("_0", "_1") if (uf[0] is True) else ("",)):
+                            for m in (("_101", "_102", "_103", "_104", "_105") if (uf[1] is True) else ("",)):
                                 for af in (("", "_f", "_f1", "_f2") if altForm else ("",)):
-                                    targets.append(base_fn + g + af + m + n)
+                                    targets.append(base_fn + af + n + g + m)
                 tmp[CHARA_GENERAL] = targets
                 if is_mc: uncaps = ["01", "02"]
                 # # # Other sheets
@@ -3625,12 +3625,17 @@ class Updater():
                                 looks = []
                         if item.get('element', '') == 'any':
                             continue
-                        if t == "characters" and item.get("style id", "1") == 2:
-                            continue
                         try:
                             eid = str(item['id']).split('_', 1)[0]
                         except:
                             eid = str(item['outfit id']).split('_', 1)[0]
+                        if t == "characters":
+                            if item.get("style id", "1") == 2:
+                                # to ignore character styles
+                                continue
+                            if len(eid) != 10 or not eid.startswith(("301", "302", "303", "304")):
+                                # to ignore wiki april fool characters
+                                continue
                         if eid in id_seen:
                             continue
                         id_seen.add(eid)
