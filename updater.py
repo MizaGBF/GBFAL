@@ -23,7 +23,7 @@ VERSION = '3.56'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
-SAVE_VERSION = 2
+SAVE_VERSION = 3
 # other
 LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
 UPDATABLE = {"characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job", "shields"}
@@ -539,6 +539,26 @@ class Updater():
             self.tasks.print("This version is unsupported and might not work properly")
         elif version == 1:
             data["story0"] = data["story"]
+        elif version == 2:
+            for key in ("story0", "story1"):
+                for k, v in data[key].items():
+                    if isinstance(v, int):
+                        continue
+                    for i in range(len(v)):
+                        for j in range(len(v[i])):
+                            v[i][j] += ".png"
+            for k, v in data["fate"].items():
+                if isinstance(v, int):
+                    continue
+                for i in range(0, len(v) - 1):
+                    for j in range(len(v[i])):
+                        v[i][j] += ".png"
+            for k, v in data["events"].items():
+                if isinstance(v, int):
+                    continue
+                for i in range(2, len(v) - 1):
+                    for j in range(len(v[i])):
+                        v[i][j] += ".png"
         data["version"] = SAVE_VERSION
         return data
 
@@ -2545,7 +2565,7 @@ class Updater():
 
     # generic function to update: A story chapter, a fate episode scene or an event chapter
     # horrible but can't find a better way
-    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str]) -> tuple:
+    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str], extension : str = ".png") -> tuple:
         is_tuto = "tuto_scene" in base_url # check for MSQ tutorial
         Z = 1 if is_tuto else 2 # zfill value used in the filename, for MSQ tutorial
         loop_err_limit = 60 if index == "story0" and element_id == "191" else 30
@@ -2560,9 +2580,9 @@ class Updater():
             # Check base ones
             for k in ("", "_up", "_ef", "_shadow"): # there are likely more variations but I don't want to add pointless files to slow it down further
                 try:
-                    stem_suffix = stem + k
+                    stem_suffix = f"{stem}{k}{extension}"
                     if stem_suffix not in existing:
-                        await self.head(url + k + ".png")
+                        await self.head(f"{url}{k}{extension}")
                         existing.add(stem_suffix)
                     flag = True
                     good = True
@@ -2572,9 +2592,9 @@ class Updater():
             for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5", "6")):
                 for k in ss:
                     try:
-                        stem_suffix : str = stem + k
+                        stem_suffix : str = f"{stem}{k}{extension}"
                         if stem_suffix not in existing:
-                            await self.head(url + k + ".png")
+                            await self.head(f"{url}{k}{extension}")
                             existing.add(stem_suffix)
                         flag = True
                         good = True
@@ -2585,9 +2605,9 @@ class Updater():
                 found = False
                 try:
                     suffix = "_" + k
-                    stem_suffix = stem + suffix
+                    stem_suffix = f"{stem}{suffix}{extension}"
                     if stem_suffix not in existing:
-                        await self.head(url + suffix + ".png")
+                        await self.head(f"{url}{suffix}{extension}")
                         existing.add(stem_suffix)
                     flag = True
                     found = True
@@ -2599,9 +2619,9 @@ class Updater():
                     for kkk in ss:
                         try:
                             suffix = "_" + k + kkk
-                            stem_suffix = stem + suffix
+                            stem_suffix = f"{stem}{suffix}{extension}"
                             if stem_suffix not in existing:
-                                await self.head(url + suffix + ".png")
+                                await self.head(f"{url}{suffix}{extension}")
                                 existing.add(stem_suffix)
                             flag = True
                             found = True
@@ -2614,9 +2634,9 @@ class Updater():
             if not flag or is_tuto:
                 # we test another filename format
                 try:
-                    stem_suffix = stem + "_00"
+                    stem_suffix = f"{stem}_00{extension}"
                     if stem_suffix not in existing:
-                        await self.head(url + "_00.png")
+                        await self.head(f"{url}_00{extension}")
                         existing.add(stem_suffix)
                     good = True
                 except:
@@ -2625,9 +2645,9 @@ class Updater():
                 for k in ("_up", "_shadow"):
                     try:
                         suffix = "_00"+k
-                        stem_suffix = stem + suffix
+                        stem_suffix = f"{stem}{suffix}{extension}"
                         if stem_suffix not in existing:
-                            await self.head(url + suffix + ".png")
+                            await self.head(f"{url}{suffix}{extension}")
                             existing.add(stem_suffix)
                         good = True
                     except:
@@ -2640,9 +2660,9 @@ class Updater():
                     k = str(i).zfill(Z)
                     try:
                         suffix = "_"+k
-                        stem_suffix = stem + suffix
+                        stem_suffix = f"{stem}{suffix}{extension}"
                         if stem_suffix not in existing:
-                            await self.head(url + suffix + ".png")
+                            await self.head(f"{url}{suffix}{extension}")
                             existing.add(stem_suffix)
                         good = True
                         err = 0
@@ -2651,9 +2671,9 @@ class Updater():
                             found = False
                             try:
                                 suffix = "_"+k+"_"+kk
-                                stem_suffix = stem + suffix
+                                stem_suffix = f"{stem}{suffix}{extension}"
                                 if stem_suffix not in existing:
-                                    await self.head(url + suffix + ".png")
+                                    await self.head(f"{url}{suffix}{extension}")
                                     existing.add(stem_suffix)
                                 found = True
                             except:
@@ -2662,9 +2682,9 @@ class Updater():
                                 for kkk in ss:
                                     try:
                                         suffix = "_" + k + "_" + kk + kkk
-                                        stem_suffix = stem + suffix
+                                        stem_suffix = f"{stem}{suffix}{extension}"
                                         if stem_suffix not in existing:
-                                            await self.head(url + suffix + ".png")
+                                            await self.head(f"{url}{suffix}{extension}")
                                             existing.add(stem_suffix)
                                         found = True
                                     except:
@@ -2849,49 +2869,56 @@ class Updater():
             prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
             existings : list[set[str]] = [set(evt_data[element_id][i]) for i in range(EVENT_OP, len(evt_data[element_id]))] # make set of existing files
             ch_count = evt_data[element_id][EVENT_CHAPTER_COUNT] if not forceflag and evt_data[element_id][EVENT_CHAPTER_COUNT] > 0 else EVENT_MAX_CHAPTER # get the number of chapter to check
+            extensions : list[str]
+            if element_id.isdigit() and int(element_id) >= 251229:
+                self.tasks.print(f"Notification: Checking .jpg images for event {element_id}")
+                extensions = [".png", ".jpg"]
+            else:
+                extensions = [".png"]
             ts : TaskStatus
             # chapters
-            for i in range(0, ch_count+1):
-                fn = f"scene_{prefix}{name}_cp{i:02}"
+            for ext in extensions:
+                for i in range(0, ch_count+1):
+                    fn = f"scene_{prefix}{name}_cp{i:02}"
+                    ts = TaskStatus(200, 5, running=10)
+                    didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP], ext), priority=2)
+                    if i < 10:
+                        fn = f"scene_{prefix}{name}_cp{i:}"
+                        ts = TaskStatus(200, 5, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP], ext), priority=2)
+                # opening
+                fn = f"scene_{prefix}{name}_op"
                 ts = TaskStatus(200, 5, running=10)
-                didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
                 for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP]), priority=2)
-                if i < 10:
-                    fn = f"scene_{prefix}{name}_cp{i:}"
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP]), priority=2)
-            # opening
-            fn = f"scene_{prefix}{name}_op"
-            ts = TaskStatus(200, 5, running=10)
-            for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_OP, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_OP - EVENT_OP]), priority=2)
-            # ending
-            fn = f"scene_{prefix}{name}_ed"
-            ts = TaskStatus(200, 5, running=10)
-            for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP]), priority=2)
-            # ending 2
-            fn = f"scene_{prefix}{name}_ed2"
-            ts = TaskStatus(200, 5, running=10)
-            for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP]), priority=2)
-            if element_id == "babyl0": # special exception (only for babyl right now)
-                for ss in range(1, 30):
-                    fn = f"scene_babeel_01_ed{ss}"
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP]), priority=2)
-                    fn = f"scene_babeel_ed{ss}"
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP]), priority=2)
-            # others
-            fn = f"scene_{prefix}{name}"
-            ts = TaskStatus(200, 5, running=10)
-            for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_INT - EVENT_OP]), priority=2)
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_OP, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_OP - EVENT_OP], ext), priority=2)
+                # ending
+                fn = f"scene_{prefix}{name}_ed"
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
+                # ending 2
+                fn = f"scene_{prefix}{name}_ed2"
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
+                if element_id == "babyl0": # special exception (only for babyl right now)
+                    for ss in range(1, 30):
+                        fn = f"scene_babeel_01_ed{ss}"
+                        ts = TaskStatus(200, 5, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
+                        fn = f"scene_babeel_ed{ss}"
+                        ts = TaskStatus(200, 5, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
+                # others
+                fn = f"scene_{prefix}{name}"
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_INT - EVENT_OP], ext), priority=2)
 
     ### Event Thumbnail #################################################################################################################
 

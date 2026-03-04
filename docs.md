@@ -18,7 +18,7 @@ where:
 - `PATH`: The remaining path towards the resource. For example: [img/sp/assets/npc/zoom/3040068000_01.png](https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/zoom/3040068000_01.png).  
   
 ### json/data.json content  
-- `version`: Integer, the file version. Currently **1** but unused.
+- `version`: Integer, the file version. Currently **3** but unused.
 - `valentines`: List of ID for elements with (possibly) white day or valentine scene files. Elements are always from the `characters`, `skins` or `npcs` indexes.  
 - `characters`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of ten lists, each containing file names. (`[[], [], [], [], [], [], [], [], [], []]`).
@@ -88,10 +88,10 @@ where:
     - General format: A list of twenty six elements. (`[CHAPTER_COUNT, THUMBNAIL_ID, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]`).  
     - Index 0: An integer, the estimated number of chapters in the event. Set to **-1** if no chapters is found, **0** if the number of chapters is unknown.  
     - Index 1. A string, the event thumbnail ID. Set to **null** if not set.  
-    - Index 2: Opening chapter files.  
-    - Index 3: Ending chapter files.  
-    - Index 4: Other files.  
-    - Index 5 to 24: Numbered chapter files (**1** to **20**).  
+    - Index 2: Opening chapter files with the file extension.  
+    - Index 3: Ending chapter files with the file extension.  
+    - Index 4: Other files with the file extension.  
+    - Index 5 to 24: Numbered chapter files with the file extension (**1** to **20**).  
     - Index 25: Skycompass files.  
 - `skills`: Object of ID (zfilled to string of length 4) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of one single list, containing file names. (`[[]]`).  
@@ -104,11 +104,11 @@ where:
     - Index 1: Valid suffixes for this buff. Resulting path: `sp/ui/icon/status/x64/status_ZID_suffix.png` where `ZID` is the string at Index 0.  
 - `eventthumb`: Object of ID and integer pairs for event thumbnail. For internal use only. The integer is set to **1** if it's used for an event.  
 - `story0`: Object of chapter ID (zfilled to string of length 3) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
-    - General format: A list of one single list, containing file names. (`[[]]`).  
+    - General format: A list of one single list, containing file names with the file extension. (`[[]]`).  
     - Index 0: The list of known files.  
 - `story1`: Identical to `story0` but for the second arc.
 - `fate`: Object of chapter ID (zfilled to string of length 3) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
-    - General format: A list of five elements, four lists containing file names, and an optional string. (`[[], [], [], [], null]`).  
+    - General format: A list of five elements, four lists containing file names with the file extension, and an optional string. (`[[], [], [], [], null]`).  
     - Index 0: The list of known files for base fates.  
     - Index 1: The list of known files for uncap fates.  
     - Index 2: The list of known files for transcendence fates.  
