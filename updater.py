@@ -3650,8 +3650,6 @@ class Updater():
                                 looks = ["/x", "main", "character"]
                             case _:
                                 looks = []
-                        if item.get('element', '') == 'any':
-                            continue
                         try:
                             eid = str(item['id']).split('_', 1)[0]
                         except:
@@ -3663,6 +3661,9 @@ class Updater():
                             if len(eid) != 10 or not eid.startswith(("301", "302", "303", "304")):
                                 # to ignore wiki april fool characters
                                 continue
+                        elif item.get('element', '') == 'any':
+                            # for superlatives and other multi element weapons
+                            continue
                         if eid in id_seen:
                             continue
                         id_seen.add(eid)
