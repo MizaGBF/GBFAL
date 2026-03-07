@@ -12,12 +12,14 @@ def print_help():
     print("\t'quit' to quit")
     print("\t'report' to print the data")
     print("\t'copy' to copy the data")
+    print("\t'image' to dump the image list")
 
 def read(data):
     try:
         j = json.loads(pyperclip.paste())
         assert("files" in j)
         assert("names" in j)
+        assert("images" in j)
         for f in j["files"]:
             sp = f.split("_", 1)
             if len(sp) == 2:
@@ -31,6 +33,8 @@ def read(data):
                 data["names"][k] = set()
             for n in v:
                 data["names"][k].add(n)
+        for f in j["images"]:
+            data["images"].add(f)
         print("Updated data, type 'report' or 'copy' to retrieve it")
     except Exception as e:
         print("Can't read clipboard data:", e)
@@ -40,7 +44,8 @@ def to_ordered_id(data):
     return {
         "ids": sorted(list(data["ids"])),
         "suffixes": {k: sorted(list(v)) for k, v in sorted(data["suffixes"].items())},
-        "names": {k: sorted(list(v)) for k, v in sorted(data["names"].items())}
+        "names": {k: sorted(list(v)) for k, v in sorted(data["names"].items())},
+        "images": sorted(list(data["images"]))
     }
 
 def report(data):
@@ -54,6 +59,7 @@ def report(data):
     print(f"# Name list ({len(ordered['names'])})")
     for k, v in ordered['names'].items():
         print(f"{k}: {", ".join(list(v))}")
+    print(f"# {len(ordered['images'])} images")
 
 def copy(data):
     try:
@@ -64,7 +70,48 @@ def copy(data):
     except:
         print("An unexpected error occured")
 
-data = {"ids":set(), "suffixes":{}, "names":{}}
+def image(data):
+    try:
+        l = sorted(list(data["images"]))
+        if len(l) == 0:
+            print("No images in memory")
+            return
+        possible_event_ids = {}
+        best_guess = None
+        for f in l:
+            if f.startswith("scene_evt"):
+                pid = f.split("scene_evt", 1)[1].split("_")[0].split(".")[0]
+                if len(pid) == 6 and pid.isdigit():
+                    possible_event_ids[pid] = possible_event_ids.get(pid, 0) + 1
+                    if pid != best_guess and possible_event_ids[pid] > possible_event_ids.get(best_guess, 0):
+                        best_guess = pid
+        if len(possible_event_ids) == 0:
+            print("No valid images in memory")
+            return
+        print(f"Guessed event ID: {best_guess}")
+        print("Press return to continue or a different event ID (6 digits) if wrong or type 'c' to cancel")
+        while True:
+            s = input().lower().strip()
+            if len(s) == 0:
+                evid = best_guess
+                break
+            elif s == "c":
+                return
+            elif len(s) == 6 and s.isdigit():
+                evid = s
+                break
+        print(f"Writing scene_evt{evid} image list to {evid}.json...")
+        img_list = []
+        for f in l:
+            if f.startswith("scene_evt" + evid):
+                img_list.append(f)
+        with open(evid + ".json", mode="w", encoding="utf-8") as f:
+            json.dump(img_list, f)
+        print(f"{evid}.json written")
+    except:
+        print("An unexpected error occured")
+
+data = {"ids":set(), "suffixes":{}, "names":{}, "images":set()}
 print_help()
 while True:
     match input().lower():
@@ -76,5 +123,7 @@ while True:
             report(data)
         case 'copy'|'c':
             copy(data)
+        case 'image'|'img'|'i':
+            image(data)
         case _:
             read(data)

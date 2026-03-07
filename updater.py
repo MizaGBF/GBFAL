@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.56'
+VERSION = '3.57'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
@@ -433,6 +433,7 @@ class Updater():
     update_changelog : bool
     use_resume : bool
     ignore_file_count : bool
+    loaded : bool
     data : dict[str, Any]
     modified : bool
     resume : dict[str, Any]
@@ -2832,14 +2833,51 @@ class Updater():
 
     # we check if we can access voice lines to detect if an event is accessible and its number of chapters. This solution isn't perfect
     async def check_event_exist(self : Updater, element_id : str) -> None:
+        highest : int = -1
+        evt_data = self.data['events'] # reference
+        # load data set by user with the scene reader script
+        try:
+            with open(f"tools/scene/{element_id}.json", mode="r", encoding="utf-8") as f:
+                images = json.load(f)
+            container = self.create_event_container() if element_id not in evt_data else evt_data[element_id]
+            modifieds : set[int] = set()
+            for img in images:
+                if "_cp" in img:
+                    cp : int = int(img.split("_cp", 1)[1].split("_", 1)[0])
+                    if cp > highest:
+                        highest = cp
+                    didx = EVENT_CHAPTER_START+cp-1 if cp > 0 else EVENT_INT
+                    if img not in container[didx]:
+                        container[didx].append(img)
+                        modifieds.add(idx)
+                elif "_op_" in img:
+                    if img not in container[EVENT_OP]:
+                        container[EVENT_OP].append(img)
+                        modifieds.add(EVENT_OP)
+                elif "_ed_" in img:
+                    if img not in container[EVENT_ED]:
+                        container[EVENT_ED].append(img)
+                        modifieds.add(EVENT_ED)
+                else:
+                    self.tasks.print("Debug: Unknown image in json", img)
+            if len(modifieds) > 0:
+                for idx in modifieds:
+                    container[idx].sort(key=lambda s: "_".join([w.zfill(8) if w.isdigit() else w for w in s.split("_")]))
+                evt_data[element_id] = container
+        except:
+            pass
+        if highest < 0:
+            highest = 0
         alt_format = (element_id.isdigit() and int(element_id) == 241017) # bandaid for this particular event
-        ts : TaskStatus = TaskStatus(-1, 1, running=EVENT_MAX_CHAPTER*2*2*(2 if alt_format else 1)) # used to share the highest number of chapter found
-        for i in range(0, EVENT_MAX_CHAPTER): # create takes for each chapter and possible sub episode and quest
+        ts : TaskStatus = TaskStatus(-1, 1, running=0) # used to share the highest number of chapter found
+        for i in range(highest, EVENT_MAX_CHAPTER): # create takes for each chapter and possible sub episode and quest
             for j in range(1, 3):
                 for k in range(1, 3):
                     self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
+                    ts.running += 1
                     if alt_format: # bandaid
                         self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt20{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
+                        ts.running += 1
 
     # check voice line existence
     async def check_event_voice_line(self : Updater, ts : TaskStatus, element_id : str, cp : int, uri : str) -> None:
