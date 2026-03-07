@@ -451,6 +451,7 @@ class Updater():
         self.update_changelog  = True # flag to enable or disable the generation of changelog.json
         self.use_resume = True # flag to use the resume file
         self.ignore_file_count = False # flag to control the count_file function behavior
+        self.loaded = False # flag to check if self.data is loaded
         self.data = { # data structure
             "version":SAVE_VERSION,
             "uncap_queue":[],
@@ -499,6 +500,8 @@ class Updater():
     # Load data.json
     def load(self : Updater) -> None:
         try:
+            if self.loaded:
+                return
             # load file
             with open('json/data.json', mode='r', encoding='utf-8') as f:
                 data : dict[str, Any] = json.load(f)
@@ -520,6 +523,7 @@ class Updater():
             self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
             self.tasks.print(e)
             os._exit(0)
+        self.loaded = True
         try:
             with open('json/manual_npc_replace.json', mode='r', encoding='utf-8') as f:
                 data : dict[str, str] = json.load(f)
@@ -565,6 +569,8 @@ class Updater():
     # Save data.json and changelog.json (only if self.modified is True)
     def save(self : Updater) -> None:
         try:
+            if not self.loaded:
+                return
             if self.modified:
                 self.modified = False
                 # remove dupes from queues
@@ -2826,13 +2832,13 @@ class Updater():
 
     # we check if we can access voice lines to detect if an event is accessible and its number of chapters. This solution isn't perfect
     async def check_event_exist(self : Updater, element_id : str) -> None:
-        new_format = (element_id.isdigit() and int(element_id) == 241017) # bandaid for this particular event
-        ts : TaskStatus = TaskStatus(-1, 1, running=EVENT_MAX_CHAPTER*2*2*(2 if new_format else 1)) # used to share the highest number of chapter found
+        alt_format = (element_id.isdigit() and int(element_id) == 241017) # bandaid for this particular event
+        ts : TaskStatus = TaskStatus(-1, 1, running=EVENT_MAX_CHAPTER*2*2*(2 if alt_format else 1)) # used to share the highest number of chapter found
         for i in range(0, EVENT_MAX_CHAPTER): # create takes for each chapter and possible sub episode and quest
             for j in range(1, 3):
                 for k in range(1, 3):
                     self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
-                    if new_format: # bandaid
+                    if alt_format: # bandaid
                         self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt20{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
 
     # check voice line existence
