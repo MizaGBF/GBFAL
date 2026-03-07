@@ -11,11 +11,15 @@ var slider_skip = false;
 var stats = {};
 var undo_stack = [];
 
-const table_columns = ["male", "female", "other", "total"];
-const table_rows = ["human", "erune", "draph", "harvin", "primal", "unknown", "total"];
+var table_columns = [];
+var table_rows = [];
 
 function init_smash() // entry point, called by body onload
 {
+	// reuse ranker options
+	table_columns = Object.keys(options.Gender).concat("total");
+	table_rows = Object.keys(options.Race).concat("total");
+	
 	init_start_ui = function(clear = true)
 	{
 		if(clear)

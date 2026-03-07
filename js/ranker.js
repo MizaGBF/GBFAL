@@ -39,6 +39,10 @@ const options = {
 		draph:"Draph",
 		harvin:"Harvin",
 		primal:"Primal",
+		geonoid:"Geonoid",
+		levleath:"Levleath",
+		wolvir:"Wolvir",
+		grokkle:"Grokkle",
 		unknown:"Unknown"
 	},
 	Series:{
@@ -176,52 +180,17 @@ function init_checkboxes()
 
 function allocate_pools()
 {
-	pools = {
-		r:[],
-		sr:[],
-		ssr:[],
-		
-		fire:[],
-		water:[],
-		earth:[],
-		wind:[],
-		light:[],
-		dark:[],
-		any:[],
-		
-		male:[],
-		female:[],
-		other:[],
-		
-		human:[],
-		erune:[],
-		draph:[],
-		harvin:[],
-		primal:[],
-		unknown:[],
-		
-		none:[],
-		grand:[],
-		summer:[],
-		yukata:[],
-		valentine:[],
-		halloween:[],
-		holiday:[],
-		formal:[],
-		"12generals":[],
-		fantasy:[],
-		collab:[],
-		eternals:[],
-		evokers:[],
-		"4saints":[],
-		
-		single:[],
-		multi:[],
-		original:[],
-		dupe:[],
-		
-		list:{}
+	pools = {};
+	for(const [category_name, category_object] of Object.entries(options))
+	{
+		if(category_name == "Options")
+			continue;
+		for(const pool_name of Object.keys(category_object))
+		{
+			pools[pool_name] = [];
+		}
 	}
+	pools.list = {};
 	let releases = {};
 	for(const id of Object.keys(index.characters))
 	{
@@ -240,8 +209,15 @@ function allocate_pools()
 		let last_token = "";
 		let name = [];
 		let dual = false;
-		let no_series = true;
 		let date = null;
+		let add_to_pool = new Set();
+		let sanitization = {
+			rarity:false,
+			element:false,
+			race:false,
+			series:false,
+			gender:false
+		};
 		for(const w of words)
 		{
 			if(GBF.c_special_tokens.has(w))
@@ -255,7 +231,10 @@ function allocate_pools()
 					case "/a":
 					{
 						if(["r", "sr", "ssr"].includes(w))
-							pools[w].push(id);
+						{
+							add_to_pool.add(w);
+							sanitization.rarity = true;
+						}
 						break;
 					}
 					case "/e":
@@ -264,19 +243,23 @@ function allocate_pools()
 						{
 							if(w == "null")
 							{
-								pools["any"].push(id);
+								add_to_pool.add("any");
 							}
 							else
 							{
-								pools[w].push(id);
+								add_to_pool.add(w);
 							}
+							sanitization.element = true;
 						}
 						break;
 					}
 					case "/b": // race
 					{
 						if(w in pools)
-							pools[w].push(id);
+						{
+							add_to_pool.add(w);
+							sanitization.race = true;
+						}
 						break;
 					}
 					case "/n": // name
@@ -290,15 +273,18 @@ function allocate_pools()
 					{
 						if(w in pools)
 						{
-							pools[w].push(id);
-							no_series = false;
+							add_to_pool.add(w);
+							sanitization.series = true;
 						}
 						break;
 					}
 					case "/s": // gender
 					{
 						if(w in pools)
-							pools[w].push(id);
+						{
+							add_to_pool.add(w);
+							sanitization.gender = true;
+						}
 						break;
 					}
 					case "/y": // metadata
@@ -312,12 +298,28 @@ function allocate_pools()
 				}
 			}
 		}
-		if(no_series)
-			pools.none.push(id);
+		// validate
+		// we make sure the lookup string had most important infos
+		if(!sanitization.series)
+		{
+			add_to_pool.add("none");
+			sanitization.series = true;
+		}
+		let valid = true;
+		for(const flag of Object.values(sanitization))
+		{
+			if(!flag)
+				valid = false;
+		}
+		if(!valid) continue;
+		// dual unit
 		if(dual)
-			pools.multi.push(id);
+			add_to_pool.add("multi");
 		else
-			pools.single.push(id);
+			add_to_pool.add("single");
+		// add the pool
+		for(const pool_key of Array.from(add_to_pool))
+			pools[pool_key].push(id);
 		name = name.join(" ");
 		pools.list[id] = name;
 		if(date != null)
@@ -326,64 +328,6 @@ function allocate_pools()
 				releases[date] = [];
 			releases[date].push([id, name]);
 		}
-		
-		
-		/*
-		
-		let offset = words[0].startsWith("@@") ? 1 : 0; // skip wiki
-		// element (always the first)
-		if(!(["fire", "water", "earth", "wind", "light", "dark", "any"].includes(words[offset])))
-			continue;
-		pools[words[offset++]].push(id);
-		// rarity
-		if(!(["r", "sr", "ssr"].includes(words[offset])))
-			continue;
-		pools[words[offset++]].push(id);
-		// name and race
-		let start = offset;
-		while(gbf.lookup_word_is_part_of_name(words[offset]))
-		{
-			++offset;
-		}
-		let name = words.slice(start, offset).join(" ");
-		pools.list[id] = name;
-		// dual units
-		if(pools.list[id].includes(" and "))
-			pools.multi.push(id);
-		else
-			pools.single.push(id);
-		if(["human", "erune", "draph", "harvin", "primal", "unknown"].includes(words[offset])) // no series
-		{
-			pools.none.push(id);
-		}
-		while(!(["human", "erune", "draph", "harvin", "primal", "unknown"].includes(words[offset]))) // series
-		{
-			if(words[offset] in pools)
-				pools[words[offset]].push(id);
-			++offset;
-			if(offset >= words.length)
-			{
-				--offset;
-				break;
-			}
-		}
-		while(["human", "erune", "draph", "harvin", "primal", "unknown"].includes(words[offset]))
-			pools[words[offset++]].push(id); // race
-		// gender
-		while(["male", "female", "other"].includes(words[offset]))
-		{
-			pools[words[offset++]].push(id);
-		}
-		// Date
-		offset = words.length - 1;
-		while(["gbf-versus-rising", "gbf-relink"].includes(words[offset]))
-			--offset;
-		if(words[offset][4] == '-' && words[offset][7] == '-')
-		{
-			if(!(words[offset] in releases))
-				releases[words[offset]] = [];
-			releases[words[offset]].push([id, name]);
-		}*/
 	}
 	// sort releases dates to find alternate versions
 	let dates = Object.keys(releases);
