@@ -2864,12 +2864,15 @@ class Updater():
                 for idx in modifieds:
                     container[idx].sort(key=lambda s: "_".join([w.zfill(8) if w.isdigit() else w for w in s.split("_")]))
                 evt_data[element_id] = container
+                if highest > 0 and highest > evt_data[element_id][EVENT_CHAPTER_COUNT]:
+                    evt_data[element_id][EVENT_CHAPTER_COUNT] = highest + 1
         except:
             pass
         if highest < 0:
             highest = 0
         alt_format = (element_id.isdigit() and int(element_id) == 241017) # bandaid for this particular event
         ts : TaskStatus = TaskStatus(-1, 1, running=0) # used to share the highest number of chapter found
+        ts.index = highest
         for i in range(highest, EVENT_MAX_CHAPTER): # create takes for each chapter and possible sub episode and quest
             for j in range(1, 3):
                 for k in range(1, 3):
