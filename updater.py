@@ -2849,7 +2849,7 @@ class Updater():
                     didx = EVENT_CHAPTER_START+cp-1 if cp > 0 else EVENT_INT
                     if img not in container[didx]:
                         container[didx].append(img)
-                        modifieds.add(idx)
+                        modifieds.add(didx)
                 elif "_op_" in img:
                     if img not in container[EVENT_OP]:
                         container[EVENT_OP].append(img)
