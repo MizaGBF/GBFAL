@@ -3750,9 +3750,11 @@ class Updater():
                                         case "join weapon":
                                             if len(item.get("obtain", [])) > 0:
                                                 obtain = set(item["obtain"][0].split(","))
-                                                if "classic" in obtain or  "classic2" in obtain or "flash" in obtain or "premium" in obtain:
-                                                    weapon_associations[v] = item["id"]
-                                                    premium_lookup[str(item["id"])] = None
+                                                for banner in obtain:
+                                                    if banner.startswith("classic") or banner in {"flash", "premium"}:
+                                                        weapon_associations[v] = item["id"]
+                                                        premium_lookup[str(item["id"])] = None
+                                                        break
                                         case "character unlock":
                                             if item["name"] in weapon_associations:
                                                 premium_lookup[str(weapon_associations[item["name"]])] = str(item["id"]) # character id = weapon id
