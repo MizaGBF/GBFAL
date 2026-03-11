@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.57'
+VERSION = '3.58'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
@@ -2573,8 +2573,18 @@ class Updater():
     # generic function to update: A story chapter, a fate episode scene or an event chapter
     # horrible but can't find a better way
     async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str], extension : str = ".png") -> tuple:
-        is_tuto = "tuto_scene" in base_url # check for MSQ tutorial
-        Z = 1 if is_tuto else 2 # zfill value used in the filename, for MSQ tutorial
+        is_old = "tuto_scene" in base_url # check for MSQ tutorial
+        tmp : str = base_url.rsplit("/", 1)[-1]
+        Z = ( # zfill value used in the filename, for MSQ tutorial
+            1
+            if (
+                "tuto_scene" in base_url
+                or (
+                    tmp.startswith("scene_cp")
+                    and int(tmp[len("scene_cp"):].split("_", 1)[0]) < 90
+                )
+            ) else 2 
+        )
         loop_err_limit = 60 if index == "story0" and element_id == "191" else 30
         suffix : str
         stem_suffix : str
@@ -2638,7 +2648,7 @@ class Updater():
                 if not found: # stop if no files found for this particular variation
                     break
             # if NOTHING found until now OR we're in the MSQ tutorial
-            if not flag or is_tuto:
+            if not flag or is_old:
                 # we test another filename format
                 try:
                     stem_suffix = f"{stem}_00{extension}"
@@ -4219,7 +4229,7 @@ class Updater():
                             if v[EVENT_THUMB] is not None: file_estimation += 1
                             for i in range(EVENT_OP, EVENT_SKY+1):
                                 file_estimation += len(v[i])
-                        case "story":
+                        case "story0"|"story1":
                             if v is None or v == 0: continue
                             file_estimation += len(v[STORY_CONTENT])
                         case "fate":
