@@ -1095,7 +1095,7 @@ function get_file_list(id, data, asset, files, melee)
 		}
 		case "gacha_join": // gacha animation joincutin
 		{
-			if(parseInt(id) >= 3040630000) // bhaisa
+			if(id.startsWith("304") && parseInt(id) >= 3040630000) // bhaisa
 			{
 				files = [
 					id+"/"+id+"_closeup_1",
