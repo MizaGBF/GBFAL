@@ -442,6 +442,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					assets:[
 						{type:1, paths:[["sp/assets/npc/zoom/", "png"]], index:DataIdx.CHARA_GENERAL, form:false, open:allow_open},
 						{name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/journal.png", form:false},
+						{name:"Gacha Arts", paths:[["sp/gacha/npcjoincutin/", "png"]], special_index:"gacha_join", icon:"../GBFML/assets/ui/icon/crystal.png", form:false, lazy:false},
 						{name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:DataIdx.CHARA_SD, icon:"../GBFML/assets/ui/icon/other_category.png", form:false},
 						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/cb.png", form:false}
 					]
@@ -1033,17 +1034,40 @@ function get_file_list(id, data, asset, files, melee)
 		}
 		case "weapon_forge_header": // for weapon forge headers
 		{
-			files = ["job/header/"+id+".png", "number/header/"+id+".png", "seraphic/header/"+id+".png", "xeno/header/"+id+".png", "bahamut/header/"+id+".png", "omega/header/"+id+".png", "draconic/header/"+id+".png", "revans/header/"+id+".png"];
+			files = [
+				"job/header/"+id+".png",
+				"number/header/"+id+".png",
+				"seraphic/header/"+id+".png",
+				"xeno/header/"+id+".png",
+				"bahamut/header/"+id+".png",
+				"omega/header/"+id+".png",
+				"draconic/header/"+id+".png",
+				"revans/header/"+id+".png"
+			];
 			break;
 		}
 		case "weapon_forge_portrait": // for weapon forge portraits
 		{
-			files = ["job/result/"+id+".png", "number/result/"+id+".png", "seraphic/result/"+id+".png", "xeno/result/"+id+".png", "bahamut/result/"+id+".png", "omega/result/"+id+".png", "draconic/result/"+id+".png", "revans/result/"+id+".png"];
+			files = [
+				"job/result/"+id+".png",
+				"number/result/"+id+".png",
+				"seraphic/result/"+id+".png",
+				"xeno/result/"+id+".png",
+				"bahamut/result/"+id+".png",
+				"omega/result/"+id+".png",
+				"draconic/result/"+id+".png",
+				"revans/result/"+id+".png"
+			];
 			break;
 		}
 		case "custom_class_skill": // custom MC skin skills
 		{
-			files = [id+"_0_ability", id+"_1_ability", id+"_0_attack", id+"_1_attack"];
+			files = [
+				id+"_0_ability",
+				id+"_1_ability",
+				id+"_0_attack",
+				id+"_1_attack"
+			];
 			for(let i = 1; i < 5; ++i)
 				for(let j = 0; j < 2; ++j)
 					files.push(id+"_"+j+"_vs_motion_"+i);
@@ -1058,7 +1082,31 @@ function get_file_list(id, data, asset, files, melee)
 		}
 		case "quest_portrait": // custom summon quest portraits
 		{
-			files = [id, id+"_hard", id+"_hard_plus", id+"_ex", id+"_ex_plus", id+"_high", id+"_high_plus"]; 
+			files = [
+				id,
+				id+"_hard",
+				id+"_hard_plus",
+				id+"_ex",
+				id+"_ex_plus",
+				id+"_high",
+				id+"_high_plus"
+			]; 
+			break;
+		}
+		case "gacha_join": // gacha animation joincutin
+		{
+			if(parseInt(id) >= 3040630000) // bhaisa
+			{
+				files = [
+					id+"/"+id+"_closeup_1",
+					id+"/"+id+"_closeup_2",
+					id+"/"+id+"_closeup_3",
+					id+"/"+id+"_text_1",
+					id+"/"+id+"_text_2"
+				];
+			}
+			else
+				files = [];
 			break;
 		}
 		case "reward": // character fate episode rewards & chara weapon siero training reward
@@ -1068,12 +1116,18 @@ function get_file_list(id, data, asset, files, melee)
 		}
 		case "character_unlock": // character unlock
 		{
-			files = [id + "_char", id + "_char_w"]; 
+			files = [
+				id + "_char",
+				id + "_char_w"
+			]; 
 			break;
 		}
 		case "recruit_header": // gacha cover
 		{
-			files = [id+"_1", id+"_3"];
+			files = [
+				id+"_1",
+				id+"_3"
+			];
 			break;
 		}
 		case "news_art": // character news art
@@ -1105,7 +1159,10 @@ function get_file_list(id, data, asset, files, melee)
 		}
 		case "skycompass_main_character": // skycompass art for main character
 		{
-			files = [id+"_0", id+"_1"];
+			files = [
+				id+"_0",
+				id+"_1"
+			];
 			break;
 		}
 		default:
