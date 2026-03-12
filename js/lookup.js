@@ -1101,8 +1101,7 @@ function get_file_list(id, data, asset, files, melee)
 					id+"/"+id+"_closeup_1",
 					id+"/"+id+"_closeup_2",
 					id+"/"+id+"_closeup_3",
-					id+"/"+id+"_text_1",
-					id+"/"+id+"_text_2"
+					id+"/"+id+"_text_1"
 				];
 			}
 			else
