@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.58'
+VERSION = '3.59'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
@@ -144,6 +144,7 @@ SHARED_LOOKUP : list[list[str]] = []
 SPECIAL_LOOKUP : dict[str, str] = {}
 UNIQUE_SKIN : list[str] = []
 MALINDA : str = ""
+VALENTIVEWHITE_SUFFIX : list[str] = []
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 MSQ_LAST_CHAPTER : list[int] = []
 MSQ_SPECIALS : list[dict[str, str]] = []
@@ -2536,7 +2537,7 @@ class Updater():
         await ts.wait_finish()
         # check if the data has new strings
         if len(existing) > len(self.data[index][element_id][idx]):
-            self.data[index][element_id][idx] = list(existing) # set it
+            #self.data[index][element_id][idx] = list(existing) # set it
             self.data[index][element_id][idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e))) # and sort it
             self.modified = True
             match index:
@@ -2545,8 +2546,11 @@ class Updater():
                 case 'characters'|'skins':
                     self.add(element_id, ADD_CHAR)
             # valentine check
-            if "_white" in existing or "_valentine" in existing and element_id not in self.data['valentines'] and element_id not in VALENTINE_EXCLUDE:
-                self.data['valentines'][element_id] = 0
+            if element_id not in VALENTINE_EXCLUDE:
+                for k in VALENTIVEWHITE_SUFFIX:
+                    if k in existing:
+                        self.data['valentines'][element_id] = 0
+                        break
             self.tasks.print("Scene file list updated for", element_id)
         # add element id and uncap to resume save
         if "scene_update" in self.flags:
@@ -4094,6 +4098,20 @@ class Updater():
             known.sort()
             self.data['events'][ev][EVENT_SKY] = known
 
+    # rebuild valentine/white day index
+    def rebuild_valentine(self : Updater) -> None:
+        table : dict[str, int] = {}
+        for t, idx in (("characters", CHARA_SCENE), ("npcs", NPC_SCENE)):
+            for eid, v in self.data[t].items():
+                if isinstance(v, list) and eid not in VALENTINE_EXCLUDE:
+                    for s in VALENTIVEWHITE_SUFFIX:
+                        if s in v[idx]:
+                            table[eid] = 0
+                            break
+        if len(table) != self.data["valentines"]:
+            self.data["valentines"] = table
+            self.modified = True
+
     ### Other #################################################################################################################
 
     # check file existence for npcs ids without any data
@@ -4484,6 +4502,7 @@ class Updater():
         maintenance.add_argument('-mu', '--maintenancenpcthumbnail', help="maintenance task to check NPC thumbnails for existing NPCs.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mr', '--maintenanceraidappear', help="maintenance task to check Enemy Raid Appear spritesheets.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-vl', '--valentine', help="rebuild valentine/white day list.", action='store_const', const=True, default=False, metavar='')
         
         settings = parser.add_argument_group('settings', 'commands to alter the updater behavior.')
         settings.add_argument('-au', '--adduncap', help="add elements to be updated during the next run.", nargs='*', default=None)
@@ -4629,6 +4648,8 @@ class Updater():
                 await self.lookup()
                 self.update_manual_fate()
                 self.update_manual_event_thumbnail(True)
+            elif args.valentine:
+                self.rebuild_valentine()
             elif run_help:
                 parser.print_help()
             # post process

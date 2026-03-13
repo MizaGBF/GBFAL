@@ -106,6 +106,16 @@
     
     "UNIQUE_SKIN" : ["311301", "311302", "311303", "360301", "360302", "360303"],
     "MALINDA" : "3030093000",
+    "VALENTIVEWHITE_SUFFIX" : [
+        "_valentine",
+        "_valentine2",
+        "_valentine3",
+        "_white",
+        "_whiteday",
+        "_whiteday1",
+        "_whiteday2",
+        "_whiteday3"
+    ],
     
     "SCENE_SUFFIXES" : {
         "default": {

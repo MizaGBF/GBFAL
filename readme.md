@@ -56,17 +56,16 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.54
+GBFAL Updater v3.59
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-jq [FULL ...]] [-si SCENEID [SCENEID ...]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]]
                   [-fe FORCEEVENT [FORCEEVENT ...]] [-ne] [-st1 [LIMIT]]
-                  [-st2 [LIMIT]] [-ft [FATES]] [-pt] [-mn] [-ij] [-ej]
-                  [-lk] [-fj] [-it] [-et] [-mt] [-mb] [-ms] [-mu] [-mr]
-                  [-js] [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH]
-                  [-dg]
+                  [-st2 [LIMIT]] [-ft [FATES]] [-pt] [-mn] [-ij] [-ej] [-lk]
+                  [-fj] [-it] [-et] [-mt] [-mb] [-ms] [-mu] [-mr] [-js] [-vl]
+                  [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH] [-dg]
 
-Asset Updater v3.54 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.59 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -98,9 +97,11 @@ secondary:
   -fe, --forceevent FORCEEVENT [FORCEEVENT ...]
                         force update event content for given event IDs.
   -ne, --newevent       check new event content.
-  -st, --story1 [LIMIT] update story arc 1 content. Add an optional chapter to
+  -st1, --story1 [LIMIT]
+                        update story arc 1 content. Add an optional chapter to
                         stop at.
-  -st, --story2 [LIMIT] update story arc 2 content. Add an optional chapter to
+  -st2, --story2 [LIMIT]
+                        update story arc 2 content. Add an optional chapter to
                         stop at.
   -ft, --fate [FATES]   update fate content. Add an optional fate ID to update
                         or a range (START-END) or 'last' to update the latest.
@@ -131,6 +132,7 @@ maintenance:
                         maintenance task to check Enemy Raid Appear
                         spritesheets.
   -js, --json           import all manual JSON files.
+  -vl, --valentine      rebuild valentine/white day list.
 
 settings:
   commands to alter the updater behavior.
