@@ -2537,7 +2537,7 @@ class Updater():
         await ts.wait_finish()
         # check if the data has new strings
         if len(existing) > len(self.data[index][element_id][idx]):
-            #self.data[index][element_id][idx] = list(existing) # set it
+            self.data[index][element_id][idx] = list(existing) # set it
             self.data[index][element_id][idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e))) # and sort it
             self.modified = True
             match index:
