@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.59'
+VERSION = '3.60'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
@@ -3593,62 +3593,63 @@ class Updater():
                                 lookup_data[k] = l
                                 modified.add(k)
                         continue
-                    append = ""
+                    prepend = ""
                     match len(k):
                         case 10: # npc
                             if "/w " in lookup_data.get(k, ""):
                                 continue
-                            append = ""
                         case 7: # enemy
                             if "/e" not in v:
                                 self.tasks.print("Missing Element for", k, "in manual_lookup.json")
-                            append = " /f "
+                            prepend = "/f "
                             match k[:2]:
                                 case "11":
-                                    append += "flying-boss"
+                                    prepend += "flying-boss"
                                 case "12":
-                                    append += "beast-boss"
+                                    prepend += "beast-boss"
                                 case "13":
-                                    append += "monster-boss"
+                                    prepend += "monster-boss"
                                 case "21":
-                                    append += "plant-boss"
+                                    prepend += "plant-boss"
                                 case "22":
-                                    append += "insect-boss"
+                                    prepend += "insect-boss"
                                 case "31":
-                                    append += "fish-boss"
+                                    prepend += "fish-boss"
                                 case "41":
-                                    append += "golem-boss"
+                                    prepend += "golem-boss"
                                 case "42":
-                                    append += "aberration-boss"
+                                    prepend += "aberration-boss"
                                 case "43":
-                                    append += "machine-boss"
+                                    prepend += "machine-boss"
                                 case "51":
-                                    append += "otherworld-boss"
+                                    prepend += "otherworld-boss"
                                 case "52":
-                                    append += "undead-boss"
+                                    prepend += "undead-boss"
                                 case "61":
-                                    append += "goblin-boss"
+                                    prepend += "goblin-boss"
                                 case "62":
-                                    append += "people-boss"
+                                    prepend += "people-boss"
                                 case "63":
-                                    append += "fairy-boss"
+                                    prepend += "fairy-boss"
                                 case "71":
-                                    append += "wyvern-boss"
+                                    prepend += "wyvern-boss"
                                 case "72":
-                                    append += "reptile-boss"
+                                    prepend += "reptile-boss"
                                 case "73":
-                                    append += "dragon-boss"
+                                    prepend += "dragon-boss"
                                 case "81":
-                                    append += "primal-boss"
+                                    prepend += "primal-boss"
                                 case "82":
-                                    append += "elemental-boss"
+                                    prepend += "elemental-boss"
                                 case "83":
-                                    append += "core-boss"
+                                    prepend += "core-boss"
                                 case "91":
-                                    append += "other-boss"
+                                    prepend += "other-boss"
                                 case _:
-                                    append += "unknown-boss"
-                    l = (v + append).split(" ")
+                                    prepend += "unknown-boss"
+                    if prepend != "":
+                        prepend += " "
+                    l = (prepend + v).split(" ")
                     end_index = 0
                     # remove special delimiters
                     while end_index < len(l):
@@ -3715,6 +3716,9 @@ class Updater():
                             eid = str(item['id']).split('_', 1)[0]
                         except:
                             eid = str(item['outfit id']).split('_', 1)[0]
+                        if eid == "2020006000": # deleted summon
+                            # https://gbf.wiki/Spearsting
+                            continue
                         if t == "characters":
                             if item.get("style id", "1") == 2:
                                 # to ignore character styles
