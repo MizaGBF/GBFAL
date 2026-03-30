@@ -3770,18 +3770,20 @@ class Updater():
                                                 obtain = set(item["obtain"][0].split(","))
                                                 for banner in obtain:
                                                     if banner.startswith("classic") or banner in {"flash", "premium"}:
-                                                        weapon_associations[v] = item["id"]
-                                                        premium_lookup[str(item["id"])] = None
+                                                        weapon_associations[v] = eid
+                                                        premium_lookup[str(eid)] = None
                                                         break
                                         case "character unlock":
                                             if item["name"] in weapon_associations:
-                                                premium_lookup[str(weapon_associations[item["name"]])] = str(item["id"]) # character id = weapon id
-                                                premium_lookup[str(item["id"])] = str(weapon_associations[item["name"]]) # weapon id = character id
+                                                premium_lookup[str(weapon_associations[item["name"]])] = str(eid) # character id = weapon id
+                                                premium_lookup[str(eid)] = str(weapon_associations[item["name"]]) # weapon id = character id
                                         case "obtain": # summon
                                             if table == "summons" and v is not None and v != "":
                                                 obtain = set(v.split(","))
-                                                if "classic" in obtain or  "classic2" in obtain or "flash" in obtain or "premium" in obtain:
-                                                    premium_lookup[str(item["id"])] = None
+                                                for banner in obtain:
+                                                    if banner.startswith("classic") or banner in {"flash", "premium"}:
+                                                        premium_lookup[str(eid)] = None
+                                                        break
                                         case _:
                                             match k:
                                                 case "element":
