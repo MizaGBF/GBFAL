@@ -4050,7 +4050,7 @@ class Updater():
     async def update_enemy_appear(self : Updater, element_id : str) -> None: # subroutine
         existing : list[str] = self.data["enemies"][element_id][BOSS_APPEAR]
         appear : list[str] = []
-        for k in ("", "_2", "_3", "_4", "_5", "_shade"):
+        for k in ("", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_shade"):
             try:
                 fn = f"raid_appear_{element_id}{k}"
                 lfn = len(fn)
