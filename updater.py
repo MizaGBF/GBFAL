@@ -1089,7 +1089,8 @@ class Updater():
 
     # Prepare the update_buff tasks
     async def prepare_update_buff(self : Updater, element_id : str, *, priority : int = -1) -> None:
-        if element_id == "1019": # ensure this buff is always run with low priority
+        if element_id in ("1019", "6579"):
+            # ensure these buffs are always run with low priority
             priority = 0
         buffs = self.data['buffs'] # reference
         i : int = int(element_id)
@@ -4338,7 +4339,7 @@ class Updater():
                 self.tasks.add(self.maintenance_raid_appear, priority=0)
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
-                for element_id in ("1019", ): # buffs to check for updates
+                for element_id in ("1019", "6579"): # buffs to check for updates
                     self.tasks.add(self.prepare_update_buff, parameters=(element_id,), priority=0)
 
     # return True if the file name passes the  filters
