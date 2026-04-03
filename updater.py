@@ -3587,7 +3587,7 @@ class Updater():
                             l = "/$"
                             if voice:
                                 l += " /!"
-                                if not voice_only:
+                                if voice_only:
                                     l += " /!!"
                             if l != lookup_data.get(k, None):
                                 lookup_data[k] = l
