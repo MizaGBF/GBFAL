@@ -579,9 +579,15 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					]
 				}
 			];
-			if("lookup" in index && id in index.lookup && index.lookup[id].includes("/!!"))
+			if(
+				data[DataIdx.NPC_SOUND].length > 0
+				&& !data[DataIdx.NPC_JOURNAL]
+				&& data[DataIdx.NPC_SCENE].length == 0
+			)
+			{
+				// remove art section for voice-only npc
 				pages.splice(0, 1);
-			
+			}
 			files = [id + "_01"];
 			break;
 		}
