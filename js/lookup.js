@@ -465,7 +465,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Portraits",
 					icon:"../GBFML/assets/ui/icon/portrait.png",
 					assets:[
-						{type:1, paths:[["sp/assets/npc/m/", "jpg"], ["sp/assets/npc/s/", "jpg"], ["sp/assets/npc/f/", "jpg"], ["sp/assets/npc/qm/", "png"], ["sp/assets/npc/quest/", "jpg"], ["sp/assets/npc/t/", "png"], ["sp/assets/npc/result_lvup/", "png"], ["sp/assets/npc/detail/", "png"], ["sp/assets/npc/sns/", "jpg"]], index:DataIdx.CHARA_GENERAL, form:false},
+						{type:1, paths:[["sp/assets/npc/m/", "jpg"], ["sp/assets/npc/s/", "jpg"], ["sp/assets/npc/f/", "jpg"], ["sp/assets/npc/f/", "png"], ["sp/assets/npc/qm/", "png"], ["sp/assets/npc/quest/", "jpg"], ["sp/assets/npc/t/", "png"], ["sp/assets/npc/result_lvup/", "png"], ["sp/assets/npc/detail/", "png"], ["sp/assets/npc/sns/", "jpg"]], index:DataIdx.CHARA_GENERAL, form:false},
 						{name:"Battle Portraits", paths:[["sp/assets/npc/raid_normal/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/battle.png"},
 						{name:"Fire Outfit", paths:[["sp/assets/npc/s/skin/", "_s1.jpg"], ["sp/assets/npc/f/skin/", "_s1.jpg"], ["sp/assets/npc/t/skin/", "_s1.png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/fire.png", form:false},
 						{name:"Water Outfit", paths:[["sp/assets/npc/s/skin/", "_s2.jpg"], ["sp/assets/npc/f/skin/", "_s2.jpg"], ["sp/assets/npc/t/skin/", "_s2.png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/water.png", form:false},
