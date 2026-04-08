@@ -1432,9 +1432,10 @@ function add_image(node, id, file, asset, path)
 
 function add_audio_assets(node, id, sounds)
 {
-	let sorted_sound = {"Generic":[]};
+	const GENERIC_AUDIO = "Audios";
+	let sorted_sound = {GENERIC_AUDIO:[]};
 	let checks = {
-		"": "Audios",
+		"": GENERIC_AUDIO,
 		"_boss_v_": "Boss",
 		"_v_": "Audio lines",
 		"birthday": "Happy Birthday",
@@ -1485,11 +1486,11 @@ function add_audio_assets(node, id, sounds)
 			}
 		}
 		if(!found)
-			sorted_sound["Generic"].push(sound);
+			sorted_sound[GENERIC_AUDIO].push(sound);
 	}
 	// remove generic category if empty
-	if(sorted_sound["Generic"].length == 0)
-		delete sorted_sound["Generic"];
+	if(sorted_sound[GENERIC_AUDIO].length == 0)
+		delete sorted_sound[GENERIC_AUDIO];
 	// sort content
 	for(const [k, v] of Object.entries(checks))
 	{
