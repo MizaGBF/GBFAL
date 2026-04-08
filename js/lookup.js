@@ -1496,7 +1496,10 @@ function add_audio_assets(node, id, sounds)
 	{
 		if(v in sorted_sound && sorted_sound[v].length > 0)
 		{
-			sorted_sound[v].sort(sound_sort);
+			sorted_sound[v].sort((a, b) => a.localeCompare(b, undefined, { 
+				numeric: true, 
+				sensitivity: 'base' 
+			}));
 		}
 		else if(v in sorted_sound)
 		{
@@ -1522,7 +1525,6 @@ function add_audio_assets(node, id, sounds)
 		audio = new AudioVoicePlayer(node, id, sorted_sound);
 		return true;
 	}
-	return false;
 }
 
 // random button
