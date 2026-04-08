@@ -1434,9 +1434,9 @@ function add_audio_assets(node, id, sounds)
 {
 	let sorted_sound = {"Generic":[]};
 	let checks = {
-		"": "Generic",
+		"": "Audios",
 		"_boss_v_": "Boss",
-		"_v_": "Standard",
+		"_v_": "Audio lines",
 		"birthday": "Happy Birthday",
 		"year": "Happy New Year",
 		"alentine": "Valentine",
