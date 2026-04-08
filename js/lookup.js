@@ -1433,7 +1433,7 @@ function add_image(node, id, file, asset, path)
 function add_audio_assets(node, id, sounds)
 {
 	const GENERIC_AUDIO = "Audios";
-	let sorted_sound = {GENERIC_AUDIO:[]};
+	let sorted_sound = {"Audios":[]};
 	let checks = {
 		"": GENERIC_AUDIO,
 		"_boss_v_": "Boss",
