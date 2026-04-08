@@ -1496,10 +1496,30 @@ function add_audio_assets(node, id, sounds)
 	{
 		if(v in sorted_sound && sorted_sound[v].length > 0)
 		{
-			sorted_sound[v].sort((a, b) => a.localeCompare(b, undefined, { 
-				numeric: true, 
-				sensitivity: 'base' 
-			}));
+			sorted_sound[v].sort(
+				(a, b) => {
+					const uncap_suffix = ["02", "03", "04", "05"];
+					const a_has_uncap = uncap_suffix.includes(a.split("_")[1]);
+					const b_has_uncap = uncap_suffix.includes(b.split("_")[1]);
+					if(a_has_uncap && !b_has_uncap)
+					{
+						return 1;
+					}
+					else if(!a_has_uncap && b_has_uncap)
+					{
+						return -1;
+					}
+					// normal sorting
+					return a.localeCompare(
+						b,
+						undefined,
+						{
+							numeric: true,
+							sensitivity: 'base'
+						}
+					);
+				}
+			);
 		}
 		else if(v in sorted_sound)
 		{
