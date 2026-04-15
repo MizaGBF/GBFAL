@@ -56,7 +56,7 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.59
+GBFAL Updater v3.61
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-jq [FULL ...]] [-si SCENEID [SCENEID ...]]
                   [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]]
@@ -65,7 +65,7 @@ usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-fj] [-it] [-et] [-mt] [-mb] [-ms] [-mu] [-mr] [-js] [-vl]
                   [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH] [-dg]
 
-Asset Updater v3.59 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.61 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -85,12 +85,14 @@ primary:
 secondary:
   commands to update some specific data.
 
-  -si, --sceneid SCENEID [SCENEID ...]
-                        update scene content for given IDs.
   -sc, --scene [SCENE ...]
                         update scene content. Add optional strings to match.
+  -si, --sceneid SCENEID [SCENEID ...]
+                        update scene content for given IDs.
   -sd, --sound [SOUND ...]
                         update sound content. Add optional strings to match.
+  -sdi, --soundid SOUNDID [SOUNDID ...]
+                        update sound content for given IDs.
   -ev, --event [EVENT ...]
                         update event content. Add optional event IDs to update
                         specific events.
