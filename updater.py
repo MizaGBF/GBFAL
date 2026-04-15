@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.60'
+VERSION = '3.61'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
@@ -3275,6 +3275,23 @@ class Updater():
 
     ### Sound #################################################################################################################
 
+    # update npc/character/skin scene files for given IDs
+    async def update_all_sound_for_ids(self : Updater, ids : list[str] = []) -> None:
+        # references
+        characters = self.data["characters"]
+        skins = self.data["skins"]
+        npcs = self.data["npcs"]
+        
+        for element_id in ids:
+            if element_id in characters:
+                self.tasks.add(self.update_sound_of, parameters=(element_id, "characters"))
+            elif element_id in skins:
+                self.tasks.add(self.update_sound_of, parameters=(element_id, "skins"))
+            elif element_id in npcs:
+                self.tasks.add(self.update_sound_of, parameters=(element_id, "npcs"))
+        self.tasks.print(f"Updating sounds for {self.tasks.total} elements...")
+        await self.tasks.start()
+
     # the functions are similar to scene ones
     # this one update the sound data of all elements and support resuming and filtering
     async def update_all_sound(self : Updater, filters : list[str] = []) -> None:
@@ -4485,9 +4502,10 @@ class Updater():
         primary.add_argument('-jq', '--jobquick', help="search for unused job secondary IDs. Can specify mainhand keys.", action='store', nargs='*', default=False, metavar='FULL')
         
         secondary = parser.add_argument_group('secondary', 'commands to update some specific data.')
-        secondary.add_argument('-si', '--sceneid', help="update scene content for given IDs.", nargs='+', default=None)
         secondary.add_argument('-sc', '--scene', help="update scene content. Add optional strings to match.", nargs='*', default=None)
+        secondary.add_argument('-si', '--sceneid', help="update scene content for given IDs.", nargs='+', default=None)
         secondary.add_argument('-sd', '--sound', help="update sound content. Add optional strings to match.", nargs='*', default=None)
+        secondary.add_argument('-sdi', '--soundid', help="update sound content for given IDs.", nargs='+', default=None)
         secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
         secondary.add_argument('-fe', '--forceevent', help="force update event content for given event IDs.", nargs='+', default=None)
         secondary.add_argument('-ne', '--newevent', help="check new event content.", action='store_const', const=True, default=False, metavar='')
@@ -4582,15 +4600,18 @@ class Updater():
                 self.tasks.print("Searching job secondary ID...")
                 await self.init_updater(wiki=False, job=True)
                 await self.search_job_second_id(args.jobquick)
-            elif args.sceneid is not None and len(args.sceneid) > 0:
-                self.tasks.print("Updating scene data...")
-                await self.update_all_scene_for_ids(list(set(args.sceneid)))
             elif args.scene is not None:
                 self.tasks.print("Updating scene data...")
                 await self.update_all_scene(list(set(args.scene)))
+            elif args.sceneid is not None and len(args.sceneid) > 0:
+                self.tasks.print("Updating scene data...")
+                await self.update_all_scene_for_ids(list(set(args.sceneid)))
             elif args.sound is not None:
                 self.tasks.print("Updating sound data...")
                 await self.update_all_sound(list(set(args.sound)))
+            elif args.soundid is not None and len(args.soundid) > 0:
+                self.tasks.print("Updating sound data...")
+                await self.update_all_sound_for_ids(list(set(args.soundid)))
             elif args.event is not None:
                 self.tasks.print("Updating event data...")
                 await self.init_updater(wiki=True)
