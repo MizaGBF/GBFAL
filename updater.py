@@ -3032,6 +3032,7 @@ class Updater():
                         "sidestory_id":None
                     }
                     updated = True
+                    self.tasks.print("Added", event_id, " to json/manual_event.json")
             for element_id, evdata in evt_data.items():
                 if evdata[EVENT_THUMB] is not None:
                     if str(evdata[EVENT_THUMB]) not in data:
@@ -3039,9 +3040,6 @@ class Updater():
                             "event_ids":[element_id],
                             "sidestory_id":evdata[EVENT_SIDE]
                         }
-                        updated = True
-                    elif element_id not in data[str(evdata[EVENT_THUMB])]["event_ids"]:
-                        data[str(evdata[EVENT_THUMB])]["event_ids"].append(element_id)
                         updated = True
             # check if data must be imported
             table : dict[str, list] = {}
@@ -3053,7 +3051,7 @@ class Updater():
                 for element_id in obj["event_ids"]:
                     if element_id in table:
                         if table[element_id][0] is not None:
-                            self.tasks.print("Warning:", event_id, "is set twice in json/manual_event.json")
+                            self.tasks.print("Warning:", element_id, "is set twice in json/manual_event.json")
                         else:
                             table[element_id][0] = thumb_id
                         if side_id is not None:
