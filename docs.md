@@ -85,14 +85,15 @@ where:
 - `mypage_bg`: Object of ID, integer pairs, for MyPage background images. The integer is unused. Simply use `sp/mypage/town/ISLAND_ID/bg.jpg`.  
 - `lookup`: Object of ID, string pairs. It's used to create the tag lists on GBFAL. The ID can be found in any other index and the string is the list of tags. The element starting with `@@` corresponds to the wiki link.  
 - `events`: Object of ID, data pairs for events. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
-    - General format: A list of twenty six elements. (`[CHAPTER_COUNT, THUMBNAIL_ID, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]`).  
+    - General format: A list of twenty six elements. (`[CHAPTER_COUNT, THUMBNAIL_ID, SIDE_STORY_ID, [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []]`).  
     - Index 0: An integer, the estimated number of chapters in the event. Set to **-1** if no chapters is found, **0** if the number of chapters is unknown.  
     - Index 1. A string, the event thumbnail ID. Set to **null** if not set.  
-    - Index 2: Opening chapter files with the file extension.  
-    - Index 3: Ending chapter files with the file extension.  
-    - Index 4: Other files with the file extension.  
-    - Index 5 to 24: Numbered chapter files with the file extension (**1** to **20**).  
-    - Index 25: Skycompass files.  
+    - Index 2. A string, the side story ID. Set to **null** if not set.  
+    - Index 3: Opening chapter files with the file extension.  
+    - Index 4: Ending chapter files with the file extension.  
+    - Index 5: Other files with the file extension.  
+    - Index 6 to 25: Numbered chapter files with the file extension (**1** to **20**).  
+    - Index 26: Skycompass files.  
 - `skills`: Object of ID (zfilled to string of length 4) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of one single list, containing file names. (`[[]]`).  
     - Index 0: One known file variation of this skill. Not all of them are stored. This index is mostly to track which skills exist.  

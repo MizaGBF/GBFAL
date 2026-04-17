@@ -755,6 +755,15 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			last_id = "q"+id;
 			pages = [
 				{
+					name:"Arts",
+					icon:"../GBFML/assets/ui/icon/art.png",
+					assets:[
+						{type:6, paths:[["sp/archive/assets/island_m2/", ".png"], ["sp/archive/assets/island_m3/", ".png"]], lazy:false},
+						{type:7, paths:[["sp/sidestory/assets/story_banner/story_", ".png"], ["sp/sidestory/assets/pop_image/story_", ".png"], ["sp/sidestory/story", "/assets/header/bg_header.jpg"]], lazy:false},
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_INT, lazy:false, filename:true},
+					]
+				},
+				{
 					name:"Opening",
 					icon:"../GBFML/assets/ui/icon/scene_op.png",
 					assets:[
@@ -781,17 +790,10 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					]
 				},
 				{
-					name:"Arts",
-					icon:"../GBFML/assets/ui/icon/art.png",
-					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_INT, lazy:false, filename:true}
-					]
-				},
-				{
 					name:"Skycompass",
 					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
 					assets:[
-						{type:2, paths:[["https://media.skycompass.io/assets/archives/events/"+data[1]+"/image/", "_free.png"]], index:DataIdx.EVENT_SKY, filename:true}
+						{type:2, paths:[["https://media.skycompass.io/assets/archives/events/"+data[DataIdx.EVENT_THUMB]+"/image/", "_free.png"]], index:DataIdx.EVENT_SKY, filename:true}
 					]
 				},
 			]);
@@ -912,6 +914,22 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			// tab type
 			switch(page.assets[j].type ?? 0)
 			{
+				case 7: // event side story
+				{
+					if(!indexed || data[DataIdx.EVENT_SIDE] == null)
+						continue;
+					files = [data[DataIdx.EVENT_SIDE]];
+					add_assets(tab_containers[i][1], id, page.assets[j], files);
+					break;
+				}
+				case 6: // event thumbnail
+				{
+					if(!indexed || data[DataIdx.EVENT_THUMB] == null)
+						continue;
+					files = [data[DataIdx.EVENT_THUMB]];
+					add_assets(tab_containers[i][1], id, page.assets[j], files);
+					break;
+				}
 				case 5: // audios
 				{
 					if(!indexed)
@@ -1587,7 +1605,7 @@ function random_lookup()
 // build header callback
 function get_special_navigation_indexes(id, target, key_index, keys)
 {
-	let si = target == "events" ? 2 : 0;
+	let si = target == "events" ? DataIdx.EVENT_OP : 0;
 	let next = key_index;
 	let previous = key_index;
 	

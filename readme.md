@@ -56,16 +56,17 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.61
+GBFAL Updater v3.62
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
-                  [-jq [FULL ...]] [-si SCENEID [SCENEID ...]]
-                  [-sc [SCENE ...]] [-sd [SOUND ...]] [-ev [EVENT ...]]
+                  [-jq [FULL ...]] [-sc [SCENE ...]]
+                  [-si SCENEID [SCENEID ...]] [-sd [SOUND ...]]
+                  [-sdi SOUNDID [SOUNDID ...]] [-ev [EVENT ...]]
                   [-fe FORCEEVENT [FORCEEVENT ...]] [-ne] [-st1 [LIMIT]]
                   [-st2 [LIMIT]] [-ft [FATES]] [-pt] [-mn] [-ij] [-ej] [-lk]
-                  [-fj] [-it] [-et] [-mt] [-mb] [-ms] [-mu] [-mr] [-js] [-vl]
+                  [-fj] [-evj] [-mt] [-mb] [-ms] [-mu] [-mr] [-js] [-vl]
                   [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH] [-dg]
 
-Asset Updater v3.61 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.62 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -118,8 +119,7 @@ maintenance:
   -lk, --lookup         import and update manual_lookup.json and fetch the
                         wiki to update the lookup table.
   -fj, --fatejson       import and update manual_fate.json.
-  -it, --importthumb    import data from manual_event_thumbnail.json.
-  -et, --exportthumb    export data to manual_event_thumbnail.json.
+  -evj, --eventjson     import and update manual_event.json.
   -mt, --maintenance    run all existing maintenance tasks.
   -mb, --maintenancebuff
                         maintenance task to check existing buffs for new
@@ -147,6 +147,7 @@ settings:
                         ignore known file count when updating elements.
   -da, --gbfdaio PATH   import index.json from GBFDAIO.
   -dg, --debug          enable the debug infos in the progress string.
+
 ```  
   
 > [!TIP]  

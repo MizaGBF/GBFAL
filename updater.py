@@ -19,11 +19,11 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.61'
+VERSION = '3.62'
 CONCURRENT_TASKS = 120
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
-SAVE_VERSION = 3
+SAVE_VERSION = 4
 # other
 LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
 UPDATABLE = {"characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job", "shields"}
@@ -95,10 +95,11 @@ BOSS_SP_ALL = 5
 # event update
 EVENT_CHAPTER_COUNT = 0
 EVENT_THUMB = 1
-EVENT_OP = 2
-EVENT_ED = 3
-EVENT_INT = 4
-EVENT_CHAPTER_START = 5
+EVENT_SIDE = 2
+EVENT_OP = 3
+EVENT_ED = 4
+EVENT_INT = 5
+EVENT_CHAPTER_START = 6
 EVENT_MAX_CHAPTER = 20
 EVENT_SKY = EVENT_CHAPTER_START+EVENT_MAX_CHAPTER
 EVENT_UPDATE_COUNT = 20
@@ -544,8 +545,10 @@ class Updater():
         if version == 0:
             self.tasks.print("This version is unsupported and might not work properly")
         elif version == 1:
+            # support for second MSQ
             data["story0"] = data["story"]
         elif version == 2:
+            # update story/event/fate to support file extension
             for key in ("story0", "story1"):
                 for k, v in data[key].items():
                     if isinstance(v, int):
@@ -565,6 +568,12 @@ class Updater():
                 for i in range(2, len(v) - 1):
                     for j in range(len(v[i])):
                         v[i][j] += ".png"
+        elif version == 3:
+            # insert side story id slot
+            for k, v in data["events"].items():
+                if isinstance(v, int):
+                    continue
+                v.insert(2, None)
         data["version"] = SAVE_VERSION
         return data
 
@@ -2798,7 +2807,7 @@ class Updater():
     # create the array containing the event data
     # the one for events is quite big, so I'm using a function to not miss a list somewhere
     def create_event_container(self : Updater) -> list:
-        l = [-1, None]
+        l = [-1, None, None]
         while len(l) < EVENT_CHAPTER_START:
             l.append([])
         for i in range(EVENT_MAX_CHAPTER):
@@ -3009,50 +3018,69 @@ class Updater():
                 ts.bad()
 
     # function to import or export (controlled by in_or_out) manual_event_thumbnail.json
-    def update_manual_event_thumbnail(self : Updater, in_or_out : bool = False) -> None:
+    def update_manual_event(self : Updater) -> None:
         evt_data = self.data['events'] # reference
-        if in_or_out: # import
-            try:
-                with open("json/manual_event_thumbnail.json", mode="r", encoding="utf-8") as f:
-                    data = json.load(f)
-                rdata = {}
-                for k, v in data.items():
-                    for ev in v:
-                        rdata[ev] = k
-                for element_id in evt_data:
-                    tid = evt_data[element_id][EVENT_THUMB]
-                    if tid is None:
-                        if element_id in rdata:
-                            evt_data[element_id][EVENT_THUMB] = rdata[element_id]
-                            self.modified = True
-                    else:
-                        if element_id not in rdata:
-                            evt_data[element_id][EVENT_THUMB] = None
-                            self.modified = True
-                        elif rdata[element_id] != evt_data[element_id][EVENT_THUMB]:
-                            evt_data[element_id][EVENT_THUMB] = None
-                            self.modified = True
-                self.tasks.print("json/manual_event_thumbnail.json imported")
-            except Exception as e:
-                self.tasks.print("Failed to import json/manual_event_thumbnail.json")
-                self.tasks.print("Exception:", e)
-        else: # export
-            try:
-                data = {k:[] for k in self.data['eventthumb']}
-                for element_id, evdata in evt_data.items():
-                    if evdata[EVENT_THUMB] is not None:
-                        if str(evdata[EVENT_THUMB]) not in data:
-                            data[str(evdata[EVENT_THUMB])] = []
-                        data[str(evdata[EVENT_THUMB])].append(element_id)
+        try:
+            with open("json/manual_event.json", mode="r", encoding="utf-8") as f:
+                data = json.load(f)
+            # check if must be updated
+            updated : bool = False
+            for event_id in self.data['eventthumb']:
+                if event_id not in data:
+                    data[event_id] = {
+                        "event_ids":[],
+                        "sidestory_id":None
+                    }
+                    updated = True
+            for element_id, evdata in evt_data.items():
+                if evdata[EVENT_THUMB] is not None:
+                    if str(evdata[EVENT_THUMB]) not in data:
+                        data[str(evdata[EVENT_THUMB])] = {
+                            "event_ids":[element_id],
+                            "sidestory_id":evdata[EVENT_SIDE]
+                        }
+                        updated = True
+                    elif element_id not in data[str(evdata[EVENT_THUMB])]["event_ids"]:
+                        data[str(evdata[EVENT_THUMB])]["event_ids"].append(element_id)
+                        updated = True
+            # check if data must be imported
+            table : dict[str, list] = {}
+            for element_id, evdata in evt_data.items():
+                if not isinstance(evdata, int):
+                    table[element_id] = [None, None] # thumb_id, side_id
+            for thumb_id, obj in data.items():
+                side_id : str|None = obj["sidestory_id"]
+                for element_id in obj["event_ids"]:
+                    if element_id in table:
+                        if table[element_id][0] is not None:
+                            self.tasks.print("Warning:", event_id, "is set twice in json/manual_event.json")
+                        else:
+                            table[element_id][0] = thumb_id
+                        if side_id is not None:
+                            if table[element_id][1] is None:
+                                # no point in repeating the warning above
+                                table[element_id][1] = side_id
+            for element_id, val in table.items():
+                thumb_id, side_id = val[0], val[1]
+                if evt_data[element_id][EVENT_THUMB] != thumb_id:
+                    evt_data[element_id][EVENT_THUMB] = thumb_id
+                    self.modified = True
+                    self.tasks.print("Updated thumbnail for", element_id)
+                if evt_data[element_id][EVENT_SIDE] != side_id:
+                    evt_data[element_id][EVENT_SIDE] = side_id
+                    self.modified = True
+                    self.tasks.print("Updated side story for", element_id)
+            # update file
+            if updated:
                 keys = list(data.keys())
                 keys.sort()
                 data = {k:data[k] for k in keys}
-                with open("json/manual_event_thumbnail.json", mode="w", encoding="utf-8") as f:
+                with open("json/manual_event.json", mode="w", encoding="utf-8") as f:
                     json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
-                self.tasks.print("json/manual_event_thumbnail.json exported")
-            except Exception as e:
-                self.tasks.print("Failed to export json/manual_event_thumbnail.json")
-                self.tasks.print("Exception:", e)
+                self.tasks.print("json/manual_event.json updated")
+        except Exception as e:
+            self.tasks.print(e)
+            self.tasks.print("An unexpected error occured while processing json/manual_event.json")
 
     ### Story #################################################################################################################
 
@@ -4520,8 +4548,7 @@ class Updater():
         maintenance.add_argument('-ej', '--exportjob', help="export data to job_data_export.json.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-lk', '--lookup', help="import and update manual_lookup.json and fetch the wiki to update the lookup table.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-fj', '--fatejson', help="import and update manual_fate.json.", action='store_const', const=True, default=False, metavar='')
-        maintenance.add_argument('-it', '--importthumb', help="import data from manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
-        maintenance.add_argument('-et', '--exportthumb', help="export data to manual_event_thumbnail.json.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-evj', '--eventjson', help="import and update manual_event.json.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mt', '--maintenance', help="run all existing maintenance tasks.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mb', '--maintenancebuff', help="maintenance task to check existing buffs for new icons.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-ms', '--maintenancesky', help="maintenance task to check sky compass arts for existing events.", action='store_const', const=True, default=False, metavar='')
@@ -4648,10 +4675,8 @@ class Updater():
                 await self.lookup()
             elif args.fatejson:
                 self.update_manual_fate()
-            elif args.importthumb:
-                self.update_manual_event_thumbnail(True)
-            elif args.exportthumb:
-                self.update_manual_event_thumbnail(False)
+            elif args.eventjson:
+                self.update_manual_event()
             elif args.maintenance:
                 await self.init_updater(wiki=True)
                 self.tasks.print("Performing maintenance...")
@@ -4676,7 +4701,7 @@ class Updater():
             elif args.json:
                 await self.lookup()
                 self.update_manual_fate()
-                self.update_manual_event_thumbnail(True)
+                self.update_manual_event()
             elif args.valentine:
                 self.rebuild_valentine()
             elif run_help:
@@ -4686,8 +4711,7 @@ class Updater():
                 await self.lookup() # update the lookup
                 # update other manual json files if needed
                 if "found_event" in self.flags:
-                    self.update_manual_event_thumbnail(True)
-                    self.update_manual_event_thumbnail(False)
+                    self.update_manual_event()
                 if "found_fate" in self.flags:
                     self.update_manual_fate()
             if self.modified:
