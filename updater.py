@@ -4295,7 +4295,10 @@ class Updater():
                             file_estimation += len(v[BOSS_SP_ALL])
                         case 'events':
                             if v is None or v == 0: continue
-                            if v[EVENT_THUMB] is not None: file_estimation += 1
+                            if v[EVENT_THUMB] is not None:
+                                file_estimation += 1
+                            if v[EVENT_SIDE] is not None:
+                                file_estimation += 3
                             for i in range(EVENT_OP, EVENT_SKY+1):
                                 file_estimation += len(v[i])
                         case "story0"|"story1":
