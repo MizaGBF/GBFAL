@@ -56,7 +56,7 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.62
+GBFAL Updater v3.63
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-jq [FULL ...]] [-sc [SCENE ...]]
                   [-si SCENEID [SCENEID ...]] [-sd [SOUND ...]]
@@ -64,9 +64,9 @@ usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-fe FORCEEVENT [FORCEEVENT ...]] [-ne] [-st1 [LIMIT]]
                   [-st2 [LIMIT]] [-ft [FATES]] [-pt] [-mn] [-ij] [-ej] [-lk]
                   [-fj] [-evj] [-mt] [-mb] [-ms] [-mu] [-mr] [-js] [-vl]
-                  [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH] [-dg]
+                  [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH]
 
-Asset Updater v3.62 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.63 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -146,7 +146,6 @@ settings:
   -if, --ignorefilecount
                         ignore known file count when updating elements.
   -da, --gbfdaio PATH   import index.json from GBFDAIO.
-  -dg, --debug          enable the debug infos in the progress string.
 
 ```  
   
