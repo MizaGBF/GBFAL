@@ -3861,10 +3861,8 @@ class Updater():
                         )
                         lookup_string = wiki + lookup_string
                         # relations
-                        prepend = ""
                         if eid in relations:
-                            prepend += "/x " + relations[eid] + " "
-                        lookup_string = prepend + lookup_string
+                            lookup_string = "/x " + relations[eid] + " " + lookup_string
                         # voice
                         if len(eid) == 10 and npcs.get(eid, 0) != 0 and len(npcs[eid][NPC_SOUND]) > 0: # npc sound
                             lookup_string += " /!"
@@ -3875,6 +3873,8 @@ class Updater():
                         for st in (" /1", " /2"):
                             if st in lk and st not in lookup_string:
                                 lookup_string += st
+                        # remove capitalized characters
+                        lookup_string = lookup_string.lower()
                         if eid not in lookup_data or lk != lookup_string:
                             lookup_data[eid] = lookup_string
                             modified.add(eid)
