@@ -3857,7 +3857,7 @@ class Updater():
                             .replace('　', ' ') # IDSP character
                             .replace('(', ' ').replace(')', ' ').replace('（', ' ').replace('）', ' ')
                             .replace(',', ' ').replace('、', ' ').replace('<br />', ' ')
-                            .replace('  ', ' ').replace('  ', ' ').strip()
+                            .replace('  ', ' ').replace('  ', ' ').strip().lower()
                         )
                         lookup_string = wiki + lookup_string
                         # relations
@@ -3873,8 +3873,6 @@ class Updater():
                         for st in (" /1", " /2"):
                             if st in lk and st not in lookup_string:
                                 lookup_string += st
-                        # remove capitalized characters
-                        lookup_string = lookup_string.lower()
                         if eid not in lookup_data or lk != lookup_string:
                             lookup_data[eid] = lookup_string
                             modified.add(eid)
