@@ -1131,7 +1131,11 @@
 },
 "80010":{
 "event_ids":[
-"160916"
+"160916",
+"arca00",
+"arca01",
+"arca02",
+"arca03"
 ],
 "sidestory_id":null
 },
