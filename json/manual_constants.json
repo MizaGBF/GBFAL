@@ -249,6 +249,10 @@
             "comment": "Gastalga",
             "main": ["_child1", "_child2"]
         },
+        "3990782000": {
+            "comment": "Octopode",
+            "base": ["_tentacle"]
+        },
         "3991340000": {
             "comment": "Sariel",
             "base": ["_wing1", "_wing2", "_wing3", "_wing4"],
@@ -302,6 +306,14 @@
         "3040437000": {
             "comment": "Catura SSR",
             "main": ["_cow"]
+        },
+        "3991930000": {
+            "comment": "Nemone",
+            "main": ["_magma"]
+        },
+        "3991931000": {
+            "comment": "Melleau",
+            "main": ["_magma"]
         },
         "3991990000": {
             "comment": "Catura NPC",
