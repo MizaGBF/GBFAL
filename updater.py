@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone, UTC
 import asyncio
 from pyreqwest.client import ClientBuilder, Client
-import pyreqwest.runtime as runtime
 import os
 import sys
 import re
@@ -19,8 +18,9 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.64'
-CONCURRENT_TASKS = 120
+VERSION = '3.65'
+CONCURRENT_TASKS = 70
+MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 4
@@ -146,6 +146,7 @@ SPECIAL_LOOKUP : dict[str, str] = {}
 UNIQUE_SKIN : list[str] = []
 MALINDA : str = ""
 VALENTIVEWHITE_SUFFIX : list[str] = []
+SCENE_NAVI_EXCLUSIONS : tuple[str] = []
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 MSQ_LAST_CHAPTER : list[int] = []
 MSQ_SPECIALS : list[dict[str, str]] = []
@@ -158,6 +159,7 @@ try:
     with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
         globals().update(json.load(f)) # add to global scope
     # extra, SCENE_BUBBLE_FILTER for performance
+    SCENE_NAVI_EXCLUSIONS = tuple(SCENE_NAVI_EXCLUSIONS)
     VALENTINE_EXCLUDE = set(VALENTINE_EXCLUDE)
     RISING = set(RISING)
     RELINK = set(RELINK)
@@ -406,6 +408,7 @@ class TaskStatus():
 class Updater():
     # other init
     client : Client|None
+    http_limit : asyncio.Semaphore
     flags : set[str]
     tasks : TaskManager
     use_wiki : bool
@@ -425,6 +428,7 @@ class Updater():
     def __init__(self : Updater):
         # other init
         self.client = None # the http client
+        self.http_limit = asyncio.Semaphore(MAX_REQUEST)
         self.flags = set() # to contain and manage various flag values
         self.tasks = TaskManager(self) # the task manager
         self.use_wiki = False # flag to see if the wiki usable
@@ -665,38 +669,41 @@ class Updater():
 
     # Generic GET request function
     async def get(self : Updater, url : str) -> Any:
-        response = (
-            await self.client.get(url)
-            .header("Accept-Encoding", "gzip")
-            .build()
-            .send()
-        )
-        if response.status != 200:
-            raise Exception(f"HTTP error {response.status}")
-        return (await response.bytes()).to_bytes()
+        async with self.http_limit:
+            response = (
+                await self.client.get(url)
+                .header("Accept-Encoding", "gzip")
+                .build()
+                .send()
+            )
+            if response.status != 200:
+                raise Exception(f"HTTP error {response.status}")
+            return (await response.bytes()).to_bytes()
 
     # Same as GET but for gbf.wiki
     async def get_wiki(self : Updater, url : str, *, get_json : bool = False) -> Any:
-        response = (
-            await self.client.get(url)
-            .header("Accept-Encoding", "gzip")
-            .header('User-Agent', USER_AGENT)
-            .build()
-            .send()
-        )
-        if response.status != 200:
-            raise Exception(f"HTTP error {response.status}")
-        if get_json:
-            return await response.json()
-        return (await response.bytes()).to_bytes()
+        async with self.http_limit:
+            response = (
+                await self.client.get(url)
+                .header("Accept-Encoding", "gzip")
+                .header('User-Agent', USER_AGENT)
+                .build()
+                .send()
+            )
+            if response.status != 200:
+                raise Exception(f"HTTP error {response.status}")
+            if get_json:
+                return await response.json()
+            return (await response.bytes()).to_bytes()
 
     # Generic HEAD request function
     async def head(self : Updater, url : str) -> Any:
-        response = (
-            await self.client.head(url)
-            .build()
-            .send()
-        )
+        async with self.http_limit:
+            response = (
+                await self.client.head(url)
+                .build()
+                .send()
+            )
         if response.status != 200:
             raise Exception(f"HTTP error {response.status}")
         return response.headers
@@ -705,11 +712,12 @@ class Updater():
     async def head_nx(self : Updater, url : str):
         # copy paste to avoid a needless functions call and exception raise
         try:
-            response = (
-                await self.client.head(url)
-                .build()
-                .send()
-            )
+            async with self.http_limit:
+                response = (
+                    await self.client.head(url)
+                    .build()
+                    .send()
+                )
         except Exception as e:
             self.tasks.print(f"The following exception occured in head_nx():\nURL: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
             return None
@@ -2469,57 +2477,97 @@ class Updater():
             if 'scene_update' in self.flags and u in self.resume.get('done', {}).get(element_id, []): # skip if in resume file
                 continue
             # start update_scene
-            self.tasks.add(self.update_scene, parameters=(index, element_id, idx, u, existing, base_target, main_x if u == "" else uncap_x, filters), priority=2)
+            self.tasks.add(self.update_scene, parameters=(index, element_id, idx, u, existing, base_target, main_x if u == "" else uncap_x, filters), priority=3)
 
     # update character/NPC scene data
-    async def update_scene(self : Updater, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str], filters : list[str]) -> None:
+    async def update_scene(
+        self : Updater,
+        index : str, element_id : str, idx : int, uncap : str,
+        existing : set[str], bases : list[str],
+        suffixes : list[str], filters : list[str]
+    ) -> None:
         ts : TaskStatus
         file_id : str = self.data['npc_replace'].get(element_id, element_id)
-        # check if uncap string exists
-        if uncap not in existing:
-            await self.update_scene_check(TaskStatus(1, 1, running=1), file_id, uncap, existing)
+        checked : set[str] = set()
         # quit if npc and no uncap string existing beyond base one
         if index == 'npcs' and uncap != "" and uncap not in existing:
-            return
+            # check if uncap string exists
+            await self.update_scene_check(TaskStatus(1, 1, running=1), file_id, uncap, existing)
+            if uncap not in existing:
+                return
+            checked.add(uncap)
         # check other base strings
         base : str
         f : str # file
         # test all base files
         ts = TaskStatus(1, 1, running=0)
         for base in bases:
-            if base == "":
-                continue
             f = uncap + base
-            if f in existing or (len(filters) > 0 and not self.file_is_matching(f, filters)):
+            ts.running += 1
+            self.tasks.add(
+                self.update_scene_main_check,
+                parameters=(ts, file_id, f, existing, checked, suffixes, filters, base == ""),
+                priority=0
+            )
+        await asyncio.sleep(1)
+        self.tasks.add(
+            self.update_scene_end,
+            parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes),
+            priority=2
+        )
+
+    # test base files then queue suffix if it exisst OR if allow_continue
+    async def update_scene_main_check(
+        self : Updater,
+        ts : TaskStatus, file_id : str, f : str,
+        existing : set[str], checked : set[str],
+        suffixes : list[str], filters : list[str],
+        allow_continue : bool
+    ) -> None:
+        if f not in existing:
+            if f in checked:
+                if not allow_continue:
+                    ts.finish() # task ended
+                    return
+            else:
+                checked.add(f)
+                if len(filters) == 0 or self.file_is_matching(f, filters):
+                    file : str = f"{file_id}{f}.png"
+                    try:
+                        await self.head(f"{IMG}sp/quest/scene/character/body/{file}")
+                        existing.add(f)
+                    except:
+                        try:
+                            await self.head(f"{IMG}sp/raid/navi_face/{file}")
+                            existing.add(f)
+                        except:
+                            if not allow_continue:
+                                ts.finish() # task ended
+                                return
+        for suffix in suffixes:
+            if suffix == "":
+                continue
+            g : str = f + suffix
+            if g in checked:
+                continue
+            checked.add(g)
+            if g in existing or (len(filters) > 0 and not self.file_is_matching(g, filters)):
                 continue
             ts.running += 1
-            self.tasks.add(self.update_scene_check, parameters=(ts, file_id, f, existing), priority=1)
-        self.tasks.add(self.update_scene_continue, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes, filters))
+            self.tasks.add(
+                self.update_scene_check,
+                parameters=(ts, file_id, g, existing),
+                priority=0
+            )
+        ts.finish() # task ended
 
-    # part 2 of the function, wait for TaskStatus completion
-    async def update_scene_continue(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str], filters : list[str]) -> None:
-        # wait previous tasks completion
-        await ts.wait_finish()
-        file_id : str = self.data['npc_replace'].get(element_id, element_id)
-        suffix : str
-        # search variations now, make a list of file again
-        ts = TaskStatus(1, 1, running=0)
-        for base in bases:
-            f : str = uncap + base
-            if base != "" and f not in existing:
-                continue
-            for suffix in suffixes:
-                if suffix == "":
-                    continue
-                g : str = f + suffix
-                if g in existing or (len(filters) > 0 and not self.file_is_matching(g, filters)):
-                    continue
-                ts.running += 1
-                self.tasks.add(self.update_scene_check, parameters=(ts, file_id, g, existing), priority=1)
-        self.tasks.add(self.update_scene_end, parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes), priority=1)
-
-    # part 3 of the function, wait for TaskStatus completion
-    async def update_scene_end(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, uncap : str, existing : set[str], bases : list[str], suffixes : list[str]) -> None:
+    # end of the pipeline, wait for TaskStatus completion
+    async def update_scene_end(
+        self : Updater,
+        ts : TaskStatus, index : str, element_id : str,
+        idx : int, uncap : str,
+        existing : set[str], bases : list[str], suffixes : list[str]
+    ) -> None:
         # wait previous tasks completion
         await ts.wait_finish()
         # check if the data has new strings
@@ -2553,8 +2601,11 @@ class Updater():
             existing.add(f)
         except:
             try:
-                await self.head(f"{IMG}sp/raid/navi_face/{file}")
-                existing.add(f)
+                if not f.endswith(
+                   SCENE_NAVI_EXCLUSIONS
+                ):
+                    await self.head(f"{IMG}sp/raid/navi_face/{file}")
+                    existing.add(f)
             except:
                 pass
         ts.finish() # task ended
@@ -4379,11 +4430,7 @@ class Updater():
     # return True if the file name passes the  filters
     # don't call it if filters is empty
     def file_is_matching(self : Updater, name : str, filters : list[str]) -> bool:
-        f : str
-        for f in filters:
-            if f in name:
-                return True
-        return False
+        return any(filter_string in name for filter_string in filters)
 
     # count file in data container
     def count_file(self : Updater, data : list[Any]) -> Any:
@@ -4555,8 +4602,6 @@ class Updater():
         args : argparse.Namespace = parser.parse_args()
         
         # init HTTP client
-        runtime.runtime_multithreaded_default(True)
-        runtime.runtime_worker_threads(8)
         async with (
             ClientBuilder()
             .runtime_multithreaded(True)
@@ -4568,8 +4613,8 @@ class Updater():
             .zstd(False)
             .deflate(False)
             .http2(True)
-            .pool_max_idle_per_host(1)
-            .max_connections(70)
+            .pool_max_idle_per_host(MAX_REQUEST)
+            .max_connections(MAX_REQUEST)
             .http2_prior_knowledge()
             .http2_keep_alive_interval(timedelta(days=1))
             .http2_keep_alive_timeout(timedelta(days=1))
