@@ -2437,8 +2437,6 @@ class Updater():
     #       v
     #   update_scene (for each uncap)
     #       v
-    #   update_scene_continue & (multiples) update_scene_check  (for each uncap)
-    #       v
     #   update_scene_end & (multiples) update_scene_check  (for each uncap)
     #
     
