@@ -1186,10 +1186,22 @@
             "text":"This list accuracy isn't guaranted"
         },
         {
-            "name":"Profile Room NPCs",
+            "name":"Profile Room",
             "icon":"../GBFML/assets/ui/profile_room.png",
-            "target":"profile_npcs",
-            "pad":100
+            "childs":[
+                {
+                    "name":"NPCs",
+                    "icon":"../GBFML/assets/ui/icon/npcs.png",
+                    "target":"profile_npcs",
+                    "pad":100
+                },
+                {
+                    "name":"Arts",
+                    "icon":"../GBFML/assets/ui/icon/art.png",
+                    "target":"profile_arts",
+                    "pad":100
+                }
+            ]
         },
         {
             "name":"Main Story",

@@ -80,7 +80,8 @@ where:
     - General format: A list of one single list, containing file names. (`[[]]`).  
     - Index 0: The list of background files.  
     - Possible paths are `sp/guild/custom/bg/FILE.png` for MAIN backgrounds and `sp/raid/bg/FILE.jpg` for everything else.  
-- `profile_npc`: Object of ID, integer pairs, for title screens. The integer is unused. Simply use `sp/assets/profile_room/character/other/ID.png`.  
+- `profile_npcs`: Object of ID, integer pairs, for profile room npc arts. The integer is unused. Simply use `sp/assets/profile_room/character/other/ID.png`.  
+- `profile_arts`: Object of ID, integer pairs, for profile room paintings. The integer is unused. Simply use `sp/assets/profile_room/memorial_frame/painting/ID.png`.  
 - `title`: Object of ID, integer pairs, for title screens. The integer is unused. Simply use `sp/top/bg/bg_ID.jpg`.  
 - `suptix`: Object of ID, integer pairs, for surprise ticket banners. The integer is unused. Simply use `sp/gacha/campaign/surprise/top_ID.jpg`.  
 - `mypage_bg`: Object of ID, integer pairs, for MyPage background images. The integer is unused. Simply use `sp/mypage/town/ISLAND_ID/bg.jpg`.  
