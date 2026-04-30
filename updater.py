@@ -926,9 +926,9 @@ class Updater():
         for i in range(3):
             self.tasks.add(self.search_generic, parameters=(ts, "profile_npcs", "{}", 1, ["img/sp/assets/profile_room/character/other/{}.png"]))
         # profile room arts
-        for j in [1, 101, 201, 301, 5001]:
+        for j in [1, 101, 201, 301, 5001, 6001, 7001]:
             ts = TaskStatus(999999, 20, start=j)
-            for i in range(5):
+            for i in range(3):
                 self.tasks.add(self.search_generic, parameters=(ts, "profile_arts", "{}", 1, ["img/sp/assets/profile_room/memorial_frame/painting/{}.png"]))
         # titles
         ts = TaskStatus(1000, 5)
