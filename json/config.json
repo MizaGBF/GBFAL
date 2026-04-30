@@ -1186,6 +1186,12 @@
             "text":"This list accuracy isn't guaranted"
         },
         {
+            "name":"Profile Room NPCs",
+            "icon":"../GBFML/assets/ui/profile_room.png",
+            "target":"profile_npcs",
+            "pad":100
+        },
+        {
             "name":"Main Story",
             "icon":"../GBFML/assets/ui/icon/story.png",
             "childs":[
@@ -1868,21 +1874,21 @@
                     "name":"Mains",
                     "target":"background",
                     "arg1":"main",
-                    "pad":1,
+                    "pad":100,
                     "reverse":1
                 },
                 {
                     "name":"Commons",
                     "target":"background",
                     "arg1":"common",
-                    "pad":1,
+                    "pad":100,
                     "reverse":1
                 },
                 {
                     "name":"Events",
                     "target":"background",
                     "arg1":"event",
-                    "pad":1,
+                    "pad":100,
                     "reverse":1
                 },
                 {
@@ -1890,7 +1896,7 @@
                     "target":"background",
                     "arg1":"",
                     "text": "No particular order",
-                    "pad":1,
+                    "pad":100,
                     "reverse":1
                 },
                 {
@@ -1898,7 +1904,7 @@
                     "target":"mypage_bg",
                     "arg1":"",
                     "text": "No particular order",
-                    "pad":1,
+                    "pad":100,
                     "reverse":1
                 }
             ]
@@ -1907,21 +1913,21 @@
             "name":"Title Screens",
             "icon":"../GBFML/assets/ui/icon/titles.png",
             "target":"title",
-            "pad":1
+            "pad":100
         },
         {
             "name":"Sky Compass Gallery",
             "icon":"../GBFML/assets/ui/skycompass.png",
             "target":"sky_title",
             "pad":1,
-            "reverse":1
+            "reverse":100
         },
         {
             "name":"Surprise Tickets",
             "icon":"../GBFML/assets/ui/icon/suptix.png",
             "target":"suptix",
             "pad":1,
-            "reverse":1
+            "reverse":100
         }
     ]
 }

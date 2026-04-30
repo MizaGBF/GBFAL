@@ -448,12 +448,20 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					]
 				},
 				{
+					name:"Profile Room",
+					icon:"../GBFML/assets/ui/profile_room.png",
+					assets:[
+						{type:1, paths:[["sp/assets/npc/profile/", "png"]], index:DataIdx.CHARA_GENERAL},
+					]
+				},
+				// Removed for now, as Profile Room assets (above) are way bigger and the only purpose of Skycompass assets were their size
+				/*{
 					name:"Skycompass",
 					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
 					assets:[
 						{type:2, paths:[["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png"]], index:DataIdx.CHARA_GENERAL}
 					]
-				},
+				},*/
 				{
 					name:"Home",
 					icon:"../GBFML/assets/ui/icon/home.png",
@@ -626,12 +634,20 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					]
 				},
 				{
+					name:"Profile Room",
+					icon:"../GBFML/assets/ui/profile_room.png",
+					assets:[
+						{type:1, paths:[["sp/assets/leader/profile/", "png"]], index:DataIdx.JOB_DETAIL_ALT, home:true}
+					]
+				},
+				// Removed for now, as Profile Room assets (above) are way bigger and the only purpose of Skycompass assets were their size
+				/*{
 					name:"Skycompass",
 					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
 					assets:[
 						{type:2, paths:[["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png"]], special_index:"skycompass_main_character"}
 					]
-				},
+				},*/
 				{
 					name:"Arts",
 					icon:"../GBFML/assets/ui/icon/journal.png",

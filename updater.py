@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.65'
+VERSION = '3.66'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -44,7 +44,7 @@ ADD_FATE = 12
 ADD_SHIELD = 13
 ADD_MANATURA = 14
 ADD_STORY1 = 15
-ADD_SINGLE_ASSET = ["title", "subskills", "suptix", "mypage_bg", "sky_title"]
+ADD_SINGLE_ASSET = ["profile_npcs", "title", "subskills", "suptix", "mypage_bg", "sky_title"]
 # chara/skin/partner update
 CHARA_SPRITE = 0
 CHARA_PHIT = 1
@@ -452,6 +452,7 @@ class Updater():
             "job_wpn":{},
             "job_key":{},
             'npcs':{},
+            'profile_npcs':{},
             "background":{},
             "mypage_bg":{},
             "title":{},
@@ -840,32 +841,32 @@ class Updater():
         # special npc
         ts = TaskStatus(10000, 2)
         for i in range(10):
-            self.tasks.add(self.search_generic, parameters=(ts, 'npcs', "305{}000", 4, ["img/sp/quest/scene/character/body/{}.png"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "npcs", "305{}000", 4, ["img/sp/quest/scene/character/body/{}.png"]))
         #rarity of various stuff
         for r in range(1, 5):
             # weapons
             for j in range(10):
                 ts = TaskStatus(1000, 20)
                 for i in range(5):
-                    self.tasks.add(self.search_generic, parameters=(ts, 'weapons', f"10{r}0{j}{{}}00", 3, ["img/sp/assets/weapon/m/{}.jpg"]))
+                    self.tasks.add(self.search_generic, parameters=(ts, "weapons", f"10{r}0{j}{{}}00", 3, ["img/sp/assets/weapon/m/{}.jpg"]))
             # shields
             for j in range(2):
                 ts = TaskStatus(1000, 5)
                 for i in range(5):
-                    self.tasks.add(self.search_generic, parameters=(ts, 'shields', f"{r}{{}}", 3, ["img/sp/assets/shield/m/{}.jpg"]))
+                    self.tasks.add(self.search_generic, parameters=(ts, "shields", f"{r}{{}}", 3, ["img/sp/assets/shield/m/{}.jpg"]))
             # summons
             ts = TaskStatus(1000, 20)
             for i in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, 'summons', f"20{r}0{{}}000", 3, ["img/sp/assets/summon/m/{}.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "summons", f"20{r}0{{}}000", 3, ["img/sp/assets/summon/m/{}.jpg"]))
             if r > 1:
                 # characters
                 ts = TaskStatus(1000, 20)
                 for i in range(5):
-                    self.tasks.add(self.search_generic, parameters=(ts, 'characters', f"30{r}0{{}}000", 3, ["img/sp/assets/npc/m/{}_01.jpg"]))
+                    self.tasks.add(self.search_generic, parameters=(ts, "characters", f"30{r}0{{}}000", 3, ["img/sp/assets/npc/m/{}_01.jpg"]))
                 # partners
                 ts = TaskStatus(1000, 20)
                 for i in range(5):
-                    self.tasks.add(self.search_generic, parameters=(ts, 'partners', f"38{r}0{{}}000", 3, [
+                    self.tasks.add(self.search_generic, parameters=(ts, "partners", f"38{r}0{{}}000", 3, [
                         "img/sp/assets/npc/raid_normal/{}_01.jpg",
                         "js/model/manifest/phit_{}.js",
                         "js/model/manifest/nsp_{}_01.js"
@@ -874,7 +875,7 @@ class Updater():
         for r in range(8, 10):
             ts = TaskStatus(1000, 20)
             for i in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, 'partners', f"38{r}0{{}}000", 3, [
+                self.tasks.add(self.search_generic, parameters=(ts, "partners", f"38{r}0{{}}000", 3, [
                     "img/sp/assets/npc/raid_normal/{}_01.jpg",
                     "js/model/manifest/phit_{}.js",
                     "js/model/manifest/nsp_{}_01.js"
@@ -882,7 +883,7 @@ class Updater():
         # skins
         ts = TaskStatus(1000, 20)
         for i in range(5):
-            self.tasks.add(self.search_generic, parameters=(ts, 'skins', "3710{}000", 3, ["js/model/manifest/npc_{}_01.js"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "skins", "3710{}000", 3, ["js/model/manifest/npc_{}_01.js"]))
         # enemies
         main : int
         sub : int
@@ -898,43 +899,47 @@ class Updater():
         for ev in ("event_{}", "common_{}"):
             ts = TaskStatus(1000, 10)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, 'background', ev, 3 if ev.startswith("common_") else 1, ["img/sp/raid/bg/{}.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "background", ev, 3 if ev.startswith("common_") else 1, ["img/sp/raid/bg/{}.jpg"]))
         # main
         ts = TaskStatus(1000, 10)
         for j in range(5):
-            self.tasks.add(self.search_generic, parameters=(ts, 'background', "main_{}", 1, ["img/sp/guild/custom/bg/{}.png"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "background", "main_{}", 1, ["img/sp/guild/custom/bg/{}.png"]))
         # others
         ss : str
         for ss in ("ra", "rb", "rc"):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, 'background', "{}"+ss, 2, ["img/sp/raid/bg/{}_1.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "background", "{}"+ss, 2, ["img/sp/raid/bg/{}_1.jpg"]))
         bgt : tuple[str, str]
         for bgt in (("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, 'background', bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "background", bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
         # mypage island background
         for i in (range(0, 40), range(70, 75)):
             for j in i:
                 ts = TaskStatus(1000, 20)
-                self.tasks.add(self.search_generic, parameters=(ts, 'mypage_bg', str(j).zfill(2) + "{}", 3, ["img/sp/mypage/town/{}/bg.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "mypage_bg", str(j).zfill(2) + "{}", 3, ["img/sp/mypage/town/{}/bg.jpg"]))
+        # profile room npcs
+        ts = TaskStatus(1000, 5)
+        for i in range(3):
+            self.tasks.add(self.search_generic, parameters=(ts, "profile_npcs", "{}", 1, ["img/sp/assets/profile_room/character/other/{}.png"]))
         # titles
         ts = TaskStatus(1000, 5)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, 'title', "{}", 1, ["img/sp/top/bg/bg_{}.jpg"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "title", "{}", 1, ["img/sp/top/bg/bg_{}.jpg"]))
         # sky compass title
         ts = TaskStatus(1000, 8)
         for i in range(2):
-            self.tasks.add(self.search_generic, parameters=(ts, 'sky_title', "{}", 1, ["assets/archives/galleries/{}/detail_s.png"], "https://media.skycompass.io/"))
+            self.tasks.add(self.search_generic, parameters=(ts, "sky_title", "{}", 1, ["assets/archives/galleries/{}/detail_s.png"], "https://media.skycompass.io/"))
         # subskills
         ts = TaskStatus(1000, 5)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, 'subskills', "{}", 1, ["img/sp/assets/item/ability/s/{}_1.jpg"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "subskills", "{}", 1, ["img/sp/assets/item/ability/s/{}_1.jpg"]))
         # suptix
         ts = TaskStatus(1000, 15)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, 'suptix', "{}", 1, ["img/sp/gacha/campaign/surprise/top_{}.jpg"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "suptix", "{}", 1, ["img/sp/gacha/campaign/surprise/top_{}.jpg"]))
         # start the tasks
         await self.tasks.start()
 
@@ -4275,7 +4280,7 @@ class Updater():
             scene_count = 0
             sound_count = 0
             file_estimation = 0
-            for t in ("characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "title", "sky_title", "suptix", 'events', "skills", "subskills", 'buffs', "story", "background", "mypage_bg"):
+            for t in ("characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "profile_npcs", "title", "sky_title", "suptix", 'events', "skills", "subskills", 'buffs', "story", "background", "mypage_bg"):
                 ref = self.data.get(t, {})
                 entity_count += len(ref.keys())
                 for k, v in ref.items():
@@ -4363,7 +4368,7 @@ class Updater():
                             file_estimation += len(v[0])
                         case "mypage_bg":
                             file_estimation += 1
-                        case "title"|"sky_title":
+                        case "profile_npcs"|"title"|"sky_title":
                             file_estimation += 1
                         case _:
                             file_estimation += 2

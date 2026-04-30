@@ -1,7 +1,35 @@
 {
-  "timestamp":1777534215841,
+  "timestamp":1777566372227,
   "new":{
     "2026-04-30":[
+      [
+        "profile_npcs:7",
+        "profile_npcs"
+      ],
+      [
+        "profile_npcs:6",
+        "profile_npcs"
+      ],
+      [
+        "profile_npcs:5",
+        "profile_npcs"
+      ],
+      [
+        "profile_npcs:4",
+        "profile_npcs"
+      ],
+      [
+        "profile_npcs:3",
+        "profile_npcs"
+      ],
+      [
+        "profile_npcs:2",
+        "profile_npcs"
+      ],
+      [
+        "profile_npcs:1",
+        "profile_npcs"
+      ],
       [
         "0998",
         12
@@ -719,7 +747,7 @@
       ]
     ]
   },
-  "stat":"18,817 indexed elements, for ~690.4K files",
+  "stat":"18,824 indexed elements, for ~690.4K files",
   "issues":[],
   "help":false
 }
