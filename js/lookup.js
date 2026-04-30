@@ -448,20 +448,13 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					]
 				},
 				{
-					name:"Profile Room",
-					icon:"../GBFML/assets/ui/profile_room.png",
+					name:"High Definition",
+					icon:"../GBFML/assets/ui/btn_plus.png",
 					assets:[
-						{type:1, paths:[["sp/assets/npc/profile/", "png"]], index:DataIdx.CHARA_GENERAL},
+						{name:"Profile Room", paths:[["sp/assets/npc/profile/", "png"]], icon:"../GBFML/assets/ui/icon/home.png", index:DataIdx.CHARA_GENERAL, lazy:true},
+						{type:2, name:"Skycompass", paths:[["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png"]], icon:"../GBFML/assets/ui/icon/skycompass_alpha.png", index:DataIdx.CHARA_GENERAL, lazy:true}
 					]
 				},
-				// Removed for now, as Profile Room assets (above) are way bigger and the only purpose of Skycompass assets were their size
-				/*{
-					name:"Skycompass",
-					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
-					assets:[
-						{type:2, paths:[["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png"]], index:DataIdx.CHARA_GENERAL}
-					]
-				},*/
 				{
 					name:"Home",
 					icon:"../GBFML/assets/ui/icon/home.png",
@@ -634,20 +627,13 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					]
 				},
 				{
-					name:"Profile Room",
-					icon:"../GBFML/assets/ui/profile_room.png",
+					name:"High Definition",
+					icon:"../GBFML/assets/ui/btn_plus.png",
 					assets:[
-						{type:1, paths:[["sp/assets/leader/profile/", "png"]], index:DataIdx.JOB_DETAIL_ALT, home:true}
+						{name:"Profile Room", paths:[["sp/assets/leader/profile/", "png"]], icon:"../GBFML/assets/ui/icon/home.png", index:DataIdx.JOB_DETAIL_ALT, lazy:true},
+						{type:2, name:"Skycompass", paths:[["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png"]], icon:"../GBFML/assets/ui/icon/skycompass_alpha.png", special_index:"skycompass_main_character", lazy:true}
 					]
 				},
-				// Removed for now, as Profile Room assets (above) are way bigger and the only purpose of Skycompass assets were their size
-				/*{
-					name:"Skycompass",
-					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
-					assets:[
-						{type:2, paths:[["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png"]], special_index:"skycompass_main_character"}
-					]
-				},*/
 				{
 					name:"Arts",
 					icon:"../GBFML/assets/ui/icon/journal.png",
@@ -927,7 +913,6 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		// add assets
 		for(let j = 0; j < page.assets.length; ++j)
 		{
-			// tab type
 			switch(page.assets[j].type ?? 0)
 			{
 				case 7: // event side story
@@ -970,8 +955,18 @@ function load_assets(id, data, type, target, indexed, allow_open)
 				}
 				case 2: // skycompass
 				{
-					files = get_file_list(id, data, page.assets[j], files, melee);
-					add_skycompass_assets(tab_containers[i][1], id, page.assets[j], files);
+					if((page.assets[j].name ?? null) != null)
+					{
+						files = get_file_list(id, data, page.assets[j], files, melee);
+						const [details, div] = add_result(null, page.assets[j]);
+						add_skycompass_assets(div, id, page.assets[j], files);
+						tab_containers[i][1].appendChild(details);
+					}
+					else
+					{
+						files = get_file_list(id, data, page.assets[j], files, melee);
+						add_skycompass_assets(tab_containers[i][1], id, page.assets[j], files);
+					}
 					break;
 				}
 				case 1: // no detail element
