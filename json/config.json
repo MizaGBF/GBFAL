@@ -1196,11 +1196,71 @@
                     "pad":10
                 },
                 {
-                    "name":"Arts",
-                    "icon":"../GBFML/assets/ui/icon/art.png",
-                    "target":"profile_arts",
-                    "pad":10,
-                    "text": "ID order"
+                    "name":"Backgrounds",
+                    "icon":"../GBFML/assets/ui/icon/backgrounds.png",
+                    "childs":[
+                        {
+                            "name":"Anniversary",
+                            "icon":"../GBFML/assets/ui/icon/birthday.png",
+                            "target":"profile_arts",
+                            "arg1":0,
+                            "arg2":100,
+                            "pad":10,
+                            "text": "ID order"
+                        },
+                        {
+                            "name":"Granblue FES",
+                            "icon":"../GBFML/assets/ui/icon/granbluefes.png",
+                            "target":"profile_arts",
+                            "arg1":100,
+                            "arg2":300,
+                            "pad":10,
+                            "text": "ID order"
+                        },
+                        {
+                            "name":"Arcarum",
+                            "icon":"../GBFML/assets/ui/icon/arcarum.png",
+                            "target":"profile_arts",
+                            "arg1":300,
+                            "arg2":400,
+                            "pad":10,
+                            "text": "ID order"
+                        },
+                        {
+                            "name":"Events (Main)",
+                            "icon":"../GBFML/assets/ui/icon/arc_1.png",
+                            "target":"profile_arts",
+                            "arg1":5000,
+                            "arg2":6000,
+                            "pad":10,
+                            "text": "ID order"
+                        },
+                        {
+                            "name":"Events (Variations)",
+                            "icon":"../GBFML/assets/ui/icon/arc_2.png",
+                            "target":"profile_arts",
+                            "arg1":6000,
+                            "arg2":7000,
+                            "pad":10,
+                            "text": "ID order"
+                        },
+                        {
+                            "name":"Events (Extra Variation)",
+                            "icon":"../GBFML/assets/ui/icon/arc_3.png",
+                            "target":"profile_arts",
+                            "arg1":7000,
+                            "arg2":8000,
+                            "pad":10,
+                            "text": "ID order"
+                        },
+                        {
+                            "name":"Profile Card",
+                            "icon":"../GBFML/assets/ui/icon/classes.png",
+                            "target":"profile_bgs",
+                            "pad":10,
+                            "text": "ID order"
+                        }
+                    ]
                 }
             ]
         },

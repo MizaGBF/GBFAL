@@ -82,6 +82,7 @@ where:
     - Possible paths are `sp/guild/custom/bg/FILE.png` for MAIN backgrounds and `sp/raid/bg/FILE.jpg` for everything else.  
 - `profile_npcs`: Object of ID, integer pairs, for profile room npc arts. The integer is unused. Simply use `sp/assets/profile_room/character/other/ID.png`.  
 - `profile_arts`: Object of ID, integer pairs, for profile room paintings. The integer is unused. Simply use `sp/assets/profile_room/memorial_frame/painting/ID.png`.  
+- `profile_bgs`: Object of ID, integer pairs, for profile card backgrounds. The integer is unused. Simply use `sp/assets/profile_room/profile_card/bg/ID.jpg`.  
 - `title`: Object of ID, integer pairs, for title screens. The integer is unused. Simply use `sp/top/bg/bg_ID.jpg`.  
 - `suptix`: Object of ID, integer pairs, for surprise ticket banners. The integer is unused. Simply use `sp/gacha/campaign/surprise/top_ID.jpg`.  
 - `mypage_bg`: Object of ID, integer pairs, for MyPage background images. The integer is unused. Simply use `sp/mypage/town/ISLAND_ID/bg.jpg`.  

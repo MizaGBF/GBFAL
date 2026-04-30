@@ -44,7 +44,7 @@ ADD_FATE = 12
 ADD_SHIELD = 13
 ADD_MANATURA = 14
 ADD_STORY1 = 15
-ADD_SINGLE_ASSET = ["profile_npcs", "profile_arts", "title", "subskills", "suptix", "mypage_bg", "sky_title"]
+ADD_SINGLE_ASSET = ["profile_npcs", "profile_arts", "profile_bgs", "title", "subskills", "suptix", "mypage_bg", "sky_title"]
 # chara/skin/partner update
 CHARA_SPRITE = 0
 CHARA_PHIT = 1
@@ -454,6 +454,7 @@ class Updater():
             'npcs':{},
             'profile_npcs':{},
             'profile_arts':{},
+            'profile_bgs':{},
             "background":{},
             "mypage_bg":{},
             "title":{},
@@ -930,6 +931,10 @@ class Updater():
             ts = TaskStatus(999999, 20, start=j)
             for i in range(3):
                 self.tasks.add(self.search_generic, parameters=(ts, "profile_arts", "{}", 1, ["img/sp/assets/profile_room/memorial_frame/painting/{}.png"]))
+        for j in [500, 10001, 20001, 30001, 40001]:
+            ts = TaskStatus(999999, 20, start=j)
+            for i in range(3):
+                self.tasks.add(self.search_generic, parameters=(ts, "profile_bgs", "{}", 1, ["img/sp/assets/profile_room/profile_card/bg/{}.jpg"]))
         # titles
         ts = TaskStatus(1000, 5)
         for i in range(3):
@@ -4286,7 +4291,12 @@ class Updater():
             scene_count = 0
             sound_count = 0
             file_estimation = 0
-            for t in ("characters", "partners", "summons", "weapons", "enemies", "skins", "job", 'npcs', "profile_npcs", "profile_arts", "title", "sky_title", "suptix", 'events', "skills", "subskills", 'buffs', "story", "background", "mypage_bg"):
+            for t in (
+                "characters", "partners", "summons", "weapons", "enemies", "skins", "job", "npcs",
+                "profile_npcs", "profile_arts", "profile_bgs",
+                "title", "sky_title", "suptix",
+                "events", "skills", "subskills", 'buffs', "story", "background", "mypage_bg"
+            ):
                 ref = self.data.get(t, {})
                 entity_count += len(ref.keys())
                 for k, v in ref.items():
@@ -4374,7 +4384,7 @@ class Updater():
                             file_estimation += len(v[0])
                         case "mypage_bg":
                             file_estimation += 1
-                        case "profile_npcs"|"profile_arts"|"title"|"sky_title":
+                        case "profile_npcs"|"profile_arts"|"profile_bgs"|"title"|"sky_title":
                             file_estimation += 1
                         case _:
                             file_estimation += 2
