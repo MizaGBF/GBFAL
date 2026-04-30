@@ -1193,13 +1193,14 @@
                     "name":"NPCs",
                     "icon":"../GBFML/assets/ui/icon/npcs.png",
                     "target":"profile_npcs",
-                    "pad":100
+                    "pad":10
                 },
                 {
                     "name":"Arts",
                     "icon":"../GBFML/assets/ui/icon/art.png",
                     "target":"profile_arts",
-                    "pad":100
+                    "pad":10,
+                    "text": "ID order"
                 }
             ]
         },
@@ -1886,21 +1887,21 @@
                     "name":"Mains",
                     "target":"background",
                     "arg1":"main",
-                    "pad":100,
+                    "pad":10,
                     "reverse":1
                 },
                 {
                     "name":"Commons",
                     "target":"background",
                     "arg1":"common",
-                    "pad":100,
+                    "pad":10,
                     "reverse":1
                 },
                 {
                     "name":"Events",
                     "target":"background",
                     "arg1":"event",
-                    "pad":100,
+                    "pad":10,
                     "reverse":1
                 },
                 {
@@ -1908,7 +1909,7 @@
                     "target":"background",
                     "arg1":"",
                     "text": "No particular order",
-                    "pad":100,
+                    "pad":10,
                     "reverse":1
                 },
                 {
@@ -1916,7 +1917,7 @@
                     "target":"mypage_bg",
                     "arg1":"",
                     "text": "No particular order",
-                    "pad":100,
+                    "pad":10,
                     "reverse":1
                 }
             ]
@@ -1925,7 +1926,7 @@
             "name":"Title Screens",
             "icon":"../GBFML/assets/ui/icon/titles.png",
             "target":"title",
-            "pad":100
+            "pad":10
         },
         {
             "name":"Sky Compass Gallery",
