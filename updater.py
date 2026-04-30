@@ -4292,7 +4292,7 @@ class Updater():
                             file_estimation += len(v[CHARA_SP])
                             file_estimation += len(v[CHARA_AB_ALL])
                             file_estimation += len(v[CHARA_AB])
-                            file_estimation += len(v[CHARA_GENERAL]) * 32
+                            file_estimation += len(v[CHARA_GENERAL]) * 33
                             if t != "partners":
                                 file_estimation += len(v[CHARA_SD]) * 5
                                 file_estimation += len(v[CHARA_SCENE])
@@ -4319,7 +4319,7 @@ class Updater():
                             file_estimation += len(v[JOB_ID]) * 5
                             file_estimation += len(v[JOB_ALT]) * 3
                             file_estimation += len(v[JOB_DETAIL]) * 4
-                            file_estimation += len(v[JOB_DETAIL_ALT]) * 16
+                            file_estimation += len(v[JOB_DETAIL_ALT]) * 17
                             file_estimation += len(v[JOB_DETAIL_ALL])
                             
                             file_estimation += len(v[JOB_SPRITE])
