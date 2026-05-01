@@ -1245,7 +1245,7 @@
                             "text": "ID order"
                         },
                         {
-                            "name":"Events (Extra Variation)",
+                            "name":"Events (Extra Variations)",
                             "icon":"../GBFML/assets/ui/icon/arc_3.png",
                             "target":"profile_arts",
                             "arg1":7000,
