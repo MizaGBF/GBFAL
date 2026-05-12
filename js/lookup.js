@@ -1627,12 +1627,22 @@ function get_special_navigation_indexes(id, target, key_index, keys)
 		next = (next + 1) % keys.length;
 		if(index[target][keys[next]] !== 0)
 		{
-			for(let i = si; i < index[target][keys[next]].length; ++i)
+			if(
+				index[target][keys[next]][DataIdx.EVENT_THUMB] != null
+				|| index[target][keys[next]][DataIdx.EVENT_SIDE] != null
+			)
 			{
-				if(index[target][keys[next]][i].constructor === Array && index[target][keys[next]][i].length > 0)
+				valid = true;
+			}
+			else
+			{
+				for(let i = si; i < index[target][keys[next]].length; ++i)
 				{
-					valid = true;
-					break;
+					if(index[target][keys[next]][i].constructor === Array && index[target][keys[next]][i].length > 0)
+					{
+						valid = true;
+						break;
+					}
 				}
 			}
 		}
@@ -1644,12 +1654,22 @@ function get_special_navigation_indexes(id, target, key_index, keys)
 		previous = (previous + keys.length - 1) % keys.length;
 		if(index[target][keys[previous]] !== 0)
 		{
-			for(let i = si; i < index[target][keys[previous]].length; ++i)
+			if(
+				index[target][keys[previous]][DataIdx.EVENT_THUMB] != null
+				|| index[target][keys[previous]][DataIdx.EVENT_SIDE] != null
+			)
 			{
-				if(index[target][keys[next]][i].constructor === Array && index[target][keys[previous]][i].length > 0)
+				valid = true;
+			}
+			else
+			{
+				for(let i = si; i < index[target][keys[previous]].length; ++i)
 				{
-					valid = true;
-					break;
+					if(index[target][keys[next]][i].constructor === Array && index[target][keys[previous]][i].length > 0)
+					{
+						valid = true;
+						break;
+					}
 				}
 			}
 		}
