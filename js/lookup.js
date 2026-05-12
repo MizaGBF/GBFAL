@@ -877,6 +877,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		{
 			id:id,
 			target:target,
+			data:data,
 			navigation:indexed,
 			navigation_special_targets:["story0", "story1", "fate", "events"],
 			lookup:indexed,

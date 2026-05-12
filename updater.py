@@ -18,12 +18,12 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.66'
+VERSION = '3.67'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
-SAVE_VERSION = 4
+SAVE_VERSION = 5
 # other
 LOOKUP_TYPES = ['characters', 'summons', 'weapons', 'job', 'skins', 'npcs']
 UPDATABLE = {"characters", "enemies", "summons", "skins", "weapons", "partners", 'npcs', "background", "job", "shields"}
@@ -94,12 +94,13 @@ BOSS_SP = 4
 BOSS_SP_ALL = 5
 # event update
 EVENT_CHAPTER_COUNT = 0
-EVENT_THUMB = 1
-EVENT_SIDE = 2
-EVENT_OP = 3
-EVENT_ED = 4
-EVENT_INT = 5
-EVENT_CHAPTER_START = 6
+EVENT_NAME = 1
+EVENT_THUMB = 2
+EVENT_SIDE = 3
+EVENT_OP = 4
+EVENT_ED = 5
+EVENT_INT = 6
+EVENT_CHAPTER_START = 7
 EVENT_MAX_CHAPTER = 20
 EVENT_SKY = EVENT_CHAPTER_START+EVENT_MAX_CHAPTER
 EVENT_UPDATE_COUNT = 20
@@ -527,11 +528,12 @@ class Updater():
     def retrocompatibility(self : Updater, data : dict[str, Any]) -> dict[str, Any]:
         version = data.get("version", 0)
         if version == 0:
-            self.tasks.print("This version is unsupported and might not work properly")
-        elif version == 1:
+            raise Exception("This version is unsupported.")
+        if version <= 1:
             # support for second MSQ
             data["story0"] = data["story"]
-        elif version == 2:
+            data["story1"] = {}
+        if version <= 2:
             # update story/event/fate to support file extension
             for key in ("story0", "story1"):
                 for k, v in data[key].items():
@@ -552,12 +554,18 @@ class Updater():
                 for i in range(2, len(v) - 1):
                     for j in range(len(v[i])):
                         v[i][j] += ".png"
-        elif version == 3:
+        if version <= 3:
             # insert side story id slot
             for k, v in data["events"].items():
                 if isinstance(v, int):
                     continue
                 v.insert(2, None)
+        if version <= 4:
+            # insert side story id slot
+            for k, v in data["events"].items():
+                if isinstance(v, int):
+                    continue
+                v.insert(1, "")
         data["version"] = SAVE_VERSION
         return data
 
@@ -2849,7 +2857,7 @@ class Updater():
     # create the array containing the event data
     # the one for events is quite big, so I'm using a function to not miss a list somewhere
     def create_event_container(self : Updater) -> list:
-        l = [-1, None, None]
+        l = [-1, "", None, None]
         while len(l) < EVENT_CHAPTER_START:
             l.append([])
         for i in range(EVENT_MAX_CHAPTER):
@@ -3093,6 +3101,7 @@ class Updater():
                 if evdata[EVENT_THUMB] is not None:
                     if str(evdata[EVENT_THUMB]) not in data:
                         data[str(evdata[EVENT_THUMB])] = {
+                            "name":"",
                             "event_ids":[element_id],
                             "sidestory_id":evdata[EVENT_SIDE]
                         }
@@ -3101,9 +3110,10 @@ class Updater():
             table : dict[str, list] = {}
             for element_id, evdata in evt_data.items():
                 if not isinstance(evdata, int):
-                    table[element_id] = [None, None] # thumb_id, side_id
+                    table[element_id] = [None, None, ""] # thumb_id, side_id
             for thumb_id, obj in data.items():
                 side_id : str|None = obj["sidestory_id"]
+                ev_name : str = obj["name"]
                 for element_id in obj["event_ids"]:
                     if element_id in table:
                         if table[element_id][0] is not None:
@@ -3114,8 +3124,11 @@ class Updater():
                             if table[element_id][1] is None:
                                 # no point in repeating the warning above
                                 table[element_id][1] = side_id
+                        if ev_name != "":
+                            if table[element_id][2] == "":
+                                table[element_id][2] = ev_name
             for element_id, val in table.items():
-                thumb_id, side_id = val[0], val[1]
+                thumb_id, side_id, ev_name = val[0], val[1], val[2]
                 if evt_data[element_id][EVENT_THUMB] != thumb_id:
                     evt_data[element_id][EVENT_THUMB] = thumb_id
                     self.modified = True
@@ -3124,6 +3137,10 @@ class Updater():
                     evt_data[element_id][EVENT_SIDE] = side_id
                     self.modified = True
                     self.tasks.print("Updated side story for", element_id)
+                if evt_data[element_id][EVENT_NAME] != ev_name:
+                    evt_data[element_id][EVENT_NAME] = ev_name
+                    self.modified = True
+                    self.tasks.print("Updated event name for", element_id)
             # update file
             if updated:
                 keys = list(data.keys())
