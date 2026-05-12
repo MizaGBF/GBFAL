@@ -3083,6 +3083,7 @@ class Updater():
             for event_id in self.data['eventthumb']:
                 if event_id not in data:
                     data[event_id] = {
+                        "name":"",
                         "event_ids":[],
                         "sidestory_id":None
                     }

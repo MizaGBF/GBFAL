@@ -1,513 +1,599 @@
 {
 "70001":{
+"name":"Festival of Falling Flame",
 "event_ids":[
 "131201"
 ],
 "sidestory_id":"1001"
 },
 "70010":{
+"name":"The Cowardly Hero and The Captive Princess",
 "event_ids":[
 "140330"
 ],
 "sidestory_id":"1002"
 },
 "70030":{
+"name":"Priestess of the Dunes",
 "event_ids":[
 "140531"
 ],
 "sidestory_id":"1015"
 },
 "70060":{
+"name":"Song of Serpent Island",
 "event_ids":[
 "140630"
 ],
 "sidestory_id":"1018"
 },
 "70080":{
+"name":"Dark Giant of the Blue Sea",
 "event_ids":[
 "140731"
 ],
 "sidestory_id":"1042"
 },
 "70100":{
+"name":"The Sleeping Island Giant",
 "event_ids":[
 "140831"
 ],
 "sidestory_id":"1022"
 },
 "70130":{
+"name":"Blade of the Young Champion",
 "event_ids":[
 "140930"
 ],
 "sidestory_id":"1035"
 },
 "70150":{
+"name":"Halloween - Phantasm Banquet",
 "event_ids":[
 "141024"
 ],
 "sidestory_id":null
 },
 "70160":{
+"name":"Yesterday's Scars and Tomorrow's Hope",
 "event_ids":[
 "141031"
 ],
 "sidestory_id":"1049"
 },
 "70190":{
+"name":"Defender's Oath",
 "event_ids":[
 "141130"
 ],
 "sidestory_id":"11001"
 },
 "70220":{
+"name":"Footprints on Sacred Ground",
 "event_ids":[
 "141231"
 ],
 "sidestory_id":"11004"
 },
 "70250":{
+"name":"Teardrop in the Sand",
 "event_ids":[
 "150131"
 ],
 "sidestory_id":"1016"
 },
 "70270":{
+"name":"Valentine - 2015",
 "event_ids":[
 "150214"
 ],
 "sidestory_id":null
 },
 "70280":{
+"name":"Scattering Magic",
 "event_ids":[
 "150228"
 ],
 "sidestory_id":"1017"
 },
 "70310":{
+"name":"Detective Barawa and the Jewel Resort Incident",
 "event_ids":[
 "150331"
 ],
 "sidestory_id":"1019"
 },
 "70360":{
+"name":"Rise of the Northern Beast",
 "event_ids":[
 "151211"
 ],
 "sidestory_id":null
 },
 "70380":{
+"name":"The Inner Light",
 "event_ids":[
 "150430"
 ],
 "sidestory_id":"11006"
 },
 "70400":{
+"name":"Cinderella Fantasy The Newcomers",
 "event_ids":[
 "150511"
 ],
 "sidestory_id":null
 },
 "70420":{
+"name":"So Close and Yet So Far",
 "event_ids":[
 "150531"
 ],
 "sidestory_id":"1023"
 },
 "70440":{
+"name":"Rise of the Eastern Beast",
 "event_ids":[
 "150610"
 ],
 "sidestory_id":null
 },
 "70460":{
+"name":"Robomi",
 "event_ids":[
 "150630"
 ],
 "sidestory_id":"1024"
 },
 "70480":{
+"name":"A Tale of Intersecting Fates",
 "event_ids":[
 "150710"
 ],
 "sidestory_id":"6008"
 },
 "70500":{
+"name":"Balmy Breeze and Foamy Deep",
 "event_ids":[
 "150731"
 ],
 "sidestory_id":"1043"
 },
 "70520":{
+"name":"Rise of the Western Beast",
 "event_ids":[
 "160224"
 ],
 "sidestory_id":null
 },
 "70530":{
+"name":"Cinderella Fantasy Peace for Lost Souls",
 "event_ids":[
 "150822"
 ],
 "sidestory_id":null
 },
 "70540":{
+"name":"Villa de Siero Come one, Come All",
 "event_ids":[
 "150917"
 ],
 "sidestory_id":null
 },
 "70560":{
+"name":"Fall of the Dragon",
 "event_ids":[
 "150831"
 ],
 "sidestory_id":"1046"
 },
 "70580":{
+"name":"Rise of the Southern Beast",
 "event_ids":[
 "160408"
 ],
 "sidestory_id":null
 },
 "70600":{
+"name":"Hero's Return",
 "event_ids":[
 "150930"
 ],
 "sidestory_id":"11007"
 },
 "70620":{
+"name":"Halloween - Phantasm Banquet",
 "event_ids":[],
 "sidestory_id":null
 },
 "70650":{
+"name":"The Girl Who Leapt Through Mountains",
 "event_ids":[
 "151023"
 ],
 "sidestory_id":"11013"
 },
 "70670":{
+"name":"Granblue Fighter Ultra",
 "event_ids":[
 "151013"
 ],
 "sidestory_id":null
 },
 "70720":{
+"name":"Four Knights of a Fallen Land",
 "event_ids":[
 "151130"
 ],
 "sidestory_id":"11002"
 },
 "70740":{
+"name":"Winter Duel Tournament",
 "event_ids":[
 "151218"
 ],
 "sidestory_id":null
 },
 "70760":{
+"name":"Auld Lang Syne",
 "event_ids":[
 "151226"
 ],
 "sidestory_id":null
 },
 "70770":{
+"name":"Gripping Freedom",
 "event_ids":[
 "151231"
 ],
 "sidestory_id":"11003"
 },
 "70790":{
+"name":"Slayers Omega",
 "event_ids":[
 "160122"
 ],
 "sidestory_id":null
 },
 "70820":{
+"name":"The Freeze",
 "event_ids":[
 "160131"
 ],
 "sidestory_id":"1034"
 },
 "70870":{
+"name":"Five Flowers of Fate",
 "event_ids":[
 "160229"
 ],
 "sidestory_id":"11009"
 },
 "70900":{
+"name":"Cinderella Fantasy Girls Keep on Dreaming",
 "event_ids":[
 "160311"
 ],
 "sidestory_id":null
 },
 "70910":{
+"name":"L.E.T.S. H.A.N.G.",
 "event_ids":[
 "160331"
 ],
 "sidestory_id":"11005"
 },
 "70950":{
+"name":"Granblue Fighter V",
 "event_ids":[
 "160415"
 ],
 "sidestory_id":null
 },
 "70970":{
+"name":"Boots and Blades",
 "event_ids":[
 "160430"
 ],
 "sidestory_id":"1038"
 },
 "71000":{
+"name":"Sakura Wars Skyblazing Maidens",
 "event_ids":[
 "160513"
 ],
 "sidestory_id":null
 },
 "71020":{
+"name":"Taito X Granblue Fantasy",
 "event_ids":[
 "160517"
 ],
 "sidestory_id":null
 },
 "71040":{
+"name":"Miscolored Memories",
 "event_ids":[
 "160531"
 ],
 "sidestory_id":"11011"
 },
 "71080":{
+"name":"A Tale of Skyborn Bonds",
 "event_ids":[
 "160613"
 ],
 "sidestory_id":"6009"
 },
 "71130":{
+"name":"Robomi Generations",
 "event_ids":[
 "160630"
 ],
 "sidestory_id":"11012"
 },
 "71220":{
+"name":"A Slice of Summer",
 "event_ids":[
 "160731"
 ],
 "sidestory_id":"11008"
 },
 "71280":{
+"name":"Trading Card Game X Granblue Fantasy",
 "event_ids":[
 "160812"
 ],
 "sidestory_id":null
 },
 "71290":{
+"name":"Detective Barawa and the Unfortunate Fortune",
 "event_ids":[
 "160831"
 ],
 "sidestory_id":"11022"
 },
 "71360":{
+"name":"Order of the Lord",
 "event_ids":[
 "160901"
 ],
 "sidestory_id":null
 },
 "71370":{
+"name":"Cinderella Fantasy Snowy Mountain Story",
 "event_ids":[
 "161014"
 ],
 "sidestory_id":null
 },
 "71400":{
+"name":"By Any Other Name",
 "event_ids":[
 "160930"
 ],
 "sidestory_id":"1047"
 },
 "71470":{
+"name":"Halloween - Phantasm Banquet Carnival of Whimsy",
 "event_ids":[
 "161024"
 ],
 "sidestory_id":null
 },
 "71480":{
+"name":"A Peace of the Pie",
 "event_ids":[
 "161031"
 ],
 "sidestory_id":"11021"
 },
 "71520":{
+"name":"Between Frost and Flame",
 "event_ids":[
 "161130"
 ],
 "sidestory_id":"1050"
 },
 "71550":{
+"name":"Winder Duel Tournament Snowfall Brawl",
 "event_ids":[
 "161218"
 ],
 "sidestory_id":null
 },
 "71570":{
+"name":"Auld Lang Syne",
 "event_ids":[
 "161226"
 ],
 "sidestory_id":null
 },
 "71600":{
+"name":"Platinum Sky",
 "event_ids":[
 "161231"
 ],
 "sidestory_id":"11010"
 },
 "71640":{
+"name":"Granblue Showdown",
 "event_ids":[
 "170113"
 ],
 "sidestory_id":null
 },
 "71670":{
+"name":"Eye of the Storm",
 "event_ids":[
 "170131"
 ],
 "sidestory_id":"11017"
 },
 "71690":{
+"name":"Shadowverse Duelist of Eternity",
 "event_ids":[
 "170222"
 ],
 "sidestory_id":"6014"
 },
 "71730":{
+"name":"What Makes the Sky Blue",
 "event_ids":[
 "170301"
 ],
 "sidestory_id":"1065"
 },
 "71780":{
+"name":"Table For Six",
 "event_ids":[
 "170401"
 ],
 "sidestory_id":"11019"
 },
 "71840":{
+"name":"Alchemist Astray",
 "event_ids":[
 "170430"
 ],
 "sidestory_id":"11020"
 },
 "71900":{
+"name":"Little Skyfarer A La Sacré Blumiel",
 "event_ids":[
 "170531"
 ],
 "sidestory_id":"11028"
 },
 "71920":{
+"name":"Cinderella Fantasy Piña Hazard",
 "event_ids":[
 "170609"
 ],
 "sidestory_id":null
 },
 "71950":{
+"name":"Ranger Sign Bravo",
 "event_ids":[
 "170630"
 ],
 "sidestory_id":"11015"
 },
 "71990":{
+"name":"Poacher's Day",
 "event_ids":[
 "170731"
 ],
 "sidestory_id":"11014"
 },
 "72100":{
+"name":"Lonesome Dragoness",
 "event_ids":[
 "170831"
 ],
 "sidestory_id":"1059"
 },
 "72120":{
+"name":"Fate Horizon Katsugeki Touken Ranbu",
 "event_ids":[
 "170909"
 ],
 "sidestory_id":null
 },
 "72240":{
+"name":"Cardcaptor Sakura Sakura and the Mysterious SKy Journey",
 "event_ids":[
 "171010"
 ],
 "sidestory_id":null
 },
 "72290":{
+"name":"Violet Violence",
 "event_ids":[
 "170930"
 ],
 "sidestory_id":"1060"
 },
 "72320":{
+"name":"Halloween Party Lost Jack and the Mystic Pyre",
 "event_ids":[
 "171020"
 ],
 "sidestory_id":null
 },
 "72330":{
+"name":"Attack on Titan Titanic Yeager",
 "event_ids":[
 "171208"
 ],
 "sidestory_id":null
 },
 "72360":{
+"name":"Forgiveness and Gratitude",
 "event_ids":[
 "171031"
 ],
 "sidestory_id":"11025"
 },
 "72390":{
+"name":"Divergent Knighthoods",
 "event_ids":[
 "171130"
 ],
 "sidestory_id":"11016"
 },
 "72420":{
+"name":"A Granblue Carol",
 "event_ids":[
 "171215"
 ],
 "sidestory_id":null
 },
 "72440":{
+"name":"Auld Lang Syne",
 "event_ids":[
 "171228"
 ],
 "sidestory_id":null
 },
 "72450":{
+"name":"Right Behind You",
 "event_ids":[
 "171231"
 ],
 "sidestory_id":"11026"
 },
 "72520":{
+"name":"Valentine - 2018",
 "event_ids":[
 "180214"
 ],
 "sidestory_id":null
 },
 "72530":{
+"name":"Auld Lanxiety",
 "event_ids":[
 "180131"
 ],
 "sidestory_id":"11027"
 },
 "72600":{
+"name":"What Makes the Sky Blue II Paradise Lost",
 "event_ids":[
 "180228"
 ],
 "sidestory_id":"1078"
 },
 "72720":{
+"name":"Robomi Z",
 "event_ids":[
 "180331"
 ],
 "sidestory_id":"11030"
 },
 "72760":{
+"name":"Big Bad Shadow",
 "event_ids":[
 "180401",
 "200401"
@@ -515,66 +601,77 @@
 "sidestory_id":null
 },
 "72770":{
+"name":"Persona 5 Thievery in Blue",
 "event_ids":[
 "180618"
 ],
 "sidestory_id":null
 },
 "72800":{
+"name":"Detective Conan Gears of Conspiracy",
 "event_ids":[
 "180408"
 ],
 "sidestory_id":null
 },
 "72830":{
+"name":"A Thousand Reasons",
 "event_ids":[
 "180430"
 ],
 "sidestory_id":"1068"
 },
 "72870":{
+"name":"SideM Fantasy To the Sky Realm for Some Reasons",
 "event_ids":[
 "150107"
 ],
 "sidestory_id":"2011"
 },
 "72960":{
+"name":"Handsome Gorilla",
 "event_ids":[
 "180531"
 ],
 "sidestory_id":"11032"
 },
 "72980":{
+"name":"Love Live! Sunshine!! Aqours Sky-High!",
 "event_ids":[
 "180809"
 ],
 "sidestory_id":"6021"
 },
 "73030":{
+"name":"Together in Song",
 "event_ids":[
 "180630"
 ],
 "sidestory_id":"11024"
 },
 "73100":{
+"name":"Bzzt! Amped-Up Summer",
 "event_ids":[
 "180731"
 ],
 "sidestory_id":"11023"
 },
 "73220":{
+"name":"The Other Side of the Sky",
 "event_ids":[
 "180831"
 ],
 "sidestory_id":"11036"
 },
 "73300":{
+"name":"Make Up and Go!",
 "event_ids":[
 "180930"
 ],
 "sidestory_id":"11031"
 },
 "73320":{
+"name":"Pretty Cure Memories of the Sky",
 "event_ids":[
 "181014",
 "181017"
@@ -582,60 +679,70 @@
 "sidestory_id":null
 },
 "73410":{
+"name":"Welcome to Bistro Feendrache",
 "event_ids":[
 "181031"
 ],
 "sidestory_id":"11035"
 },
 "73450":{
+"name":"Halloween Night Fistful of Befuddled Fun",
 "event_ids":[
 "181016"
 ],
 "sidestory_id":null
 },
 "73460":{
+"name":"Reflection for a White Clover",
 "event_ids":[
 "181130"
 ],
 "sidestory_id":"11055"
 },
 "73480":{
+"name":"Princess Connect Re:Dive Dinner at the Turned Table",
 "event_ids":[
 "181209"
 ],
 "sidestory_id":"6023"
 },
 "73650":{
+"name":"Mission Merrymaking",
 "event_ids":[
 "181215"
 ],
 "sidestory_id":null
 },
 "73690":{
+"name":"Second Advent",
 "event_ids":[
 "181231"
 ],
 "sidestory_id":"1076"
 },
 "73760":{
+"name":"Winter Nights Stardust Memories",
 "event_ids":[
 "181214"
 ],
 "sidestory_id":null
 },
 "73800":{
+"name":"Auld Lang Syne",
 "event_ids":[
 "181225"
 ],
 "sidestory_id":null
 },
 "73820":{
+"name":"The Many Lives of Cats",
 "event_ids":[
 "190131"
 ],
 "sidestory_id":"11042"
 },
 "73910":{
+"name":"What Makes the Sky Blue III 000",
 "event_ids":[
 "190228",
 "190307"
@@ -643,96 +750,112 @@
 "sidestory_id":"1093"
 },
 "73980":{
+"name":"A Walk on the Wild Side",
 "event_ids":[
 "190331"
 ],
 "sidestory_id":"11038"
 },
 "74070":{
+"name":"Primal Resonance",
 "event_ids":[
 "190430"
 ],
 "sidestory_id":"11041"
 },
 "74100":{
+"name":"No Rain No Rainbow",
 "event_ids":[
 "190527"
 ],
 "sidestory_id":"11045"
 },
 "74160":{
+"name":"Enigma Fantasy",
 "event_ids":[
 "190401"
 ],
 "sidestory_id":null
 },
 "74230":{
+"name":"Code Geass Lelouch of the Rebellion The Blue Reckoning",
 "event_ids":[
 "190614"
 ],
 "sidestory_id":"6024"
 },
 "74280":{
+"name":"The Maydays",
 "event_ids":[
 "190627"
 ],
 "sidestory_id":"11029"
 },
 "74420":{
+"name":"Kappa Summer Chronicle",
 "event_ids":[
 "190726"
 ],
 "sidestory_id":"11037"
 },
 "74500":{
+"name":"Love Live! Door to the Skies",
 "event_ids":[
 "190812"
 ],
 "sidestory_id":"6025"
 },
 "74590":{
+"name":"Dancing Avengers Flames of the Heart",
 "event_ids":[
 "190828"
 ],
 "sidestory_id":"1085"
 },
 "74660":{
+"name":"Siegfried",
 "event_ids":[
 "190927"
 ],
 "sidestory_id":"11039"
 },
 "74690":{
+"name":"Gachapin Mukku and the Azure Adventure",
 "event_ids":[
 "191207"
 ],
 "sidestory_id":null
 },
 "74770":{
+"name":"Kou and the Hollow Existence",
 "event_ids":[
 "191028"
 ],
 "sidestory_id":"11043"
 },
 "74880":{
+"name":"Platinum Sky II",
 "event_ids":[
 "191128"
 ],
 "sidestory_id":"11047"
 },
 "74950":{
+"name":"Elegy for Auld Lang Syne",
 "event_ids":[
 "191228"
 ],
 "sidestory_id":"11033"
 },
 "75020":{
+"name":"Spaghetti Syndrome",
 "event_ids":[
 "200128"
 ],
 "sidestory_id":"11034"
 },
 "75180":{
+"name":"Seeds of Redemption",
 "event_ids":[
 "200226",
 "200304"
@@ -740,132 +863,154 @@
 "sidestory_id":"1108"
 },
 "75240":{
+"name":"Sturm and Drang A Mercenary Life",
 "event_ids":[
 "200328"
 ],
 "sidestory_id":"11044"
 },
 "75380":{
+"name":"The Art of Mercy",
 "event_ids":[
 "200429"
 ],
 "sidestory_id":"1094"
 },
 "75410":{
+"name":"Auld Lang Fry Premium",
 "event_ids":[
 "201225"
 ],
 "sidestory_id":null
 },
 "75430":{
+"name":"The Doss End of the Line Farewell Tour",
 "event_ids":[
 "200529"
 ],
 "sidestory_id":"11040"
 },
 "75480":{
+"name":"Cinderella Fantasy To the Skies Once More",
 "event_ids":[
 "200515"
 ],
 "sidestory_id":null
 },
 "75560":{
+"name":"Hot Summer Fete! Eating Bonanza",
 "event_ids":[
 "200628"
 ],
 "sidestory_id":null
 },
 "75590":{
+"name":"My Beloved Auguste",
 "event_ids":[
 "200729"
 ],
 "sidestory_id":"1097"
 },
 "75690":{
+"name":"Good Night Till It be Morrow",
 "event_ids":[
 "200829"
 ],
 "sidestory_id":null
 },
 "75720":{
+"name":"Dread Barrage",
 "event_ids":[
 "dread0"
 ],
 "sidestory_id":null
 },
 "75750":{
+"name":"Shadowverse Beyond the Sky",
 "event_ids":[
 "200914"
 ],
 "sidestory_id":null
 },
 "75800":{
+"name":"The Savior of Dalmore",
 "event_ids":[
 "200927"
 ],
-"sidestory_id":null
+"sidestory_id":"11046"
 },
 "75830":{
+"name":"Tower of Babyl",
 "event_ids":[
 "babyl0"
 ],
 "sidestory_id":null
 },
 "76880":{
+"name":"Alchemist's Desire",
 "event_ids":[
 "201028"
 ],
 "sidestory_id":"1100"
 },
 "76930":{
+"name":"Trick of Treat! 2020",
 "event_ids":[
 "201017"
 ],
 "sidestory_id":null
 },
 "76990":{
+"name":"Paliuli Pararaiha",
 "event_ids":[
 "201129"
 ],
 "sidestory_id":"11058"
 },
 "77020":{
+"name":"Scent of Fate at Sky's End",
 "event_ids":[
 "201208"
 ],
 "sidestory_id":null
 },
 "77070":{
+"name":"Robomi Epic Clash Super Robo Gigantes vs. Arbitrator Zooey",
 "event_ids":[
 "201228"
 ],
 "sidestory_id":"11049"
 },
 "77100":{
+"name":"Happy Holidays! 2020",
 "event_ids":[
 "201216"
 ],
 "sidestory_id":null
 },
 "77110":{
+"name":"Happy New Year! 2021",
 "event_ids":[
 "210101"
 ],
 "sidestory_id":null
 },
 "77220":{
+"name":"A Tale of Kindled Bonds",
 "event_ids":[
 "210129"
 ],
 "sidestory_id":null
 },
 "77330":{
+"name":"Happy Valentine's! 2021",
 "event_ids":[
 "210214"
 ],
 "sidestory_id":null
 },
 "77340":{
+"name":"Home Sweet Moon",
 "event_ids":[
 "210226",
 "210303",
@@ -875,114 +1020,133 @@
 "sidestory_id":"1121"
 },
 "77430":{
+"name":"Wiggin' War in the Sky World",
 "event_ids":[
 "210401"
 ],
 "sidestory_id":null
 },
 "77520":{
+"name":"The Divine Generals Assembly",
 "event_ids":[
 "210329"
 ],
 "sidestory_id":"11056"
 },
 "77550":{
+"name":"Happy White Day! 2021",
 "event_ids":[
 "210314"
 ],
 "sidestory_id":null
 },
 "77580":{
+"name":"False Heroes",
 "event_ids":[
 "210429"
 ],
 "sidestory_id":null
 },
 "77630":{
+"name":"Showtime Legend of the Blue Yonder",
 "event_ids":[
 "210528"
 ],
 "sidestory_id":"11063"
 },
 "77740":{
+"name":"The Time a 37-Year-Old Former Imperial Soldier Got His Life in Order by Awakening to the Greatness That Is Saunas",
 "event_ids":[
 "210629"
 ],
 "sidestory_id":"11051"
 },
 "77890":{
+"name":"Auguste of the Dead",
 "event_ids":[
 "210729"
 ],
 "sidestory_id":"11052"
 },
 "77940":{
+"name":"The Dragonblood War",
 "event_ids":[
 "210829"
 ],
 "sidestory_id":null
 },
 "78070":{
+"name":"The Strength to Wield",
 "event_ids":[
 "210927"
 ],
 "sidestory_id":"11062"
 },
 "78130":{
+"name":"Gin Tama Shonen Jump Is Best Enjoyed Cover to Cover",
 "event_ids":[
 "211015"
 ],
 "sidestory_id":null
 },
 "78160":{
+"name":"Imagination Overdrive",
 "event_ids":[
 "211029"
 ],
 "sidestory_id":null
 },
 "78190":{
+"name":"Doraemon Nobita's Skyfaring Boat",
 "event_ids":[
 "211208"
 ],
 "sidestory_id":null
 },
 "78220":{
+"name":"Trick of Treat! 2021",
 "event_ids":[
 "211017"
 ],
 "sidestory_id":null
 },
 "78290":{
+"name":"Marionette Stars",
 "event_ids":[
 "211129"
 ],
 "sidestory_id":"11053"
 },
 "78370":{
+"name":"Happy Holidays! 2021",
 "event_ids":[
 "211216"
 ],
 "sidestory_id":null
 },
 "78390":{
+"name":"Happy New Year! 2022",
 "event_ids":[
 "220101"
 ],
 "sidestory_id":null
 },
 "78430":{
+"name":"Old Bond",
 "event_ids":[
 "211228"
 ],
 "sidestory_id":"11050"
 },
 "78460":{
+"name":"Auld Lang Syne The Roomcone War",
 "event_ids":[
 "211222"
 ],
 "sidestory_id":null
 },
 "78510":{
+"name":"Umamusume Pretty Derby A Fanfare to Echo across the Skies",
 "event_ids":[
 "220208",
 "220213"
@@ -990,18 +1154,21 @@
 "sidestory_id":null
 },
 "78540":{
+"name":"Ramen Travels with Cassius",
 "event_ids":[
 "220130"
 ],
 "sidestory_id":null
 },
 "78570":{
+"name":"Happy Valentine's! 2022",
 "event_ids":[
 "220214"
 ],
 "sidestory_id":null
 },
 "78590":{
+"name":"Created by the Stars Loved by the Skies",
 "event_ids":[
 "220228",
 "220313",
@@ -1010,24 +1177,28 @@
 "sidestory_id":"1134"
 },
 "78650":{
+"name":"A Sweltering Eternal Getaway",
 "event_ids":[
 "220329"
 ],
 "sidestory_id":null
 },
 "78700":{
+"name":"Happy White Day! 2022",
 "event_ids":[
 "220314"
 ],
 "sidestory_id":null
 },
 "78790":{
+"name":"Freedom's Dirge",
 "event_ids":[
 "220429"
 ],
 "sidestory_id":null
 },
 "78820":{
+"name":"Final Fantasy XI Mirage Minstrel",
 "event_ids":[
 "220509",
 "220512"
@@ -1035,34 +1206,40 @@
 "sidestory_id":null
 },
 "78850":{
+"name":"Big Bad Shadow 2022",
 "event_ids":[
 "220401"
 ],
 "sidestory_id":null
 },
 "78860":{
+"name":"Wiggin' War in the Sky World",
 "event_ids":[],
 "sidestory_id":null
 },
 "78930":{
+"name":"A Ballad of Unbending Chivalry",
 "event_ids":[
 "220529"
 ],
 "sidestory_id":null
 },
 "79150":{
+"name":"Zodiac Camp The 2nd Divine Generals Assembly",
 "event_ids":[
 "220628"
 ],
 "sidestory_id":null
 },
 "79180":{
+"name":"Sincerly Your Dearest Friend",
 "event_ids":[
 "220729"
 ],
 "sidestory_id":null
 },
 "79210":{
+"name":"One Piece Film Red to Blue",
 "event_ids":[
 "220914",
 "220916"
@@ -1070,66 +1247,77 @@
 "sidestory_id":null
 },
 "79290":{
+"name":"Full Metal Man VII The Last Mission",
 "event_ids":[
 "220828"
 ],
 "sidestory_id":null
 },
 "79370":{
+"name":"To Each His Ideal",
 "event_ids":[
 "220928"
 ],
 "sidestory_id":null
 },
 "79440":{
+"name":"Falsetto in the Autumn Gray",
 "event_ids":[
 "221028"
 ],
 "sidestory_id":null
 },
 "79510":{
+"name":"Trick of Treat! 2022",
 "event_ids":[
 "221017"
 ],
 "sidestory_id":null
 },
 "79550":{
+"name":"Prayers",
 "event_ids":[
 "221128"
 ],
 "sidestory_id":null
 },
 "79650":{
+"name":"Happy Holidays! 2022",
 "event_ids":[
 "221216"
 ],
 "sidestory_id":null
 },
 "79670":{
+"name":"Happy New Year! 2023",
 "event_ids":[
 "230101"
 ],
 "sidestory_id":null
 },
 "79680":{
+"name":"The Magnificient Mole Troupe",
 "event_ids":[
 "221229"
 ],
 "sidestory_id":null
 },
 "79720":{
+"name":"Auld Lang Syne Age of Tyranno",
 "event_ids":[
 "221225"
 ],
 "sidestory_id":null
 },
 "79740":{
+"name":"Siero's Mascot Let's Goooo!",
 "event_ids":[
 "230129"
 ],
 "sidestory_id":null
 },
 "80010":{
+"name":"Arcarum The World Beyond",
 "event_ids":[
 "160916",
 "arca00",
@@ -1140,24 +1328,28 @@
 "sidestory_id":null
 },
 "81010":{
+"name":"Arcarum the World Beyond Replicard Sandbox",
 "event_ids":[
 "sandb0"
 ],
 "sidestory_id":null
 },
 "90050":{
+"name":"Halloween - Proving Grounds",
 "event_ids":[
 "191013"
 ],
 "sidestory_id":null
 },
 "90060":{
+"name":"Christmas - Proving Ground",
 "event_ids":[
 "191223"
 ],
 "sidestory_id":null
 },
 "90190":{
+"name":"and you",
 "event_ids":[
 "230225",
 "230310",
@@ -1166,48 +1358,56 @@
 "sidestory_id":"1147"
 },
 "90270":{
+"name":"Happy Valentine's! 2023",
 "event_ids":[
 "230214"
 ],
 "sidestory_id":null
 },
 "90290":{
+"name":"Sanrio Characters Come On Over to Hello Land!",
 "event_ids":[
 "230401"
 ],
 "sidestory_id":null
 },
 "90310":{
+"name":"Definitive Dandyism",
 "event_ids":[
 "230329"
 ],
 "sidestory_id":null
 },
 "90330":{
+"name":"Happy White Day! 2023",
 "event_ids":[
 "230314"
 ],
 "sidestory_id":null
 },
 "90410":{
+"name":"Song of the Strings",
 "event_ids":[
 "230428"
 ],
 "sidestory_id":null
 },
 "90490":{
+"name":"Only You in All the World",
 "event_ids":[
 "230529"
 ],
 "sidestory_id":null
 },
 "90590":{
+"name":"The Time a 37-Year-Old Former Imperial Soldier Expanded His Horizons through the Experience That Is Saunas",
 "event_ids":[
 "230629"
 ],
 "sidestory_id":null
 },
 "90630":{
+"name":"Jujutsu Kaisen Dreamscape Azure",
 "event_ids":[
 "230805",
 "230811"
@@ -1215,98 +1415,124 @@
 "sidestory_id":null
 },
 "90760":{
+"name":"Mermaid Princess and the Sea Legend",
 "event_ids":[
 "230729"
 ],
 "sidestory_id":null
 },
 "90820":{
+"name":"Unbound Asterism",
 "event_ids":[
 "230829"
 ],
 "sidestory_id":null
 },
 "90890":{
+"name":"The Dragon Weeps before Daybreak",
 "event_ids":[
 "230928"
 ],
 "sidestory_id":null
 },
 "91000":{
+"name":"Tales of Arcarum Justice",
 "event_ids":[
-"221121",
-"230322",
-"230515",
-"230607",
-"230723",
-"230816",
-"231007",
-"231114",
-"240122"
+"221121"
 ],
 "sidestory_id":null
 },
 "91010":{
-"event_ids":[],
+"name":"Tales of Arcarum The Hanged Man",
+"event_ids":[
+"230322"
+],
 "sidestory_id":null
 },
 "91020":{
+"name":"Tales of Arcarum",
 "event_ids":[],
 "sidestory_id":null
 },
 "91030":{
-"event_ids":[],
+"name":"Tales of Arcarum Death",
+"event_ids":[
+"230515"
+],
 "sidestory_id":null
 },
 "91040":{
-"event_ids":[],
+"name":"Tales of Arcarum Temperance",
+"event_ids":[
+"230607"
+],
 "sidestory_id":null
 },
 "91050":{
-"event_ids":[],
+"name":"Tales of Arcarum The Devil",
+"event_ids":[
+"230723"
+],
 "sidestory_id":null
 },
 "91060":{
-"event_ids":[],
+"name":"Tales of Arcarum The Tower",
+"event_ids":[
+"230816"
+],
 "sidestory_id":null
 },
 "91070":{
-"event_ids":[],
+"name":"Tales of Arcarum The Star",
+"event_ids":[
+"231007"
+],
 "sidestory_id":null
 },
 "91080":{
-"event_ids":[],
+"name":"Tales of Arcarum The Moon",
+"event_ids":[
+"231114"
+],
 "sidestory_id":null
 },
 "91090":{
-"event_ids":[],
+"name":"Tales of Arcarum The Sun",
+"event_ids":[
+"240122"
+],
 "sidestory_id":null
 },
 "91100":{
+"name":"Tales of Arcarum Judgement",
 "event_ids":[
 "240322"
 ],
 "sidestory_id":null
 },
 "91210":{
+"name":"Trick of Treat! 2023",
 "event_ids":[
 "231017"
 ],
 "sidestory_id":null
 },
 "91220":{
+"name":"Hope from a Snowdrop",
 "event_ids":[
 "231029"
 ],
 "sidestory_id":null
 },
 "91280":{
+"name":"Detective Barawa and the Escape from Storm Island",
 "event_ids":[
 "231128"
 ],
 "sidestory_id":null
 },
 "91340":{
+"name":"My Hero Academia Rescue Another World",
 "event_ids":[
 "240112",
 "240117"
@@ -1314,36 +1540,42 @@
 "sidestory_id":null
 },
 "91400":{
+"name":"Happy Holidays! 2023",
 "event_ids":[
 "231216"
 ],
 "sidestory_id":null
 },
 "91420":{
+"name":"Happy New Year! 2024",
 "event_ids":[
 "240101"
 ],
 "sidestory_id":null
 },
 "91440":{
+"name":"Tyra's Bizarre Misadventure",
 "event_ids":[
 "231228"
 ],
 "sidestory_id":null
 },
 "91480":{
+"name":"Fiery Soul Dreamer's Miracle",
 "event_ids":[
 "240129"
 ],
 "sidestory_id":null
 },
 "91520":{
+"name":"Auld Lang Syne Ultimate Showdown Tuna vs Salmun",
 "event_ids":[
 "231225"
 ],
 "sidestory_id":null
 },
 "91610":{
+"name":"Heart of the Sun",
 "event_ids":[
 "240227",
 "240305",
@@ -1352,84 +1584,98 @@
 "sidestory_id":null
 },
 "91690":{
+"name":"Happy Valentine's! 2024",
 "event_ids":[
 "240214"
 ],
 "sidestory_id":null
 },
 "91710":{
+"name":"Happy White Day! 2024",
 "event_ids":[
 "240314"
 ],
 "sidestory_id":null
 },
 "91730":{
+"name":"What Reeks and Burns",
 "event_ids":[
 "240329"
 ],
 "sidestory_id":null
 },
 "91750":{
+"name":"Sanrio Characters Come Get Your Feet Wet on Hello Beach!",
 "event_ids":[
 "240401"
 ],
 "sidestory_id":null
 },
 "91800":{
+"name":"Our Style and our Substance",
 "event_ids":[
 "240428"
 ],
 "sidestory_id":null
 },
 "91890":{
+"name":"Samurai Trails The Harbinger's Lament",
 "event_ids":[
 "240529"
 ],
 "sidestory_id":null
 },
 "92000":{
+"name":"The Last Sumo Warrior",
 "event_ids":[
 "240628"
 ],
 "sidestory_id":null
 },
 "92110":{
+"name":"Conquest of the Dark Singularity",
 "event_ids":[
 "240729"
 ],
 "sidestory_id":null
 },
 "92200":{
+"name":"Records of the Ten - Anre and Feower",
 "event_ids":[
 "241206"
 ],
 "sidestory_id":null
 },
 "92220":{
+"name":"Lone Wolf's Passing",
 "event_ids":[
 "240829"
 ],
 "sidestory_id":null
 },
 "92310":{
+"name":"The Lion Stirs",
 "event_ids":[
 "240928"
 ],
 "sidestory_id":null
 },
 "92330":{
+"name":"Helping the Genius Alchemist",
 "event_ids":[
 "alchm0"
 ],
 "sidestory_id":null
 },
 "92350":{
+"name":"Monscian",
 "event_ids":[
 "241029"
 ],
 "sidestory_id":null
 },
 "92370":{
+"name":"That Time I Got Reincarnated as a Slime Wedges of the Sky",
 "event_ids":[
 "241115",
 "241120"
@@ -1437,18 +1683,21 @@
 "sidestory_id":null
 },
 "92430":{
+"name":"Trick of Treat! 2024",
 "event_ids":[
 "241017"
 ],
 "sidestory_id":null
 },
 "92490":{
+"name":"Back to the Pad",
 "event_ids":[
 "241128"
 ],
 "sidestory_id":null
 },
 "92570":{
+"name":"Negima! Magister Negi Magi An Epic to Span a Sky",
 "event_ids":[
 "250204",
 "250210"
@@ -1456,36 +1705,42 @@
 "sidestory_id":null
 },
 "92610":{
+"name":"Auld Lang Syne Rowdy Ramen Rumble",
 "event_ids":[
 "241224"
 ],
 "sidestory_id":null
 },
 "92630":{
+"name":"Happy Holidays! 2024",
 "event_ids":[
 "241216"
 ],
 "sidestory_id":null
 },
 "92650":{
+"name":"A Slash to Sever Binds",
 "event_ids":[
 "241229"
 ],
 "sidestory_id":null
 },
 "92690":{
+"name":"Happy New Year! 2025",
 "event_ids":[
 "250101"
 ],
 "sidestory_id":null
 },
 "92710":{
+"name":"Pleasures of Life and Death",
 "event_ids":[
 "250129"
 ],
 "sidestory_id":null
 },
 "92750":{
+"name":"Romance of the Divine Generals",
 "event_ids":[
 "250226",
 "250304",
@@ -1494,120 +1749,140 @@
 "sidestory_id":null
 },
 "92810":{
+"name":"Records of the Ten - Seox and Tien",
 "event_ids":[
 "250219"
 ],
 "sidestory_id":null
 },
 "92850":{
+"name":"Helping the Genius Alchemist",
 "event_ids":[
 "alchm1"
 ],
 "sidestory_id":null
 },
 "92890":{
+"name":"Happy Valentine's! 2025",
 "event_ids":[
 "250214"
 ],
 "sidestory_id":null
 },
 "92910":{
+"name":"Happy White Day! 2025",
 "event_ids":[
 "250314"
 ],
 "sidestory_id":null
 },
 "92920":{
+"name":"What Lies Beneath the Amaranth",
 "event_ids":[
 "250329"
 ],
 "sidestory_id":null
 },
 "92980":{
+"name":"Rucksack Battles",
 "event_ids":[
 "250401"
 ],
 "sidestory_id":null
 },
 "93010":{
+"name":"Night Pareidolia",
 "event_ids":[
 "250428"
 ],
 "sidestory_id":null
 },
 "93050":{
+"name":"Records of the Ten - Tweyen and Fif",
 "event_ids":[
 "250522"
 ],
 "sidestory_id":null
 },
 "93070":{
+"name":"A Poem Tempest",
 "event_ids":[
 "250529"
 ],
 "sidestory_id":null
 },
 "93230":{
+"name":"Hunter x Hunter Skies Of Adventure",
 "event_ids":[
 "250807"
 ],
 "sidestory_id":null
 },
 "93270":{
+"name":"Helping the Genius Alchemist",
 "event_ids":[
 "alchm2"
 ],
 "sidestory_id":null
 },
 "93290":{
+"name":"Things from the Deep",
 "event_ids":[
 "250628"
 ],
 "sidestory_id":null
 },
 "93350":{
+"name":"Arcarum Evokers First Reunion",
 "event_ids":[
 "250729"
 ],
 "sidestory_id":null
 },
 "93370":{
+"name":"Records of the Ten - Threo and Eahta",
 "event_ids":[
 "250822"
 ],
 "sidestory_id":null
 },
 "93410":{
+"name":"Apocrypha After the Fall",
 "event_ids":[
 "250829"
 ],
 "sidestory_id":null
 },
 "93470":{
+"name":"A Flame of Frosty Wind",
 "event_ids":[
 "250928"
 ],
 "sidestory_id":null
 },
 "93490":{
+"name":"Records of the Ten - Seofon and Niyon",
 "event_ids":[
 "251022"
 ],
 "sidestory_id":null
 },
 "93570":{
+"name":"Helping the Genius Alchemist",
 "event_ids":[
 "alchm3"
 ],
 "sidestory_id":null
 },
 "93590":{
+"name":"Trick of Treat! 2025",
 "event_ids":[
 "251017"
 ],
 "sidestory_id":null
 },
 "93630":{
+"name":"Evangelion Bonds of Phantasmal Blue",
 "event_ids":[
 "251105",
 "251110"
@@ -1615,48 +1890,56 @@
 "sidestory_id":null
 },
 "93670":{
+"name":"Lives Yet Unwritten",
 "event_ids":[
 "251029"
 ],
 "sidestory_id":null
 },
 "93730":{
+"name":"Monochrome Palette!",
 "event_ids":[
 "251128"
 ],
 "sidestory_id":null
 },
 "93750":{
+"name":"Tale of the 108 The 3rd Divine Generals Assembly",
 "event_ids":[
 "251229"
 ],
 "sidestory_id":null
 },
 "93810":{
+"name":"Auld Lang Syne The Bonitomurai Strikes Back",
 "event_ids":[
 "251225"
 ],
 "sidestory_id":null
 },
 "93830":{
+"name":"Happy Holidays! 2025",
 "event_ids":[
 "251216"
 ],
 "sidestory_id":null
 },
 "93850":{
+"name":"Happy New Year! 2026",
 "event_ids":[
 "260101"
 ],
 "sidestory_id":null
 },
 "93870":{
+"name":"Monscian Act II",
 "event_ids":[
 "260129"
 ],
 "sidestory_id":null
 },
 "93950":{
+"name":"PS The Astrals",
 "event_ids":[
 "260226",
 "260304",
@@ -1665,54 +1948,63 @@
 "sidestory_id":null
 },
 "94130":{
+"name":"Helping the Genius Alchemist",
 "event_ids":[
 "alchm4"
 ],
 "sidestory_id":null
 },
 "94150":{
+"name":"Happy Valentine's! 2026",
 "event_ids":[
 "260214"
 ],
 "sidestory_id":null
 },
 "94170":{
+"name":"Happy White Day! 2026",
 "event_ids":[
 "260314"
 ],
 "sidestory_id":null
 },
 "94190":{
+"name":"Momvasion! A Grandcypher Visit! and the Captain's Little Long Day",
 "event_ids":[
 "260329"
 ],
 "sidestory_id":null
 },
 "94210":{
+"name":"Happy Panicky Baby",
 "event_ids":[
 "260401"
 ],
 "sidestory_id":null
 },
 "94280":{
+"name":"Hinalani Rangi",
 "event_ids":[
 "260428"
 ],
 "sidestory_id":null
 },
 "class_event":{
+"name":"Class Mastery",
 "event_ids":[
 "class3"
 ],
 "sidestory_id":null
 },
 "origin_1":{
+"name":"Azure Sky Passage Quest Back Where It All Began",
 "event_ids":[
 "origi0"
 ],
 "sidestory_id":null
 },
 "rise_of_the_beasts":{
+"name":"Rise of the Beasts",
 "event_ids":[
 "250707",
 "250921",
@@ -1721,6 +2013,7 @@
 "sidestory_id":null
 },
 "vyrnsampo":{
+"name":"Let's Go, Advyrnturers!",
 "event_ids":[
 "vyrn00"
 ],
