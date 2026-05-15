@@ -8,7 +8,7 @@
         
         "131201", "140330", "150107", "150213", "151013", "160430", "160517", "160812", "161031", "161218", "161226", "161227", "170501", "170801", "171129", "171228", "180214", "180301", "180401", "180310", "180403", "180428", "180503", "180603", "180623", "180801", "180813", "181016", "181214", "181215", "190310", "190427", "190801", "191004", "191222", "200222", "200331", "200801", "201209", "201215", "201222", "210222", "210303", "210310", "210331", "210801", "210824", "210917", "220105", "220222", "220520", "220813", "230105", "230209", "230222", "230331", "230429", "230616", "230813", "220307", "210303", "190307", "231215", "231224", "240107", "240222", "240331", "200304", "241224",
         
-        "220213", "220512", "220916", "230811", "240117", "241120", "250210", "251110"
+        "220213", "220512", "220916", "230811", "240117", "241120", "250210", "251110", "260520"
     ],
     
     "SPECIAL_EVENTS" : {
@@ -51,7 +51,9 @@
        "alchm1":"kaitaku_renkin_vtop",
        "alchm2":"kaitaku_renkin_jbop",
        "alchm3":"kaitaku_renkin_hwop2",
-       "alchm4":"kaitaku_renkin_vtop2"
+       "alchm4":"kaitaku_renkin_vtop2",
+       
+       "alcfma":"kaitaku_fullmetal"
     },
     
     "VALENTINE_EXCLUDE" : [
@@ -127,7 +129,7 @@
         "default": {
             "base": ["", "_a", "_b", "_c", "_d", "_e", "_f", "_g", "_nalhe", "_school", "_astral", "_battle", "_off", "_race", "_cavalry", "_guardian", "_cook", "_shadow", "_orange", "_blue", "_green", "_nude", "_mask", "_doll", "_damaged", "_pet", "_girl", "_two", "_three", "_2021", "_2022", "_2023", "_2024", "_2025", "_2026", "_newyear"],
             
-            "main": ["", "_a", "_b", "_b1", "_b2", "_b3", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_up", "_up2", "_laugh", "_laugh_small", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_roar", "_killer", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_painful3", "_painful4", "_shock", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_despair", "_despair2", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_shy3", "_shy4", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_jito", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_mortifying2", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_stance", "_hood", "_letter", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_met", "_fight", "_2021", "_2022", "_2023", "_2024", "_2025", "_all", "_all2", "_all3", "_all4", "_all5", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_ghost", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_jump", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_stand", "_two", "_three", "_stand", "_eyeline"],
+            "main": ["", "_a", "_b", "_b1", "_b2", "_b3", "_c", "_d", "_e", "_f", "_g", "_1", "_2", "_3", "_001", "_up", "_up2", "_laugh", "_laugh_small", "_laugh2", "_laugh3", "_laugh4", "_laugh5", "_laugh6", "_laugh7", "_laugh8", "_laugh9", "_wink", "_wink2", "_shout", "_shout2", "_shout3", "_leer", "_sad", "_sad2",  "_sad3","_angry", "_angry2", "_angry3", "_angry4", "_roar", "_killer", "_fear", "_fear2", "_cry", "_cry2", "_painful", "_painful2", "_painful3", "_painful4", "_shock", "_shadow", "_shadow2", "_shadow3", "_light", "_close", "_serious", "_serious2", "_serious3", "_serious4", "_serious5", "_serious6", "_serious7", "_serious8", "_serious9", "_serious10", "_serious11", "_surprise", "_surprise2", "_surprise3", "_surprise4", "_think", "_think2", "_think3", "_think4", "_think5", "_serious", "_serious2", "_mood", "_mood2", "_mood3", "_despair", "_despair2", "_badmood", "_badmood2", "_ecstasy", "_ecstasy2", "_suddenly", "_suddenly2", "_speed2", "_shy", "_shy2", "_shy3", "_shy4", "_weak", "_weak2", "_sleep", "_sleepy", "_open", "_eye", "_bad", "_bad2", "_amaze", "_amaze2", "_amezed", "_joy", "_joy2", "_pride", "_pride2", "_jito", "_intrigue", "_intrigue2", "_pray", "_motivation", "_melancholy", "_concentration", "_mortifying", "_mortifying2", "_cold", "_cold2", "_cold3", "_cold4", "_weapon", "_stance", "_hood", "_letter", "_gesu", "_gesu2", "_stump", "_stump2", "_doya", "_met", "_fight", "_2021", "_2022", "_2023", "_2024", "_2025", "_all", "_all2", "_all3", "_all4", "_all5", "_pinya", "_ef", "_ef_left", "_ef_right", "_ef2", "_body", "_front", "_head", "_up_head", "_ghost", "_foot", "_back", "_middle", "_middle_left", "_middle_right", "_left", "_right", "_jump", "_small", "_big", "_pair_1", "_pair_2", "_break", "_break2", "_break3", "_stand", "_two", "_three", "_stand", "_eyeline"],
             
             "unique": ["_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3", "_summer", "_summer2", "_halloween", "_sturm", "_rabbit"],
             
@@ -138,6 +140,14 @@
             "unique": ["_001", "_002", "_003", "_004", "_005", "_006", "_007", "_008", "_009"]
         },
         "3994122000": {
+            "comment": "Djeeta NPC (New)",
+            "unique": ["_001", "_002", "_003", "_004", "_005", "_006", "_007", "_008", "_009"]
+        },
+        "3994031000": {
+            "comment": "Gran NPC (New)",
+            "unique": ["_001", "_002", "_003", "_004", "_005", "_006", "_007", "_008", "_009"]
+        },
+        "3994032000": {
             "comment": "Djeeta NPC (New)",
             "unique": ["_001", "_002", "_003", "_004", "_005", "_006", "_007", "_008", "_009"]
         },
