@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.67'
+VERSION = '3.68'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -737,7 +737,7 @@ class Updater():
         return response.headers
 
     # Extract json data from a GBF animation manifest file
-    async def processManifest(self, file : str, verify_file : bool = False) -> list:
+    async def processManifest(self : Updater, file : str, verify_file : bool = False) -> list:
         # request the file
         manifest = await self.get(MANIFEST + file + ".js")
         # parse the content
@@ -1022,7 +1022,7 @@ class Updater():
                 ts.bad()
 
     # Search for new skills
-    async def search_skill(self, ts : TaskStatus, highest : int) -> None: # skill search
+    async def search_skill(self : Updater, ts : TaskStatus, highest : int) -> None: # skill search
         skills = self.data['skills'] # reference
         # highest is the highest registered id
         # it's used to keep going if we know there are further ID to be found later
@@ -1052,7 +1052,7 @@ class Updater():
                     ts.bad()
 
     # Search for new manaturas
-    async def search_manatura(self, ts : TaskStatus) -> None:
+    async def search_manatura(self : Updater, ts : TaskStatus) -> None:
         manaturas = self.data['manaturas'] # reference
         path : list[str] = [IMG, "sp/assets/familiar/m/", None, "", ".jpg"]
         while not ts.complete:
@@ -1073,7 +1073,7 @@ class Updater():
                     ts.bad()
 
     # Search for new buffs
-    async def search_buff(self, ts : TaskStatus) -> None:
+    async def search_buff(self : Updater, ts : TaskStatus) -> None:
         buffs = self.data['buffs'] # reference
         path : list[str] = [IMG, "sp/ui/icon/status/x64/status_", None, "", ".png"]
         while not ts.complete:
@@ -1454,7 +1454,7 @@ class Updater():
             self.remove_from_uncap_queue(element_id)
 
     # Update Summon data
-    async def update_summon(self, element_id : str) -> None:
+    async def update_summon(self : Updater, element_id : str) -> None:
         summons = self.data['summons'] # reference
         # get existing file_count
         try:
@@ -1873,11 +1873,15 @@ class Updater():
             self.tasks.print("Updated:", element_id, "for index:", 'partners')
             self.remove_from_uncap_queue(element_id)
 
+    # used by update_npc and scene updates
+    def create_npc_container(self : Updater) -> list[bool|list[str]]:
+        return [False, [], []]
+
     # Update NPC data
-    async def update_npc(self, element_id : str) -> None:
+    async def update_npc(self : Updater, element_id : str) -> None:
         npcs = self.data['npcs'] # reference
         # init
-        data : list[list[str]|None] = [False, [], []] # journal flag, npc, voice
+        data : list[list[str]|None] = self.create_npc_container() # journal flag, npc, voice
         if element_id in npcs and npcs[element_id] != 0:
             data[NPC_SCENE] = npcs[element_id][NPC_SCENE]
             data[NPC_SOUND] = npcs[element_id][NPC_SOUND]
@@ -1941,7 +1945,7 @@ class Updater():
             self.remove_from_uncap_queue(element_id)
 
     # Update Weapon data
-    async def update_weapon(self, element_id : str) -> None:
+    async def update_weapon(self : Updater, element_id : str) -> None:
         weapons = self.data['weapons'] # reference
         # get existing file_count
         try:
@@ -1993,7 +1997,7 @@ class Updater():
             self.remove_from_uncap_queue(element_id)
 
     # Update Weapon data
-    async def update_shield(self, element_id : str) -> None:
+    async def update_shield(self : Updater, element_id : str) -> None:
         shields = self.data['shields'] # reference
         if element_id not in shields:
             # art check
@@ -2010,7 +2014,7 @@ class Updater():
         self.tasks.print("Updated:", element_id, "for index:", 'shields')
 
     # Update Job data
-    async def update_job(self, element_id : str) -> None:
+    async def update_job(self : Updater, element_id : str) -> None:
         jobs = self.data['job'] # reference
         # get existing file_count
         try:
@@ -2106,7 +2110,7 @@ class Updater():
         self.job_list = job_list
 
     # Subroutine for init_job_list
-    async def init_job_list_check(self, eid : str) -> str|None:
+    async def init_job_list_check(self : Updater, eid : str) -> str|None:
         try:
             await self.head(f"{IMG}sp/assets/leader/m/{eid}_01.jpg")
             return eid
@@ -2114,7 +2118,7 @@ class Updater():
             return None
 
     # Used by --job, more specific but also slower job detection system
-    async def search_job_detail(self, full_key_search : bool) -> None: # even slower with full_key_search but sure to find something
+    async def search_job_detail(self : Updater, full_key_search : bool) -> None: # even slower with full_key_search but sure to find something
         if self.job_list is None:
             self.tasks.print("Couldn't retrieve job list from the game")
             return
@@ -2205,7 +2209,7 @@ class Updater():
                     pass
 
     # test a job key
-    async def detail_job_search_single(self, key : str, mhs : list[str]) -> None:
+    async def detail_job_search_single(self : Updater, key : str, mhs : list[str]) -> None:
         for mh in mhs:
             try:
                 await self.head(f"{MANIFEST}{key}_{mh}_0_01.js")
@@ -2352,16 +2356,14 @@ class Updater():
     # update npc/character/skin scene files for given IDs
     async def update_all_scene_for_ids(self : Updater, ids : list[str] = []) -> None:
         # references
-        characters = self.data["characters"]
-        skins = self.data["skins"]
-        npcs = self.data["npcs"]
-        
         for element_id in ids:
-            if element_id in characters:
+            if len(element_id) != 10 or not element_id.isdigit():
+                continue
+            elif element_id.startswith(("302","303","304")):
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, "characters"))
-            elif element_id in skins:
+            elif element_id.startswith(("371",)):
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, "skins"))
-            elif element_id in npcs:
+            elif element_id.startswith(("399","305")):
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, "npcs"))
         self.tasks.print(f"Updating scenes for {self.tasks.total} elements...")
         await self.tasks.start()
@@ -2469,23 +2471,36 @@ class Updater():
         u : str
         uncaps : list[str]
         idx : int
+        existing : set[str]
         # retrieve infos (index, index in the data, uncaps) and create existing set of file
         try:
-            data : list[Any] = self.data[index][element_id]
-            match index:
-                case 'characters'|'skins':
-                    idx = CHARA_SCENE
-                    uncaps= []
-                    for u in data[CHARA_GENERAL]:
-                        uu = u.replace(element_id+"_", "")
-                        if "_" not in uu and uu.startswith("0"):
-                            uncaps.append(uu)
-                case 'npcs':
-                    idx = NPC_SCENE
-                    uncaps = ["", "02", "03"]
-                case _:
-                    return
-            existing : set[str] = set(data[idx])
+            if element_id in self.data[index]:
+                data : list[Any] = self.data[index][element_id]
+                match index:
+                    case 'characters'|'skins':
+                        idx = CHARA_SCENE
+                        uncaps= []
+                        for u in data[CHARA_GENERAL]:
+                            uu = u.replace(element_id+"_", "")
+                            if "_" not in uu and uu.startswith("0"):
+                                uncaps.append(uu)
+                    case 'npcs':
+                        idx = NPC_SCENE
+                        uncaps = ["", "02", "03"]
+                    case _:
+                        return
+                existing = set(data[idx])
+            else:
+                match index:
+                    case 'characters'|'skins':
+                        # Shouldn't happen
+                        return
+                    case 'npcs':
+                        idx = NPC_SCENE
+                        uncaps = ["", "02", "03"]
+                    case _:
+                        return
+                existing = set()
         except:
             return
         # retrieve strings
@@ -2499,7 +2514,11 @@ class Updater():
             if 'scene_update' in self.flags and u in self.resume.get('done', {}).get(element_id, []): # skip if in resume file
                 continue
             # start update_scene
-            self.tasks.add(self.update_scene, parameters=(index, element_id, idx, u, existing, base_target, main_x if u == "" else uncap_x, filters), priority=3)
+            self.tasks.add(
+                self.update_scene,
+                parameters=(index, element_id, idx, u, existing, base_target, main_x if u == "" else uncap_x, filters),
+                priority=3
+            )
 
     # update character/NPC scene data
     async def update_scene(
@@ -2593,7 +2612,15 @@ class Updater():
         # wait previous tasks completion
         await ts.wait_finish()
         # check if the data has new strings
-        if len(existing) > len(self.data[index][element_id][idx]):
+        if (
+            (
+                len(existing) > 0
+                and element_id not in self.data[index]
+            )
+            or len(existing) > len(self.data[index][element_id][idx])
+        ):
+            if element_id not in self.data[index]:
+                self.data[index][element_id] = self.create_npc_container()
             self.data[index][element_id][idx] = list(existing) # set it
             self.data[index][element_id][idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e))) # and sort it
             self.modified = True
@@ -4556,7 +4583,7 @@ class Updater():
             print("Couldn't import GBFDAIO index.json, verify the path is correct")
             print("Exception:", e)
 
-    async def test_fate(self, k):
+    async def test_fate(self : Updater, k):
         for i in range(0, FATE_LINK):
             for e in self.data["fate"][k][i]:
                 s = e + "a"
