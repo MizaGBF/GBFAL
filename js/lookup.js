@@ -1322,9 +1322,9 @@ function clean_asset(
 			container.innerHTML = (
 				'<img src="../GBFML/assets/ui/sorry.png"><br>'
 				+ (
-					text
-					? text
-					: "Nothing is available in this tab"
+					html
+					? html
+					: "Nothing is available."
 				)
 			);
 		}
