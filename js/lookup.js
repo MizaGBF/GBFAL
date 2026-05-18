@@ -911,6 +911,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			id:tag_id
 		});
 		tab_containers[i][1].style.display = "none";
+		tab_containers[i][1].element_counter = 0;
 		// add assets
 		for(let j = 0; j < page.assets.length; ++j)
 		{
@@ -919,7 +920,9 @@ function load_assets(id, data, type, target, indexed, allow_open)
 				case 7: // event side story
 				{
 					if(!indexed || data[DataIdx.EVENT_SIDE] == null)
+					{
 						continue;
+					}
 					files = [data[DataIdx.EVENT_SIDE]];
 					add_assets(tab_containers[i][1], id, page.assets[j], files);
 					break;
@@ -927,7 +930,9 @@ function load_assets(id, data, type, target, indexed, allow_open)
 				case 6: // event thumbnail
 				{
 					if(!indexed || data[DataIdx.EVENT_THUMB] == null)
+					{
 						continue;
+					}
 					files = [data[DataIdx.EVENT_THUMB]];
 					add_assets(tab_containers[i][1], id, page.assets[j], files);
 					break;
@@ -935,7 +940,9 @@ function load_assets(id, data, type, target, indexed, allow_open)
 				case 5: // audios
 				{
 					if(!indexed)
+					{
 						continue;
+					}
 					files = get_file_list(id, data, page.assets[j], files, melee);
 					add_audio_assets(tab_containers[i][1], id, files);
 					break;
@@ -943,9 +950,12 @@ function load_assets(id, data, type, target, indexed, allow_open)
 				case 4: // scenes with details
 				{
 					files = get_file_list(id, data, page.assets[j], files, melee);
-					const [details, div] = add_result(null, page.assets[j]);
+					const [details, div] = create_result(page.assets[j]);
 					if(add_scene_assets(div, id, page.assets[j], files))
+					{
 						tab_containers[i][1].appendChild(details);
+						tab_containers[i][1].element_counter++;
+					}
 					break;
 				}
 				case 3: // scenes
@@ -959,9 +969,10 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					if((page.assets[j].name ?? null) != null)
 					{
 						files = get_file_list(id, data, page.assets[j], files, melee);
-						const [details, div] = add_result(null, page.assets[j]);
+						const [details, div] = create_result(page.assets[j]);
 						add_skycompass_assets(div, id, page.assets[j], files);
 						tab_containers[i][1].appendChild(details);
+						tab_containers[i][1].element_counter++;
 					}
 					else
 					{
@@ -979,9 +990,12 @@ function load_assets(id, data, type, target, indexed, allow_open)
 				default:
 				{
 					files = get_file_list(id, data, page.assets[j], files, melee);
-					const [details, div] = add_result(null, page.assets[j]);
+					const [details, div] = create_result(page.assets[j]);
 					if(add_assets(div, id, page.assets[j], files))
+					{
 						tab_containers[i][1].appendChild(details);
+						tab_containers[i][1].element_counter++;
+					}
 					break;
 				}
 			}
@@ -990,10 +1004,14 @@ function load_assets(id, data, type, target, indexed, allow_open)
 	// clean empty tabs
 	for(let i = 0; i < tab_containers.length;)
 	{
-		if(tab_containers[i][1].childNodes.length == 0)
+		if(tab_containers[i][1].element_counter == 0)
+		{
 			tab_containers.splice(i, 1);
+		}
 		else
+		{
 			++i;
+		}
 	}
 	// add tabs
 	switch(tab_containers.length)
@@ -1210,8 +1228,14 @@ function get_file_list(id, data, asset, files, melee)
 
 function add_assets(node, id, asset, files)
 {
+	if(typeof node.element_counter == "undefined")
+	{
+		node.element_counter = 0;
+	}
 	if(files.length == 0)
+	{
 		return false;
+	}
 	// for each path and file
 	for(const path of asset.paths)
 	{
@@ -1220,7 +1244,6 @@ function add_assets(node, id, asset, files)
 			add_image(node, id, files[i], asset, path);
 		}
 	}
-	
 	// add preview
 	if((asset.home ?? false) || (asset.profile ?? false))
 	{
@@ -1237,48 +1260,87 @@ function add_assets(node, id, asset, files)
 }
 
 // called if an asset doesn't download
-function clean_asset(img)
-{
-	let parent = img.parentNode.parentNode;
-	img.parentNode.remove();
-	// if parent is empty (or only preview button is left)
-	if(
-		parent.childNodes.length == 0 ||
-		(
-			parent.childNodes.length == 2 &&
-			(parent.childNodes[0].tagName == "BR" && parent.childNodes[1].tagName == "BUTTON")
-		)
-	)
+function clean_asset(
+	container,
+	elem, 
 	{
-		// if parent is the tab container
-		if(parent.id != null && parent.id != "")
+		html=null,
+		clear_parent=true
+	}={}
+)
+{
+	if(typeof container.element_counter == "undefined")
+	{
+		throw new Error("Unexpected node passed to clean_asset()");
+	}
+	container.element_counter--;
+	elem.remove();
+	if(container.element_counter == 0)
+	{
+		// check for main tab
+		const parent_node = container.parentNode;
+		if(parent_node.tagName == "DETAILS")
 		{
-			parent.innerHTML = '<img src="../GBFML/assets/ui/sorry.png"><br>Nothing is available in this tab';
-		}
-		// if parent is container under a details
-		else
-		{
-			let granparent = parent.parentNode;
-			parent.remove();
-			// check if the detail is empty
-			if(granparent.tagName == "DETAILS")
+			const tab_container = parent_node.parentNode;
+			if(clear_parent)
 			{
-				let grangranparent = granparent.parentNode;
-				granparent.remove();
-				// if the whole tab is empty
-				if(grangranparent.childNodes.length == 0) // note: missing check for button preview
+				tab_container.element_counter--;
+				if(tab_container.element_counter == 0)
 				{
-					grangranparent.innerHTML = '<img src="../GBFML/assets/ui/sorry.png"><br>Nothing is available in this tab';
+					tab_container.innerHTML = (
+						'<img src="../GBFML/assets/ui/sorry.png"><br><small>'
+						+ (
+							html
+							? html
+							: "Nothing is available."
+						)
+						+ "</small>"
+					);
+				}
+				else
+				{
+					parent_node.remove();
 				}
 			}
+			else
+			{
+				tab_container.element_counter = -1; // force to negative to not cause a delete
+				// force normal behavior
+				container.innerHTML = (
+					'<img src="../GBFML/assets/ui/sorry.png"><br><small>'
+					+ (
+						html
+						? html
+						: "Nothing is available."
+					)
+					+ "</small>"
+				);
+			}
+		}
+		else
+		{
+			container.innerHTML = (
+				'<img src="../GBFML/assets/ui/sorry.png"><br>'
+				+ (
+					text
+					? text
+					: "Nothing is available in this tab"
+				)
+			);
 		}
 	}
 }
 
 function add_skycompass_assets(node, id, asset, files)
 {
+	if(typeof node.element_counter == "undefined")
+	{
+		node.element_counter = 0;
+	}
 	if(files.length == 0)
+	{
 		return false;
+	}
 	// go over paths and add the images
 	for(const path of asset.paths)
 	{
@@ -1286,23 +1348,35 @@ function add_skycompass_assets(node, id, asset, files)
 		{
 			const file = files[i];
 			if(file instanceof String && file.includes("_f"))
+			{
 				continue;
-			let ref = add_to(node, "a");
+			}
+			const ref = add_to(node, "a");
 			ref.target = "_blank";
 			ref.rel = "noopener noreferrer";
-			let img = add_to(ref, "img", {
+			const img = add_to(ref, "img", {
 				cls:["loading", "skycompass"],
-				onerror:function() {
-					clean_asset(this);
+				onerror:() => {
+					clean_asset(
+						node,
+						img,
+						{
+							html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Sky Compass arts",
+							clear_parent:false
+						}
+					);
 				},
-				onload:function() {
-					this.classList.toggle("loading", false);
+				onload:() => {
+					img.classList.toggle("loading", false);
 				}
 			});
 			img.src = path[0] + file + path[1];
 			if(asset.lazy ?? true)
-				img.setAttribute('loading', 'lazy');
+			{
+				img.loading = "lazy";
+			}
 			ref.setAttribute('href', img.src);
+			node.element_counter++;
 		}
 	}
 	return true;
@@ -1339,15 +1413,15 @@ function add_scene_assets(node, id, asset, suffixes)
 }
 
 // add a detail element to put assets under
-function add_result(node, asset)
+function create_result(asset)
 {
-	let details = add_to(node, "details");
+	const details = add_to(null, "details");
 	details.open = asset.open ?? false;
 	
-	let summary = add_to(details, "summary", {
+	const summary = add_to(details, "summary", {
 		cls:["detail"]
 	});
-	let icon = asset.icon ?? null;
+	const icon = asset.icon ?? null;
 	if(icon != null && icon != "")
 	{
 		add_to(summary, "img", {
@@ -1356,7 +1430,7 @@ function add_result(node, asset)
 	}
 	summary.appendChild(document.createTextNode(asset.name));
 	
-	let div = add_to(details, "div", {
+	const div = add_to(details, "div", {
 		cls:["container"]
 	});
 	return [details, div];
@@ -1365,9 +1439,15 @@ function add_result(node, asset)
 // add an image asset
 function add_image(node, id, file, asset, path)
 {
+	if(typeof node.element_counter == "undefined")
+	{
+		node.element_counter = 0;
+	}
 	// form check
 	if(!(asset.form ?? true) && (file.endsWith('_f') || file.endsWith('_f1')))
+	{
 		return;
+	}
 	// add link
 	let ref = add_to(node, "a", {
 		cls:["asset-link"]
@@ -1397,7 +1477,7 @@ function add_image(node, id, file, asset, path)
 	// set lazy loading
 	if(asset.lazy ?? true)
 	{
-		img.setAttribute('loading', 'lazy');
+		img.loading = "lazy";
 	}
 	// set hidden
 	if((asset.hidden ?? false) && !(asset.lazy ?? true)) // make it uncompatible with lazy loading
@@ -1405,16 +1485,40 @@ function add_image(node, id, file, asset, path)
 		ref.style.display = "none";
 	}
 	// set events
-	img.onerror = function() {
-		clean_asset(this);
+	img.onerror = () => {
+		switch(asset.name)
+		{
+			case "Profile Room":
+			{
+				clean_asset(
+					node,
+					ref,
+					{
+						html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Profile Room arts",
+						clear_parent:false
+					}
+				);
+				break;
+			}
+			default:
+			{
+				clean_asset(
+					node,
+					ref
+				);
+				break;
+			}
+		}
 	};
-	img.onload = function() {
-		this.classList.toggle("loading", false);
-		this.onload = null;
-		this.parentNode.style.display = "";
+	img.onload = () => {
+		img.classList.toggle("loading", false);
+		img.onload = null;
+		ref.style.display = "";
 		// make text visible
-		if(this.text_node)
-			this.text_node.style.display = "";
+		if(img.text_node)
+		{
+			img.text_node.style.display = "";
+		}
 	};
 	// add filename if set
 	if(asset.filename ?? false)
@@ -1427,6 +1531,8 @@ function add_image(node, id, file, asset, path)
 		txt.style.display = "none";
 		img.text_node = txt; // add it to img text_node
 	}
+	// increase counter
+	node.element_counter++;
 	// for mypage and profile previews
 	try
 	{
@@ -1462,6 +1568,10 @@ function add_image(node, id, file, asset, path)
 
 function add_audio_assets(node, id, sounds)
 {
+	if(typeof node.element_counter == "undefined")
+	{
+		node.element_counter = 0;
+	}
 	const GENERIC_AUDIO = "Audios";
 	let sorted_sound = {"Audios":[]};
 	let checks = {
@@ -1573,6 +1683,7 @@ function add_audio_assets(node, id, sounds)
 	{
 		// add audio player
 		audio = new AudioVoicePlayer(node, id, sorted_sound);
+		node.element_counter++;
 		return true;
 	}
 }
