@@ -1361,7 +1361,7 @@ function add_skycompass_assets(node, id, asset, files)
 						node,
 						img,
 						{
-							html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Sky Compass arts",
+							html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Sky Compass arts.",
 							clear_parent:false
 						}
 					);
@@ -1494,7 +1494,7 @@ function add_image(node, id, file, asset, path)
 					node,
 					ref,
 					{
-						html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Profile Room arts",
+						html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Profile Room arts.",
 						clear_parent:false
 					}
 				);

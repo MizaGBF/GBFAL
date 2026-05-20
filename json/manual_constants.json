@@ -377,6 +377,10 @@
         "3991258000": {
             "comment": "Vajra (New Year)",
             "base": ["_dog"]
+        },
+        "3040272000": {
+            "comment": "Milleore and Sahli Lao",
+            "unique": ["_02_effect_02"]
         }
     },
     
