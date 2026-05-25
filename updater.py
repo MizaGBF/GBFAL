@@ -3017,7 +3017,15 @@ class Updater():
             prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
             no_prefix : bool = element_id.startswith("arca") # only for arcarum assets
             existings : list[set[str]] = [set(evt_data[element_id][i]) for i in range(EVENT_OP, len(evt_data[element_id]))] # make set of existing files
-            ch_count = evt_data[element_id][EVENT_CHAPTER_COUNT] if not forceflag and evt_data[element_id][EVENT_CHAPTER_COUNT] > 0 else EVENT_MAX_CHAPTER # get the number of chapter to check
+            ch_count = min(
+                EVENT_MAX_CHAPTER,
+                (
+                    # get the number of chapter to check
+                    evt_data[element_id][EVENT_CHAPTER_COUNT]
+                    if not forceflag and evt_data[element_id][EVENT_CHAPTER_COUNT] > 0
+                    else EVENT_MAX_CHAPTER
+                )
+            )
             extensions : list[str]
             if element_id.isdigit() and int(element_id) >= 251229:
                 self.tasks.print(f"Notification: Checking .jpg images for event {element_id}")
