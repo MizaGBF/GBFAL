@@ -1,6 +1,5 @@
 /*jshint esversion: 11 */
 
-var gbf = null;
 var search = null; // unused
 var timestamp = Date.now();
 var index = null;
@@ -78,7 +77,6 @@ function init() // entry point, called by body onload
 {
 	output = document.getElementById("output");
 	output_loading();
-	gbf = new GBF();
 	fetchJSON("json/changelog.json?" + timestamp).then((value) => {
 		load(value);
 	});

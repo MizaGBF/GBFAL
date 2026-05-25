@@ -1,6 +1,5 @@
 /*jshint esversion: 11 */
 
-var gbf = null;
 var search = null;
 var timestamp = Date.now();
 var index = null;
@@ -38,7 +37,6 @@ function init() // entry point, called by body onload
 {
 	spark_container = document.getElementById("spark-container");
 	spark_sections = document.querySelectorAll(".spark-section");
-	gbf = new GBF();
 	fetchJSON("json/changelog.json?" + timestamp).then((value) => {
 		load(value);
 	});

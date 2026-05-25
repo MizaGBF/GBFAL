@@ -2,7 +2,6 @@
 
 // global variables
 var output = null; // set output
-var gbf = null;
 var search = null;
 var timestamp = Date.now(); // last updated timestamp
 var index = null;
@@ -22,7 +21,6 @@ var jukebox = null;
 function init() // entry point, called by body onload
 {
 	// init var
-	gbf = new GBF();
 	gbf.set_lookup_prefix({
 		"e": GBFType.enemy,
 		"q": GBFType.event,
@@ -523,8 +521,13 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			{
 				pages[7].assets[pages[7].assets.length - 1].paths.push(["sp/coaching/assets/eternals/", "png"]);
 				pages[7].assets.push(
-					{name:"Eternals", paths:[["sp/event/common/terra/top/assets/story/btnbnr_", "_01.png"]], special_index:"reward", icon:"../GBFML/assets/ui/icon/fate_episode.png", form:false, lazy:false}
+					{name:"Records of the Ten", paths:[["sp/event/common/terra/top/assets/story/btnbnr_", "_01.png"], ["sp/event/common/terra/top/assets/quest/btnbnr_", ".png"], ["sp/event/common/terra/top/assets/quest/btnbnr_", "_joined.png"]], special_index:"reward", icon:"../GBFML/assets/ui/icon/records_of_the ten.png", form:false, lazy:false}
 				);
+			}
+			// extra files for evokers
+			else if(gbf.evokers().includes(id))
+			{
+				pages[7].assets[pages[7].assets.length - 1].paths.push(["sp/coaching/assets/evokers/", "png"], ["sp/coaching/reward_itemset/pop_setting/", "png"]);
 			}
 			break;
 		}
