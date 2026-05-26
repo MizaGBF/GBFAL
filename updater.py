@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.68'
+VERSION = '3.69'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -138,6 +138,7 @@ STRING_CHAR = string.ascii_lowercase + string.digits
 
 # dynamic constants
 MISSING_EVENTS : list[str] = []
+COLLAB_MAX_CHAPTERS : list[str] = []
 SPECIAL_EVENTS : dict[str, str] = {}
 VALENTINE_EXCLUDE : set[str] = {}
 CUT_CONTENT : list[str] = []
@@ -2969,19 +2970,26 @@ class Updater():
                     evt_data[element_id][EVENT_CHAPTER_COUNT] = highest + 1
         except:
             pass
-        if highest < 0:
-            highest = 0
-        alt_format = (element_id.isdigit() and int(element_id) == 241017) # bandaid for this particular event
-        ts : TaskStatus = TaskStatus(-1, 1, running=0) # used to share the highest number of chapter found
-        ts.index = highest
-        for i in range(highest, EVENT_MAX_CHAPTER): # create takes for each chapter and possible sub episode and quest
-            for j in range(1, 3):
-                for k in range(1, 3):
-                    self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
-                    ts.running += 1
-                    if alt_format: # bandaid
-                        self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt20{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
+        if element_id in COLLAB_MAX_CHAPTERS:
+            # just bypass
+            if element_id not in evt_data: # add container in index if it doesn't exist yet
+                evt_data[element_id] = self.create_event_container()
+            evt_data[element_id][EVENT_CHAPTER_COUNT] = 0
+            self.tasks.add(self.update_event, parameters=(element_id,), priority=3)
+        else:
+            if highest < 0:
+                highest = 0
+            alt_format = (element_id.isdigit() and int(element_id) == 241017) # bandaid for this particular event
+            ts : TaskStatus = TaskStatus(-1, 1, running=0) # used to share the highest number of chapter found
+            ts.index = highest
+            for i in range(highest, EVENT_MAX_CHAPTER): # create takes for each chapter and possible sub episode and quest
+                for j in range(1, 3):
+                    for k in range(1, 3):
+                        self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
                         ts.running += 1
+                        if alt_format: # bandaid
+                            self.tasks.add(self.check_event_voice_line, parameters=(ts, element_id, i, f"{VOICE}scene_evt20{element_id}_cp{i}_q{j}_s{k}0"), priority=2)
+                            ts.running += 1
 
     # check voice line existence
     async def check_event_voice_line(self : Updater, ts : TaskStatus, element_id : str, cp : int, uri : str) -> None:
@@ -3017,12 +3025,12 @@ class Updater():
             prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
             no_prefix : bool = element_id.startswith("arca") # only for arcarum assets
             existings : list[set[str]] = [set(evt_data[element_id][i]) for i in range(EVENT_OP, len(evt_data[element_id]))] # make set of existing files
-            ch_count = min(
+            ch_count : int = min(
                 EVENT_MAX_CHAPTER,
                 (
                     # get the number of chapter to check
                     evt_data[element_id][EVENT_CHAPTER_COUNT]
-                    if not forceflag and evt_data[element_id][EVENT_CHAPTER_COUNT] > 0
+                    if not forceflag and evt_data[element_id][EVENT_CHAPTER_COUNT] > 0 and element_id not in COLLAB_MAX_CHAPTERS
                     else EVENT_MAX_CHAPTER
                 )
             )
