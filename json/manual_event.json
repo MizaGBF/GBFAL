@@ -2000,8 +2000,10 @@
 "sidestory_id":null
 },
 "94320":{
-"name":"",
-"event_ids":[],
+"name":"The Ironfire Sky and the Firmament Below",
+"event_ids":[
+"260529"
+],
 "sidestory_id":null
 },
 "class_event":{
