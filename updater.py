@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.69'
+VERSION = '3.70'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -678,6 +678,11 @@ class Updater():
         r : bool = (element_id, element_type) in self.addition
         self.addition.add((element_id, element_type))
         return r
+
+    # Utility function to append elements to an array
+    def extend_list(self : Updater, target : list[str], addendum : list[str]) -> None:
+        seen : set[str] = set(target)
+        target.extend(s for s in addendum if s not in seen and not seen.add(s))
 
     # Generic GET request function
     async def get(self : Updater, url : str) -> Any:
@@ -1368,32 +1373,32 @@ class Updater():
                 pass
         # sprite
         try:
-            data[BOSS_SPRITE] += await self.processManifest("enemy_" + element_id)
+            self.extend_list(data[BOSS_SPRITE],await self.processManifest("enemy_" + element_id))
         except:
             pass
         # appear
         fn = "raid_appear_" + element_id
         for k in ("", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9", "_shade"):
             try:
-                data[BOSS_APPEAR] += await self.processManifest(fn + k)
+                self.extend_list(data[BOSS_APPEAR], await self.processManifest(fn + k))
             except:
                 pass
         if self.count_file(data) == 0:
             return
         # ehit
         try:
-            data[BOSS_HIT] += await self.processManifest("ehit_" + element_id)
+            self.extend_list(data[BOSS_HIT], await self.processManifest("ehit_" + element_id))
         except:
             pass
         # esp
         fn = "esp_" + element_id
         for i in range(0, 20):
             try:
-                data[BOSS_SP] += await self.processManifest(f"{fn}_{i:02}")
+                self.extend_list(data[BOSS_SP], await self.processManifest(f"{fn}_{i:02}"))
             except:
                 pass
             try:
-                data[BOSS_SP_ALL] += await self.processManifest(f"{fn}_{i:02}_all")
+                self.extend_list(data[BOSS_SP_ALL], await self.processManifest(f"{fn}_{i:02}_all"))
             except:
                 pass
         if self.count_file(data) > file_count:
@@ -1490,33 +1495,31 @@ class Updater():
             for m in ("", "_a", "_b", "_c", "_d", "_e"):
                 try:
                     fn = f"summon_{element_id}{u}{m}_attack"
-                    data[SUM_CALL] += await self.processManifest(fn)
+                    self.extend_list(data[SUM_CALL], await self.processManifest(fn))
                 except:
                     pass
-        data[SUM_CALL] = list(dict.fromkeys(data[SUM_CALL]))
         # damage
         try:
-            data[SUM_DAMAGE] += await self.processManifest("summon_" + element_id) # old summons
+            # old summons
+            self.extend_list(data[SUM_DAMAGE], await self.processManifest("summon_" + element_id))
         except:
             pass
         for u in uncaps:
             for m in ("", "_a", "_b", "_c", "_d", "_e"):
                 try:
                     fn = f"summon_{element_id}{u}{m}_damage"
-                    data[SUM_DAMAGE] += await self.processManifest(fn)
+                    self.extend_list(data[SUM_DAMAGE], await self.processManifest(fn))
                 except:
                     pass
-        data[SUM_DAMAGE] = list(dict.fromkeys(data[SUM_DAMAGE]))
         # mypage
         for u in uncaps:
             try:
                 if u == "_01":
                     continue
                 fn = f"mypage_{element_id}{u}"
-                data[SUM_MYPAGE] += await self.processManifest(fn)
+                self.extend_list(data[SUM_MYPAGE], await self.processManifest(fn))
             except:
                 pass
-        data[SUM_MYPAGE] = list(dict.fromkeys(data[SUM_MYPAGE]))
         if self.count_file(data) > file_count:
             self.modified = True
             summons[element_id] = data
@@ -1599,7 +1602,7 @@ class Updater():
                             except:
                                 if form == "":
                                     break
-            data[CHARA_SPRITE] += sheets
+            self.extend_list(data[CHARA_SPRITE], sheets)
             if len(uncaps) == 0:
                 if style == "":
                     return False
@@ -1627,23 +1630,20 @@ class Updater():
                             sd.append(base_fn + g)
                         except:
                             pass
-            data[CHARA_GENERAL] += targets
-            data[CHARA_SD] += sd
+            self.extend_list(data[CHARA_GENERAL], targets)
+            self.extend_list(data[CHARA_SD], sd)
             if len(targets) == 0:
                 if style == "":
                     return False
                 continue
             # # # Other sheets
             # mypage
-            sheets = []
             for uncap in flags:
                 try:
                     fn = f"mypage_{tid}_{uncap}{style}"
-                    data[CHARA_MYPAGE] += await self.processManifest(fn)
+                    self.extend_list(data[CHARA_MYPAGE], await self.processManifest(fn))
                 except:
                     pass
-            sheets = list(dict.fromkeys(sheets)) # remove dupes
-            data[CHARA_MYPAGE] += sheets
             # attack
             targets = [""]
             for i in range(1, len(uncaps)):
@@ -1669,8 +1669,7 @@ class Updater():
                                 sheets += await self.processManifest(fn)
                             except:
                                 pass
-            sheets = list(dict.fromkeys(sheets)) # remove dupes
-            data[CHARA_PHIT] += sheets
+            self.extend_list(data[CHARA_PHIT], sheets)
             # ougi
             sheets = []
             for uncap in uncaps:
@@ -1689,8 +1688,7 @@ class Updater():
                                         sheets += await self.processManifest(fn)
                                     except:
                                         pass
-            sheets = list(dict.fromkeys(sheets)) # remove dupes
-            data[CHARA_SP] += sheets
+            self.extend_list(data[CHARA_SP], sheets)
             # skills
             sheets = []
             for el in range(1, 15):
@@ -1699,8 +1697,7 @@ class Updater():
                     sheets += await self.processManifest(fn)
                 except:
                     pass
-            sheets = list(dict.fromkeys(sheets)) # remove dupes
-            data[CHARA_AB_ALL] += sheets
+            self.extend_list(data[CHARA_AB_ALL], sheets)
             sheets = []
             for el in range(1, 15):
                 try:
@@ -1709,7 +1706,7 @@ class Updater():
                 except:
                     pass
             sheets = list(dict.fromkeys(sheets)) # remove dupes
-            data[CHARA_AB] += sheets
+            self.extend_list(data[CHARA_AB], sheets)
         if self.count_file(data) > file_count:
             self.modified = True
             chara_data[element_id] = data
@@ -1973,7 +1970,7 @@ class Updater():
             for u in ("", "_2", "_3", "_4"):
                 for g in ("", "_0", "_1"):
                     try:
-                        data[WEAP_PHIT] += await self.processManifest(f"phit_{element_id}{s}{g}{u}")
+                        self.extend_list(data[WEAP_PHIT], await self.processManifest(f"phit_{element_id}{s}{g}{u}"))
                     except:
                         if g == '_0':
                             break
@@ -1983,7 +1980,7 @@ class Updater():
                 for t in ("", "_s2", "_s3"):
                     for g in ("", "_0", "_1"):
                         try:
-                            data[WEAP_SP] += await self.processManifest(f"sp_{element_id}{s}{g}{u}{t}")
+                            self.extend_list(data[WEAP_SP], await self.processManifest(f"sp_{element_id}{s}{g}{u}{t}"))
                         except:
                             if g == '_0':
                                 break
@@ -2068,11 +2065,9 @@ class Updater():
                 h1 = h.split('_', 1)[0]
                 for j in range(2):
                     try:
-                        data[JOB_UNLOCK] += await self.processManifest(f"eventpointskin_release_{h1}_{j}")
+                        self.extend_list(data[JOB_UNLOCK], await self.processManifest(f"eventpointskin_release_{h1}_{j}"))
                     except:
                         pass
-            # clean dupe
-            data[JOB_UNLOCK] = list(dict.fromkeys(data[JOB_UNLOCK]))
             if self.count_file(data) > file_count:
                 jobs[element_id] = data
                 self.modified = True
