@@ -2006,6 +2006,13 @@
 ],
 "sidestory_id":null
 },
+"94350":{
+"name":"Helping the Genius Alchemist",
+"event_ids":[
+"alchm5"
+],
+"sidestory_id":null
+},
 "class_event":{
 "name":"Class Mastery",
 "event_ids":[
