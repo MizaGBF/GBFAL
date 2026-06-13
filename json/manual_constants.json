@@ -238,7 +238,15 @@
         },
         "3040071000": {
             "comment": "Andira",
-            "unique": ["_02_monkey"]
+            "unique": ["_02_monkey", "_02_monkey1", "_02_monkey2", "_02_monkey3"]
+        },
+        "3992888000": {
+            "comment": "Makura",
+            "base": ["_rabbit1", "_rabbit2", "_rabbit3", "_rabbit4"]
+        },
+        "3993874000": {
+            "comment": "Sankara",
+            "end": ["_bonno"]
         },
         "3040209000": {
             "comment": "Ferry Grand",
