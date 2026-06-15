@@ -288,7 +288,8 @@ class TaskManager():
     async def start(self : TaskManager) -> bool:
         if self.is_running: # return if already running or no tasks pending
             return False
-        await self.run()
+        if self.total > 0:
+            await self.run()
         return True
 
     def autosave(self : TaskManager) -> None:
