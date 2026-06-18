@@ -1,6 +1,12 @@
 {
-  "timestamp":1781714205836,
+  "timestamp":1781814945294,
   "new":{
+    "2026-06-18":[
+      [
+        "6579",
+        9
+      ]
+    ],
     "2026-06-16":[
       [
         "1006",
@@ -171,28 +177,6 @@
       [
         "7650",
         9
-      ]
-    ],
-    "2026-06-04":[
-      [
-        "profile_arts:7093",
-        "profile_arts"
-      ],
-      [
-        "profile_arts:7092",
-        "profile_arts"
-      ],
-      [
-        "profile_arts:6079",
-        "profile_arts"
-      ],
-      [
-        "profile_arts:5079",
-        "profile_arts"
-      ],
-      [
-        "alchm5",
-        7
       ]
     ]
   },
