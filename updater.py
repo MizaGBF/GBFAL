@@ -4302,7 +4302,7 @@ class Updater():
         base_target, main_x, _ = self.generate_scene_file_list()
         scene_strings : list[str] = base_target + main_x
         for k in SCENE_SUFFIXES: # add exclusive ones to ensure thorough search
-            if k == "default":
+            if k != "default":
                 scene_strings.extend(SCENE_SUFFIXES[k].get("base", []))
                 scene_strings.extend(SCENE_SUFFIXES[k].get("main", []))
                 scene_strings.extend(SCENE_SUFFIXES[k].get("unique", []))
