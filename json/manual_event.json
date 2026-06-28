@@ -2013,6 +2013,13 @@
 ],
 "sidestory_id":null
 },
+"94390":{
+"name":"Chisui Village",
+"event_ids":[
+"260628"
+],
+"sidestory_id":null
+},
 "class_event":{
 "name":"Class Mastery",
 "event_ids":[
