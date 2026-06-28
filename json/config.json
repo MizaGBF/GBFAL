@@ -906,11 +906,25 @@
                 {
                     "name": "Year 2026 (Horse)",
                     "icon": "../GBFML/assets/ui/icon/year_2026_(horse).png",
-                    "target": "npcs",
-                    "arg1": "99",
-                    "arg2": [
-                        4277,
-                        9000
+                    "childs": [
+                        {
+                            "name": "First Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                4277,
+                                4490
+                            ]
+                        },
+                        {
+                            "name": "Second Half",
+                            "target": "npcs",
+                            "arg1": "99",
+                            "arg2": [
+                                4490,
+                                9999
+                            ]
+                        }
                     ]
                 },
                 {

@@ -2698,7 +2698,10 @@ class Updater():
             stem : str = url.split("/")[-1]
             good : bool = False # flag to determine if we have at least a positive match
             flag : bool = False # flag used along the way
-            # Check base ones
+            # Note:
+            # url is https://.../base_NUM
+            # -------------
+            # Now checking for base_NUM.ext & base_NUM_suffix.ext
             for k in ("", "_up", "_ef", "_shadow"): # there are likely more variations but I don't want to add pointless files to slow it down further
                 try:
                     stem_suffix = f"{stem}{k}{extension}"
@@ -2709,40 +2712,39 @@ class Updater():
                     good = True
                 except:
                     pass
-            # check for extras
+            # Checking for base_NUMX.ext (no underscore)
             for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5", "6")):
                 for k in ss:
                     try:
                         stem_suffix : str = f"{stem}{k}{extension}"
                         if stem_suffix not in existing:
-                            await self.head(f"{url}{k}{extension}")
+                            await self.head(f"{url}_{k}{extension}")
                             existing.add(stem_suffix)
                         flag = True
                         good = True
                     except:
                         pass
             # Check the variations (yes, it's slow)
+            # Checking for base_NUM_C.ext
             for k in string.ascii_lowercase:
                 found = False
                 try:
-                    suffix = "_" + k
-                    stem_suffix = f"{stem}{suffix}{extension}"
+                    stem_suffix = f"{stem}_{k}{extension}"
                     if stem_suffix not in existing:
-                        await self.head(f"{url}{suffix}{extension}")
+                        await self.head(f"{url}_{k}{extension}")
                         existing.add(stem_suffix)
                     flag = True
                     found = True
                     good = True
                 except:
                     pass
-                # and sub variations (yes, it's VERY slow)
+                # And for base_NUM_CX.ext
                 for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
                     for kkk in ss:
                         try:
-                            suffix = "_" + k + kkk
-                            stem_suffix = f"{stem}{suffix}{extension}"
+                            stem_suffix = f"{stem}_{k}{kkk}{extension}"
                             if stem_suffix not in existing:
-                                await self.head(f"{url}{suffix}{extension}")
+                                await self.head(f"{url}_{k}{kkk}{extension}")
                                 existing.add(stem_suffix)
                             flag = True
                             found = True
@@ -2753,7 +2755,8 @@ class Updater():
                     break
             # if NOTHING found until now OR we're in the MSQ tutorial
             if not flag or is_old:
-                # we test another filename format
+                # We test another filename format
+                # base_00.ext
                 try:
                     stem_suffix = f"{stem}_00{extension}"
                     if stem_suffix not in existing:
@@ -2762,13 +2765,12 @@ class Updater():
                     good = True
                 except:
                     pass
-                # some variations
+                # plus some variations
                 for k in ("_up", "_shadow"):
                     try:
-                        suffix = "_00"+k
-                        stem_suffix = f"{stem}{suffix}{extension}"
+                        stem_suffix = f"{stem}_00{k}{extension}"
                         if stem_suffix not in existing:
-                            await self.head(f"{url}{suffix}{extension}")
+                            await self.head(f"{url}_00{k}{extension}")
                             existing.add(stem_suffix)
                         good = True
                     except:
@@ -2776,14 +2778,14 @@ class Updater():
                 err = 0
                 i = 1
                 # now test ALL numbered variations
+                # base_II.ext
                 # they are in sequence usually
                 while i < 1000 and err < loop_err_limit:
                     k = str(i).zfill(Z)
                     try:
-                        suffix = "_"+k
-                        stem_suffix = f"{stem}{suffix}{extension}"
+                        stem_suffix = f"{stem}_{k}{extension}"
                         if stem_suffix not in existing:
-                            await self.head(f"{url}{suffix}{extension}")
+                            await self.head(f"{url}_{k}{extension}")
                             existing.add(stem_suffix)
                         good = True
                         err = 0
@@ -2791,10 +2793,9 @@ class Updater():
                         for kk in string.ascii_lowercase:
                             found = False
                             try:
-                                suffix = "_"+k+"_"+kk
-                                stem_suffix = f"{stem}{suffix}{extension}"
+                                stem_suffix = f"{stem}_{k}_{kk}{extension}"
                                 if stem_suffix not in existing:
-                                    await self.head(f"{url}{suffix}{extension}")
+                                    await self.head(f"{url}_{k}_{kk}{extension}")
                                     existing.add(stem_suffix)
                                 found = True
                             except:
@@ -2802,10 +2803,9 @@ class Updater():
                             for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
                                 for kkk in ss:
                                     try:
-                                        suffix = "_" + k + "_" + kk + kkk
-                                        stem_suffix = f"{stem}{suffix}{extension}"
+                                        stem_suffix = f"{stem}_{k}_{kk}{kkk}{extension}"
                                         if stem_suffix not in existing:
-                                            await self.head(f"{url}{suffix}{extension}")
+                                            await self.head(f"{url}_{k}_{kk}{kkk}{extension}")
                                             existing.add(stem_suffix)
                                         found = True
                                     except:
@@ -3048,7 +3048,6 @@ class Updater():
             )
             extensions : list[str]
             if element_id.isdigit() and int(element_id) >= 251229:
-                self.tasks.print(f"Notification: Checking .jpg images for event {element_id}")
                 extensions = [".png", ".jpg"]
             else:
                 extensions = [".png"]
