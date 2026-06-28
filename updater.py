@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.70'
+VERSION = '3.71'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -324,6 +324,8 @@ class TaskManager():
                     print("exit    - force exit the process, changes won't be saved, but resume file will be updated if used")
                     print("peek    - check the content of data.json. Take two parameters: the index to look at and an id")
                     print("tchange - toggle update_changelog setting")
+                    print("sceneid - start update_all_scene_for_ids() for the given element ID(s)")
+                    print("buff    - start maintenance_buff()")
                 case 'save':
                     if not self.updater.modified:
                         print("No changes waiting to be saved")
@@ -349,6 +351,16 @@ class TaskManager():
                 case 'exit':
                     print("Exiting...")
                     os._exit(0)
+                case 'si'|'sceneid':
+                    if len(s) > 1:
+                        self.add(
+                            self.updater.update_all_scene_for_ids,
+                            parameters=(list(set(s[1:])),)
+                        )
+                        print(f"Added update_all_scene_for_ids() for {len(s) - 1} elements to the queue")
+                case 'b'|'buff':
+                    self.add(self.updater.maintenance_buff)
+                    print("Added maintenance_buff() to the queue")
                 case _:
                     print("Process RESUMING...")
                     break
@@ -2353,16 +2365,20 @@ class Updater():
     # update npc/character/skin scene files for given IDs
     async def update_all_scene_for_ids(self : Updater, ids : list[str] = []) -> None:
         # references
+        count : int = 0
         for element_id in ids:
             if len(element_id) != 10 or not element_id.isdigit():
                 continue
             elif element_id.startswith(("302","303","304")):
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, "characters"))
+                count += 1
             elif element_id.startswith(("371",)):
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, "skins"))
+                count += 1
             elif element_id.startswith(("399","305")):
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, "npcs"))
-        self.tasks.print(f"Updating scenes for {self.tasks.total} elements...")
+                count += 1
+        self.tasks.print(f"Updating scenes for {count} elements...")
         await self.tasks.start()
 
     # update ALL npc/character/skin scene files, time consuming, can be resumed, can be filtered
@@ -3135,7 +3151,7 @@ class Updater():
                         "sidestory_id":None
                     }
                     updated = True
-                    self.tasks.print("Added", event_id, " to json/manual_event.json")
+                    self.tasks.print("Added", event_id, "to json/manual_event.json")
             for element_id, evdata in evt_data.items():
                 if evdata[EVENT_THUMB] is not None:
                     if str(evdata[EVENT_THUMB]) not in data:
