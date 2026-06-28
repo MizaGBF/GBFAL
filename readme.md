@@ -160,7 +160,7 @@ settings:
 > Use `-mt` to check for updates of existing elements (An equivalent is usually automatically run by `-r` except for buff icons, so it shouldn't be needed. You can just run `-mb` once in a while for the buffs.).  
   
 ### Pause  
-You can pause `updater.py` with a simple `CTRL+C`. It opens a CLI letting you save, exit or resume with text commands.  
+You can pause `updater.py` with a simple `CTRL+C`. It opens a CLI letting you save, exit, resume or perform other actions with text commands.  
   
 ### Resume file  
 When you interrupt some tasks (like the ones invoked by `-sc` and `-sd`), the updater creates a `resume` file (a JSON file without the extension) in the same folder.  
