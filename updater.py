@@ -2676,7 +2676,7 @@ class Updater():
 
     # generic function to update: A story chapter, a fate episode scene or an event chapter
     # horrible but can't find a better way
-    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str], extension : str = ".png") -> tuple:
+    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str], extension : str = ".png") -> None:
         is_old = "tuto_scene" in base_url # check for MSQ tutorial
         tmp : str = base_url.rsplit("/", 1)[-1]
         Z = ( # zfill value used in the filename, for MSQ tutorial
@@ -2718,7 +2718,7 @@ class Updater():
                     try:
                         stem_suffix : str = f"{stem}{k}{extension}"
                         if stem_suffix not in existing:
-                            await self.head(f"{url}_{k}{extension}")
+                            await self.head(f"{url}{k}{extension}")
                             existing.add(stem_suffix)
                         flag = True
                         good = True
@@ -2842,7 +2842,7 @@ class Updater():
                 # set data
                 data[element_id][idx] = list(existing)
                 # and sort
-                data[element_id][idx].sort(key=lambda s: "_".join([w.zfill(8) if w.isdigit() else w for w in s.split("_")]))
+                data[element_id][idx].sort(key=lambda s: "_".join([w.zfill(8) if w.isdigit() else w for w in s.split(".")[0].split("_")]))
                 # add to changelog (and set flag) if not done yet (using self.addition to check)
                 if element_id not in self.addition:
                     match index:
