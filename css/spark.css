@@ -36,6 +36,11 @@
 	border-width: 2px;
 }
 
+.spark-image-container {
+	position: relative;
+	display: inline-block;
+}
+
 .spark-image {
 	max-height: 80px;
 	box-sizing: border-box;
@@ -44,6 +49,30 @@
 	/* related to dragging feature */
 	touch-action: pan-y;
     -webkit-user-drag: none;
+}
+
+.spark-image-text {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 130px;
+	padding: 0px;
+	margin: 5px;
+	margin-bottom: 0px;
+  
+	background-image: linear-gradient(to right, #fffe00, #fff300, #ffe800, #ffdd00, #ffd200);
+	color: #000000;
+	text-align: center;
+	font-size: 14px;
+	font-weight: bold;
+	white-space: wrap;
+
+	opacity: 0; 
+	transition: opacity 0.1s ease-in-out;
+}
+
+.spark-image-container:hover .spark-image-text {
+	opacity: 1;
 }
 
 #spark-main {
@@ -321,6 +350,10 @@ td {
 		.spark-image {
 			max-height: 60px;
 			contain-intrinsic-size: 60px;
+		}
+		
+		.spark-image-text {
+			width: 95px;
 		}
 
 		.spark-ui-element {

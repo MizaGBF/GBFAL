@@ -119,7 +119,7 @@ function open_spark_tab(tabName) // reset and then select a tab
 
 function default_onerror() // overwrite definition
 {
-	this.remove();
+	this.parentNode.remove();
 }
 
 function is_valid_mode(cid, mode, gbtype)
@@ -201,6 +201,9 @@ function set_spark_list()
 
 function add_image_spark(node, data, gbtype) // add an image to the selector
 {
+	const container = document.createElement("div");
+	container.classList.add("spark-image-container");
+	
 	const img = document.createElement("img");
 	img.title = data.id;
 	img.dataset.id = data.id;
@@ -211,9 +214,7 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 	img.setAttribute('loading', 'lazy');
 	if(data.onerr == null)
 	{
-		img.onerror = function() {
-			this.remove();
-		};
+		img.onerror = default_onerror;
 	}
 	else
 	{
@@ -223,7 +224,16 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 	img.onload = (event) => {
 		img.classList.remove("loading");
 		img.classList.add("clickable");
-		img.onclick = () => {
+		if(gbf && index.lookup && data.id in index.lookup && index.lookup[data.id].includes("/n"))
+		{
+			img_text.innerText = gbf.get_lookup_names(data.id)[0].replace(" (SSR)", "");
+			img.title = img_text.innerText;
+		}
+		else
+		{
+			img_text.innerText = "???";
+		}
+		container.onclick = () => {
 			if(canvas_state > 0) // if canvas processing
 			{
 				push_popup("Wait for the image to be processed");
@@ -246,7 +256,13 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 		};
 	};
 	img.src = data.path.replace("GBF/", gbf.endpoint());
-	node.appendChild(img);
+	container.appendChild(img);
+	
+	const img_text = document.createElement("div");
+	img_text.classList.add("spark-image-text");
+	container.appendChild(img_text);
+	
+	node.appendChild(container);
 	return img;
 }
 
@@ -944,7 +960,9 @@ function spark_load_settings() // load spark from localstorage
 			tmp = JSON.parse(tmp);
 		}
 		if(tmp[COUNT] != undefined)
+		{
 			document.getElementById("spark-roll-input").value = tmp[COUNT];
+		}
 		lists = [[], [], []];
 		for(let i = 0; i < COUNT; ++i)
 		{
@@ -960,9 +978,11 @@ function spark_load_settings() // load spark from localstorage
 			{
 				if(tmp[i][j][0] in items)
 				{
-					let div = add_image_result_spark(i, tmp[i][j][0], items[tmp[i][j][0]]);
+					const div = add_image_result_spark(i, tmp[i][j][0], items[tmp[i][j][0]]);
 					if(tmp[i][j][1])
+					{
 						add_spark(div);
+					}
 				}
 			}
 		}
@@ -976,7 +996,10 @@ function spark_load_settings() // load spark from localstorage
 
 function save_settings() // save settings in localstorage
 {
-	let tmp = [document.getElementById("moon-check").classList.contains("active"), document.getElementById("spark-check").classList.contains("active")];
+	const tmp = [
+		document.getElementById("moon-check").classList.contains("active"),
+		document.getElementById("spark-check").classList.contains("active")
+	];
 	localStorage.setItem("gbfal-spark-settings", JSON.stringify(tmp));
 }
 
@@ -986,12 +1009,18 @@ function load_settings() // load settings from localstorage
 	{
 		let tmp = localStorage.getItem("gbfal-spark-settings");
 		if(tmp == null)
+		{
 			return;
+		}
 		tmp = JSON.parse(tmp);
 		if(tmp[0])
+		{
 			document.getElementById("moon-check").classList.add("active");
+		}
 		if(tmp[1])
+		{
 			document.getElementById("spark-check").classList.add("active");
+		}
 	}
 	catch(err)
 	{
