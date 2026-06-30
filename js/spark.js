@@ -66,7 +66,7 @@ function load(changelog)
 		}
 	});
 	fetchJSON("../GBFML/json/jukebox.json").then((value) => {
-		let node = document.getElementById("jukebox");
+		const node = document.getElementById("jukebox");
 		jukebox = new AudioJukeboxPlayer(node, value);
 	});
 }
@@ -105,10 +105,14 @@ function open_spark_tab(tabName) // reset and then select a tab
 	for(let btn of document.getElementsByClassName("spark-tab"))
 	{
 		if(btn.classList.contains("active"))
+		{
 			btn.classList.remove("active");
+		}
 	}
 	for(let sel of document.getElementsByClassName("spark-select"))
+	{
 		sel.style.display = "none";
+	}
 	document.getElementById("spark-select-" + tabName).style.display = "";
 	document.getElementById("spark-tab-btn-"+tabName).classList.add("active");
 }
@@ -120,10 +124,13 @@ function default_onerror() // overwrite definition
 
 function is_valid_mode(cid, mode, gbtype)
 {
-	if(gbtype == GBFType.summon && mode != STONE)
+	if(
+		(gbtype == GBFType.summon && mode != STONE)
+		|| (gbtype != GBFType.summon && mode == STONE)
+	)
+	{
 		return false;
-	if(gbtype != GBFType.summon && mode == STONE)
-		return false;
+	}
 	return true;
 }
 
@@ -132,13 +139,13 @@ function set_spark_list()
 	// for each characters
 	let node = document.getElementById('spark-select-npc');
 	let frag = document.createDocumentFragment();
-	const ckeys = Object.keys(index["characters"]).reverse();
+	const ckeys = Object.keys(index["characters"]).sort().reverse();
 	if(ckeys.length > 0) // add more non-indexed characters first, so that the user got recent stuff in all scenarios
 	{
-		let highest = parseInt(ckeys[0]);
+		const highest = parseInt(ckeys[0]);
 		for(let i = 5; i > 0; --i)
 		{
-			let id = JSON.stringify(highest+i*1000);
+			const id = JSON.stringify(highest + i * 1000);
 			const ret = get_character(id, null, [-1, -1, -1, -1, 0, 1000]);
 			if(ret != null)
 			{
@@ -148,7 +155,10 @@ function set_spark_list()
 	}
 	for(const id of ckeys)
 	{
-		if(id in index["lookup"] && !(id in index["premium"]) && ckeys.indexOf(id) > 5) continue; // exclude non gacha characters (unless not in lookup = it's recent)
+		if(id in index["lookup"] && !(id in index["premium"]) && ckeys.indexOf(id) > 5)
+		{
+			continue; // exclude non gacha characters (unless not in lookup = it's recent)
+		}
 		const ret = get_character(id, (index["characters"][id] !== 0 ? index["characters"][id] : null), [-1, -1, -1, -1, 0, 1000]);
 		if(ret != null)
 		{
@@ -160,13 +170,13 @@ function set_spark_list()
 	// for each summons
 	node = document.getElementById('spark-select-summon');
 	frag = document.createDocumentFragment();
-	const skeys = Object.keys(index["summons"]).reverse();
+	const skeys = Object.keys(index["summons"]).sort().reverse();
 	if(skeys.length > 0) // add more non-indexed summons first, so that the user got recent stuff in all scenarios
 	{
-		let highest = parseInt(skeys[0]);
+		const highest = parseInt(skeys[0]);
 		for(let i = 5; i > 0; --i)
 		{
-			let id = JSON.stringify(highest+i*1000);
+			const id = JSON.stringify(highest + i * 1000);
 			const ret = get_summon(id, null, "4", [0, 1000]);
 			if(ret != null)
 			{
@@ -176,7 +186,10 @@ function set_spark_list()
 	}
 	for(const id of skeys)
 	{
-		if(id in index["lookup"] && !(id in index["premium"]) && skeys.indexOf(id) > 5) continue; // exclude non gacha summons (unless not in lookup = it's recent)
+		if(id in index["lookup"] && !(id in index["premium"]) && skeys.indexOf(id) > 5)
+		{
+			continue; // exclude non gacha summons (unless not in lookup = it's recent)
+		}
 		const ret = get_summon(id, (index["summons"][id] !== 0 ? index["summons"][id] : null), "4", [0, 1000]);
 		if(ret != null)
 		{
@@ -188,7 +201,7 @@ function set_spark_list()
 
 function add_image_spark(node, data, gbtype) // add an image to the selector
 {
-	let img = document.createElement("img");
+	const img = document.createElement("img");
 	img.title = data.id;
 	img.dataset.id = data.id;
 	img.draggable = false; // important for event interaction
@@ -202,13 +215,15 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 			this.remove();
 		};
 	}
-	else img.onerror = data.onerr;
+	else
+	{
+		img.onerror = data.onerr;
+	}
 	const cid = data.id;
-	img.onload = function(event) {
-		this.classList.remove("loading");
-		this.classList.add("clickable");
-		this.onclick = function()
-		{
+	img.onload = (event) => {
+		img.classList.remove("loading");
+		img.classList.add("clickable");
+		img.onclick = () => {
 			if(canvas_state > 0) // if canvas processing
 			{
 				push_popup("Wait for the image to be processed");
@@ -217,13 +232,13 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 			{
 				canvas = null;
 				beep();
-				if(this.gbtype == GBFType.character && (window.event.shiftKey || document.getElementById("moon-check").classList.contains("active"))) // add to moon
+				if(img.gbtype == GBFType.character && (window.event.shiftKey || document.getElementById("moon-check").classList.contains("active"))) // add to moon
 				{
-					add_image_result_spark(MOON, cid, this);
+					add_image_result_spark(MOON, cid, img);
 				}
 				else
 				{
-					add_image_result_spark(this.gbtype == GBFType.summon ? STONE : NPC, cid, this); // add to npc or stone
+					add_image_result_spark(img.gbtype == GBFType.summon ? STONE : NPC, cid, img); // add to npc or stone
 				}
 				spark_container.scrollIntoView(); // recenter view
 				spark_save_settings();
@@ -262,7 +277,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 		case STONE: node = document.getElementById("spark-summon"); break;
 		default: return;
 	}
-	let div = document.createElement("div");
+	const div = document.createElement("div");
 	div.dataset.id = id;
 	div.draggable = false;
 	div.spark_draggable = true;
@@ -291,7 +306,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 		}
 	};
 	const cmode = mode;
-	let img = document.createElement("img");
+	const img = document.createElement("img");
 	img.draggable = false; // important  for event interaction
 	img.classList.add("spark-result-img");
 	img.src = base_img.src;
@@ -299,7 +314,9 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 	div.appendChild(img);
 
 	if(position === undefined)
+	{
 		position = lists[mode].length;
+	}
 	node.insertBefore(div, node.children[position]);
 	lists[mode].splice(position, 0, [id, div]);
 
@@ -309,15 +326,23 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 
 function toggle_spark_state(div) // toggle spark icon
 {
-	if(div.classList.contains("sparked")) remove_spark(div);
-	else add_spark(div);
+	if(div.classList.contains("sparked"))
+	{
+		remove_spark(div);
+	}
+	else
+	{
+		add_spark(div);
+	}
 }
 
 function add_spark(div) // add spark icon
 {
 	if(div.classList.contains("sparked"))
+	{
 		return;
-	let img = document.createElement("img");
+	}
+	const img = document.createElement("img");
 	img.classList.add("spark-icon");
 	img.draggable = false;
 	img.src = "assets/spark/spark.png";
@@ -328,14 +353,18 @@ function add_spark(div) // add spark icon
 function remove_spark(div) // remove spark icon
 {
 	if(!div.classList.contains("sparked"))
+	{
 		return;
+	}
 	div.removeChild(div.childNodes[1]);
 	div.classList.remove("sparked");
 }
 
 addEventListener("resize", (event) => { // capture window resize event and call update_all_spark_result_size() (after 300ms)
 	if(resize_timer != null)
+	{
 		clearTimeout(resize_timer);
+	}
 	resize_timer = setTimeout(update_all_spark_result_size, 300);
 });
 
@@ -363,10 +392,14 @@ function find_target(base_target)
 function handle_dragstart(event)
 {
 	if(drag_state) // don't start if already on going
+	{
 		return;
+	}
 	const target = find_target(event.target);
 	if(target.spark_draggable !== true || target.classList.contains("loading"))
+	{
 		return;
+	}
 	if(canvas_state > 0) // if canvas processing
 	{
 		push_popup("Wait for the image to be processed");
@@ -376,7 +409,9 @@ function handle_dragstart(event)
 		// get and check id
 		drag_id = target.dataset.id;
 		if(!(drag_id in items))
+		{
 			return;
+		}
 		// check if the user is dragging from one of the three spark result sections
 		const section = target.closest(".spark-section");
 		if(section)
@@ -421,7 +456,9 @@ function handle_dragstart(event)
 function handle_draginit(event)
 {
 	if(drag_state != 1)
+	{
 		return;
+	}
 	// initialize dragging
 	drag_state = 2;
 	// create ghost
@@ -444,7 +481,7 @@ function handle_draginit(event)
 		// note: No need for update_spark_result_size()
 	}
 	// add the highlight
-	let drag_highlight_range = (
+	const drag_highlight_range = (
 		items[drag_id].gbtype == GBFType.summon ?
 		[2, 3] : 	// stone
 		[0, 2]		// npc, moon
@@ -464,9 +501,13 @@ function find_position(section, event)
 	{
 		const rect = children[i].getBoundingClientRect();
 		if(event.clientY < rect.top)
+		{
 			break;
+		}
 		else if(event.clientY < rect.bottom && event.clientX < rect.left)
+		{
 			break;
+		}
 		position = i;
 	}
 	return position;
@@ -476,12 +517,18 @@ function find_position(section, event)
 function find_section(event)
 {
 	if(drag_ghost)
+	{
 		drag_ghost.style.display = 'none';
+	}
     const targetBelow = document.elementFromPoint(event.clientX, event.clientY);
 	if(drag_ghost)
+	{
 		drag_ghost.style.display = null;
+	}
     if(!targetBelow)
+	{
 		return null;
+	}
     return targetBelow.closest(".spark-section");
 }
 
@@ -508,12 +555,18 @@ function queue_drag_state(event)
 function update_drag_state(event)
 {
 	if(drag_state != 2)
+	{
 		return;
+	}
 	if(!event.clientX && !event.clientY)
+	{
 		return;
+	}
 	// only update if moved
 	if(event.clientX == drag_coords.x && event.clientY == drag_coords.y)
+	{
 		return;
+	}
 	// update coordinates
 	drag_coords.x = event.clientX;
 	drag_coords.y = event.clientY;
@@ -579,7 +632,9 @@ function update_drag_state(event)
 	drag_placeholder_div = add_image_result_spark(mode, drag_id, img, drag_position);
 	drag_placeholder_div.classList.add("placeholder");
 	if(drag_is_spark)
+	{
 		add_spark(drag_placeholder_div);
+	}
 	update_spark_result_size(drag_mode);
 	update_rate(false);
 }
@@ -588,9 +643,13 @@ function update_drag_state(event)
 function handle_dragmove(event)
 {
 	if(!drag_state)
+	{
 		return;
+	}
 	if(!(event.target instanceof HTMLElement))
+	{
 		return;
+	}
 	if(canvas_state > 0) // if canvas processing
 	{
 		return;
@@ -617,9 +676,13 @@ function handle_dragmove(event)
 function handle_dragend(event, allow_beep = true)
 {
 	if(drag_state == 0)
+	{
 		return;
+	}
 	if(drag_ghost)
+	{
 		drag_ghost.remove();
+	}
 	drag_ghost = null;
 	// flag to check if we dragging went through
 	const process_drag = canvas_state == 0 && drag_state == 2;
@@ -660,7 +723,9 @@ function handle_dragend(event, allow_beep = true)
 		}
 	}
 	if(drag_is_complete && allow_beep)
+	{
 		beep();
+	}
 	handle_dragstop();
 	// update and save
 	update_rate(false);
@@ -671,9 +736,13 @@ function handle_dragend(event, allow_beep = true)
 function handle_dragstop()
 {
 	if(drag_state == 0)
+	{
 		return;
+	}
 	if(drag_ghost)
+	{
 		drag_ghost.remove();
+	}
 	drag_ghost = null;
 	// remove placeholder
 	if(drag_placeholder_div)
@@ -712,7 +781,10 @@ function count_visible_nodes(list)
 	let count = 0;
 	for(let i = 0; i < list.length; ++i)
 	{
-		if(list[i].style.display != "none") ++count;
+		if(list[i].style.display != "none")
+		{
+			++count;
+		}
 	}
 	return count;
 }
