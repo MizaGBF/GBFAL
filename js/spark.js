@@ -84,7 +84,8 @@ function start(changelog)
 		},
 		null,
 		false,
-		false
+		false,
+		true
 	);
 	// add search event listeners
 	document.addEventListener('search-update', function() {
@@ -205,7 +206,6 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 	container.classList.add("spark-image-container");
 	
 	const img = document.createElement("img");
-	img.title = data.id;
 	img.dataset.id = data.id;
 	img.draggable = false; // important for event interaction
 	img.gbtype = gbtype;
@@ -228,10 +228,32 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 		{
 			img_text.innerText = gbf.get_lookup_names(data.id)[0].replace(" (SSR)", "");
 			img.title = img_text.innerText;
+			let char_len = img.title.length;
+			
+			if(data.id in index["premium"])
+			{
+				const id = index["premium"][data.id];
+				if(id in index.lookup && index.lookup[id].includes("/n"))
+				{
+					const wpn_name = gbf.get_lookup_names(id)[0];
+					img_text.innerHTML = img_text.innerText + "<br>" + wpn_name;
+					char_len = Math.max(char_len, wpn_name.length);
+				}
+			}
+			if(char_len > 15)
+			{
+				img_text.classList.add("spark-image-cycling-text");
+			}
+			else
+			{
+				img_text.classList.add("spark-image-text");
+			}
 		}
 		else
 		{
+			img.title = data.id;
 			img_text.innerText = "???";
+			img_text.classList.add("spark-image-text");
 		}
 		container.onclick = () => {
 			if(canvas_state > 0) // if canvas processing
@@ -258,9 +280,12 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 	img.src = data.path.replace("GBF/", gbf.endpoint());
 	container.appendChild(img);
 	
+	const img_text_wrap = document.createElement("div");
+	img_text_wrap.classList.add("spark-image-text-wrapper");
+	container.appendChild(img_text_wrap);
+	
 	const img_text = document.createElement("div");
-	img_text.classList.add("spark-image-text");
-	container.appendChild(img_text);
+	img_text_wrap.appendChild(img_text);
 	
 	node.appendChild(container);
 	return img;
@@ -878,12 +903,16 @@ function update_rate(to_update) // update ssr rate text
 			let c = 0; // total ssr count
 			let s = 0; // sparked
 			for(let i = 0; i < COUNT; ++i)
+			{
 				for(let j = 0; j < lists[i].length; ++j)
+				{
 					if(lists[i][j][1].style.display != "none")
 					{
 						if(lists[i][j][1].childNodes.length == 2) ++s;
 						else ++c;
 					}
+				}
+			}
 			if(v < c) v = c;
 			document.getElementById("spark-rate").innerHTML = "" + c + " / " + v + (s > 0 ? " +" + s + " sparked": "") + "<br>" + (Math.round(c / v * 1000) / 10) + "% SSR";
 		}
@@ -1032,7 +1061,7 @@ function spark_reset_results()
 {
 	for(let k in items)
 	{
-		items[k].style.display = null;
+		items[k].parentNode.style.display = null;
 	}
 }
 
@@ -1047,7 +1076,7 @@ function spark_apply_results(content) // apply the filter
 		let search_results = search.get_filtered_results();
 		for(let k in items) // hide everything
 		{
-			items[k].style.display = "none";
+			items[k].parentNode.style.display = "none";
 		}
 		for(let i = 0; i < search_results.length; ++i) // unhide all results
 		{
@@ -1057,7 +1086,9 @@ function spark_apply_results(content) // apply the filter
 				case GBFType.summon:
 				{
 					if(search_results[i][0] in items)
-						items[search_results[i][0]].style.display = null;
+					{
+						items[search_results[i][0]].parentNode.style.display = null;
+					}
 					break;
 				}
 				case GBFType.weapon:
@@ -1066,7 +1097,9 @@ function spark_apply_results(content) // apply the filter
 					{
 						const id = index["premium"][search_results[i][0]];
 						if(id in items)
-							items[id].style.display = null;
+						{
+							items[id].parentNode.style.display = null;
+						}
 					}
 					break;
 				}

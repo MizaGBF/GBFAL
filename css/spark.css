@@ -51,7 +51,7 @@
     -webkit-user-drag: none;
 }
 
-.spark-image-text {
+.spark-image-text-wrapper {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -59,20 +59,54 @@
 	padding: 0px;
 	margin: 5px;
 	margin-bottom: 0px;
-  
+	
 	background-image: linear-gradient(to right, #fffe00, #fff300, #ffe800, #ffdd00, #ffd200);
 	color: #000000;
+	font-family: monospace;
 	text-align: center;
-	font-size: 14px;
+	font-size: 15px;
 	font-weight: bold;
+	overflow-x: hidden;
+	overflow-y: visible;
 	white-space: wrap;
-
+	
 	opacity: 0; 
 	transition: opacity 0.1s ease-in-out;
+	will-change: transform;
 }
 
-.spark-image-container:hover .spark-image-text {
+.spark-image-text {
+}
+
+.spark-image-cycling-text {
+	width: max-content;
+	white-space: wrap;
+	flex-shrink: 0;
+	
+	animation-name: spark-image-cycling-animation;
+	animation-duration: calc(1s);
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	animation-direction: alternate;
+	animation-play-state: paused;
+	will-change: transform;
+}
+
+@keyframes spark-image-cycling-animation {
+	0%, 2% {
+		transform: translate3d(0%, 0, 0);
+	}
+	98%, 100% {
+		transform: translate3d(calc(-100% + 130px), 0, 0);
+	}
+}
+
+.spark-image-container:hover .spark-image-text-wrapper {
 	opacity: 1;
+}
+
+.spark-image-container:hover .spark-image-cycling-text {
+	animation-play-state: running;
 }
 
 #spark-main {
@@ -352,8 +386,12 @@ td {
 			contain-intrinsic-size: 60px;
 		}
 		
-		.spark-image-text {
-			width: 95px;
+		.spark-image-container:hover .spark-image-text-wrapper {
+			opacity: 0; /* disable in mobile */
+		}
+
+		.spark-image-container:hover .spark-image-cycling-text {
+			animation-play-state: paused; /* disable in mobile */
 		}
 
 		.spark-ui-element {
