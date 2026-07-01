@@ -83,7 +83,6 @@
 .spark-image-cycling-text {
 	width: max-content;
 	white-space: wrap;
-	flex-shrink: 0;
 	
 	animation-name: spark-image-cycling-animation;
 	animation-duration: 3s;
@@ -95,11 +94,11 @@
 }
 
 @keyframes spark-image-cycling-animation {
-	0%, 2% {
+	0%, 40% {
 		transform: translate3d(0%, 0, 0);
 	}
-	98%, 100% {
-		transform: translate3d(calc(-100% + 130px), 0, 0);
+	60%, 100% {
+		transform: translate3d(round(down, calc(-100% + 130px), 1px), 0, 0);
 	}
 }
 
