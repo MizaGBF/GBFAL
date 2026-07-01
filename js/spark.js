@@ -75,17 +75,14 @@ function start(changelog)
 {
 	search = new Search(
 		document.getElementById("spark-filter"),
-		null,
-		null,
 		{
-			"wpn":["", GBFType.weapon],
-			"sum":["", GBFType.summon],
-			"cha":["", GBFType.character]
-		},
-		null,
-		false,
-		false,
-		true
+			search_filters:{
+				"wpn":["", GBFType.weapon],
+				"sum":["", GBFType.summon],
+				"cha":["", GBFType.character]
+			},
+			simple_search:true
+		}
 	);
 	// add search event listeners
 	document.addEventListener('search-update', function() {

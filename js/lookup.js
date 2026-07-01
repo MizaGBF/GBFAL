@@ -109,27 +109,29 @@ function start(config, changelog)
 {
 	search = new Search(
 		document.getElementById("filter"),
-		document.getElementById("search-area"),
-		search_save_key,
 		{
-			"wpn":["Weapon", GBFType.weapon],
-			"sum":["Summon", GBFType.summon],
-			"cha":["Character", GBFType.character],
-			"skn":["Skin", "skins"],
-			"npc":["NPC", GBFType.npc],
-			"job":["Protagonist", GBFType.job],
-			"bss":["Enemy", GBFType.enemy]
-		},
-		[
-			GBFType.weapon,
-			GBFType.summon,
-			GBFType.character,
-			GBFType.npc,
-			GBFType.job,
-			GBFType.enemy
-		],
-		(config.allow_id_input ?? false),
-		true
+			search_result_node:document.getElementById("search-area"),
+			storage_key:search_save_key,
+			search_filters:{
+				"wpn":["Weapon", GBFType.weapon],
+				"sum":["Summon", GBFType.summon],
+				"cha":["Character", GBFType.character],
+				"skn":["Skin", "skins"],
+				"npc":["NPC", GBFType.npc],
+				"job":["Protagonist", GBFType.job],
+				"bss":["Enemy", GBFType.enemy]
+			},
+			relation_enabled:[
+				GBFType.weapon,
+				GBFType.summon,
+				GBFType.character,
+				GBFType.npc,
+				GBFType.job,
+				GBFType.enemy
+			],
+			allow_lookup:(config.allow_id_input ?? false),
+			allow_search_param:true
+		}
 	);
 	search.populate_search_area();
 	search.load_url_param();
