@@ -3940,7 +3940,7 @@ class Updater():
                                             if len(item.get("obtain", [])) > 0:
                                                 obtain = set(item["obtain"][0].split(","))
                                                 for banner in obtain:
-                                                    if banner.startswith("classic") or banner in {"flash", "premium"}:
+                                                    if banner.startswith(("classic","flash","premium","gala")):
                                                         weapon_associations[v] = eid
                                                         premium_lookup[str(eid)] = None
                                                         break
