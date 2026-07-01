@@ -39,6 +39,8 @@
 .spark-image-container {
 	position: relative;
 	display: inline-block;
+	content-visibility: auto-pointer-events; 
+    contain-intrinsic-size: 80px;
 }
 
 .spark-image {
@@ -379,6 +381,10 @@ td {
 		
 		.spark-tab-icon {
 			left: -10px;
+		}
+		
+		.spark-image-container {
+			contain-intrinsic-size: 60px;
 		}
 		
 		.spark-image {

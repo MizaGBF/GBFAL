@@ -220,7 +220,7 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 	const cid = data.id;
 	img.onload = (event) => {
 		img.classList.remove("loading");
-		img.classList.add("clickable");
+		container.classList.add("clickable");
 		if(gbf && index.lookup && data.id in index.lookup && index.lookup[data.id].includes("/n"))
 		{
 			img_text.innerText = gbf.get_lookup_names(data.id)[0].replace(" (SSR)", "");
