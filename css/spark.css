@@ -84,7 +84,7 @@
 	flex-shrink: 0;
 	
 	animation-name: spark-image-cycling-animation;
-	animation-duration: calc(1s);
+	animation-duration: 3s;
 	animation-timing-function: linear;
 	animation-iteration-count: infinite;
 	animation-direction: alternate;
