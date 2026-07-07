@@ -1,5 +1,5 @@
 {
-  "timestamp":1783412375327,
+  "timestamp":1783421238091,
   "new":{
     "2026-07-07":[
       [
@@ -41,6 +41,10 @@
       [
         "profile_bgs:10006",
         "profile_bgs"
+      ],
+      [
+        "250401",
+        7
       ]
     ],
     "2026-07-03":[
@@ -320,7 +324,7 @@
       ]
     ]
   },
-  "stat":"19,378 indexed elements, for ~703.6K files",
+  "stat":"19,378 indexed elements, for ~703.7K files",
   "issues":[],
   "help":false
 }
