@@ -1,6 +1,48 @@
 {
-  "timestamp":1783276708725,
+  "timestamp":1783412375327,
   "new":{
+    "2026-07-07":[
+      [
+        "profile_bgs:40016",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:40015",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:40014",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:40013",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:40012",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:40011",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:10009",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:10008",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:10007",
+        "profile_bgs"
+      ],
+      [
+        "profile_bgs:10006",
+        "profile_bgs"
+      ]
+    ],
     "2026-07-03":[
       [
         "2040458000",
@@ -276,15 +318,9 @@
         "1030010600",
         1
       ]
-    ],
-    "2026-06-21":[
-      [
-        "8105043",
-        4
-      ]
     ]
   },
-  "stat":"19,368 indexed elements, for ~703.6K files",
+  "stat":"19,378 indexed elements, for ~703.6K files",
   "issues":[],
   "help":false
 }
