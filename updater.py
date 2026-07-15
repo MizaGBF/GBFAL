@@ -825,7 +825,7 @@ class Updater():
         r : int
         ts : TaskStatus
         # jobs
-        """if self.job_list is not None:
+        if self.job_list is not None:
             jkeys = [k for k in list(self.job_list.keys()) if (k not in self.data['job'] or self.data['job'][k] == 0)]
             # Adding jobs added by other means
             for k in self.data['job']:
@@ -938,7 +938,7 @@ class Updater():
         for ss in ("ra", "rb", "rc"):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, "background", "{}"+ss, 2, ["img/sp/raid/bg/{}_1.jpg"]))"""
+                self.tasks.add(self.search_generic, parameters=(ts, "background", "{}"+ss, 2, ["img/sp/raid/bg/{}_1.jpg"]))
         bgt : tuple[str, str]
         for bgt in (("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc")):
             ts = TaskStatus(1000, 50)
@@ -946,7 +946,7 @@ class Updater():
                 self.tasks.add(self.search_generic_background, parameters=(ts, bgt[0], bgt[1]))
                 #self.tasks.add(self.search_generic, parameters=(ts, "background", bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
         # mypage island background
-        """for i in (range(0, 40), range(70, 75)):
+        for i in (range(0, 40), range(70, 75)):
             for j in i:
                 ts = TaskStatus(1000, 20)
                 self.tasks.add(self.search_generic, parameters=(ts, "mypage_bg", str(j).zfill(2) + "{}", 3, ["img/sp/mypage/town/{}/bg.jpg"]))
@@ -978,7 +978,7 @@ class Updater():
         # suptix
         ts = TaskStatus(1000, 15)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, "suptix", "{}", 1, ["img/sp/gacha/campaign/surprise/top_{}.jpg"]))"""
+            self.tasks.add(self.search_generic, parameters=(ts, "suptix", "{}", 1, ["img/sp/gacha/campaign/surprise/top_{}.jpg"]))
         # start the tasks
         await self.tasks.start()
 
