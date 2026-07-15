@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.71'
+VERSION = '3.72'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -825,7 +825,7 @@ class Updater():
         r : int
         ts : TaskStatus
         # jobs
-        if self.job_list is not None:
+        """if self.job_list is not None:
             jkeys = [k for k in list(self.job_list.keys()) if (k not in self.data['job'] or self.data['job'][k] == 0)]
             # Adding jobs added by other means
             for k in self.data['job']:
@@ -938,14 +938,15 @@ class Updater():
         for ss in ("ra", "rb", "rc"):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, "background", "{}"+ss, 2, ["img/sp/raid/bg/{}_1.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "background", "{}"+ss, 2, ["img/sp/raid/bg/{}_1.jpg"]))"""
         bgt : tuple[str, str]
-        for bgt in (("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc"), ("e", "r_3_a"), ("e", "r_4_a")):
+        for bgt in (("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc")):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, "background", bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
+                self.tasks.add(self.search_generic_background, parameters=(ts, bgt[0], bgt[1]))
+                #self.tasks.add(self.search_generic, parameters=(ts, "background", bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
         # mypage island background
-        for i in (range(0, 40), range(70, 75)):
+        """for i in (range(0, 40), range(70, 75)):
             for j in i:
                 ts = TaskStatus(1000, 20)
                 self.tasks.add(self.search_generic, parameters=(ts, "mypage_bg", str(j).zfill(2) + "{}", 3, ["img/sp/mypage/town/{}/bg.jpg"]))
@@ -977,7 +978,7 @@ class Updater():
         # suptix
         ts = TaskStatus(1000, 15)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, "suptix", "{}", 1, ["img/sp/gacha/campaign/surprise/top_{}.jpg"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "suptix", "{}", 1, ["img/sp/gacha/campaign/surprise/top_{}.jpg"]))"""
         # start the tasks
         await self.tasks.start()
 
@@ -1009,6 +1010,23 @@ class Updater():
                     except: # request failed
                         if j == len(paths) - 1: # if it was the last path
                             ts.bad()
+
+    # generic search for backgrounds
+    async def search_generic_background(self : Updater, ts : TaskStatus, prefix : str, suffix : str) -> None:
+        background = self.data["background"] # reference
+        while not ts.complete:
+            i : int = ts.get_next_index()
+            f : str = f"{prefix}{i:03}{suffix}"
+            if f not in background:
+                try:
+                    await self.head(f"{IMG}sp/raid/bg/{f}_1.jpg")
+                    ts.good()
+                    self.tasks.print("Found:", f, "for index:", "background")
+                    self.tasks.add(self.update_background, parameters=(f,), priority=3)
+                except:
+                    ts.bad()
+            else:
+                ts.good()
 
     # Search for enemies
     async def search_enemy(self : Updater, ts : TaskStatus, prefix : str) -> None:
@@ -1422,7 +1440,8 @@ class Updater():
             self.remove_from_uncap_queue(element_id)
 
     # Update Background data
-    async def update_background(self : Updater, element_id : str) -> None:
+    # Return True if the element exists, False otherwise
+    async def update_background(self : Updater, element_id : str) -> bool:
         backgrounds = self.data['background'] # reference
         modified : bool = False
         data : list[list[str]]
@@ -1430,11 +1449,11 @@ class Updater():
             if isinstance(backgrounds[element_id], list):
                 data = backgrounds[element_id]
             else:
-                data = [[]]
-        except: # it shouldn't fail, but just in case
+               raise Exception()
+        except:
             data = [[]]
         # 2 paths depending on the background file name (aka element_id)
-        if element_id.startswith("event_") or element_id.startswith("main_") or element_id.startswith("common_"):
+        if element_id.startswith(("event_", "main_", "common_")):
             path : str
             # set path
             if element_id.startswith("main_"):
@@ -1459,12 +1478,27 @@ class Updater():
                         self.add(f, ADD_BG)
                     except:
                         break
-        else: # type 2, these backgrouns always come 3 per 3 usually, no need to check
-            if len(data[0]) != 3:
-                data[0] = [element_id+"_1",element_id+"_2",element_id+"_3"]
-                modified = True
-                for f in data[0]: # set to changelog for each
-                    self.add(f, ADD_BG)
+        else: # type 2
+            i : int = 1
+            existing : set[str] = set(data[0])
+            while True:
+                found : bool = False
+                for s in ("", "_a", "_b", "_c", "_d", "_e"):
+                    try:
+                        f : str = f"{element_id}_{i}{s}"
+                        if f not in existing:
+                            await self.head(f"{IMG}sp/raid/bg/{f}.jpg")
+                            modified = True
+                            existing.add(f)
+                            self.add(f, ADD_BG)
+                        found = True
+                    except:
+                        pass
+                if i > 2 and not found:
+                    break
+                i += 1
+            if modified:
+                data[0] = list(existing)
         if modified:
             data[0].sort()
             self.modified = True
@@ -4250,6 +4284,17 @@ class Updater():
         self.tasks.add(self.update_all_event_thumbnail)
         await self.tasks.start()
 
+    # Called by maintenance or raise_flag
+    async def maintenance_generic_background(self : Updater) -> None:
+        if "maintenance_generic_background" in self.flags:
+            return
+        self.raise_flag("maintenance_generic_background")
+        self.tasks.print("Starting tasks to update known generic backgrounds...")
+        for k in self.data["background"]:
+            if not k.startswith(("event_", "main_", "common_")):
+                self.tasks.add(self.update_background, parameters=(k,), priority=0)
+        await self.tasks.start()
+
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
     async def update_event_skycompass(self : Updater, ev : str) -> None:
         known = set(self.data['events'][ev][EVENT_SKY])
@@ -4515,6 +4560,7 @@ class Updater():
                 self.tasks.add(self.maintenance_raid_appear, priority=0)
                 self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
+                self.tasks.add(self.maintenance_generic_background)
                 for element_id in ("1019", "6579"): # buffs to check for updates
                     self.tasks.add(self.prepare_update_buff, parameters=(element_id,), priority=0)
 
@@ -4681,6 +4727,7 @@ class Updater():
         maintenance.add_argument('-ms', '--maintenancesky', help="maintenance task to check sky compass arts for existing events.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mu', '--maintenancenpcthumbnail', help="maintenance task to check NPC thumbnails for existing NPCs.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mr', '--maintenanceraidappear', help="maintenance task to check Enemy Raid Appear spritesheets.", action='store_const', const=True, default=False, metavar='')
+        maintenance.add_argument('-mbg', '--maintenancebackground', help="maintenance task to update generic backgrounds.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-vl', '--valentine', help="rebuild valentine/white day list.", action='store_const', const=True, default=False, metavar='')
         
@@ -4806,6 +4853,7 @@ class Updater():
                 self.tasks.add(self.maintenance_npc_thumbnail)
                 self.tasks.add(self.maintenance_raid_appear)
                 self.tasks.add(self.maintenance_event_skycompass)
+                self.tasks.add(self.maintenance_generic_background)
                 await self.tasks.start()
             elif args.maintenancebuff:
                 await self.init_updater(wiki=True)
@@ -4820,6 +4868,9 @@ class Updater():
             elif args.maintenanceraidappear:
                 self.tasks.print("Performing maintenance...")
                 await self.maintenance_raid_appear()
+            elif args.maintenancebackground:
+                self.tasks.print("Performing maintenance...")
+                await self.maintenance_generic_background()
             elif args.json:
                 await self.lookup()
                 self.update_manual_fate()

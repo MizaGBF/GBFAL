@@ -56,17 +56,17 @@ This script is in charge of updating the JSON files.
   
 ### Usage
 ```console
-GBFAL Updater v3.63
+GBFAL Updater v3.72
 usage: updater.py [-h] [-r] [-u UPDATE [UPDATE ...]] [-j [FULL]]
                   [-jq [FULL ...]] [-sc [SCENE ...]]
                   [-si SCENEID [SCENEID ...]] [-sd [SOUND ...]]
                   [-sdi SOUNDID [SOUNDID ...]] [-ev [EVENT ...]]
                   [-fe FORCEEVENT [FORCEEVENT ...]] [-ne] [-st1 [LIMIT]]
                   [-st2 [LIMIT]] [-ft [FATES]] [-pt] [-mn] [-ij] [-ej] [-lk]
-                  [-fj] [-evj] [-mt] [-mb] [-ms] [-mu] [-mr] [-js] [-vl]
-                  [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH]
+                  [-fj] [-evj] [-mt] [-mb] [-ms] [-mu] [-mr] [-mbg] [-js]
+                  [-vl] [-au [ADDUNCAP ...]] [-nc] [-nr] [-if] [-da PATH]
 
-Asset Updater v3.63 for GBFAL https://mizagbf.github.io/GBFAL/
+Asset Updater v3.72 for GBFAL https://mizagbf.github.io/GBFAL/
 
 options:
   -h, --help            show this help message and exit
@@ -133,6 +133,8 @@ maintenance:
   -mr, --maintenanceraidappear
                         maintenance task to check Enemy Raid Appear
                         spritesheets.
+  -mbg, --maintenancebackground
+                        maintenance task to update generic backgrounds.
   -js, --json           import all manual JSON files.
   -vl, --valentine      rebuild valentine/white day list.
 
