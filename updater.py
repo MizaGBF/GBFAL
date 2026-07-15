@@ -934,16 +934,11 @@ class Updater():
         for j in range(5):
             self.tasks.add(self.search_generic, parameters=(ts, "background", "main_{}", 1, ["img/sp/guild/custom/bg/{}.png"]))
         # others
-        ss : str
-        for ss in ("ra", "rb", "rc"):
+        fn : str
+        for fn in ("{:02}ra", "{:02}rb", "{:02}rc", "e{:03}", "e{:03}r", "f{:03}", "f{:03}r", "f{:03}ra", "f{:03}rb", "f{:03}rc"):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic_background, parameters=(ts, "", ss, 2))
-        bgt : tuple[str, str]
-        for bgt in (("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc")):
-            ts = TaskStatus(1000, 50)
-            for j in range(5):
-                self.tasks.add(self.search_generic_background, parameters=(ts, bgt[0], bgt[1], 3))
+                self.tasks.add(self.search_generic_background, parameters=(ts, fn))
         # mypage island background
         for i in (range(0, 40), range(70, 75)):
             for j in i:
@@ -1011,11 +1006,10 @@ class Updater():
                             ts.bad()
 
     # generic search for backgrounds
-    async def search_generic_background(self : Updater, ts : TaskStatus, prefix : str, suffix : str, Z : int) -> None:
+    async def search_generic_background(self : Updater, ts : TaskStatus, filename : str) -> None:
         background = self.data["background"] # reference
         while not ts.complete:
-            i : str = str(ts.get_next_index()).zfill(Z)
-            f : str = f"{prefix}{i}{suffix}"
+            f : str = filename.format(ts.get_next_index())
             if f not in background:
                 try:
                     await self.head(f"{IMG}sp/raid/bg/{f}_1.jpg")
