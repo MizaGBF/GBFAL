@@ -938,13 +938,12 @@ class Updater():
         for ss in ("ra", "rb", "rc"):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, "background", "{}"+ss, 2, ["img/sp/raid/bg/{}_1.jpg"]))
+                self.tasks.add(self.search_generic_background, parameters=(ts, "", ss, 2))
         bgt : tuple[str, str]
         for bgt in (("e", ""), ("e", "r"), ("f", ""), ("f", "r"), ("f", "ra"), ("f", "rb"), ("f", "rc")):
             ts = TaskStatus(1000, 50)
             for j in range(5):
-                self.tasks.add(self.search_generic_background, parameters=(ts, bgt[0], bgt[1]))
-                #self.tasks.add(self.search_generic, parameters=(ts, "background", bgt[0]+"{}"+bgt[1], 3, ["img/sp/raid/bg/{}_1.jpg"]))
+                self.tasks.add(self.search_generic_background, parameters=(ts, bgt[0], bgt[1], 3))
         # mypage island background
         for i in (range(0, 40), range(70, 75)):
             for j in i:
@@ -1012,11 +1011,11 @@ class Updater():
                             ts.bad()
 
     # generic search for backgrounds
-    async def search_generic_background(self : Updater, ts : TaskStatus, prefix : str, suffix : str) -> None:
+    async def search_generic_background(self : Updater, ts : TaskStatus, prefix : str, suffix : str, Z : int) -> None:
         background = self.data["background"] # reference
         while not ts.complete:
-            i : int = ts.get_next_index()
-            f : str = f"{prefix}{i:03}{suffix}"
+            i : str = str(ts.get_next_index()).zfill(Z)
+            f : str = f"{prefix}{i}{suffix}"
             if f not in background:
                 try:
                     await self.head(f"{IMG}sp/raid/bg/{f}_1.jpg")
@@ -2721,7 +2720,7 @@ class Updater():
                     tmp.startswith("scene_cp")
                     and int(tmp[len("scene_cp"):].split("_", 1)[0]) < 90
                 )
-            ) else 2 
+            ) else 2
         )
         loop_err_limit = 60 if index == "story0" and element_id == "191" else 30
         stem_suffix : str
