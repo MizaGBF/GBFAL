@@ -2724,7 +2724,6 @@ class Updater():
             ) else 2 
         )
         loop_err_limit = 60 if index == "story0" and element_id == "191" else 30
-        suffix : str
         stem_suffix : str
         while not ts.complete:
             i : int = ts.get_next_index() # next ID to check
