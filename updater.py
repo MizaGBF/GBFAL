@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.72'
+VERSION = '3.73'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -3072,14 +3072,9 @@ class Updater():
                     else EVENT_MAX_CHAPTER
                 )
             )
-            extensions : list[str]
-            if element_id.isdigit() and int(element_id) >= 251229:
-                extensions = [".png", ".jpg"]
-            else:
-                extensions = [".png"]
             ts : TaskStatus
             # chapters
-            for ext in extensions:
+            for ext in (".png", ".jpg"):
                 if not no_prefix:
                     for i in range(0, ch_count+1):
                         fn = f"scene_{prefix}{name}_cp{i:02}"
@@ -3251,30 +3246,32 @@ class Updater():
             if k not in msq_data:
                 if k not in msq_data:
                     msq_data[k] = [[]]
-                ts : TaskStatus
-                f : str
-                match k[0]:
-                    case "r":
-                        ts = TaskStatus(200, 10, running=10)
-                        f = "_skip" + MSQ_SPECIALS[arc][k]
-                    case "c":
-                        ts = TaskStatus(200, 10, running=10)
-                        f = MSQ_SPECIALS[arc][k]
-                    case _:
-                        match k:
-                            case "191": # ending I
-                                ts = TaskStatus(200, 10, running=10)
-                                f = MSQ_SPECIALS[arc][k]
-                            case _:
-                                continue
                 existing = set(msq_data[k][STORY_CONTENT])
-                for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene" + f, existing), priority=2)
+                for ext in (".png", ".jpg"):
+                    ts : TaskStatus
+                    f : str
+                    match k[0]:
+                        case "r":
+                            ts = TaskStatus(200, 10, running=10)
+                            f = "_skip" + MSQ_SPECIALS[arc][k]
+                        case "c":
+                            ts = TaskStatus(200, 10, running=10)
+                            f = MSQ_SPECIALS[arc][k]
+                        case _:
+                            match k:
+                                case "191": # ending I
+                                    ts = TaskStatus(200, 10, running=10)
+                                    f = MSQ_SPECIALS[arc][k]
+                                case _:
+                                    continue
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene" + f, existing, ext), priority=2)
         # chapters
         for i in range(0, limit + 1):
             element_id = str(i).zfill(3)
             if element_id not in msq_data and element_id not in MSQ_SPECIALS[arc]:
-                msq_data[element_id] = [[]]
+                if element_id not in msq_data:
+                    msq_data[element_id] = [[]]
                 # set file name
                 match arc:
                     case 1:
@@ -3289,14 +3286,15 @@ class Updater():
                             fn = f"scene_cp{i}"
                     case _:
                         break
-                ts = TaskStatus(200, 10, running=10)
                 existing = set(msq_data[element_id][STORY_CONTENT])
-                for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn, existing), priority=2)
-                for q in range(1, 6):
+                for ext in (".png", ".jpg"):
                     ts = TaskStatus(200, 10, running=10)
                     for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn + "_q" + str(q), existing), priority=2)
+                        self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn, existing, ext), priority=2)
+                    for q in range(1, 6):
+                        ts = TaskStatus(200, 10, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn + "_q" + str(q), existing, ext), priority=2)
         await self.tasks.start()
 
     ### Fate #################################################################################################################
@@ -3364,26 +3362,27 @@ class Updater():
     async def check_fate(self : Updater, element_id : str, index : int, fid : str, nameA : str|None, epA_check : bool, nameB : str|None, epB_check : bool) -> None:
         ts : TaskStatus
         existing = set(self.data['fate'].get(fid, [[], [], [], [], None])[index])
-        if nameA is not None:
-            # nameA
-            ts = TaskStatus(200, 5, running=10)
-            for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameA, existing), priority=2)
-            if epA_check:
-                for q in range(1, 5):
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q), existing), priority=2)
-        if nameB is not None:
-            # nameB
-            ts = TaskStatus(200, 5, running=10)
-            for n in range(10):
-                self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameB, existing), priority=2)
-            if epB_check:
-                for q in range(1, 5):
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q), existing), priority=2)
+        for ext in (".png", ".jpg"):
+            if nameA is not None:
+                # nameA
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameA, existing, ext), priority=2)
+                if epA_check:
+                    for q in range(1, 5):
+                        ts = TaskStatus(200, 5, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q), existing, ext), priority=2)
+            if nameB is not None:
+                # nameB
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameB, existing, ext), priority=2)
+                if epB_check:
+                    for q in range(1, 5):
+                        ts = TaskStatus(200, 5, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q), existing, ext), priority=2)
 
     # Update all fate data (or the ones specified)
     # param can be:
@@ -3422,7 +3421,7 @@ class Updater():
         fate_data = self.data['fate'] # reference
         for fid, v in fate_data.items():
             if not fid.isdigit() and len(v[0])+len(v[1])+len(v[2])+len(v[3]) == 0: # id not digit and data empty
-                self.tasks.add(self.check_fate, parameters=(fid, FATE_UNCAP_CONTENT, fid, f"scene_ult_{fid}", True, None, False)) # only check this one for now
+                self.tasks.add(self.check_fate, parameters=(fid, FATE_UNCAP_CONTENT, fid, f"scene_ult_{fid}", True, None, False)) # only check this one for now     
         # chapters
         chara_data = self.data['characters'] # reference
         for i in range(min_chapter, max_chapter+1):
