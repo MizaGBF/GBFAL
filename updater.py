@@ -3421,7 +3421,7 @@ class Updater():
         fate_data = self.data['fate'] # reference
         for fid, v in fate_data.items():
             if not fid.isdigit() and len(v[0])+len(v[1])+len(v[2])+len(v[3]) == 0: # id not digit and data empty
-                self.tasks.add(self.check_fate, parameters=(fid, FATE_UNCAP_CONTENT, fid, f"scene_ult_{fid}", True, None, False)) # only check this one for now     
+                self.tasks.add(self.check_fate, parameters=(fid, FATE_UNCAP_CONTENT, fid, f"scene_ult_{fid}", True, None, False)) # only check this one for now
         # chapters
         chara_data = self.data['characters'] # reference
         for i in range(min_chapter, max_chapter+1):
