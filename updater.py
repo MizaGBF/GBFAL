@@ -18,7 +18,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.73'
+VERSION = '3.74'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -1429,6 +1429,7 @@ class Updater():
             self.modified = True
             enemies[element_id] = data
             self.add(element_id, ADD_BOSS)
+            self.raise_flag("found_enemy")
             self.tasks.print("Updated:", element_id, "for index:", 'enemies')
             self.remove_from_uncap_queue(element_id)
 
@@ -4540,6 +4541,16 @@ class Updater():
     def raise_flag(self : Updater, flag : str) -> None:
         self.flags.add(flag)
         if "run_process" in self.flags:
+            if (
+                (
+                    "found_character" in self.flags
+                    or "found_enemy" in self.flags
+                    or "found_buff" in self.flags
+                )
+                and "checking_buff" not in self.flags
+            ):
+                self.flags.add("checking_buff")
+                self.tasks.add(self.maintenance_buff, priority=1)
             if "found_character" in self.flags and "checking_event" not in self.flags:
                 self.flags.add("checking_event")
                 self.tasks.print("Adding tasks to check for new events and fate episodes...")
