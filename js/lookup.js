@@ -329,8 +329,8 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
 						{type:1, paths:[["sp/cjs/", "png"]], special_index:"sprite", lazy:false},
-						{name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:DataIdx.WEAP_PHIT, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
-						{name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:DataIdx.WEAP_SP, icon:"../GBFML/assets/ui/icon/ca.png", filename:true}
+						{name:"Attack Effects", paths:[["sp/cjs/", "png"]], index:DataIdx.WEAP_PHIT, icon:"../GBFML/assets/ui/icon/auto.png"},
+						{name:"Charge Attack Effects", paths:[["sp/cjs/", "png"]], index:DataIdx.WEAP_SP, icon:"../GBFML/assets/ui/icon/ca.png"}
 					]
 				},
 				{
@@ -393,7 +393,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Skycompass",
 					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
 					assets:[
-						{type:2, paths:[["https://media.skycompass.io/assets/archives/summons/", "/detail_l.png"], ["https://media.skycompass.io/assets/archives/summons/", "/detail_s.png"], ["https://media.skycompass.io/assets/archives/summons/", "/list.png"]], special_index:"skycompass_base"}
+						{type:2, paths:[["assets/archives/summons/", "/detail_l.png"], ["assets/archives/summons/", "/detail_s.png"], ["assets/archives/summons/", "/list.png"]], special_index:"skycompass_base"}
 					]
 				},
 				{
@@ -415,9 +415,9 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Sprites",
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
-						{name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_CALL, icon:"../GBFML/assets/ui/icon/summon_call.png", filename:true},
-						{name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_DAMAGE, icon:"../GBFML/assets/ui/icon/summon_call.png", filename:true},
-						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png", filename:true}
+						{name:"Summon Call Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_CALL, icon:"../GBFML/assets/ui/icon/summon_call.png"},
+						{name:"Summon Damage Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_DAMAGE, icon:"../GBFML/assets/ui/icon/summon_call.png"},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.SUM_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png"}
 					]
 				},
 				{
@@ -452,7 +452,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/ui/btn_plus.png",
 					assets:[
 						{name:"Profile Room", paths:[["sp/assets/npc/profile/", "png"]], icon:"../GBFML/assets/ui/icon/home.png", index:DataIdx.CHARA_GENERAL, lazy:true},
-						{type:2, name:"Skycompass", paths:[["https://media.skycompass.io/assets/customizes/characters/1138x1138/", ".png"]], icon:"../GBFML/assets/ui/icon/skycompass_alpha.png", index:DataIdx.CHARA_GENERAL, lazy:true}
+						{type:2, name:"Skycompass", paths:[["assets/customizes/characters/1138x1138/", ".png"]], icon:"../GBFML/assets/ui/icon/skycompass_alpha.png", index:DataIdx.CHARA_GENERAL, lazy:true}
 					]
 				},
 				{
@@ -481,20 +481,20 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
 						{type:1, paths:[["sp/gacha/assets/balloon_s/", "png"], ["sp/assets/npc/sd/", "png"]], index:DataIdx.CHARA_SD, form:false, lazy:false},
-						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", filename:true, index:DataIdx.CHARA_SPRITE},
-						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_PHIT, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
-						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_SP, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
-						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_AB_ALL, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
-						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_AB, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
-						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png", filename:true}
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", index:DataIdx.CHARA_SPRITE},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_PHIT, icon:"../GBFML/assets/ui/icon/auto.png"},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_SP, icon:"../GBFML/assets/ui/icon/ca.png"},
+						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_AB_ALL, icon:"../GBFML/assets/ui/icon/skill.png"},
+						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_AB, icon:"../GBFML/assets/ui/icon/skill.png"},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.CHARA_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png"}
 					]
 				},
 				{
 					name:"Scenes",
 					icon:"../GBFML/assets/ui/icon/scene.png",
 					assets:[
-						{type:3, index:DataIdx.CHARA_SCENE, bubble:0, filename:true},
-						{type:3, index:DataIdx.CHARA_SCENE, bubble:1, filename:true}
+						{type:3, index:DataIdx.CHARA_SCENE, bubble:0},
+						{type:3, index:DataIdx.CHARA_SCENE, bubble:1}
 					]
 				},
 				{
@@ -573,8 +573,8 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/ui/icon/journal.png",
 					assets:[
 						{type:1, paths:[["sp/assets/npc/m/", "jpg"],["sp/assets/npc/zoom/", "png"],["sp/assets/npc/b/", "png"]], special_index:"use_files", open:allow_open, hidden:true, lazy:false},
-						{type:3, index:DataIdx.NPC_SCENE, bubble:0, filename:true},
-						{type:3, index:DataIdx.NPC_SCENE, bubble:1, filename:true}
+						{type:3, index:DataIdx.NPC_SCENE, bubble:0},
+						{type:3, index:DataIdx.NPC_SCENE, bubble:1}
 					]
 				},
 				{
@@ -608,11 +608,11 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"",
 					assets:[
 						{name:"Icons", paths:[["sp/assets/enemy/m/", "png"], ["sp/assets/enemy/s/", "png"]], index:DataIdx.BOSS_GENERAL, icon:"../GBFML/assets/ui/icon/eicon.png", open:allow_open},
-						{name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_APPEAR, icon:"../GBFML/assets/ui/icon/appear.png", open:allow_open, filename:true},
-						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SPRITE, icon:"../GBFML/assets/ui/icon/spritesheet.png", filename:true},
-						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_HIT, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
-						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
-						{name:"AOE Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP_ALL, icon:"../GBFML/assets/ui/icon/ca.png", filename:true}
+						{name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_APPEAR, icon:"../GBFML/assets/ui/icon/appear.png", open:allow_open},
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SPRITE, icon:"../GBFML/assets/ui/icon/spritesheet.png"},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_HIT, icon:"../GBFML/assets/ui/icon/auto.png"},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP, icon:"../GBFML/assets/ui/icon/ca.png"},
+						{name:"AOE Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP_ALL, icon:"../GBFML/assets/ui/icon/ca.png"}
 					]
 				}
 			];
@@ -636,7 +636,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/ui/btn_plus.png",
 					assets:[
 						{name:"Profile Room", paths:[["sp/assets/leader/profile/", "png"]], icon:"../GBFML/assets/ui/icon/home.png", index:DataIdx.JOB_DETAIL_ALT, lazy:true},
-						{type:2, name:"Skycompass", paths:[["https://media.skycompass.io/assets/customizes/jobs/1138x1138/", ".png"]], icon:"../GBFML/assets/ui/icon/skycompass_alpha.png", special_index:"skycompass_main_character", lazy:true}
+						{type:2, name:"Skycompass", paths:[["assets/customizes/jobs/1138x1138/", ".png"]], icon:"../GBFML/assets/ui/icon/skycompass_alpha.png", special_index:"skycompass_main_character", lazy:true}
 					]
 				},
 				{
@@ -678,15 +678,15 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Sprites",
 					icon:"../GBFML/assets/ui/icon/sprite.png",
 					assets:[
-						{name:"Sprites", paths:[["sp/assets/leader/sd/", "png"]], icon:"../GBFML/assets/ui/icon/sprite.png", index:DataIdx.JOB_DETAIL_ALL, filename:true},
-						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", index:DataIdx.JOB_SPRITE, filename:true},
-						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_PHIT, icon:"../GBFML/assets/ui/icon/auto.png", filename:true},
-						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_SP, icon:"../GBFML/assets/ui/icon/ca.png", filename:true},
-						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_AB_ALL, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
-						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_AB, icon:"../GBFML/assets/ui/icon/skill.png", filename:true},
-						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png", filename:true},
-						{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_UNLOCK, icon:"../GBFML/assets/ui/icon/lock.png", filename:true},
-						{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], special_index:"custom_class_skill", icon:"../GBFML/assets/ui/icon/custom.png", hidden:true, lazy:false, filename:true}
+						{name:"Sprites", paths:[["sp/assets/leader/sd/", "png"]], icon:"../GBFML/assets/ui/icon/sprite.png", index:DataIdx.JOB_DETAIL_ALL},
+						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], icon:"../GBFML/assets/ui/icon/spritesheet.png", index:DataIdx.JOB_SPRITE},
+						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_PHIT, icon:"../GBFML/assets/ui/icon/auto.png"},
+						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_SP, icon:"../GBFML/assets/ui/icon/ca.png"},
+						{name:"AOE Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_AB_ALL, icon:"../GBFML/assets/ui/icon/skill.png"},
+						{name:"Single Target Skill Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_AB, icon:"../GBFML/assets/ui/icon/skill.png"},
+						{name:"Home Page Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_MYPAGE, icon:"../GBFML/assets/ui/icon/home.png"},
+						{name:"Unlock Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.JOB_UNLOCK, icon:"../GBFML/assets/ui/icon/lock.png"},
+						{name:"Custom Skill Previews", paths:[["sp/assets/leader/sd_ability/", "png"]], special_index:"custom_class_skill", icon:"../GBFML/assets/ui/icon/custom.png", hidden:true, lazy:false}
 					]
 				}
 			];
@@ -700,7 +700,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"",
 					icon:"",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.STORY_CONTENT, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.STORY_CONTENT}
 					]
 				}
 			];
@@ -714,7 +714,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"",
 					icon:"",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.STORY_CONTENT, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.STORY_CONTENT}
 					]
 				}
 			];
@@ -729,28 +729,28 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Base",
 					icon:"../GBFML/assets/ui/icon/art.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_CONTENT, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_CONTENT}
 					]
 				},
 				{
 					name:"Uncap",
 					icon:"../GBFML/assets/ui/icon/uncap.png",
 					assets:[
-						{type:1, name:"Uncap Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_UNCAP_CONTENT, filename:true}
+						{type:1, name:"Uncap Arts", paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_UNCAP_CONTENT}
 					]
 				},
 				{
 					name:"Transcendence",
 					icon:"../GBFML/assets/ui/icon/transcendence.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_TRANSCENDENCE_CONTENT, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_TRANSCENDENCE_CONTENT}
 					]
 				},
 				{
 					name:"Others",
 					icon:"../GBFML/assets/ui/icon/party.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_OTHER_CONTENT, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.FATE_OTHER_CONTENT}
 					]
 				}
 			];
@@ -767,14 +767,14 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					assets:[
 						{type:6, paths:[["sp/archive/assets/island_m2/", ".png"], ["sp/archive/assets/island_m3/", ".png"]], lazy:false},
 						{type:7, paths:[["sp/sidestory/assets/story_banner/story_", ".png"], ["sp/sidestory/assets/pop_image/story_", ".png"], ["sp/sidestory/story", "/assets/header/bg_header.jpg"]], lazy:false},
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_INT, lazy:false, filename:true},
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_INT, lazy:false},
 					]
 				},
 				{
 					name:"Opening",
 					icon:"../GBFML/assets/ui/icon/scene_op.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_OP, lazy:false, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_OP, lazy:false}
 					]
 				}
 			];
@@ -784,7 +784,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Chapter " + (i+1),
 					icon:"../GBFML/assets/ui/icon/scene_" + ("" + (i + 1)).padStart(2, "0") + ".png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_CHAPTER_START + i, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_CHAPTER_START + i}
 					]
 				});
 			}
@@ -793,14 +793,14 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					name:"Ending",
 					icon:"../GBFML/assets/ui/icon/scene_end.png",
 					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_ED, filename:true}
+						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_ED}
 					]
 				},
 				{
 					name:"Skycompass",
 					icon:"../GBFML/assets/ui/icon/skycompass_alpha.png",
 					assets:[
-						{type:2, paths:[["https://media.skycompass.io/assets/archives/events/"+data[DataIdx.EVENT_THUMB]+"/image/", "_free.png"]], index:DataIdx.EVENT_SKY, filename:true}
+						{type:2, paths:[["assets/archives/events/"+data[DataIdx.EVENT_THUMB]+"/image/", "_free.png"]], index:DataIdx.EVENT_SKY}
 					]
 				},
 			]);
@@ -1356,32 +1356,7 @@ function add_skycompass_assets(node, id, asset, files)
 			{
 				continue;
 			}
-			const ref = add_to(node, "a");
-			ref.target = "_blank";
-			ref.rel = "noopener noreferrer";
-			const img = add_to(ref, "img", {
-				cls:["loading", "skycompass"],
-				onerror:() => {
-					clean_asset(
-						node,
-						img,
-						{
-							html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Sky Compass arts.",
-							clear_parent:false
-						}
-					);
-				},
-				onload:() => {
-					img.classList.toggle("loading", false);
-				}
-			});
-			img.src = path[0] + file + path[1];
-			if(asset.lazy ?? true)
-			{
-				img.loading = "lazy";
-			}
-			ref.setAttribute('href', img.src);
-			node.element_counter++;
+			add_image(node, id, file, asset, path, true);
 		}
 	}
 	return true;
@@ -1442,7 +1417,7 @@ function create_result(asset)
 }
 
 // add an image asset
-function add_image(node, id, file, asset, path)
+function add_image(node, id, file, asset, path, skycompass=false)
 {
 	if(typeof node.element_counter == "undefined")
 	{
@@ -1464,8 +1439,11 @@ function add_image(node, id, file, asset, path)
 		cls:["loading", ((asset.small ?? false) ? "asset-small" : "asset")]
 	});
 	// set path
-	// note: old code, might be worth cleaning up later
-	if(file.endsWith(".png") || file.endsWith(".jpg")) // if extension is already set
+	if(skycompass)
+	{
+		img.src = gbf.skycompass_endpoint() + path[0] + file + path[1];
+	}
+	else if(file.endsWith(".png") || file.endsWith(".jpg")) // if extension is already set
 	{
 		img.src = gbf.endpoint() + "assets_en/img_low/" + path[0] + file;
 	}
@@ -1491,32 +1469,47 @@ function add_image(node, id, file, asset, path)
 	}
 	// set events
 	img.onerror = () => {
-		switch(asset.name)
+		if(skycompass)
 		{
-			case "Profile Room":
+			clean_asset(
+				node,
+				img,
+				{
+					html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Sky Compass arts.",
+					clear_parent:false
+				}
+			);
+		}
+		else
+		{
+			switch(asset.name)
 			{
-				clean_asset(
-					node,
-					ref,
-					{
-						html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Profile Room arts.",
-						clear_parent:false
-					}
-				);
-				break;
-			}
-			default:
-			{
-				clean_asset(
-					node,
-					ref
-				);
-				break;
+				case "Profile Room":
+				{
+					clean_asset(
+						node,
+						ref,
+						{
+							html:"Sorry, nothing is available.<br/>Note: Collaborations don't have Profile Room arts.",
+							clear_parent:false
+						}
+					);
+					break;
+				}
+				default:
+				{
+					clean_asset(
+						node,
+						ref
+					);
+					break;
+				}
 			}
 		}
 	};
 	img.onload = () => {
 		img.classList.toggle("loading", false);
+		img.classList.toggle("asset-skycompass", skycompass);
 		img.onload = null;
 		ref.style.display = "";
 		// make text visible
@@ -1525,17 +1518,14 @@ function add_image(node, id, file, asset, path)
 			img.text_node.style.display = "";
 		}
 	};
-	// add filename if set
-	if(asset.filename ?? false)
-	{
-		// text class
-		let txt = add_to(ref, "div", {
-			cls:[((asset.small ?? false) ? "asset-text-small" : "asset-text")],
-			innertext: img.src.split("/").pop().split(".")[0].replaceAll(id, "").replaceAll("_", " ").trim()
-		});
-		txt.style.display = "none";
-		img.text_node = txt; // add it to img text_node
-	}
+	// add filename
+	const txt = add_to(ref, "div", {
+		cls:["asset-text", ((asset.small ?? false) ? "asset-text-small" : "asset-text-big")],
+		innertext: img.src.split("/").pop().replaceAll("_", " ").trim()
+	});
+	txt.classList.toggle("asset-text-sky", skycompass);
+	txt.style.display = "none";
+	img.text_node = txt;
 	// increase counter
 	node.element_counter++;
 	// for mypage and profile previews
