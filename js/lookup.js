@@ -442,7 +442,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					assets:[
 						{type:1, paths:[["sp/assets/npc/zoom/", "png"]], index:DataIdx.CHARA_GENERAL, form:false, open:allow_open},
 						{name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/journal.png", form:false},
-						{name:"Gacha Arts", paths:[["sp/gacha/npcjoincutin/", "png"]], special_index:"gacha_join", icon:"../GBFML/assets/ui/icon/crystal.png", form:false, lazy:false},
+						{name:"Gacha Arts", paths:[["sp/gacha/npcjoincutin/", "png"]], special_index:"gacha_join", icon:"../GBFML/assets/ui/icon/crystal.png", form:false},
 						{name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:DataIdx.CHARA_SD, icon:"../GBFML/assets/ui/icon/other_category.png", form:false},
 						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/cb.png", form:false}
 					]
@@ -955,10 +955,10 @@ function load_assets(id, data, type, target, indexed, allow_open)
 				case 4: // scenes with details
 				{
 					files = get_file_list(id, data, page.assets[j], files, melee);
-					const [details, div] = create_result(page.assets[j]);
+					const [section, div] = create_section(page.assets[j]);
 					if(add_scene_assets(div, id, page.assets[j], files))
 					{
-						tab_containers[i][1].appendChild(details);
+						tab_containers[i][1].appendChild(section);
 						tab_containers[i][1].element_counter++;
 					}
 					break;
@@ -974,9 +974,9 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					if((page.assets[j].name ?? null) != null)
 					{
 						files = get_file_list(id, data, page.assets[j], files, melee);
-						const [details, div] = create_result(page.assets[j]);
+						const [section, div] = create_section(page.assets[j]);
 						add_skycompass_assets(div, id, page.assets[j], files);
-						tab_containers[i][1].appendChild(details);
+						tab_containers[i][1].appendChild(section);
 						tab_containers[i][1].element_counter++;
 					}
 					else
@@ -995,10 +995,10 @@ function load_assets(id, data, type, target, indexed, allow_open)
 				default:
 				{
 					files = get_file_list(id, data, page.assets[j], files, melee);
-					const [details, div] = create_result(page.assets[j]);
+					const [section, div] = create_section(page.assets[j]);
 					if(add_assets(div, id, page.assets[j], files))
 					{
-						tab_containers[i][1].appendChild(details);
+						tab_containers[i][1].appendChild(section);
 						tab_containers[i][1].element_counter++;
 					}
 					break;
@@ -1283,10 +1283,9 @@ function clean_asset(
 	if(container.element_counter == 0)
 	{
 		// check for main tab
-		const parent_node = container.parentNode;
-		if(parent_node.tagName == "DETAILS")
+		if(typeof container.related_header != "undefined")
 		{
-			const tab_container = parent_node.parentNode;
+			const tab_container = container.related_header.parentNode;
 			if(clear_parent)
 			{
 				tab_container.element_counter--;
@@ -1304,7 +1303,7 @@ function clean_asset(
 				}
 				else
 				{
-					parent_node.remove();
+					container.related_header.remove();
 				}
 			}
 			else
@@ -1390,6 +1389,70 @@ function add_scene_assets(node, id, asset, suffixes)
 	let clone = {...asset};
 	clone.paths = [path];
 	return add_assets(node, id, clone, files);
+}
+
+// add the section header and container to put assets under
+function create_section(asset)
+{
+	const div = add_to(
+		null,
+		"div",
+		{
+			cls:["asset-section"]
+		}
+	);
+	// toggle button
+	const btn = add_to(
+		div,
+		"button",
+		{
+			cls:["asset-section-button"],
+			innertext:"+"
+		}
+	);
+	// text
+	const header = add_to(
+		div,
+		"div",
+		{
+			cls:["asset-section-header"]
+		}
+	);
+	// add icon
+	const icon = asset.icon ?? null;
+	if(icon != null && icon != "")
+	{
+		add_to(header, "img", {
+			cls:["result-icon"]
+		}).src = icon;
+	}
+	// set text
+	header.appendChild(document.createTextNode(asset.name));
+	// prepare container
+	const container = add_to(
+		null,
+		"div",
+		{
+			cls:["container"]
+		}
+	);
+	div.asset_container = container;
+	div.asset_container.related_header = div;
+	// toggle logic
+	btn.onclick = () => {
+		if(btn.innerText == "+")
+		{
+			div.after(div.asset_container);
+			btn.innerText = "-";
+		}
+		else
+		{
+			div.asset_container.remove();
+			btn.innerText = "+";
+		}
+		beep();
+	};
+	return [div, div.asset_container];
 }
 
 // add a detail element to put assets under
