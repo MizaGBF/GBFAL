@@ -119,7 +119,8 @@ function start(config, changelog)
 				"skn":["Skin", "skins"],
 				"npc":["NPC", GBFType.npc],
 				"job":["Protagonist", GBFType.job],
-				"bss":["Enemy", GBFType.enemy]
+				"bss":["Enemy", GBFType.enemy],
+				"evt":["Event", GBFType.event],
 			},
 			relation_enabled:[
 				GBFType.weapon,
@@ -127,10 +128,11 @@ function start(config, changelog)
 				GBFType.character,
 				GBFType.npc,
 				GBFType.job,
-				GBFType.enemy
+				GBFType.enemy,
 			],
 			allow_lookup:(config.allow_id_input ?? false),
-			allow_search_param:true
+			allow_search_param:true,
+			evt_lookup:"evt_lookup"
 		}
 	);
 	search.populate_search_area();

@@ -177,7 +177,6 @@ SCENE_BASE_LIST : list[str] = (
     + SCENE_SUFFIXES.get("default", {}).get("unique", [])
 )
 
-
 # Handle tasks
 @dataclass(slots=True)
 class TaskManager():
@@ -476,6 +475,7 @@ class Updater():
             "sky_title":{},
             "suptix":{},
             "lookup":{},
+            "evt_lookup":{},
             'events':{},
             "skills":{},
             "subskills":{},
@@ -3162,6 +3162,7 @@ class Updater():
         try:
             with open("json/manual_event.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
+            updated_lookup : dict[str, list[str]] = {}
             # check if must be updated
             updated : bool = False
             for event_id in self.data['eventthumb']:
@@ -3188,6 +3189,28 @@ class Updater():
                 if not isinstance(evdata, int):
                     table[element_id] = [None, None, ""] # thumb_id, side_id
             for thumb_id, obj in data.items():
+                # lookup string
+                if (
+                    len(obj["event_ids"]) > 0
+                    and obj.get("name", None) is not None
+                    and obj["name"] != ""
+                ):
+                    lookup_name : str = (
+                        obj["name"]
+                        .lower()
+                        .replace(",", " ")
+                        .replace(".", " ")
+                        .replace("!", " ")
+                        .replace("?", " ")
+                        .replace(" - ", " ")
+                        .replace("  ", " ")
+                        .replace("  ", " ")
+                        .strip()
+                    )
+                    if lookup_name not in updated_lookup:
+                        updated_lookup[lookup_name] = []
+                    updated_lookup[lookup_name] = obj["event_ids"]
+                # processing data
                 side_id : str|None = obj["sidestory_id"]
                 ev_name : str = obj["name"]
                 for element_id in obj["event_ids"]:
@@ -3225,6 +3248,14 @@ class Updater():
                 with open("json/manual_event.json", mode="w", encoding="utf-8") as f:
                     json.dump(data, f, separators=(',', ':'), ensure_ascii=False, indent=0)
                 self.tasks.print("json/manual_event.json updated")
+            # update event lookup
+            keys : list[str] = list(updated_lookup.keys())
+            keys.sort()
+            updated_lookup = {k : updated_lookup[k] for k in keys}
+            if updated_lookup != self.data["evt_lookup"]:
+                self.data["evt_lookup"] = updated_lookup
+                self.modified = True
+                self.tasks.print("Event lookup has been updated")
         except Exception as e:
             self.tasks.print(e)
             self.tasks.print("An unexpected error occured while processing json/manual_event.json")
