@@ -1455,30 +1455,6 @@ function create_section(asset)
 	return [div, div.asset_container];
 }
 
-// add a detail element to put assets under
-function create_result(asset)
-{
-	const details = add_to(null, "details");
-	details.open = asset.open ?? false;
-	
-	const summary = add_to(details, "summary", {
-		cls:["detail"]
-	});
-	const icon = asset.icon ?? null;
-	if(icon != null && icon != "")
-	{
-		add_to(summary, "img", {
-			cls:["result-icon"]
-		}).src = icon;
-	}
-	summary.appendChild(document.createTextNode(asset.name));
-	
-	const div = add_to(details, "div", {
-		cls:["container"]
-	});
-	return [details, div];
-}
-
 // add an image asset
 function add_image(node, id, file, asset, path, skycompass=false)
 {
