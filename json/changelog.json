@@ -1,6 +1,16 @@
 {
-  "timestamp":1784218645984,
+  "timestamp":1784385303477,
   "new":{
+    "2026-07-18":[
+      [
+        "3050001000",
+        5
+      ],
+      [
+        "3050000000",
+        5
+      ]
+    ],
     "2026-07-16":[
       [
         "1010",
@@ -1435,52 +1445,6 @@
       [
         "3040159000",
         3
-      ]
-    ],
-    "2026-07-07":[
-      [
-        "profile_bgs:40016",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:40015",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:40014",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:40013",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:40012",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:40011",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:10009",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:10008",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:10007",
-        "profile_bgs"
-      ],
-      [
-        "profile_bgs:10006",
-        "profile_bgs"
-      ],
-      [
-        "250401",
-        7
       ]
     ]
   },
