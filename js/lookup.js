@@ -443,8 +443,8 @@ function load_assets(id, data, type, target, indexed, allow_open)
 						{type:1, paths:[["sp/assets/npc/zoom/", "png"]], index:DataIdx.CHARA_GENERAL, form:false, open:allow_open},
 						{name:"Journal Arts", paths:[["sp/assets/npc/b/", "png"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/journal.png", form:false},
 						{name:"Gacha Arts", paths:[["sp/gacha/npcjoincutin/", "png"]], special_index:"gacha_join", icon:"../GBFML/assets/ui/icon/crystal.png", form:false},
-						{name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:DataIdx.CHARA_SD, icon:"../GBFML/assets/ui/icon/other_category.png", form:false},
-						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/cb.png", form:false}
+						{name:"Cut-in Arts", paths:[["sp/assets/npc/cutin_special/", "jpg"], ["sp/assets/npc/raid_chain/", "jpg"]], index:DataIdx.CHARA_GENERAL, icon:"../GBFML/assets/ui/icon/cb.png", form:false},
+						{name:"Miscellaneous Arts", paths:[["sp/assets/npc/npc_evolution/main/", "png"], ["sp/assets/npc/gacha/", "png"], ["sp/cjs/npc_get_master_", "png"], ["sp/assets/npc/add_pose/", "png"]], index:DataIdx.CHARA_SD, icon:"../GBFML/assets/ui/icon/other_category.png", form:false}
 					]
 				},
 				{
@@ -611,8 +611,8 @@ function load_assets(id, data, type, target, indexed, allow_open)
 						{name:"Raid Entry Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_APPEAR, icon:"../GBFML/assets/ui/icon/appear.png", open:allow_open},
 						{name:"Sprite Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SPRITE, icon:"../GBFML/assets/ui/icon/spritesheet.png"},
 						{name:"Attack Effect Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_HIT, icon:"../GBFML/assets/ui/icon/auto.png"},
-						{name:"Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP, icon:"../GBFML/assets/ui/icon/ca.png"},
-						{name:"AOE Charge Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP_ALL, icon:"../GBFML/assets/ui/icon/ca.png"}
+						{name:"Special Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP, icon:"../GBFML/assets/ui/icon/ca.png"},
+						{name:"AOE Special Attack Sheets", paths:[["sp/cjs/", "png"]], index:DataIdx.BOSS_SP_ALL, icon:"../GBFML/assets/ui/icon/ca.png"}
 					]
 				}
 			];
@@ -669,9 +669,9 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					assets:[
 						{type:1, paths:[["sp/assets/leader/m/", "jpg"], ["sp/assets/leader/sd/m/", "jpg"], ["sp/assets/leader/skin/", "png"]], index:DataIdx.JOB_ALT},
 						{name:"Battle Portraits", paths:[["sp/assets/leader/raid_normal/", "jpg"],["sp/assets/leader/btn/", "png"],["sp/assets/leader/result_ml/", "jpg"]], icon:"../GBFML/assets/ui/icon/battle.png", index:DataIdx.JOB_DETAIL_ALT},
-						{name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:DataIdx.JOB_DETAIL, icon:"../GBFML/assets/ui/icon/other_category.png", lazy:false},
 						{name:"Various Big Portraits", paths:[["sp/assets/leader/zoom/", "png"], ["sp/assets/leader/p/", "png"], ["sp/assets/leader/jobon_z/", "png"], ["sp/assets/leader/coop/", "png"]], index:DataIdx.JOB_DETAIL_ALT, icon:"../GBFML/assets/ui/icon/big_portrait.png"},
-						{name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"], ["sp/event/common/teamraid/assets/sd_skin/", "jpg"], ["sp/event/common/teamraid/assets/selected_skin_thumbnail/", "png"], ["sp/event/common/teamraid/assets/skin_info_thumbnail/", "png"]], icon:"../GBFML/assets/ui/icon/portrait.png", index:DataIdx.JOB_DETAIL_ALT}
+						{name:"Various Small Portraits", paths:[["sp/assets/leader/s/", "jpg"], ["sp/assets/leader/talk/", "png"], ["sp/assets/leader/quest/", "jpg"], ["sp/assets/leader/t/", "png"], ["sp/assets/leader/raid_log/", "png"], ["sp/event/common/teamraid/assets/sd_skin/", "jpg"], ["sp/event/common/teamraid/assets/selected_skin_thumbnail/", "png"], ["sp/event/common/teamraid/assets/skin_info_thumbnail/", "png"]], icon:"../GBFML/assets/ui/icon/portrait.png", index:DataIdx.JOB_DETAIL_ALT},
+						{name:"Other Portraits", paths:[["sp/assets/leader/jlon/", "png"], ["sp/assets/leader/jloff/", "png"], ["sp/assets/leader/zenith/", "png"], ["sp/assets/leader/master_level/", "png"]], index:DataIdx.JOB_DETAIL, icon:"../GBFML/assets/ui/icon/other_category.png", lazy:false}
 					]
 				},
 				{
@@ -693,22 +693,13 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			break;
 		}
 		case GBFType.story0:
-		{
-			last_id = "m1"+id;
-			pages = [
-				{
-					name:"",
-					icon:"",
-					assets:[
-						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.STORY_CONTENT}
-					]
-				}
-			];
-			break;
-		}
 		case GBFType.story1:
 		{
-			last_id = "m2"+id;
+			last_id = (
+				type == GBFType.story0
+				? "m1"
+				: "m2"
+			) + id;
 			pages = [
 				{
 					name:"",
