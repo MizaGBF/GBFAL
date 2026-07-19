@@ -3209,7 +3209,7 @@ class Updater():
                     )
                     if lookup_name not in updated_lookup:
                         updated_lookup[lookup_name] = []
-                    updated_lookup[lookup_name] = obj["event_ids"]
+                    updated_lookup[lookup_name].extend(obj["event_ids"])
                 # processing data
                 side_id : str|None = obj["sidestory_id"]
                 ev_name : str = obj["name"]
