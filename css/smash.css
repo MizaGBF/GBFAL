@@ -38,10 +38,6 @@
 }
 
 .smash-slider-container {
- /* min-width: 320px;
-	max-width: 320px;
-	min-height: 394px;
-	max-height: 394px;*/
 	min-width: 400px;
 	max-width: 400px;
 	min-height: 492px;
@@ -74,7 +70,7 @@
 	font-size: 15px;
 	border-width: 1px;
 	border-style: solid;
-	border-color: white;
+	border-color: var(--font-col);
 }
 
 .smash-table-header {

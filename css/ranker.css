@@ -30,10 +30,6 @@
 	margin-right:auto;
 }
 
-#prompt-text {
-	margin-top:40vh;
-}
-
 #output {
 	min-height:500px;
 }
@@ -73,13 +69,13 @@
 }
 
 .vs-button {
-	background: #2d2d30;
-	border-color: #000000;
+	background: var(--main-bg);
+	border-color: var(--font-col);
 	border-radius: 5px;
 	border-style: solid;
 	border: none;
 	outline: none;
-	color: white;
+	color: var(--font-col);
 	margin: 1px;
 	font-size: 20px;
 	overflow: hidden;
@@ -139,13 +135,13 @@
 	top:-5px;
 	width: 80px;
 	height: 30px;
-	background: #2d2d30;
-	border-color: #000000;
+	background: var(--main-bg);
+	border-color: var(--font-col);
 	border-radius: 5px;
 	border-style: solid;
 	border: none;
 	outline: none;
-	color: white;
+	color: var(--font-col);
 	margin: 1px;
 	margin-left: 20px;
 	font-size: 20px;
@@ -153,7 +149,7 @@
 }
 
 .toggle-button:hover {
-	outline: solid #ffffff;
+	outline: solid var(--highlight);
 }
 
 .toggle-button:disabled {

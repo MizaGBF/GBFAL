@@ -25,21 +25,28 @@
 	<script src="../GBFML/js/util.js"></script>
 	<script src="../GBFML/js/search.js"></script>
 	<script src="../GBFML/js/audio_player.js"></script>
+	<script src="../GBFML/js/theme.js"></script>
 	<script src="js/ranker.js"></script> <!-- It reuses code from the Character Ranker -->
 	<script src="js/smash.js"></script>
 	<link rel="stylesheet" href="css/ranker.css">
 	<link rel="stylesheet" href="css/smash.css">
 	<link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a1-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a2-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a3-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a4-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a5-granbluefantasy.akamaized.net/" />
+	<script>
+		const saved_theme = localStorage.getItem("gbfml-theme");
+		const prefer_light = window.matchMedia("(prefers-color-scheme: light)").matches;
+		switch(saved_theme)
+		{
+			case null: document.documentElement.setAttribute("data-theme", prefer_light ? "light" : "dark"); break;
+			case "1": document.documentElement.setAttribute("data-theme", "light"); break;
+			default: document.documentElement.setAttribute("data-theme", "dark"); break;
+		}
+	</script>
 </head>
 <body onload="init_smash()">
+	<button class="theme-toggle" onclick="toggle_theme();"></button>
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>Smash or Pass v1.7</div>
+		<div>Smash or Pass v1.8</div>
 		<div id="timestamp"></div>
 	</div>
 	<!-- Know issues -->
@@ -73,7 +80,7 @@
 	</div>
 	<!-- animation select prompt -->
 	<div class="fullscreen-preview" id="confirm-prompt" style="display:none;">
-		<span class="fullscreen-element" id="prompt-text">TEST</span>
+		<span class="fullscreen-prompt" id="prompt-text"</span>
 		<button class="fullscreen-element fullscreen-button" onclick="init_confirm();">Start</button>
 		<button class="fullscreen-element fullscreen-button" onclick="init_cancel();">Cancel</button>
 	</div>

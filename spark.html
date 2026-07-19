@@ -24,19 +24,26 @@
 	<script src="../GBFML/js/util.js"></script>
 	<script src="../GBFML/js/search.js"></script>
 	<script src="../GBFML/js/audio_player.js"></script>
+	<script src="../GBFML/js/theme.js"></script>
 	<script src="js/spark.js"></script>
 	<link rel="stylesheet" href="css/spark.css">
 	<link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a1-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a2-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a3-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a4-granbluefantasy.akamaized.net/" />
-	<link rel="dns-prefetch" href="https://prd-game-a5-granbluefantasy.akamaized.net/" />
+	<script>
+		const saved_theme = localStorage.getItem("gbfml-theme");
+		const prefer_light = window.matchMedia("(prefers-color-scheme: light)").matches;
+		switch(saved_theme)
+		{
+			case null: document.documentElement.setAttribute("data-theme", prefer_light ? "light" : "dark"); break;
+			case "1": document.documentElement.setAttribute("data-theme", "light"); break;
+			default: document.documentElement.setAttribute("data-theme", "dark"); break;
+		}
+	</script>
 </head>
 <body onload="init()">
+	<button class="theme-toggle" onclick="toggle_theme();"></button>
 	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
 	<div id="header">
-		<div>Spark v2.10</div>
+		<div>Spark v2.12</div>
 		<div id="timestamp"></div>
 	</div>
 	<!-- Know issues -->
