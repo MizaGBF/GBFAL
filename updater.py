@@ -3251,7 +3251,7 @@ class Updater():
             # update event lookup
             keys : list[str] = list(updated_lookup.keys())
             keys.sort()
-            updated_lookup = {k : updated_lookup[k] for k in keys}
+            updated_lookup = {k : sorted(updated_lookup[k]) for k in keys}
             if updated_lookup != self.data["evt_lookup"]:
                 self.data["evt_lookup"] = updated_lookup
                 self.modified = True
