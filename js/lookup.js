@@ -1718,6 +1718,10 @@ function add_audio_assets(node, id, sounds)
 // random button
 function random_lookup()
 {
+	if(typeof gbf == "undefined")
+	{
+		return;
+	}
 	const targets = ["characters", "partners", "summons", "weapons", "shields", "manaturas", "enemies", "skins", "job", "npcs", "events", "skills", "buffs", "story0", "story1", "fate"]; // limited to these caregories
 	let total = 0;
 	let keys = {}
@@ -1738,15 +1742,13 @@ function random_lookup()
 			}
 			else
 			{
-				switch(e) // lookup at selected position
-				{
-					case "enemies":
-						lookup("e"+keys[e][roll], false);
-						return;
-					default:
-						lookup(keys[e][roll], false);
-						return;
-				}
+				// lookup at selected position
+				// (prepend id prefix)
+				lookup(
+					gbf.get_prefix(gbf.index_to_type(e))
+					+ keys[e][roll],
+					false
+				);
 			}
 		}
 	}
