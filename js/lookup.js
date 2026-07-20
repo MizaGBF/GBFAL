@@ -1757,63 +1757,52 @@ function random_lookup()
 // build header callback
 function get_special_navigation_indexes(id, target, key_index, keys)
 {
-	let si = target == "events" ? DataIdx.EVENT_OP : 0;
-	let next = key_index;
-	let previous = key_index;
-	
-	let valid = false;
-	next = key_index;
-	while(!valid)
-	{
-		next = (next + 1) % keys.length;
-		if(index[target][keys[next]] !== 0)
-		{
-			if(
-				index[target][keys[next]][DataIdx.EVENT_THUMB] != null
-				|| index[target][keys[next]][DataIdx.EVENT_SIDE] != null
-			)
-			{
-				valid = true;
-			}
-			else
-			{
-				for(let i = si; i < index[target][keys[next]].length; ++i)
-				{
-					if(index[target][keys[next]][i].constructor === Array && index[target][keys[next]][i].length > 0)
-					{
-						valid = true;
-						break;
-					}
-				}
-			}
-		}
-	}
-	valid = false;
-	previous = key_index;
-	while(!valid)
-	{
-		previous = (previous + keys.length - 1) % keys.length;
-		if(index[target][keys[previous]] !== 0)
-		{
-			if(
-				index[target][keys[previous]][DataIdx.EVENT_THUMB] != null
-				|| index[target][keys[previous]][DataIdx.EVENT_SIDE] != null
-			)
-			{
-				valid = true;
-			}
-			else
-			{
-				for(let i = si; i < index[target][keys[previous]].length; ++i)
-				{
-					if(index[target][keys[next]][i].constructor === Array && index[target][keys[previous]][i].length > 0)
-					{
-						valid = true;
-						break;
-					}
-				}
-			}
-		}
-	}
+	const next = search_next_element(target, keys, key_index, 1);
+	const previous = search_next_element(target, keys, key_index, -1);
 	return [previous, next];
+}
+
+function search_next_element(target, keys, start, step)
+{
+	let i = start;
+	while(true)
+	{
+		i = (i + step + keys.length) % keys.length;
+		if(i == start)
+		{
+			return start;
+		}
+		else if(index[target][keys[i]] !== 0)
+		{
+			if(
+				(
+					target == "events"
+					&& (
+						index[target][keys[i]][DataIdx.EVENT_THUMB] != null
+						|| index[target][keys[i]][DataIdx.EVENT_SIDE] != null
+					)
+				)
+				|| validate_index_has_content(index[target][keys[i]])
+			)
+			{
+				break;
+			}
+		}
+	}
+	return i;
+}
+
+function validate_index_has_content(data)
+{
+	for(let i = 0; i < data.length; ++i)
+	{
+		if(data[i] != null && typeof data[i] === "object")
+		{
+			if(data[i].length > 0)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
