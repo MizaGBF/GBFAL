@@ -1718,7 +1718,7 @@ function add_audio_assets(node, id, sounds)
 // random button
 function random_lookup()
 {
-	const targets = ["characters", "summons", "weapons", "enemies", "skins", "job", "npcs"]; // limited to these caregories
+	const targets = ["characters", "partners", "summons", "weapons", "shields", "manaturas", "enemies", "skins", "job", "npcs", "events", "skills", "buffs", "story0", "story1", "fate"]; // limited to these caregories
 	let total = 0;
 	let keys = {}
 	// count how many elements
@@ -1729,7 +1729,7 @@ function random_lookup()
 	}
 	if(!isNaN(total) && total > 0)
 	{
-		let roll = Math.floor(Math.random()*total); // roll dice between 0 and total (excluded)
+		let roll = Math.floor(Math.random() * total); // roll dice between 0 and total (excluded)
 		for(let e of targets) // loop over targets again
 		{
 			if(roll >= keys[e].length) // if we're outside bounds of current category
