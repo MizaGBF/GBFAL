@@ -1205,7 +1205,7 @@ class Updater():
                             err += 1
                     n += 1
             case 3:
-                errlimit : int = 10 if element_id in ("3000", "1008") else 3
+                errlimit : int = 10 if element_id in ("3000", "1008") else 4
                 for x in range(1, 10):
                     # _10, _11, _20, _30...
                     n = 10 * x
