@@ -2991,6 +2991,14 @@ class Updater():
                     if img not in container[didx]:
                         container[didx].append(img)
                         modifieds.add(didx)
+                elif "_ep" in img:
+                    cp : int = int(img.split("_ep", 1)[1].split("_", 1)[0])
+                    if cp > highest:
+                        highest = cp
+                    didx = EVENT_CHAPTER_START+cp-1 if cp > 0 else EVENT_INT
+                    if img not in container[didx]:
+                        container[didx].append(img)
+                        modifieds.add(didx)
                 elif "_op_" in img:
                     if img not in container[EVENT_OP]:
                         container[EVENT_OP].append(img)
@@ -3118,6 +3126,13 @@ class Updater():
                             ts = TaskStatus(200, 5, running=10)
                             for n in range(10):
                                 self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
+                    elif element_id == "solom0": # special exception (for evoker solomonis)
+                        for i in range(0, ch_count+1):
+                            fn = f"scene_{prefix}{name}_ep{i:01}"
+                            ts = TaskStatus(200, 5, running=10)
+                            didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
+                            for n in range(10):
+                                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP], ext), priority=2)
                 else: # no prefix mode, only used for arcarum
                     if element_id == "arca00": # special for main arca scene assets
                         if len(evt_data[element_id][EVENT_INT]) == 0:

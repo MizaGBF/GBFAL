@@ -2020,6 +2020,13 @@
 ],
 "sidestory_id":null
 },
+"95000":{
+"name":"Evoking Solomonis",
+"event_ids":[
+"solom0"
+],
+"sidestory_id":null
+},
 "class_event":{
 "name":"Class Mastery",
 "event_ids":[
