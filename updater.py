@@ -226,7 +226,7 @@ class TaskManager():
                 now : float = time.perf_counter()
                 if now - self.last_save_time >= 3600:
                     self.print("Autosaving...")
-                    self.self.updater.save()
+                    self.updater.save()
                     self.updater.save_resume()
                     self.last_save_time = now
         except asyncio.CancelledError:
