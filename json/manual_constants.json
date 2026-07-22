@@ -163,7 +163,7 @@
             
             "unique": ["_valentine", "_valentine2", "_valentine3", "_white", "_whiteday", "_whiteday1", "_whiteday2", "_whiteday3", "_summer", "_summer2", "_halloween", "_sturm", "_rabbit"],
             
-            "end": ["", "_a", "_b", "_speed", "_line", "_up", "_up_speed", "_up_damage", "_up_line", "_up2", "_up3", "_up4", "_down", "_move", "_move2", "_shadow", "_shadow2", "_shadow3", "_damage", "_damage_up", "_ghost", "_light", "_up_light", "_light_speed", "_vanish", "_vanish1", "_vanish2", "_fadein1", "_blood", "_up_blood"]
+            "end": ["", "_a", "_b", "_speed", "_line", "_up", "_up_speed", "_up_damage", "_up_line", "_up2", "_up3", "_up4", "_down", "_move", "_move2", "_shadow", "_shadow2", "_shadow3", "_damage", "_damage_up", "_ghost", "_light", "_up_light", "_light_speed", "_vanish", "_vanish1", "_vanish2", "_fadein1", "_blood", "_up_blood", "_ice"]
         },
         "3994121000": {
             "comment": "Gran NPC (New)",
