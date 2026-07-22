@@ -2021,8 +2021,11 @@
 "sidestory_id":null
 },
 "94630":{
-"name":"",
-"event_ids":[],
+"name":"Bleach Echoes in the Blue Hollow",
+"event_ids":[
+"260722",
+"260727"
+],
 "sidestory_id":null
 },
 "95000":{
