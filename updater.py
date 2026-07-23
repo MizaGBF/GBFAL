@@ -44,7 +44,18 @@ ADD_FATE = 12
 ADD_SHIELD = 13
 ADD_MANATURA = 14
 ADD_STORY1 = 15
-ADD_SINGLE_ASSET = ["profile_npcs", "profile_arts", "profile_bgs", "title", "subskills", "suptix", "mypage_bg", "sky_title"]
+ADD_SINGLE_ASSET = [
+    "profile_npcs",
+    "profile_arts",
+    "profile_bgs",
+    "arca3_maps",
+    "arca3_specials",
+    "title",
+    "subskills",
+    "suptix",
+    "mypage_bg",
+    "sky_title"
+]
 # chara/skin/partner update
 CHARA_SPRITE = 0
 CHARA_PHIT = 1
@@ -477,6 +488,8 @@ class Updater():
             "profile_npcs":{},
             "profile_arts":{},
             "profile_bgs":{},
+            "arca3_maps":{},
+            "arca3_specials":{},
             "background":{},
             "mypage_bg":{},
             "title":{},
@@ -965,6 +978,13 @@ class Updater():
             ts = TaskStatus(999999, 20, start=j)
             for i in range(3):
                 self.tasks.add(self.search_generic, parameters=(ts, "profile_bgs", "{}", 1, ["img/sp/assets/profile_room/profile_card/bg/{}.jpg"]))
+        # evoker solomonis
+        ts = TaskStatus(1000, 2)
+        for i in range(3): # map
+            self.tasks.add(self.search_generic, parameters=(ts, "arca3_maps", "{}", 1, ["img/sp/arcarum3/assets/map_bg/{}.jpg"]))
+        ts = TaskStatus(1000, 10)
+        for i in range(3): # special events
+            self.tasks.add(self.search_generic, parameters=(ts, "arca3_specials", "{}", 1, ["img/sp/arcarum3/assets/scpecial_node_bg/{}.png"]))
         # titles
         ts = TaskStatus(1000, 5)
         for i in range(3):
@@ -4457,6 +4477,7 @@ class Updater():
             for t in (
                 "characters", "partners", "summons", "weapons", "enemies", "skins", "job", "npcs",
                 "profile_npcs", "profile_arts", "profile_bgs",
+                "arca3_maps", "arca3_specials",
                 "title", "sky_title", "suptix",
                 "events", "skills", "subskills", 'buffs', "story", "background", "mypage_bg"
             ):
@@ -4547,7 +4568,7 @@ class Updater():
                             file_estimation += len(v[0])
                         case "mypage_bg":
                             file_estimation += 1
-                        case "profile_npcs"|"profile_arts"|"profile_bgs"|"title"|"sky_title":
+                        case "profile_npcs"|"profile_arts"|"profile_bgs"|"arca3_maps"|"arca3_specials"|"title"|"sky_title":
                             file_estimation += 1
                         case _:
                             file_estimation += 2

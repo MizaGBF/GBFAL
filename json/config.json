@@ -1519,6 +1519,24 @@
             ]
         },
         {
+            "name":"Evoking Solomonis",
+            "icon":"../GBFML/assets/ui/icon/arca3.png",
+            "childs":[
+                {
+                    "name":"Maps",
+                    "target":"arca3_maps",
+                    "text": "Ordered by ID",
+                    "pad":10
+                },
+                {
+                    "name":"Special Events",
+                    "target":"arca3_specials",
+                    "text": "Ordered by ID",
+                    "pad":10
+                }
+            ]
+        },
+        {
             "name": "Skills",
             "icon": "../GBFML/assets/ui/icon/skills.png",
             "childs": [
