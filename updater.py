@@ -1283,7 +1283,7 @@ class Updater():
                     except:
                         pass
             case 5:
-                baselimit : int = 22 if element_id in ("6579",) else 10
+                baselimit : int = 22 if element_id in ("6579","6967") else 10
                 errlimit : int = 6 if element_id in ("1019",) else 4
                 for x in range(0, baselimit):
                     #_0_1, _0_2...
@@ -1326,7 +1326,7 @@ class Updater():
         buffs = self.data['buffs'] # reference
         if ts.finished and len(known) > len(buffs.get(element_id, [[], []])[1]):
             buffs[element_id] = [[str(int(element_id))], list(known)]
-            buffs[element_id][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
+            buffs[element_id][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]).zfill(20))
             self.modified = True
             self.add(element_id, ADD_BUFF)
             self.raise_flag("found_buff")
