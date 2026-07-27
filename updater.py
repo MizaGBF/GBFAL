@@ -3031,7 +3031,7 @@ class Updater():
                     if img not in container[EVENT_OP]:
                         container[EVENT_OP].append(img)
                         modifieds.add(EVENT_OP)
-                elif "_ed_" in img:
+                elif "_ed_" in img or "_ed2_" in img:
                     if img not in container[EVENT_ED]:
                         container[EVENT_ED].append(img)
                         modifieds.add(EVENT_ED)
