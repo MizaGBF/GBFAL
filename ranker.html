@@ -29,13 +29,18 @@
 	<link rel="stylesheet" href="css/ranker.css">
 	<link rel="dns-prefetch" href="https://prd-game-a-granbluefantasy.akamaized.net/" />
 	<script>
-		const saved_theme = localStorage.getItem("gbfml-theme");
-		const prefer_light = window.matchMedia("(prefers-color-scheme: light)").matches;
-		switch(saved_theme)
+		try
 		{
-			case null: document.documentElement.setAttribute("data-theme", prefer_light ? "light" : "dark"); break;
-			case "1": document.documentElement.setAttribute("data-theme", "light"); break;
-			default: document.documentElement.setAttribute("data-theme", "dark"); break;
+			document.documentElement.setAttribute(
+				"data-theme",
+				(
+					localStorage.getItem("gbfml-theme") == 1
+					? "light"
+					: "dark"
+				)
+			);
+		} catch(_unused_) {
+			document.documentElement.setAttribute("data-theme", "dark");
 		}
 	</script>
 </head>
