@@ -17547,7 +17547,6 @@
 "3993945000":"/n felix /b erune /s male /y フェリクス shun horie 堀江瞬",
 "3993946000":"/n lodi /b human /s male /y ロディ shogo sakata 坂田将吾",
 "3993947000":"/w Wakudoki_(NPC) /n wakudoki /b human /s female /y ワクドキ hana hishikawa 菱川花菜 2025-04-28",
-"3993948000":"/x elmott /n fire spirit",
 "3993950000":"/n prima /b human /s female",
 "3993951000":"/n phantombloom genesi reveiller",
 "3993952000":"/n aquatic acolyte red emblem",
@@ -25875,7 +25874,8 @@
 "3994545000":"/x bleach /n nelliel tu odelschwanck /c collab /b unknown /s female /y ネリエル・トゥ・オーデルシュヴァンク arisa kiyoto tomoko kaneda 清都ありさ 金田朋子",
 "3994546000":"/x bleach /n sakunagi /c collab /b unknown /s other /y 朔凪 daishi kajita 梶田大嗣",
 "9103363":"/f other-boss /e dark /n the unattained /c collab",
-"9103423":"/f other-boss /x bleach /e dark /n crawling thoughtmass /c collab"
+"9103423":"/f other-boss /x bleach /e dark /n crawling thoughtmass /c collab",
+"3993948000":"/$"
 },
 "evt_lookup":
 {
