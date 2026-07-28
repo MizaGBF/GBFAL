@@ -2239,7 +2239,7 @@
 "2040444000":[["2040444000"],["summon_2040444000_01_attack_a.png","summon_2040444000_01_attack_b.png","summon_2040444000_01_attack_c.png"],["summon_2040444000_01_damage.png"],[]],
 "2040445000":[["2040445000"],["summon_2040445000_01_attack_a.png","summon_2040445000_01_attack_b.png","summon_2040445000_01_attack_c.png"],["summon_2040445000_01_damage.png"],[]],
 "2040446000":[["2040446000"],["summon_2040446000_01_attack_a.png","summon_2040446000_01_attack_b.png","summon_2040446000_01_attack_c.png"],["summon_2040446000_01_damage.png"],[]],
-"2040447000":[["2040447000"],["summon_2040447000_01_attack.png"],["summon_2040447000_01_damage.png"],[]],
+"2040447000":[["2040447000","2040447000_02"],["summon_2040447000_01_attack.png","summon_2040447000_02_attack.png"],["summon_2040447000_01_damage.png","summon_2040447000_02_damage.png"],[]],
 "2040448000":[["2040448000"],["summon_2040448000_01_attack_a.png","summon_2040448000_01_attack_b.png","summon_2040448000_01_attack_c.png"],["summon_2040448000_01_damage.png"],["mypage_2040448000_a.png","mypage_2040448000_b.png"]],
 "2040449000":[["2040449000"],["summon_2040449000_01_attack.png"],["summon_2040449000_01_damage.png"],[]],
 "2040450000":[["2040450000"],["summon_2040450000_01_attack_a.png","summon_2040450000_01_attack_b.png","summon_2040450000_01_attack_c.png"],["summon_2040450000_01_damage_a.png","summon_2040450000_01_damage_b.png"],[]],
