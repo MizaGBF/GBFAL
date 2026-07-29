@@ -4616,14 +4616,7 @@ class Updater():
     def raise_flag(self : Updater, flag : str) -> None:
         self.flags.add(flag)
         if "run_process" in self.flags:
-            if (
-                (
-                    "found_character" in self.flags
-                    or "found_enemy" in self.flags
-                    or "found_buff" in self.flags
-                )
-                and "checking_buff" not in self.flags
-            ):
+            if "found_buff" in self.flags and "checking_buff" not in self.flags:
                 self.flags.add("checking_buff")
                 self.tasks.add(self.maintenance_buff, priority=1)
             if "found_character" in self.flags and "checking_event" not in self.flags:
