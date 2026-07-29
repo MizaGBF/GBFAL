@@ -3841,13 +3841,13 @@ class Updater():
             if empty_manual_entry > 0:
                 self.tasks.print(f"{empty_manual_entry} empty entries remain in manual_lookup.json")
         except OSError as e:
-            self.tasks.print("Couldn't open json/manual_lookup.json")
+            self.tasks.print("Couldn't open json/manual_lookup.json, using empty data")
             self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
             data = {}
         except Exception as e:
             self.tasks.print("Couldn't load json/manual_lookup.json")
             self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-            data = {}
+            return
         try:
             for k, v in data.items():
                 try:
