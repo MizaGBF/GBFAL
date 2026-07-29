@@ -902,7 +902,7 @@
 "event_ids":[
 "200628"
 ],
-"sidestory_id":null
+"sidestory_id":"11061"
 },
 "75590":{
 "name":"My Beloved Auguste",
@@ -2025,6 +2025,13 @@
 "event_ids":[
 "260722",
 "260727"
+],
+"sidestory_id":null
+},
+"94570":{
+"name":"Foxtale Summer",
+"event_ids":[
+"260729"
 ],
 "sidestory_id":null
 },
