@@ -377,7 +377,7 @@ class TaskManager():
                         )
                         print(f"Added update_all_scene_for_ids() for {len(s) - 1} elements to the queue")
                 case 'b'|'buff':
-                    self.add(self.updater.maintenance_buff)
+                    self.add(self.updater.maintenance_buff, parameters=(True,))
                     print("Added maintenance_buff() to the queue")
                 case _:
                     print("Process RESUMING...")
@@ -4216,14 +4216,20 @@ class Updater():
     ### Maintenance #################################################################################################################
 
     # Called by maintenancebuff
-    async def maintenance_buff(self : Updater) -> None:
+    async def maintenance_buff(self : Updater, buff_set : True) -> None:
         if "maintenance_buff" in self.flags:
             return
         self.raise_flag("maintenance_buff")
         self.tasks.add(self.maintenance_compare_wiki_buff)
-        self.tasks.print("Starting tasks to update known Buffs...")
-        for element_id in self.data['buffs']:
-            await self.prepare_update_buff(element_id)
+        if buff_set:
+            self.tasks.print("Starting tasks to update some Buffs...")
+            for element_id in self.data['buffs']:
+                if element_id.startswith(("1", "6", "7", "8", "9")):
+                    await self.prepare_update_buff(element_id)
+        else:
+            self.tasks.print("Starting tasks to update known Buffs...")
+            for element_id in self.data['buffs']:
+                await self.prepare_update_buff(element_id)
         await self.tasks.start()
 
     # Called by maintenancebuff, maintenance or raise_flag
@@ -4616,9 +4622,15 @@ class Updater():
     def raise_flag(self : Updater, flag : str) -> None:
         self.flags.add(flag)
         if "run_process" in self.flags:
-            if "found_buff" in self.flags and "checking_buff" not in self.flags:
+            if (
+                (
+                    "found_buff" in self.flags
+                    or "found_character" in self.flags
+                )
+                and "checking_buff" not in self.flags
+            ):
                 self.flags.add("checking_buff")
-                self.tasks.add(self.maintenance_buff, priority=1)
+                self.tasks.add(self.maintenance_buff, parameters=(True,), priority=1)
             if "found_character" in self.flags and "checking_event" not in self.flags:
                 self.flags.add("checking_event")
                 self.tasks.print("Adding tasks to check for new events and fate episodes...")
