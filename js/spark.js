@@ -91,6 +91,27 @@ function start(changelog)
 	document.addEventListener('search-clear', function() {
 		spark_reset_results();
 	});
+	// add Shift-Tab listener
+	const btn_npc = document.getElementById("spark-tab-btn-npc");
+	const btn_summon = document.getElementById("spark-tab-btn-summon");
+	document.addEventListener(
+		"keydown",
+		(event) => {
+			if(event.shiftKey && event.key == "Tab")
+			{
+				if(btn_summon.classList.contains("active"))
+				{
+					btn_npc.click();
+				}
+				else
+				{
+					btn_summon.click();
+				}
+				event.stopPropagation();
+				event.preventDefault();
+			}
+		}
+	);
 	// init the rest
 	set_spark_list();
 	spark_load_settings();
