@@ -1,6 +1,84 @@
 {
-  "timestamp":1785333779038,
+  "timestamp":1785488519091,
   "new":{
+    "2026-07-31":[
+      [
+        "profile_arts:7095",
+        "profile_arts"
+      ],
+      [
+        "profile_arts:6076",
+        "profile_arts"
+      ],
+      [
+        "profile_arts:5076",
+        "profile_arts"
+      ],
+      [
+        "1016",
+        12
+      ],
+      [
+        "1015",
+        12
+      ],
+      [
+        "7416",
+        9
+      ],
+      [
+        "7367",
+        9
+      ],
+      [
+        "2938",
+        8
+      ],
+      [
+        "2937",
+        8
+      ],
+      [
+        "2936",
+        8
+      ],
+      [
+        "2935",
+        8
+      ],
+      [
+        "2934",
+        8
+      ],
+      [
+        "2933",
+        8
+      ],
+      [
+        "260727",
+        7
+      ],
+      [
+        "260722",
+        7
+      ],
+      [
+        "3040671000",
+        3
+      ],
+      [
+        "3040670000",
+        3
+      ],
+      [
+        "1040715500",
+        1
+      ],
+      [
+        "1040622000",
+        1
+      ]
+    ],
     "2026-07-29":[
       [
         "1013",
@@ -324,59 +402,9 @@
         "1244",
         9
       ]
-    ],
-    "2026-07-23":[
-      [
-        "arca3_specials:9",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:4",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:18",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:17",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:16",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:15",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:14",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:13",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:12",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:11",
-        "arca3_specials"
-      ],
-      [
-        "arca3_specials:10",
-        "arca3_specials"
-      ],
-      [
-        "arca3_maps:1",
-        "arca3_maps"
-      ]
     ]
   },
-  "stat":"19,615 indexed elements, for ~709K files",
+  "stat":"19,630 indexed elements, for ~709.6K files",
   "issues":[],
   "help":false
 }
