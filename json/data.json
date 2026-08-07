@@ -8294,7 +8294,9 @@
 "9102853":[["9102853"],["enemy_9102853_a.png","enemy_9102853_b.png","enemy_9102853_c.png"],["raid_appear_9102853.png"],[],[],[]],
 "9103373":[["9103373"],["enemy_9103373_a.png","enemy_9103373_b.png","enemy_9103373_c.png"],[],[],[],[]],
 "1201173":[["1201173"],["enemy_1201173_a.png","enemy_1201173_b.png"],["raid_appear_1201173.png"],["ehit_1201173.png"],["esp_1201173_01.png"],[]],
-"1201183":[["1201183"],["enemy_1201183_a.png","enemy_1201183_b.png","enemy_1201183_c.png","enemy_1201183_d.png"],[],[],[],[]]
+"1201183":[["1201183"],["enemy_1201183_a.png","enemy_1201183_b.png","enemy_1201183_c.png","enemy_1201183_d.png"],[],[],[],[]],
+"4200542":[["4200542"],["enemy_4200542.png"],[],[],[],[]],
+"4200552":[["4200552"],["enemy_4200552.png"],[],[],[],[]]
 },
 "skins":
 {
@@ -25941,7 +25943,9 @@
 "1040622000":"/w Sagemon /e wind /t melee /a ssr /n sagemon /y 炸華紋 2026-07-31",
 "1040621900":"/w Seaside_Guardian /e earth /t melee /a ssr /n seaside guardian /y シーサイド・ガーディアン 2026-07-29",
 "3710261000":"/w Lu_Woh /x lu woh /k spotlit parade /n lu woh /y 2026-08-04",
-"3710260000":"/w Narmaya /x narmaya /k martial majesty /n narmaya /y 2026-08-04 /1 /2"
+"3710260000":"/w Narmaya /x narmaya /k martial majesty /n narmaya /y 2026-08-04 /1 /2",
+"4200542":"/f aberration-boss /x mr. blocky /e earth /n blocking rehearsal dummy",
+"4200552":"/f aberration-boss /x contraception mk /e earth /n working rehearsal dummy"
 },
 "evt_lookup":
 {
