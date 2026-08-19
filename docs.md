@@ -21,7 +21,7 @@ where:
 The content are simple structures to keep the file size low.  
   
 - `version`: Integer, the file version. Currently **5**.
-- `valentines`: List of ID for elements with (possibly) white day or valentine scene files. Elements are always from the `characters`, `skins` or `npcs` indexes.  
+- `valentines`: Object of ID for elements with (possibly) white day or valentine scene files. Elements are always from the `characters`, `skins` or `npcs` indexes.  
 - `characters`: Object of ID, data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of ten lists, each containing file names. (`[[], [], [], [], [], [], [], [], [], []]`).
     - Index 0: Spritesheets. Path: `sp/cjs/FILE.png`.  
