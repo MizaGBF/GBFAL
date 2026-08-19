@@ -4817,7 +4817,6 @@ class Updater():
                                 test_id in self.data["lookup"]
                                 and self.data["lookup"][test_id].split("/n ", 1)[1].split(" /", 1)[0] == "djeeta"
                             ):
-                                self.tasks.print("GRAN TEST", element_id, "->", test_id)
                                 gran_set.add(element_id)
                         elif name == "djeeta":
                             test_id : str = str(int(element_id) - 1000)
@@ -4825,7 +4824,6 @@ class Updater():
                                 test_id in self.data["lookup"]
                                 and self.data["lookup"][test_id].split("/n ", 1)[1].split(" /", 1)[0] == "gran"
                             ):
-                                self.tasks.print("DJET TEST", element_id, "->", test_id)
                                 djeeta_set.add(element_id)
                     except:
                         pass
