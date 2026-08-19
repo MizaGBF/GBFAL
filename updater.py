@@ -4803,8 +4803,7 @@ class Updater():
             return
         self.tasks.print("Processing NPC data...")
         table : dict[str, list[str]] = {}
-        gran_set : set[str] = set()
-        djeeta_set : set[str] = set()
+        alt_set : dict[str, str] = {}
         # read suffixes
         for suffix, ids in self.pending_npc_data["suffixes"].items():
             for element_id in ids:
@@ -4817,23 +4816,21 @@ class Updater():
                                 test_id in self.data["lookup"]
                                 and self.data["lookup"][test_id].split("/n ", 1)[1].split(" /", 1)[0] == "djeeta"
                             ):
-                                gran_set.add(element_id)
+                                alt_set[element_id] = test_id
                         elif name == "djeeta":
                             test_id : str = str(int(element_id) - 1000)
                             if (
                                 test_id in self.data["lookup"]
                                 and self.data["lookup"][test_id].split("/n ", 1)[1].split(" /", 1)[0] == "gran"
                             ):
-                                djeeta_set.add(element_id)
+                                alt_set[element_id] = test_id
                     except:
                         pass
                     table[element_id] = []
                 table[element_id].append(suffix)
         # set gran/djeeta
-        for element_id in gran_set:
-            table[str(int(element_id) + 1000)] = table[element_id]
-        for element_id in djeeta_set:
-            table[str(int(element_id) - 1000)] = table[element_id]
+        for element_id, alt_id in alt_set.items():
+            table[alt_id] = table[element_id]
         # apply suffix
         index : str
         idx : int
