@@ -35,7 +35,7 @@ def read(data):
                 data["names"][k].add(n)
         for f in j["images"]:
             data["images"].add(f)
-        print("Updated data, type 'report' or 'copy' to retrieve it")
+        print(f"Update. Total: {len(data["ids"])} elements, {len(data["suffixes"])} suffixes, {len(data["names"])} names, {len(data["images"])} images")
     except Exception as e:
         print("Can't read clipboard data:", e)
         return

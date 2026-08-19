@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone, UTC
 import asyncio
 from pyreqwest.client import ClientBuilder, Client
+import pyperclip
 import os
 import sys
 import re
@@ -18,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.76'
+VERSION = '3.77'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -308,7 +309,7 @@ class TaskManager():
             self.pbar.close()
         self.pbar = tqdm(
             total=self.total,
-            unit=" Task",
+            unit=" t",
             unit_scale=True,
             unit_divisor=1000,
             mininterval=2,
@@ -363,6 +364,7 @@ class TaskManager():
                     print("exit    - force exit the process, changes won't be saved, but resume file will be updated if used")
                     print("peek    - check the content of data.json. Take two parameters: the index to look at and an id")
                     print("tchange - toggle update_changelog setting")
+                    print("npcdata - read clipboard data copied from scene_npc_reader.py tool")
                     print("sceneid - start update_all_scene_for_ids() for the given element ID(s)")
                     print("buff    - start maintenance_buff()")
                 case 'save':
@@ -394,6 +396,12 @@ class TaskManager():
                 case 'exit':
                     print("Exiting...")
                     os._exit(0)
+                case 'npc'|'npcdata':
+                    try:
+                        self.updater.read_npc_data()
+                        print("NPC data set and ready, it will be processed at the end")
+                    except:
+                        print("Invalid or no data read from the clipboard")
                 case 'si'|'sceneid':
                     if len(s) > 1:
                         self.add(
@@ -477,6 +485,7 @@ class Updater():
     data : dict[str, Any]
     modified : bool
     resume : dict[str, Any]
+    pending_npc_data : None|dict[str, Any]
     stat_string : str|None
     addition : set[tuple[str, int|str]]
     updated_elements : set[str]
@@ -535,6 +544,7 @@ class Updater():
         }
         self.modified = False # if set to true, data.json will be written on the next call of save()
         self.resume = {} # list of items completed (for the resume file)
+        self.pending_npc_data = None
         self.stat_string = None # set and updated by make_stats
         self.addition = set() # new elements for changelog.json
         self.updated_elements = set() # set of elements ran through update_element()
@@ -2573,7 +2583,7 @@ class Updater():
                 match index:
                     case 'characters'|'skins':
                         idx = CHARA_SCENE
-                        uncaps= []
+                        uncaps = []
                         for u in data[CHARA_GENERAL]:
                             uu = u.replace(element_id+"_", "")
                             if "_" not in uu and uu.startswith("0"):
@@ -2716,7 +2726,8 @@ class Updater():
             if element_id not in self.data[index]:
                 self.data[index][element_id] = self.create_npc_container()
             self.data[index][element_id][idx] = list(existing) # set it
-            self.data[index][element_id][idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e))) # and sort it
+            # and sort it
+            self.data[index][element_id][idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e)))
             self.modified = True
             match index:
                 case 'npcs':
@@ -4763,7 +4774,7 @@ class Updater():
             print("Couldn't import GBFDAIO index.json, verify the path is correct")
             print("Exception:", e)
 
-    async def test_fate(self : Updater, k):
+    async def test_fate(self : Updater, k) -> None:
         for i in range(0, FATE_LINK):
             for e in self.data["fate"][k][i]:
                 s = e + "a"
@@ -4775,6 +4786,101 @@ class Updater():
                         #self.modified = True
                     except:
                         pass
+
+    def read_npc_data(self : Updater) -> None:
+        data = json.loads(pyperclip.paste())
+        if (
+            "ids" not in data
+            or "suffixes" not in data
+            or "names" not in data
+            or "images" not in data
+        ):
+            raise Exception("Invalid data")
+        self.pending_npc_data = data
+
+    def process_npc_data(self : Updater) -> None:
+        if len(self.pending_npc_data["suffixes"]) == 0:
+            return
+        self.tasks.print("Processing NPC data...")
+        table : dict[str, list[str]] = {}
+        gran_set : set[str] = set()
+        djeeta_set : set[str] = set()
+        # read suffixes
+        for suffix, ids in self.pending_npc_data["suffixes"].items():
+            for element_id in ids:
+                if element_id not in table:
+                    try:
+                        name = self.data["lookup"][element_id].split("/n ", 1)[1].split(" /", 1)[0]
+                        if name == "gran":
+                            test_id : str = str(int(element_id) + 1000)
+                            if (
+                                test_id in self.data["lookup"]
+                                and self.data["lookup"][test_id].split("/n ", 1)[1].split(" /", 1)[0] == "djeeta"
+                            ):
+                                self.tasks.print("GRAN TEST", element_id, "->", test_id)
+                                gran_set.add(element_id)
+                        elif name == "djeeta":
+                            test_id : str = str(int(element_id) - 1000)
+                            if (
+                                test_id in self.data["lookup"]
+                                and self.data["lookup"][test_id].split("/n ", 1)[1].split(" /", 1)[0] == "gran"
+                            ):
+                                self.tasks.print("DJET TEST", element_id, "->", test_id)
+                                djeeta_set.add(element_id)
+                    except:
+                        pass
+                    table[element_id] = []
+                table[element_id].append(suffix)
+        # set gran/djeeta
+        for element_id in gran_set:
+            table[str(int(element_id) + 1000)] = table[element_id]
+        for element_id in djeeta_set:
+            table[str(int(element_id) - 1000)] = table[element_id]
+        # apply suffix
+        index : str
+        idx : int
+        add_type : id
+        added : set[str] = set()
+        for element_id, suffixes in table.items():
+            if len(element_id) != 10:
+                self.tasks.print(f"Warning: Invalid ID for {element_id}")
+                continue
+            if element_id.startswith(("302","303","304","371")):
+                index = "characters"
+                idx = CHARA_SCENE
+                add_type = ADD_CHAR
+            elif element_id.startswith(("371")):
+                index = "skins"
+                idx = CHARA_SCENE
+                add_type = ADD_CHAR
+            elif element_id.startswith(("399","305")):
+                index = "npcs"
+                idx = NPC_SCENE
+                add_type = ADD_NPC
+            else:
+                self.tasks.print(f"Warning: Can't determine element type for {element_id}")
+                continue
+            if element_id not in self.data[index]:
+                self.tasks.print(f"Warning: Element {element_id} isn't indexed")
+                continue
+            data = self.data[index][element_id] # reference
+            count : int = 0
+            for suffix in suffixes:
+                if suffix not in data[idx]:
+                    data[idx].append(suffix)
+                    added.add(suffix)
+                    count += 1
+                    self.add(element_id, add_type)
+            if count > 0:
+                self.tasks.print(f"Added {count} scene files to {element_id}")
+                self.data[index][element_id][idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e)))
+                self.modified = True
+        if len(added) > 0:
+            added = list(added)
+            added.sort()
+            self.tasks.print("List of added suffixes:", " ".join(added))
+        else:
+            self.tasks.print("Done")
 
     ### Entry Point #################################################################################################################
 
@@ -4994,6 +5100,8 @@ class Updater():
                     self.update_manual_event()
                 if "found_fate" in self.flags:
                     self.update_manual_fate()
+            if self.pending_npc_data is not None:
+                self.process_npc_data()
             if self.modified:
                 self.make_stats()
                 self.save()
