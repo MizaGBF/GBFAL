@@ -4262,6 +4262,7 @@ class Updater():
             for element_id in self.data['buffs']:
                 if element_id.startswith(("1", "6", "7")):
                     await self.prepare_update_buff(element_id)
+            await self.prepare_update_buff("3000")
         else:
             self.tasks.print("Starting tasks to update known Buffs...")
             for element_id in self.data['buffs']:
