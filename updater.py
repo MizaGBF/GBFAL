@@ -4260,7 +4260,7 @@ class Updater():
         if buff_set:
             self.tasks.print("Starting tasks to update some Buffs...")
             for element_id in self.data['buffs']:
-                if element_id.startswith(("1", "6", "7", "8", "9")):
+                if element_id.startswith(("1", "6", "7")):
                     await self.prepare_update_buff(element_id)
         else:
             self.tasks.print("Starting tasks to update known Buffs...")
@@ -4661,7 +4661,7 @@ class Updater():
             if (
                 (
                     "found_buff" in self.flags
-                    or "found_character" in self.flags
+                    and "found_character" in self.flags
                 )
                 and "checking_buff" not in self.flags
             ):
