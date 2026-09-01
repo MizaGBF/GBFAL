@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.78'
+VERSION = '3.79'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -162,7 +162,7 @@ SPECIAL_LOOKUP : dict[str, str] = {}
 UNIQUE_SKIN : list[str] = []
 MALINDA : str = ""
 VALENTIVEWHITE_SUFFIX : list[str] = []
-SCENE_NAVI_EXCLUSIONS : tuple[str] = []
+SCENE_NAVI_EXCLUSIONS : set[str] = []
 SCENE_SUFFIXES : dict[str, dict[Any]] = {}
 MSQ_LAST_CHAPTER : list[int] = []
 MSQ_SPECIALS : list[dict[str, str]] = []
@@ -175,7 +175,7 @@ try:
     with open("json/manual_constants.json", mode="r", encoding="utf-8") as f:
         globals().update(json.load(f)) # add to global scope
     # extra, SCENE_BUBBLE_FILTER for performance
-    SCENE_NAVI_EXCLUSIONS = tuple(SCENE_NAVI_EXCLUSIONS)
+    SCENE_NAVI_EXCLUSIONS = set(SCENE_NAVI_EXCLUSIONS)
     VALENTINE_EXCLUDE = set(VALENTINE_EXCLUDE)
     RISING = set(RISING)
     RELINK = set(RELINK)
@@ -190,6 +190,30 @@ SCENE_BASE_LIST : list[str] = (
     + SCENE_SUFFIXES.get("default", {}).get("main", [])
     + SCENE_SUFFIXES.get("default", {}).get("unique", [])
 )
+
+# Additional tweaks to handle task bar progress
+class BetterTqdm(tqdm):
+    def display(self : BetterTqdm, *args, **kwargs) -> bool:
+        res = super().display(*args, **kwargs)
+        if self.total:
+            sys.stderr.write(f"\u001b]9;4;1;{100 * self.n / self.total:.0f}\u001b\\")
+            sys.stderr.flush()
+        return res
+
+    def pause(self : BetterTqdm) -> None:
+        if self.disable:
+            self.disable = False
+            self.refresh()
+        else:
+            self.disable = True
+            self.clear()
+            sys.stderr.write(f"\u001b]9;4;4;{100 * self.n / self.total:.0f}\u001b\\")
+            sys.stderr.flush()
+
+    def close(self : BetterTqdm) -> None:
+        super().close()
+        sys.stdout.write("\u001b]9;4;0\u001b\\")
+        sys.stdout.flush()
 
 # Handle tasks
 @dataclass(slots=True)
@@ -309,14 +333,14 @@ class TaskManager():
         # set progress bar
         if self.pbar is not None:
             self.pbar.close()
-        self.pbar = tqdm(
+        self.pbar = BetterTqdm(
             total=self.total,
-            unit=" t",
+            unit="t",
             unit_scale=True,
             unit_divisor=1000,
             mininterval=2,
             dynamic_ncols=True,
-            bar_format='{percentage:3.1f}%|{bar}{r_bar}'
+            bar_format='{percentage:3.1f}%|\u001b[32m{bar}\u001b[0m{r_bar}'
         )
         try:
             # wait until done
@@ -352,7 +376,7 @@ class TaskManager():
         if self.total <= 0 or self.finished >= self.total:
             return
         if self.pbar is not None:
-            self.pbar.clear()
+            self.pbar.pause()
         print("\nProcess PAUSED")
         print(f"{self.finished} / {self.total} Tasks completed")
         if self.updater.modified:
@@ -397,6 +421,8 @@ class TaskManager():
                     )
                 case 'exit':
                     print("Exiting...")
+                    if self.pbar is not None:
+                        self.pbar.close()
                     os._exit(0)
                 case 'npc'|'npcdata':
                     try:
@@ -418,7 +444,7 @@ class TaskManager():
                     print("Process RESUMING...")
                     break
         if self.pbar is not None:
-            self.pbar.refresh()
+            self.pbar.pause()
 
 # A queued task
 @dataclass(slots=True, order=True)
@@ -2640,7 +2666,7 @@ class Updater():
         # quit if npc and no uncap string existing beyond base one
         if index == 'npcs' and uncap != "" and uncap not in existing:
             # check if uncap string exists
-            await self.update_scene_check(TaskStatus(1, 1, running=1), file_id, uncap, existing)
+            await self.update_scene_check(TaskStatus(1, 1, running=1), file_id, uncap, existing, True)
             if uncap not in existing:
                 return
             checked.add(uncap)
@@ -2650,11 +2676,16 @@ class Updater():
         # test all base files
         ts = TaskStatus(1, 1, running=0)
         for base in bases:
+            navi : bool = True
+            for part in base.split("_"):
+                if "_" + part in SCENE_NAVI_EXCLUSIONS:
+                    navi = False
+                    break
             f = uncap + base
             ts.running += 1
             self.tasks.add(
                 self.update_scene_main_check,
-                parameters=(ts, file_id, f, existing, checked, suffixes, filters, base == ""),
+                parameters=(ts, file_id, f, existing, checked, suffixes, filters, base == "", navi),
                 priority=0
             )
         await asyncio.sleep(1)
@@ -2670,7 +2701,7 @@ class Updater():
         ts : TaskStatus, file_id : str, f : str,
         existing : set[str], checked : set[str],
         suffixes : list[str], filters : list[str],
-        allow_continue : bool
+        allow_continue : bool, navi : bool
     ) -> None:
         if f not in existing:
             if f in checked:
@@ -2686,6 +2717,8 @@ class Updater():
                         existing.add(f)
                     except:
                         try:
+                            if not navi:
+                                raise Exception()
                             await self.head(f"{IMG}sp/raid/navi_face/{file}")
                             existing.add(f)
                         except:
@@ -2701,10 +2734,11 @@ class Updater():
             checked.add(g)
             if g in existing or (len(filters) > 0 and not self.file_is_matching(g, filters)):
                 continue
+            navi = navi and suffix not in SCENE_NAVI_EXCLUSIONS
             ts.running += 1
             self.tasks.add(
                 self.update_scene_check,
-                parameters=(ts, file_id, g, existing),
+                parameters=(ts, file_id, g, existing, navi),
                 priority=0
             )
         ts.finish() # task ended
@@ -2751,16 +2785,14 @@ class Updater():
             self.resume['done'][element_id].append(uncap)
 
     # request scene assets
-    async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str]) -> None:
+    async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str], navi : bool) -> None:
         file : str = f"{file_id}{f}.png"
         try:
             await self.head(f"{IMG}sp/quest/scene/character/body/{file}")
             existing.add(f)
         except:
             try:
-                if not f.endswith(
-                   SCENE_NAVI_EXCLUSIONS
-                ):
+                if navi:
                     await self.head(f"{IMG}sp/raid/navi_face/{file}")
                     existing.add(f)
             except:
@@ -2802,7 +2834,6 @@ class Updater():
             ) else 2
         )
         loop_err_limit = 60 if index == "story0" and element_id == "191" else 30
-        stem_suffix : str
         
         async def test_file(f) -> bool:
             if f in existing:
@@ -2890,7 +2921,8 @@ class Updater():
                 ts.good()
             else:
                 ts.bad()
-                if index == "events" and ts.err >= ts.max_err and ts.index < 50: # special edge case, for 250329 so far
+                # special edge case, for 250329 so far
+                if ts.err >= ts.max_err and ts.index < 50 and index == "events":
                     ts.index = 50
                     ts.err = 0
         ts.finish()
@@ -3363,7 +3395,7 @@ class Updater():
                 for n in range(10):
                     self.tasks.add(self.update_chapter, parameters=(ts, index, k, STORY_CONTENT, IMG_BODY, "scene" + f, existing), priority=2)
         # chapters
-        for i in range(1, limit + 1):
+        for i in range(0, limit + 1):
             element_id = str(i).zfill(3)
             if element_id not in msq_data and element_id not in MSQ_SPECIALS[arc]:
                 if element_id not in msq_data:
