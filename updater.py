@@ -2598,7 +2598,17 @@ class Updater():
     #       v
     #   update_scene_end & (multiples) update_scene_check  (for each uncap)
     #
-    
+ 
+    # utility functions
+    def scene_is_in_resume(self : Updater, element_id : str, uncap : str) -> bool:
+        return 'scene_update' in self.flags and uncap in self.resume.get('done', {}).get(element_id, [])
+ 
+    def scene_add_to_resume(self : Updater, element_id : str, uncap : str) -> None:
+        if "scene_update" in self.flags:
+            if element_id not in self.resume['done']:
+                self.resume['done'][element_id] = []
+            self.resume['done'][element_id].append(uncap)
+ 
     # update the scene files of one element
     async def update_scenes_of(self : Updater, element_id : str, index : str, filters : list[str] = []) -> None:
         u : str
@@ -2644,7 +2654,7 @@ class Updater():
                 u = ""
             else:
                 u = "_" + u
-            if 'scene_update' in self.flags and u in self.resume.get('done', {}).get(element_id, []): # skip if in resume file
+            if self.scene_is_in_resume(element_id, u): # skip if in resume file
                 continue
             # start update_scene
             self.tasks.add(
@@ -2685,20 +2695,17 @@ class Updater():
             ts.running += 1
             self.tasks.add(
                 self.update_scene_main_check,
-                parameters=(ts, file_id, f, existing, checked, suffixes, filters, base == "", navi),
+                parameters=(ts, file_id, f, index, uncap, idx, existing, checked, suffixes, filters, base == "", navi),
                 priority=0
             )
-        await asyncio.sleep(1)
-        self.tasks.add(
-            self.update_scene_end,
-            parameters=(ts, index, element_id, idx, uncap, existing, bases, suffixes),
-            priority=2
-        )
+        if ts.running == 0:
+            self.scene_add_to_resume(element_id, uncap)
 
     # test base files then queue suffix if it exisst OR if allow_continue
     async def update_scene_main_check(
         self : Updater,
         ts : TaskStatus, file_id : str, f : str,
+        index : str, uncap : str, idx : int,
         existing : set[str], checked : set[str],
         suffixes : list[str], filters : list[str],
         allow_continue : bool, navi : bool
@@ -2742,16 +2749,16 @@ class Updater():
                 priority=0
             )
         ts.finish() # task ended
+        if ts.finished:
+            self.update_scene_end(index, element_id, idx, uncap, existing)
 
     # end of the pipeline, wait for TaskStatus completion
-    async def update_scene_end(
+    def update_scene_end(
         self : Updater,
-        ts : TaskStatus, index : str, element_id : str,
+        index : str, element_id : str,
         idx : int, uncap : str,
-        existing : set[str], bases : list[str], suffixes : list[str]
+        existing : set[str]
     ) -> None:
-        # wait previous tasks completion
-        await ts.wait_finish()
         # check if the data has new strings
         if (
             (
@@ -2779,10 +2786,7 @@ class Updater():
                         break
             self.tasks.print("Scene file list updated for", element_id)
         # add element id and uncap to resume save
-        if "scene_update" in self.flags:
-            if element_id not in self.resume['done']:
-                self.resume['done'][element_id] = []
-            self.resume['done'][element_id].append(uncap)
+        self.scene_add_to_resume(element_id, uncap)
 
     # request scene assets
     async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str], navi : bool) -> None:
