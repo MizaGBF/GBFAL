@@ -3118,7 +3118,7 @@ class Updater():
             no_prefix : bool = element_id.startswith("arca") # only for arcarum assets
             existings : list[dict[str, list[str]]] = [ # generate maps of existing files
                 self.generate_chapter_file_map(evt_data[element_id][i])
-                for i in range(EVENT_OP, len(evt_data[element_id]))
+                for i in range(EVENT_OP, EVENT_SKY)
             ]
             ch_count : int = min(
                 EVENT_MAX_CHAPTER,
