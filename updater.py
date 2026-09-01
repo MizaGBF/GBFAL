@@ -197,6 +197,8 @@ class BetterTqdm(tqdm):
         res = super().display(*args, **kwargs)
         if self.total:
             sys.stderr.write(f"\u001b]9;4;1;{100 * self.n / self.total:.0f}\u001b\\")
+            if self.n == self.total:
+                sys.stderr.write("\a")
             sys.stderr.flush()
         return res
 
