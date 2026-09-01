@@ -27,6 +27,7 @@ function init() // entry point, called by body onload
 		"sk": GBFType.skill,
 		"fa": GBFType.fate,
 		"b": GBFType.buff,
+		"fr": GBFType.free,
 		"m1": GBFType.story0,
 		"m2": GBFType.story1,
 		"sd": GBFType.shield,
@@ -694,14 +695,16 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			];
 			break;
 		}
+		case GBFType.free:
 		case GBFType.story0:
 		case GBFType.story1:
 		{
-			last_id = (
-				type == GBFType.story0
-				? "m1"
-				: "m2"
-			) + id;
+			switch(type)
+			{
+				case GBFType.free: last_id = "fr" + id; break;
+				case GBFType.story0: last_id = "m1" + id; break;
+				case GBFType.story1: last_id = "m2" + id; break;
+			}
 			pages = [
 				{
 					name:"",
@@ -877,7 +880,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 			target:target,
 			data:data,
 			navigation:indexed,
-			navigation_special_targets:["story0", "story1", "fate", "events"],
+			navigation_special_targets:["free", "story0", "story1", "fate", "events"],
 			lookup:indexed,
 			related:indexed,
 			link:include_link,

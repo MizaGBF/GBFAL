@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.77'
+VERSION = '3.78'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -45,6 +45,7 @@ ADD_FATE = 12
 ADD_SHIELD = 13
 ADD_MANATURA = 14
 ADD_STORY1 = 15
+ADD_FREE = 16
 ADD_SINGLE_ASSET = [
     "profile_npcs",
     "profile_arts",
@@ -140,6 +141,7 @@ JS = ENDPOINT + "js/"
 MANIFEST = JS + "model/manifest/"
 CJS = JS + "cjs/"
 IMG = ENDPOINT + "img/"
+IMG_BODY = IMG + "sp/quest/scene/character/body/"
 SOUND = ENDPOINT + "sound/"
 VOICE = SOUND + "voice/"
 # regex
@@ -536,6 +538,7 @@ class Updater():
             "subskills":{},
             "buffs":{},
             "eventthumb":{},
+            "free":{},
             "story0":{},
             "story1":{},
             "fate":{},
@@ -2766,106 +2769,98 @@ class Updater():
 
     ### Generic Chapter Update #################################################################################################################
 
+    def generate_chapter_file_map(self : Updater, files : list[str]) -> dict[str, list[str]]:
+        m : dict[str, list[str]] = {}
+        for f in files:
+            stem, suffix = f.rsplit(".", 1)
+            if stem not in m:
+                m[stem] = [suffix]
+            else:
+                m[stem].append(suffix)
+        return m
+
+    def chapter_file_map_to_list(self : Updater, m : dict[str, list[str]]) -> list[str]:
+        l : list[str] = []
+        for stem, suffix in m.items():
+            for s in suffix:
+                l.append(f"{stem}.{s}")
+        l.sort(key=lambda s: "_".join([w.zfill(8) if w.isdigit() else w for w in s.split(".")[0].split("_")]))
+        return l
+
     # generic function to update: A story chapter, a fate episode scene or an event chapter
     # horrible but can't find a better way
-    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, base_url : str, existing : set[str], extension : str = ".png") -> None:
-        is_old = "tuto_scene" in base_url # check for MSQ tutorial
-        tmp : str = base_url.rsplit("/", 1)[-1]
+    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, url : str, base_stem : str, existing : set[str]) -> None:
+        is_old = "tuto_scene" in base_stem # check for MSQ tutorial
         Z = ( # zfill value used in the filename, for MSQ tutorial
             1
             if (
-                "tuto_scene" in base_url
+                "tuto_scene" in base_stem
                 or (
-                    tmp.startswith("scene_cp")
-                    and int(tmp[len("scene_cp"):].split("_", 1)[0]) < 90
+                    base_stem.startswith("scene_cp")
+                    and int(base_stem[len("scene_cp"):].split("_", 1)[0]) < 90
                 )
             ) else 2
         )
         loop_err_limit = 60 if index == "story0" and element_id == "191" else 30
         stem_suffix : str
-        while not ts.complete:
-            i : int = ts.get_next_index() # next ID to check
-            url : str = base_url + "_" + str(i).zfill(Z) # prepare url
-            stem : str = url.split("/")[-1]
-            good : bool = False # flag to determine if we have at least a positive match
-            flag : bool = False # flag used along the way
-            # Note:
-            # url is https://.../base_NUM
-            # -------------
-            # Now checking for base_NUM.ext & base_NUM_suffix.ext
-            for k in ("", "_up", "_ef", "_shadow"): # there are likely more variations but I don't want to add pointless files to slow it down further
+        
+        async def test_file(f) -> bool:
+            if f in existing:
+                return True
+            found : bool = False
+            for ext in ('png', 'jpg'):
                 try:
-                    stem_suffix = f"{stem}{k}{extension}"
-                    if stem_suffix not in existing:
-                        await self.head(f"{url}{k}{extension}")
-                        existing.add(stem_suffix)
-                    flag = True
-                    good = True
+                    file = f"{f}.{ext}"
+                    await self.head(url + file)
+                    if f not in existing:
+                        existing[f] = [ext]
+                    else:
+                        existing[f].append(ext)
+                    found = True
                 except:
                     pass
+            return found
+        
+        while not ts.complete:
+            i : int = ts.get_next_index() # next ID to check
+            stem : str = base_stem + "_" + str(i).zfill(Z)
+            good : bool = False # flag to determine if we have at least a positive match
+            flag : bool = False # flag used along the way
+            for k in ("", "_up", "_ef", "_shadow"):
+                # there are likely more variations but I don't want to add pointless files to slow it down further
+                if await test_file(f"{stem}{k}"):
+                    flag = True
+                    good = True
             # Checking for base_NUMX.ext (no underscore)
             for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5", "6")):
                 for k in ss:
-                    try:
-                        stem_suffix : str = f"{stem}{k}{extension}"
-                        if stem_suffix not in existing:
-                            await self.head(f"{url}{k}{extension}")
-                            existing.add(stem_suffix)
+                    if await test_file(f"{stem}{k}"):
                         flag = True
                         good = True
-                    except:
-                        pass
             # Check the variations (yes, it's slow)
             # Checking for base_NUM_C.ext
             for k in string.ascii_lowercase:
                 found = False
-                try:
-                    stem_suffix = f"{stem}_{k}{extension}"
-                    if stem_suffix not in existing:
-                        await self.head(f"{url}_{k}{extension}")
-                        existing.add(stem_suffix)
+                if await test_file(f"{stem}_{k}"):
                     flag = True
                     found = True
                     good = True
-                except:
-                    pass
                 # And for base_NUM_CX.ext
                 for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
                     for kkk in ss:
-                        try:
-                            stem_suffix = f"{stem}_{k}{kkk}{extension}"
-                            if stem_suffix not in existing:
-                                await self.head(f"{url}_{k}{kkk}{extension}")
-                                existing.add(stem_suffix)
+                        if await test_file(f"{stem}_{k}{kkk}"):
                             flag = True
                             found = True
                             good = True
-                        except:
-                            break
                 if not found: # stop if no files found for this particular variation
                     break
             # if NOTHING found until now OR we're in the MSQ tutorial
             if not flag or is_old:
                 # We test another filename format
-                # base_00.ext
-                try:
-                    stem_suffix = f"{stem}_00{extension}"
-                    if stem_suffix not in existing:
-                        await self.head(f"{url}_00{extension}")
-                        existing.add(stem_suffix)
-                    good = True
-                except:
-                    pass
-                # plus some variations
-                for k in ("_up", "_shadow"):
-                    try:
-                        stem_suffix = f"{stem}_00{k}{extension}"
-                        if stem_suffix not in existing:
-                            await self.head(f"{url}_00{k}{extension}")
-                            existing.add(stem_suffix)
+                # base_00
+                for k in ("", "_up", "_shadow"):
+                    if await test_file(f"{stem}_00{k}"):
                         good = True
-                    except:
-                        pass
                 err = 0
                 i = 1
                 # now test ALL numbered variations
@@ -2873,37 +2868,21 @@ class Updater():
                 # they are in sequence usually
                 while i < 1000 and err < loop_err_limit:
                     k = str(i).zfill(Z)
-                    try:
-                        stem_suffix = f"{stem}_{k}{extension}"
-                        if stem_suffix not in existing:
-                            await self.head(f"{url}_{k}{extension}")
-                            existing.add(stem_suffix)
+                    if await test_file(f"{stem}_{k}"):
                         good = True
                         err = 0
                         # these variations are only possible if the above file exists (in theory)
                         for kk in string.ascii_lowercase:
                             found = False
-                            try:
-                                stem_suffix = f"{stem}_{k}_{kk}{extension}"
-                                if stem_suffix not in existing:
-                                    await self.head(f"{url}_{k}_{kk}{extension}")
-                                    existing.add(stem_suffix)
+                            if await test_file(f"{stem}_{k}_{kk}"):
                                 found = True
-                            except:
-                                pass
                             for ss in (("a", "b", "c", "d", "e", "f"), ("1", "2", "3", "4", "5")):
                                 for kkk in ss:
-                                    try:
-                                        stem_suffix = f"{stem}_{k}_{kk}{kkk}{extension}"
-                                        if stem_suffix not in existing:
-                                            await self.head(f"{url}_{k}_{kk}{kkk}{extension}")
-                                            existing.add(stem_suffix)
+                                    if await test_file(f"{stem}_{k}_{kk}{kkk}"):
                                         found = True
-                                    except:
-                                        break
                             if not found:
                                 break
-                    except:
+                    else:
                         err += 1
                     i += 1
             # check if we found at least ONE file
@@ -2911,7 +2890,7 @@ class Updater():
                 ts.good()
             else:
                 ts.bad()
-                if ts.err >= ts.max_err and ts.index < 50: # special edge case, for 250329 so far
+                if index == "events" and ts.err >= ts.max_err and ts.index < 50: # special edge case, for 250329 so far
                     ts.index = 50
                     ts.err = 0
         ts.finish()
@@ -2920,20 +2899,19 @@ class Updater():
         if ts.finished and len(existing) > 0:
             data = self.data[index] # reference
             # if data has changed (or we have matches and no data in index)
-            if (len(existing) > 0 and element_id not in data) or (element_id in data and len(existing) > len(data[element_id][idx])):
+            result : list[str] = self.chapter_file_map_to_list(existing)
+            if (len(result) > 0 and element_id not in data) or (element_id in data and len(result) > len(data[element_id][idx])):
                 # create data if not initialized
                 if element_id not in data:
                     match index:
                         case "events":
                             data[element_id] = self.create_event_container()
-                        case "story0"|"story1":
+                        case "free"|"story0"|"story1":
                             data[element_id] = [[]]
                         case "fate":
                             data[element_id] = [[],[],[],[],None]
                 # set data
-                data[element_id][idx] = list(existing)
-                # and sort
-                data[element_id][idx].sort(key=lambda s: "_".join([w.zfill(8) if w.isdigit() else w for w in s.split(".")[0].split("_")]))
+                data[element_id][idx] = result
                 # add to changelog (and set flag) if not done yet (using self.addition to check)
                 if element_id not in self.addition:
                     match index:
@@ -2943,6 +2921,9 @@ class Updater():
                             if not self.add(element_id, ADD_EVENT):
                                 self.tasks.print("Updated:", element_id, "for index:", index)
                             self.raise_flag("found_event")
+                        case "free":
+                            if not self.add(element_id, ADD_FREE):
+                                self.tasks.print("Updated:", element_id, "for index:", index)
                         case "story0":
                             if not self.add(element_id, ADD_STORY0):
                                 self.tasks.print("Updated:", element_id, "for index:", index)
@@ -3135,7 +3116,10 @@ class Updater():
             name : str = SPECIAL_EVENTS.get(element_id, element_id) # retrieve file name id if special event
             prefix : str = "evt" if name.isdigit() else "" # and change prefix if the file name is special
             no_prefix : bool = element_id.startswith("arca") # only for arcarum assets
-            existings : list[set[str]] = [set(evt_data[element_id][i]) for i in range(EVENT_OP, len(evt_data[element_id]))] # make set of existing files
+            existings : list[dict[str, list[str]]] = [ # generate maps of existing files
+                self.generate_chapter_file_map(evt_data[element_id][i])
+                for i in range(EVENT_OP, len(evt_data[element_id]))
+            ]
             ch_count : int = min(
                 EVENT_MAX_CHAPTER,
                 (
@@ -3147,67 +3131,66 @@ class Updater():
             )
             ts : TaskStatus
             # chapters
-            for ext in (".png", ".jpg"):
-                if not no_prefix:
+            if not no_prefix:
+                for i in range(0, ch_count+1):
+                    fn = f"scene_{prefix}{name}_cp{i:02}"
+                    ts = TaskStatus(200, 5, running=10)
+                    didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG_BODY, fn, existings[didx - EVENT_OP]), priority=2)
+                    if i < 10:
+                        fn = f"scene_{prefix}{name}_cp{i:}"
+                        ts = TaskStatus(200, 5, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG_BODY, fn, existings[didx - EVENT_OP]), priority=2)
+                # opening
+                fn = f"scene_{prefix}{name}_op"
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_OP, IMG_BODY, fn, existings[EVENT_OP - EVENT_OP]), priority=2)
+                # ending
+                fn = f"scene_{prefix}{name}_ed"
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
+                # ending 2
+                fn = f"scene_{prefix}{name}_ed2"
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
+                # others
+                fn = f"scene_{prefix}{name}"
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG_BODY, fn, existings[EVENT_INT - EVENT_OP]), priority=2)
+                if element_id == "babyl0": # special exception (only for babyl right now)
+                    for ss in range(1, 30):
+                        fn = f"scene_babeel_01_ed{ss}"
+                        ts = TaskStatus(200, 5, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
+                        fn = f"scene_babeel_ed{ss}"
+                        ts = TaskStatus(200, 5, running=10)
+                        for n in range(10):
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
+                elif element_id == "solom0": # special exception (for evoker solomonis)
                     for i in range(0, ch_count+1):
-                        fn = f"scene_{prefix}{name}_cp{i:02}"
+                        fn = f"scene_{prefix}{name}_ep{i:01}"
                         ts = TaskStatus(200, 5, running=10)
                         didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
                         for n in range(10):
-                            self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP], ext), priority=2)
-                        if i < 10:
-                            fn = f"scene_{prefix}{name}_cp{i:}"
-                            ts = TaskStatus(200, 5, running=10)
-                            for n in range(10):
-                                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP], ext), priority=2)
-                    # opening
-                    fn = f"scene_{prefix}{name}_op"
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_OP, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_OP - EVENT_OP], ext), priority=2)
-                    # ending
-                    fn = f"scene_{prefix}{name}_ed"
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
-                    # ending 2
-                    fn = f"scene_{prefix}{name}_ed2"
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
-                    # others
-                    fn = f"scene_{prefix}{name}"
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_INT - EVENT_OP], ext), priority=2)
-                    if element_id == "babyl0": # special exception (only for babyl right now)
-                        for ss in range(1, 30):
-                            fn = f"scene_babeel_01_ed{ss}"
-                            ts = TaskStatus(200, 5, running=10)
-                            for n in range(10):
-                                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
-                            fn = f"scene_babeel_ed{ss}"
-                            ts = TaskStatus(200, 5, running=10)
-                            for n in range(10):
-                                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
-                    elif element_id == "solom0": # special exception (for evoker solomonis)
-                        for i in range(0, ch_count+1):
-                            fn = f"scene_{prefix}{name}_ep{i:01}"
-                            ts = TaskStatus(200, 5, running=10)
-                            didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
-                            for n in range(10):
-                                self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG + "sp/quest/scene/character/body/"+fn, existings[didx - EVENT_OP], ext), priority=2)
-                else: # no prefix mode, only used for arcarum
-                    if element_id == "arca00": # special for main arca scene assets
-                        if len(evt_data[element_id][EVENT_INT]) == 0:
-                            evt_data[element_id][EVENT_INT] = ["arcarum_map.png", "arcarum_map_a.png"]
-                            self.modified = True
-                            self.tasks.print("Updated: arca00 for index: events")
-                        return
-                    fn = name
-                    ts = TaskStatus(200, 5, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG + "sp/quest/scene/character/body/"+fn, existings[EVENT_ED - EVENT_OP], ext), priority=2)
+                            self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG_BODY, fn, existings[didx - EVENT_OP]), priority=2)
+            else: # no prefix mode, only used for arcarum
+                if element_id == "arca00": # special for main arca scene assets
+                    if len(evt_data[element_id][EVENT_INT]) == 0:
+                        evt_data[element_id][EVENT_INT] = ["arcarum_map.png", "arcarum_map_a.png"]
+                        self.modified = True
+                        self.tasks.print("Updated: arca00 for index: events")
+                    return
+                fn = name
+                ts = TaskStatus(200, 5, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
 
     ### Event Thumbnail #################################################################################################################
 
@@ -3343,42 +3326,44 @@ class Updater():
 
     # Update every (unset) story chapters
     async def update_all_story(self : Updater, arc : int, limit : int|None) -> None:
+        if arc < -1 or arc > 1:
+            return
         if limit is None or limit < 1: # upate limit accordingly
             try:
                 limit = MSQ_LAST_CHAPTER[arc]
             except:
                 self.tasks.print("An error occured while attempting to retrieve the MSQ Chapter count from gbf.wiki")
                 return
-        existing : set[str]
+        existing : dict[str, list[str]]
         ts : TaskStatus
         # special recap chapters
-        msq_data = self.data["story" + str(arc)] # reference
+        index : str = ("story" + str(arc)) if arc > 0 else "free"
+        msq_data = self.data[index] # reference
         for k in MSQ_SPECIALS[arc]:
             if k not in msq_data:
                 if k not in msq_data:
                     msq_data[k] = [[]]
-                existing = set(msq_data[k][STORY_CONTENT])
-                for ext in (".png", ".jpg"):
-                    ts : TaskStatus
-                    f : str
-                    match k[0]:
-                        case "r":
-                            ts = TaskStatus(200, 10, running=10)
-                            f = "_skip" + MSQ_SPECIALS[arc][k]
-                        case "c":
-                            ts = TaskStatus(200, 10, running=10)
-                            f = MSQ_SPECIALS[arc][k]
-                        case _:
-                            match k:
-                                case "191": # ending I
-                                    ts = TaskStatus(200, 10, running=10)
-                                    f = MSQ_SPECIALS[arc][k]
-                                case _:
-                                    continue
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), k, STORY_CONTENT, IMG + "sp/quest/scene/character/body/scene" + f, existing, ext), priority=2)
+                existing = self.generate_chapter_file_map(msq_data[k][STORY_CONTENT])
+                ts : TaskStatus
+                f : str
+                match k[0]:
+                    case "r":
+                        ts = TaskStatus(200, 10, running=10)
+                        f = "_skip" + MSQ_SPECIALS[arc][k]
+                    case "c":
+                        ts = TaskStatus(200, 10, running=10)
+                        f = MSQ_SPECIALS[arc][k]
+                    case _:
+                        match k:
+                            case "191": # ending I
+                                ts = TaskStatus(200, 10, running=10)
+                                f = MSQ_SPECIALS[arc][k]
+                            case _:
+                                continue
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, index, k, STORY_CONTENT, IMG_BODY, "scene" + f, existing), priority=2)
         # chapters
-        for i in range(0, limit + 1):
+        for i in range(1, limit + 1):
             element_id = str(i).zfill(3)
             if element_id not in msq_data and element_id not in MSQ_SPECIALS[arc]:
                 if element_id not in msq_data:
@@ -3395,17 +3380,19 @@ class Updater():
                             fn = "tuto_scene"
                         else:
                             fn = f"scene_cp{i}"
+                    case -1:
+                        fn = f"scene_free{i}"
                     case _:
                         break
-                existing = set(msq_data[element_id][STORY_CONTENT])
-                for ext in (".png", ".jpg"):
-                    ts = TaskStatus(200, 10, running=10)
-                    for n in range(10):
-                        self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn, existing, ext), priority=2)
+                existing = self.generate_chapter_file_map(msq_data[element_id][STORY_CONTENT])
+                ts = TaskStatus(200, 10, running=10)
+                for n in range(10):
+                    self.tasks.add(self.update_chapter, parameters=(ts, index, element_id, STORY_CONTENT, IMG_BODY, fn, existing), priority=2)
+                if arc > -1: # not for free quests
                     for q in range(1, 6):
                         ts = TaskStatus(200, 10, running=10)
                         for n in range(10):
-                            self.tasks.add(self.update_chapter, parameters=(ts, "story" + str(arc), element_id, STORY_CONTENT, IMG + "sp/quest/scene/character/body/" + fn + "_q" + str(q), existing, ext), priority=2)
+                            self.tasks.add(self.update_chapter, parameters=(ts, index, element_id, STORY_CONTENT, IMG_BODY, fn + "_q" + str(q), existing), priority=2)
         await self.tasks.start()
 
     ### Fate #################################################################################################################
@@ -3472,28 +3459,27 @@ class Updater():
     # can set up to two file names to check, for an uncap level (see update_all_fate)
     async def check_fate(self : Updater, element_id : str, index : int, fid : str, nameA : str|None, epA_check : bool, nameB : str|None, epB_check : bool) -> None:
         ts : TaskStatus
-        existing = set(self.data['fate'].get(fid, [[], [], [], [], None])[index])
-        for ext in (".png", ".jpg"):
-            if nameA is not None:
-                # nameA
-                ts = TaskStatus(200, 5, running=10)
-                for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameA, existing, ext), priority=2)
-                if epA_check:
-                    for q in range(1, 5):
-                        ts = TaskStatus(200, 5, running=10)
-                        for n in range(10):
-                            self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameA+"_ep"+str(q), existing, ext), priority=2)
-            if nameB is not None:
-                # nameB
-                ts = TaskStatus(200, 5, running=10)
-                for n in range(10):
-                    self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameB, existing, ext), priority=2)
-                if epB_check:
-                    for q in range(1, 5):
-                        ts = TaskStatus(200, 5, running=10)
-                        for n in range(10):
-                            self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG + "sp/quest/scene/character/body/"+nameB+"_ep"+str(q), existing, ext), priority=2)
+        existing = self.generate_chapter_file_map(self.data['fate'].get(fid, [[], [], [], [], None])[index])
+        if nameA is not None:
+            # nameA
+            ts = TaskStatus(200, 5, running=10)
+            for n in range(10):
+                self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG_BODY, nameA, existing), priority=2)
+            if epA_check:
+                for q in range(1, 5):
+                    ts = TaskStatus(200, 5, running=10)
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG_BODY, f"{nameA}_ep{q}", existing), priority=2)
+        if nameB is not None:
+            # nameB
+            ts = TaskStatus(200, 5, running=10)
+            for n in range(10):
+                self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG_BODY, nameB, existing), priority=2)
+            if epB_check:
+                for q in range(1, 5):
+                    ts = TaskStatus(200, 5, running=10)
+                    for n in range(10):
+                        self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG_BODY, f"{nameB}_ep{q}", existing), priority=2)
 
     # Update all fate data (or the ones specified)
     # param can be:
@@ -4586,7 +4572,7 @@ class Updater():
                                 file_estimation += 3
                             for i in range(EVENT_OP, EVENT_SKY+1):
                                 file_estimation += len(v[i])
-                        case "story0"|"story1":
+                        case "free"|"story0"|"story1":
                             if v is None or v == 0: continue
                             file_estimation += len(v[STORY_CONTENT])
                         case "fate":
@@ -4781,7 +4767,7 @@ class Updater():
                 s = e + "a"
                 if s not in self.data["events"][k][i]:
                     try:
-                        await self.head(IMG + "sp/quest/scene/character/body/" + s + ".png")
+                        await self.head(f"{IMG_BODY}{s}.png")
                         self.tasks.print("fate", k, "found", s)
                         self.data["fate"][k][i].append(s)
                         #self.modified = True
@@ -4919,6 +4905,7 @@ class Updater():
         secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
         secondary.add_argument('-fe', '--forceevent', help="force update event content for given event IDs.", nargs='+', default=None)
         secondary.add_argument('-ne', '--newevent', help="check new event content.", action='store_const', const=True, default=False, metavar='')
+        secondary.add_argument('-fr', '--free', help="update story free quest content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
         secondary.add_argument('-st1', '--story1', help="update story arc 1 content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
         secondary.add_argument('-st2', '--story2', help="update story arc 2 content. Add an optional chapter to stop at.", action='store', nargs='?', type=int, default=0, metavar='LIMIT')
         secondary.add_argument('-ft', '--fate', help="update fate content. Add an optional fate ID to update or a range (START-END) or 'last' to update the latest.", action='store', nargs='?', default="", metavar='FATES')
@@ -5029,6 +5016,9 @@ class Updater():
                 self.tasks.print("Searching new event data...")
                 await self.init_updater(wiki=True)
                 await self.check_new_event()
+            elif args.free is None or args.free > 0:
+                self.tasks.print("Searching new free quest data...")
+                await self.update_all_story(-1, args.free)
             elif args.story1 is None or args.story1 > 0:
                 self.tasks.print("Searching new story arc 1 data...")
                 await self.update_all_story(0, args.story1)

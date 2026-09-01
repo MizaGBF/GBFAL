@@ -111,10 +111,9 @@ The content are simple structures to keep the file size low.
     - Index 0: The first part of the filename. It should matches the ID without leading zeros.
     - Index 1: Valid suffixes for this buff. Resulting path: `sp/ui/icon/status/x64/status_ZID_suffix.png` where `ZID` is the string at Index 0.  
 - `eventthumb`: Object of ID and integer pairs for event thumbnail. For internal use only. The integer is set to **1** if it's used for an event.  
-- `story0`: Object of chapter ID (zfilled to string of length 3) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
+- `free`, `story0`, `story1`: Object of chapter ID (zfilled to string of length 3) and data pairs for Free Quests, MSQ Arc 1 and MSQ Arc 2. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of one single list, containing file names with the file extension. (`[[]]`).  
     - Index 0: The list of known files.  
-- `story1`: Identical to `story0` but for the second arc.
 - `fate`: Object of chapter ID (zfilled to string of length 3) and data pairs. If the element hasn't been updated, the data will be set to **0**. Otherwise, the data will be an array with the following format:  
     - General format: A list of five elements, four lists containing file names with the file extension, and an optional string. (`[[], [], [], [], null]`).  
     - Index 0: The list of known files for base fates.  

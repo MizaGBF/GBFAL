@@ -1279,9 +1279,17 @@
             ]
         },
         {
-            "name":"Main Story",
+            "name":"Story",
             "icon":"../GBFML/assets/ui/icon/story.png",
             "childs":[
+                {
+                    "name":"Free Quests",
+                    "icon":"../GBFML/assets/ui/icon/win.png",
+                    "target":"free",
+                    "arg1":0,
+                    "arg2":"chapter",
+                    "reverse":1
+                },
                 {
                     "name":"Arc 1",
                     "icon":"../GBFML/assets/ui/icon/arc_1.png",
