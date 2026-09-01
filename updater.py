@@ -2789,7 +2789,7 @@ class Updater():
 
     # generic function to update: A story chapter, a fate episode scene or an event chapter
     # horrible but can't find a better way
-    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, url : str, base_stem : str, existing : set[str]) -> None:
+    async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, url : str, base_stem : str, existing : dict[str, list[str]]) -> None:
         is_old = "tuto_scene" in base_stem # check for MSQ tutorial
         Z = ( # zfill value used in the filename, for MSQ tutorial
             1
