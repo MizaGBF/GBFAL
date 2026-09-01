@@ -2484,6 +2484,50 @@ class Updater():
 
     ### Scene #################################################################################################################
     
+    async def search_scene_files(self : Updater, suffixes : list[str]) -> None:
+        for i in range(len(suffixes)):
+            if not suffixes[i].startswith("_"):
+                suffixes[i] = "_" + suffixes[i]
+        for invalid in ("", "_"):
+            while invalid in suffixes:
+                suffixes.remove(invalid)
+        if len(suffixes) == 0:
+            self.tasks.print("No valid scene file suffixes to search for")
+        count : int = 0
+        for t in ("npcs", "characters"):
+            for element_id, dat in self.data[t].items():
+                if not isinstance(dat, int):
+                    self.tasks.add(self.search_scene_for, parameters=(element_id, t, suffixes), priority=3)
+                    count += 1
+        self.tasks.print(f"Searching {len(suffixes)} scene file suffixes for {count} elements...")
+        await self.tasks.start()
+
+    async def search_scene_for(self : Updater, element_id : str, index : str, suffixes : list[str]) -> None:
+        match index:
+            case 'characters'|'skins':
+                idx = CHARA_SCENE
+                add_t = ADD_CHAR
+                ref = self.data[index][element_id]
+            case 'npcs':
+                idx = NPC_SCENE
+                add_t = ADD_NPC
+                ref = self.data[index][element_id]
+            case _:
+                return
+        for s in suffixes:
+            if s not in ref[idx]:
+                try:
+                    await self.head(f"{IMG_BODY}{element_id}{s}.png")
+                    ref[idx].append(s)
+                    ref[idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e)))
+                    self.add(element_id, add_t)
+                    self.modified = True
+                    self.tasks.print(f"'{s}' found for {element_id}, starting secondary tasks...")
+                    self.tasks.add(self.update_scenes_of, parameters=(element_id, index, suffixes))
+                    break
+                except:
+                    pass
+
     # update npc/character/skin scene files for given IDs
     async def update_all_scene_for_ids(self : Updater, ids : list[str] = []) -> None:
         # references
@@ -2511,6 +2555,9 @@ class Updater():
         if len(self.resume.get('done', {})) != 0:
             self.tasks.print("Note: Resuming the previous run...")
         if len(filters) > 0:
+            for invalid in ("", "_"):
+                while invalid in filters:
+                    filters.remove(invalid)
             self.tasks.print(f"Note: {len(filters)} filter(s) in use. Not matching filenames will be ignored.")
         if 'name' not in self.resume:
             self.resume['name'] = "scene"
@@ -2680,6 +2727,7 @@ class Updater():
             # check if uncap string exists
             await self.update_scene_check(TaskStatus(1, 1, running=1), file_id, uncap, existing, True)
             if uncap not in existing:
+                self.scene_add_to_resume(element_id, uncap)
                 return
             checked.add(uncap)
         # check other base strings
@@ -2697,7 +2745,7 @@ class Updater():
             ts.running += 1
             self.tasks.add(
                 self.update_scene_main_check,
-                parameters=(ts, file_id, f, index, uncap, idx, existing, checked, suffixes, filters, base == "", navi),
+                parameters=(ts, element_id, file_id, f, index, uncap, idx, existing, checked, suffixes, filters, base == "", navi),
                 priority=0
             )
         if ts.running == 0:
@@ -2706,7 +2754,8 @@ class Updater():
     # test base files then queue suffix if it exisst OR if allow_continue
     async def update_scene_main_check(
         self : Updater,
-        ts : TaskStatus, file_id : str, f : str,
+        ts : TaskStatus, element_id : str,
+        file_id : str, f : str,
         index : str, uncap : str, idx : int,
         existing : set[str], checked : set[str],
         suffixes : list[str], filters : list[str],
@@ -2722,7 +2771,7 @@ class Updater():
                 if len(filters) == 0 or self.file_is_matching(f, filters):
                     file : str = f"{file_id}{f}.png"
                     try:
-                        await self.head(f"{IMG}sp/quest/scene/character/body/{file}")
+                        await self.head(f"{IMG_BODY}{file}")
                         existing.add(f)
                     except:
                         try:
@@ -2733,6 +2782,8 @@ class Updater():
                         except:
                             if not allow_continue:
                                 ts.finish() # task ended
+                                if ts.finished:
+                                    self.update_scene_end(index, element_id, idx, uncap, existing)
                                 return
         for suffix in suffixes:
             if suffix == "":
@@ -2794,7 +2845,7 @@ class Updater():
     async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str], navi : bool) -> None:
         file : str = f"{file_id}{f}.png"
         try:
-            await self.head(f"{IMG}sp/quest/scene/character/body/{file}")
+            await self.head(f"{IMG_BODY}{file}")
             existing.add(f)
         except:
             try:
@@ -4491,7 +4542,7 @@ class Updater():
         # other
         count : int = 0
         for s in scene_strings:
-            uris.append((f"{IMG}sp/quest/scene/character/body/{{}}{s}.png", NPC_SCENE))
+            uris.append((f"{IMG_BODY}{{}}{s}.png", NPC_SCENE))
             uris.append((f"{IMG}sp/raid/navi_face/{{}}{s}.png", NPC_SCENE))
         for s in sound_strings:
             uris.append((f"{SOUND}voice/{{}}{s}.mp3", NPC_SOUND))
@@ -4938,6 +4989,7 @@ class Updater():
         secondary = parser.add_argument_group('secondary', 'commands to update some specific data.')
         secondary.add_argument('-sc', '--scene', help="update scene content. Add optional strings to match.", nargs='*', default=None)
         secondary.add_argument('-si', '--sceneid', help="update scene content for given IDs.", nargs='+', default=None)
+        secondary.add_argument('-lsc', '--lookscene', help="basic search of elements with given file suffix", nargs='+', default=None)
         secondary.add_argument('-sd', '--sound', help="update sound content. Add optional strings to match.", nargs='*', default=None)
         secondary.add_argument('-sdi', '--soundid', help="update sound content for given IDs.", nargs='+', default=None)
         secondary.add_argument('-ev', '--event', help="update event content. Add optional event IDs to update specific events.", nargs='*', default=None)
@@ -5036,6 +5088,8 @@ class Updater():
             elif args.sceneid is not None and len(args.sceneid) > 0:
                 self.tasks.print("Updating scene data...")
                 await self.update_all_scene_for_ids(list(set(args.sceneid)))
+            elif args.lookscene is not None and len(args.lookscene) > 0:
+                await self.search_scene_files(list(set(args.lookscene)))
             elif args.sound is not None:
                 self.tasks.print("Updating sound data...")
                 await self.update_all_sound(list(set(args.sound)))
