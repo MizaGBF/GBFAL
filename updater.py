@@ -4327,7 +4327,7 @@ class Updater():
     ### Maintenance #################################################################################################################
 
     # Called by maintenancebuff
-    async def maintenance_buff(self : Updater, buff_set : True) -> None:
+    async def maintenance_buff(self : Updater, buff_set : bool = True) -> None:
         if "maintenance_buff" in self.flags:
             return
         self.raise_flag("maintenance_buff")
