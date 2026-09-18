@@ -5331,7 +5331,9 @@
 "1040029700":[["1040029700"],["phit_1040029700.png"],["sp_1040029700_0_s2.png","sp_1040029700_1_s2.png"]],
 "1040320400":[["1040320400"],["phit_1040320400.png"],["sp_1040320400_0_s2.png","sp_1040320400_1_s2.png"]],
 "1040818700":[["1040818700"],["phit_1040818700.png"],["sp_1040818700_0_s2_a.png","sp_1040818700_0_s2_b.png","sp_1040818700_1_s2_a.png","sp_1040818700_1_s2_b.png"]],
-"1040919000":[["1040919000"],["phit_1040919000.png"],["sp_1040919000_0_s2.png","sp_1040919000_1_s2.png"]]
+"1040919000":[["1040919000"],["phit_1040919000.png"],["sp_1040919000_0_s2.png","sp_1040919000_1_s2.png"]],
+"1040029800":[["1040029800"],["phit_1040029800.png"],["sp_1040029800_0_s2_a.png","sp_1040029800_0_s2_b.png","sp_1040029800_1_s2_a.png","sp_1040029800_1_s2_b.png"]],
+"1040123100":[["1040123100"],["phit_1040123100.png"],["sp_1040123100_0_s2_a.png","sp_1040123100_0_s2_b.png","sp_1040123100_1_s2_a.png","sp_1040123100_1_s2_b.png"]]
 },
 "shields":
 {
@@ -8325,7 +8327,11 @@
 "6206353":[["6206353"],["enemy_6206353_a.png","enemy_6206353_b.png","enemy_6206353_c.png"],["raid_appear_6206353.png"],["ehit_6206353.png"],[],[]],
 "6206362":[["6206362"],["enemy_6206362_a.png","enemy_6206362_b.png"],["raid_appear_6206362.png"],[],[],[]],
 "6206372":[["6206372"],["enemy_6206372_a.png","enemy_6206372_b.png","enemy_6206372_c.png","enemy_6206372_d.png","enemy_6206372_e.png"],[],[],[],[]],
-"6206382":[["6206382"],["enemy_6206382.png"],[],[],[],[]]
+"6206382":[["6206382"],["enemy_6206382.png"],[],[],[],[]],
+"8105073":[["8105073"],["enemy_8105073_a.png","enemy_8105073_b.png"],["raid_appear_8105073.png"],[],[],[]],
+"9103433":[["9103433"],["enemy_9103433_a.png","enemy_9103433_b.png","enemy_9103433_c.png"],[],[],[],[]],
+"9103443":[["9103443"],["enemy_9103443_a.png","enemy_9103443_b.png","enemy_9103443_c.png","enemy_9103443_d.png"],["raid_appear_9103443.png"],[],[],[]],
+"9103453":[["9103453"],["enemy_9103453_a.png","enemy_9103453_b.png","enemy_9103453_c.png"],[],[],[],[]]
 },
 "skins":
 {
@@ -13112,7 +13118,11 @@
 "7095":0,
 "5090":0,
 "6090":0,
-"7096":0
+"7096":0,
+"5083":0,
+"6083":0,
+"7098":0,
+"7097":0
 },
 "profile_bgs":
 {
@@ -14030,7 +14040,8 @@
 "event_567":[["event_567"]],
 "common_092":[["common_092"]],
 "event_570":[["event_570"]],
-"event_569":[["event_569"]]
+"event_569":[["event_569"]],
+"common_093":[["common_093"]]
 },
 "mypage_bg":
 {
@@ -26119,7 +26130,11 @@
 "3040677000":"/w Cocopio /e fire /a ssr /n cocopio /b grokkle /s male /t defense /p katana dagger /y ココピオ rikako aida 逢田梨香子 2026-09-16",
 "3040676000":"/w Uruki_(Wind) /e wind /a ssr /n uruki /c 4saints /b harvin /s female /t special /p sabre /y ウルキ chiyuki miura 三浦千幸 2026-09-16",
 "1040919000":"/w Crimson_Lordkeeper /e fire /t katana /a ssr /n crimson lordkeeper /y 2026-09-16",
-"1040818700":"/w Penguin_Pals /e wind /t harp /a ssr /n penguin pals /y 2026-09-16"
+"1040818700":"/w Penguin_Pals /e wind /t harp /a ssr /n penguin pals /y 2026-09-16",
+"8105073":"/f primal-boss /e dark /n poppet hareloom",
+"9103433":"/f other-boss /e fire /n belmervolk",
+"9103443":"/f other-boss /e fire /n belmervolk",
+"9103453":"/f other-boss /e fire /n belmervolk"
 },
 "evt_lookup":
 {
