@@ -5140,7 +5140,7 @@ class Updater():
             elif args.maintenance:
                 await self.init_updater(wiki=True)
                 self.tasks.print("Performing maintenance...")
-                self.tasks.add(self.maintenance_buff)
+                self.tasks.add(self.maintenance_buff, parameters=(False,))
                 self.tasks.add(self.maintenance_npc_thumbnail)
                 self.tasks.add(self.maintenance_raid_appear)
                 self.tasks.add(self.maintenance_event_skycompass)
@@ -5149,7 +5149,7 @@ class Updater():
             elif args.maintenancebuff:
                 await self.init_updater(wiki=True)
                 self.tasks.print("Performing maintenance...")
-                await self.maintenance_buff()
+                await self.maintenance_buff(False)
             elif args.maintenancesky:
                 self.tasks.print("Performing maintenance...")
                 await self.maintenance_event_skycompass()
