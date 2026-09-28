@@ -4,7 +4,8 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone, UTC
 import asyncio
-from pyreqwest.client import ClientBuilder, Client
+import httpx2
+import socket
 import pyperclip
 import os
 import sys
@@ -19,10 +20,10 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.80'
-CONCURRENT_TASKS = 70
-MAX_REQUEST = 70
-BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
+VERSION = '3.83'
+CONCURRENT_TASKS = 90
+MAX_REQUEST = CONCURRENT_TASKS
+BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
 USER_AGENT = BASE_USER_AGENT + ' Rosetta/GBFAL_' + VERSION
 SAVE_VERSION = 5
 # other
@@ -136,13 +137,15 @@ BUFF_LIST.pop(BUFF_LIST.index("3_1"))
 # job update
 MAINHAND = ['sw', 'wa', 'kn', 'me', 'bw', 'mc', 'sp', 'ax', 'gu', 'kt'] # weapon type keywords
 # CDN endpoints
-ENDPOINT = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/"
-JS = ENDPOINT + "js/"
+BASE_URL = httpx2.URL("https://prd-game-a-granbluefantasy.akamaized.net")
+JS = "/assets_en/js/"
 MANIFEST = JS + "model/manifest/"
 CJS = JS + "cjs/"
-IMG = ENDPOINT + "img/"
-IMG_BODY = IMG + "sp/quest/scene/character/body/"
-SOUND = ENDPOINT + "sound/"
+IMG = "/assets_en/img/"
+IMG_SP = IMG + "sp/"
+IMG_CJS = IMG_SP + "cjs/"
+IMG_BODY = IMG_SP + "quest/scene/character/body/"
+SOUND = "/assets_en/sound/"
 VOICE = SOUND + "voice/"
 # regex
 CHAPTER_REGEX = re.compile("Chapter (\\d+)(-(\\d+))?")
@@ -526,7 +529,7 @@ class TaskStatus():
 @dataclass(slots=True)
 class Updater():
     # other init
-    client : Client|None
+    client : httpx2.AsyncClient|None
     http_limit : asyncio.Semaphore
     flags : set[str]
     tasks : TaskManager
@@ -808,67 +811,83 @@ class Updater():
         target.extend(s for s in addendum if s not in seen and not seen.add(s))
 
     # Generic GET request function
-    async def get(self : Updater, url : str) -> Any:
+    async def get(self : Updater, url : str|httpx2.URL) -> Any:
         async with self.http_limit:
-            response = (
-                await self.client.get(url)
-                .header("Accept-Encoding", "gzip")
-                .build()
-                .send()
+            response = await self.client.get(
+                url,
+                headers={"Accept-Encoding":"gzip"}
             )
-            if response.status != 200:
-                raise Exception(f"HTTP error {response.status}")
-            return (await response.bytes()).to_bytes()
+            if response.status_code != 200:
+                raise Exception(f"HTTP error {response.status_code}")
+            return response.read()
+
+    # GET request function using BASE_URL
+    async def get_gbf(self : Updater, path : str) -> Any:
+        async with self.http_limit:
+            response = await self.client.get(
+                BASE_URL.copy_with(path=path),
+                headers={"Accept-Encoding":"gzip"}
+            )
+            if response.status_code != 200:
+                raise Exception(f"HTTP error {response.status_code}")
+            return response.read()
 
     # Same as GET but for gbf.wiki
-    async def get_wiki(self : Updater, url : str, *, get_json : bool = False) -> Any:
+    async def get_wiki(self : Updater, url : str|httpx2.URL, *, get_json : bool = False) -> Any:
         async with self.http_limit:
-            response = (
-                await self.client.get(url)
-                .header("Accept-Encoding", "gzip")
-                .header('User-Agent', USER_AGENT)
-                .build()
-                .send()
+            response = await self.client.get(
+                url,
+                headers={
+                    "Accept-Encoding":"gzip",
+                    "User-Agent":USER_AGENT
+                }
             )
-            if response.status != 200:
-                raise Exception(f"HTTP error {response.status}")
+            if response.status_code != 200:
+                raise Exception(f"HTTP error {response.status_code}")
             if get_json:
-                return await response.json()
-            return (await response.bytes()).to_bytes()
+                return response.json()
+            return response.read()
 
     # Generic HEAD request function
-    async def head(self : Updater, url : str) -> Any:
+    async def head(self : Updater, url : str|httpx2.URL) -> Any:
         async with self.http_limit:
-            response = (
-                await self.client.head(url)
-                .build()
-                .send()
+            response = await self.client.head(
+                url,
+                headers={"Accept-Encoding":"gzip"}
             )
-        if response.status != 200:
-            raise Exception(f"HTTP error {response.status}")
+            if response.status_code != 200:
+                raise Exception(f"HTTP error {response.status_code}")
         return response.headers
 
-    # wrapper of head() if the exception isn't needed (return None in case of error instead)
-    async def head_nx(self : Updater, url : str):
+    # HEAD request function using BASE_URL
+    async def head_gbf(self : Updater, path : str) -> Any:
+        async with self.http_limit:
+            response = await self.client.head(
+                BASE_URL.copy_with(path=path),
+                headers={"Accept-Encoding":"gzip"}
+            )
+            if response.status_code != 200:
+                raise Exception(f"HTTP error {response.status_code}")
+        return response.headers
+
+    # wrapper of head_gbf() if the exception isn't needed (return None in case of error instead)
+    async def head_gbf_noex(self : Updater, path : str) -> bool:
         # copy paste to avoid a needless functions call and exception raise
         try:
             async with self.http_limit:
-                response = (
-                    await self.client.head(url)
-                    .build()
-                    .send()
+                response = await self.client.head(
+                    BASE_URL.copy_with(path=path),
+                    headers={"Accept-Encoding":"gzip"}
                 )
+                return response.status_code == 200
         except Exception as e:
-            self.tasks.print(f"The following exception occured in head_nx():\nURL: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
-            return None
-        if response.status != 200:
-            return None
-        return response.headers
+            self.tasks.print(f"The following exception occured in head_gbf_noex():\nAt: {path}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+        return False
 
     # Extract json data from a GBF animation manifest file
     async def processManifest(self : Updater, file : str, verify_file : bool = False) -> list:
         # request the file
-        manifest = await self.get(MANIFEST + file + ".js")
+        manifest = await self.get_gbf(f"{MANIFEST}{file}.js")
         # parse the content
         res : list[str] = []
         cur : int = 0
@@ -904,11 +923,9 @@ class Updater():
             res.append(p.rsplit(b'/', 1)[-1].decode("ascii"))
         # check if at least one file is accessible
         if verify_file:
-            path : list[str] = [IMG, "sp/cjs/", ""]
             for k in res:
-                path[2] = k
                 try:
-                    await self.head("".join(path))
+                    await self.head_gbf(IMG_CJS + k)
                     return res
                 except:
                     pass
@@ -967,57 +984,57 @@ class Updater():
         ts = TaskStatus(10000, 90)
         for i in range(20):
             self.tasks.add(self.search_generic, parameters=(ts, 'npcs', "399{}000", 4, [
-                "img/sp/quest/scene/character/body/{}.png",
-                "img/sp/quest/scene/character/body/{}_shadow.png",
-                "img/sp/quest/scene/character/body/{}_a.png",
-                "img/sp/raid/navi_face/{}.png",
-                "img/sp/assets/npc/b/{}_01.png",
-                "sound/voice/{}_v_001.mp3",
-                "sound/voice/{}_boss_v_1.mp3",
-                "sound/voice/{}_boss_v_10.mp3",
-                "sound/voice/{}_boss_v_20.mp3",
+                IMG_BODY + "{}.png",
+                IMG_BODY + "{}_shadow.png",
+                IMG_BODY + "{}_a.png",
+                IMG_SP + "raid/navi_face/{}.png",
+                IMG_SP + "assets/npc/b/{}_01.png",
+                VOICE + "{}_v_001.mp3",
+                VOICE + "{}_boss_v_1.mp3",
+                VOICE + "{}_boss_v_10.mp3",
+                VOICE + "{}_boss_v_20.mp3",
             ]))
         # special npc
         ts = TaskStatus(10000, 2)
         for i in range(10):
-            self.tasks.add(self.search_generic, parameters=(ts, "npcs", "305{}000", 4, ["img/sp/quest/scene/character/body/{}.png"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "npcs", "305{}000", 4, [IMG_BODY + "{}.png"]))
         #rarity of various stuff
         for r in range(1, 5):
             # weapons
             for j in range(10):
                 ts = TaskStatus(1000, 20)
                 for i in range(5):
-                    self.tasks.add(self.search_generic, parameters=(ts, "weapons", f"10{r}0{j}{{}}00", 3, ["img/sp/assets/weapon/m/{}.jpg"]))
+                    self.tasks.add(self.search_generic, parameters=(ts, "weapons", f"10{r}0{j}{{}}00", 3, [IMG_SP + "assets/weapon/m/{}.jpg"]))
             # shields
             for j in range(2):
                 ts = TaskStatus(1000, 5)
                 for i in range(5):
-                    self.tasks.add(self.search_generic, parameters=(ts, "shields", f"{r}{{}}", 3, ["img/sp/assets/shield/m/{}.jpg"]))
+                    self.tasks.add(self.search_generic, parameters=(ts, "shields", f"{r}{{}}", 3, [IMG_SP + "assets/shield/m/{}.jpg"]))
             # summons
             ts = TaskStatus(1000, 20)
             for i in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, "summons", f"20{r}0{{}}000", 3, ["img/sp/assets/summon/m/{}.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "summons", f"20{r}0{{}}000", 3, [IMG_SP + "assets/summon/m/{}.jpg"]))
             if r > 1:
                 # characters
                 ts = TaskStatus(1000, 20)
                 for i in range(5):
-                    self.tasks.add(self.search_generic, parameters=(ts, "characters", f"30{r}0{{}}000", 3, ["img/sp/assets/npc/m/{}_01.jpg"]))
+                    self.tasks.add(self.search_generic, parameters=(ts, "characters", f"30{r}0{{}}000", 3, [IMG_SP + "assets/npc/m/{}_01.jpg"]))
                 # partners
                 ts = TaskStatus(1000, 20)
                 for i in range(5):
                     self.tasks.add(self.search_generic, parameters=(ts, "partners", f"38{r}0{{}}000", 3, [
-                        "img/sp/assets/npc/raid_normal/{}_01.jpg",
-                        "js/model/manifest/phit_{}.js",
-                        "js/model/manifest/nsp_{}_01.js"
+                        IMG_SP + "assets/npc/raid_normal/{}_01.jpg",
+                        MANIFEST + "phit_{}.js",
+                        MANIFEST + "nsp_{}_01.js"
                     ]))
         # other partners
         for r in range(8, 10):
             ts = TaskStatus(1000, 20)
             for i in range(5):
                 self.tasks.add(self.search_generic, parameters=(ts, "partners", f"38{r}0{{}}000", 3, [
-                    "img/sp/assets/npc/raid_normal/{}_01.jpg",
-                    "js/model/manifest/phit_{}.js",
-                    "js/model/manifest/nsp_{}_01.js"
+                    IMG_SP + "assets/npc/raid_normal/{}_01.jpg",
+                    MANIFEST + "phit_{}.js",
+                    MANIFEST + "nsp_{}_01.js"
                 ]))
         # skins
         ts = TaskStatus(1000, 20)
@@ -1038,11 +1055,11 @@ class Updater():
         for ev in ("event_{}", "common_{}"):
             ts = TaskStatus(1000, 10)
             for j in range(5):
-                self.tasks.add(self.search_generic, parameters=(ts, "background", ev, 3 if ev.startswith("common_") else 1, ["img/sp/raid/bg/{}.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "background", ev, 3 if ev.startswith("common_") else 1, [IMG_SP + "raid/bg/{}.jpg"]))
         # main
         ts = TaskStatus(1000, 10)
         for j in range(5):
-            self.tasks.add(self.search_generic, parameters=(ts, "background", "main_{}", 1, ["img/sp/guild/custom/bg/{}.png"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "background", "main_{}", 1, [IMG_SP + "guild/custom/bg/{}.png"]))
         # others
         fn : str
         for fn in ("{:02}ra", "{:02}rb", "{:02}rc", "e{:03}", "e{:03}r", "f{:03}", "f{:03}r", "f{:03}ra", "f{:03}rb", "f{:03}rc"):
@@ -1053,48 +1070,48 @@ class Updater():
         for i in (range(0, 40), range(70, 75)):
             for j in i:
                 ts = TaskStatus(1000, 20)
-                self.tasks.add(self.search_generic, parameters=(ts, "mypage_bg", str(j).zfill(2) + "{}", 3, ["img/sp/mypage/town/{}/bg.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "mypage_bg", str(j).zfill(2) + "{}", 3, [IMG_SP + "mypage/town/{}/bg.jpg"]))
         # profile room npcs
         ts = TaskStatus(1000, 5)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, "profile_npcs", "{}", 1, ["img/sp/assets/profile_room/character/other/{}.png"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "profile_npcs", "{}", 1, [IMG_SP + "assets/profile_room/character/other/{}.png"]))
         # profile room arts
         for j in [1, 101, 201, 301, 5001, 6001, 7001]:
             ts = TaskStatus(999999, 20, start=j)
             for i in range(3):
-                self.tasks.add(self.search_generic, parameters=(ts, "profile_arts", "{}", 1, ["img/sp/assets/profile_room/memorial_frame/painting/{}.png"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "profile_arts", "{}", 1, [IMG_SP + "assets/profile_room/memorial_frame/painting/{}.png"]))
         for j in [500, 10001, 20001, 30001, 40001]:
             ts = TaskStatus(999999, 20, start=j)
             for i in range(3):
-                self.tasks.add(self.search_generic, parameters=(ts, "profile_bgs", "{}", 1, ["img/sp/assets/profile_room/profile_card/bg/{}.jpg"]))
+                self.tasks.add(self.search_generic, parameters=(ts, "profile_bgs", "{}", 1, [IMG_SP + "assets/profile_room/profile_card/bg/{}.jpg"]))
         # evoker solomonis
         ts = TaskStatus(1000, 2)
         for i in range(3): # map
-            self.tasks.add(self.search_generic, parameters=(ts, "arca3_maps", "{}", 1, ["img/sp/arcarum3/assets/map_bg/{}.jpg"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "arca3_maps", "{}", 1, [IMG_SP + "arcarum3/assets/map_bg/{}.jpg"]))
         ts = TaskStatus(1000, 10)
         for i in range(3): # special events
-            self.tasks.add(self.search_generic, parameters=(ts, "arca3_specials", "{}", 1, ["img/sp/arcarum3/assets/scpecial_node_bg/{}.png"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "arca3_specials", "{}", 1, [IMG_SP + "arcarum3/assets/scpecial_node_bg/{}.png"]))
         # titles
         ts = TaskStatus(1000, 5)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, "title", "{}", 1, ["img/sp/top/bg/bg_{}.jpg"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "title", "{}", 1, [IMG_SP + "top/bg/bg_{}.jpg"]))
         # sky compass title
         ts = TaskStatus(1000, 8)
         for i in range(2):
-            self.tasks.add(self.search_generic, parameters=(ts, "sky_title", "{}", 1, ["assets/archives/galleries/{}/detail_s.png"], "https://media.skycompass.io/"))
+            self.tasks.add(self.search_generic, parameters=(ts, "sky_title", "{}", 1, ["assets/archives/galleries/{}/detail_s.png"], httpx2.URL("https://media.skycompass.io/")))
         # subskills
         ts = TaskStatus(1000, 5)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, "subskills", "{}", 1, ["img/sp/assets/item/ability/s/{}_1.jpg"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "subskills", "{}", 1, [IMG_SP + "assets/item/ability/s/{}_1.jpg"]))
         # suptix
         ts = TaskStatus(1000, 15)
         for i in range(3):
-            self.tasks.add(self.search_generic, parameters=(ts, "suptix", "{}", 1, ["img/sp/gacha/campaign/surprise/top_{}.jpg"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "suptix", "{}", 1, [IMG_SP + "gacha/campaign/surprise/top_{}.jpg"]))
         # start the tasks
         await self.tasks.start()
 
     # generic search for assets
-    async def search_generic(self : Updater, ts : TaskStatus, index : str, file : str, zfill : int, paths : list[str], endpoint : str = ENDPOINT) -> None:
+    async def search_generic(self : Updater, ts : TaskStatus, index : str, file : str, zfill : int, paths : list[str], base_url : httpx2.URL = BASE_URL) -> None:
         data = self.data[index] # reference
         while not ts.complete:
             i : int = ts.get_next_index()
@@ -1109,7 +1126,7 @@ class Updater():
                 path : str
                 for j, path in enumerate(paths): # request for each path
                     try:
-                        await self.head(endpoint + path.format(f))
+                        await self.head(base_url.copy_with(path=path.format(f)))
                         ts.good()
                         self.tasks.print("Found:", f, "for index:", index)
                         data[f] = 0 # set data to 0 (until it's updated)
@@ -1129,7 +1146,7 @@ class Updater():
             f : str = filename.format(ts.get_next_index())
             if f not in background:
                 try:
-                    await self.head(f"{IMG}sp/raid/bg/{f}_1.jpg")
+                    await self.head_gbf(f"{IMG_SP}raid/bg/{f}_1.jpg")
                     ts.good()
                     self.tasks.print("Found:", f, "for index:", "background")
                     self.tasks.add(self.update_background, parameters=(f,), priority=3)
@@ -1155,7 +1172,7 @@ class Updater():
                 else:
                     #Note: 6200483, 6099502 and possibly more got no icons and raid_appear must be checked instead
                     try:
-                        await self.head(f"{ENDPOINT}img/sp/assets/enemy/s/{sfi}.png")
+                        await self.head_gbf(f"{IMG_SP}assets/enemy/s/{sfi}.png")
                         self.tasks.print("Found:", sfi, "for index:", 'enemies')
                         enemies[sfi] = 0 # set data to 0 (until it's updated)
                         self.modified = True
@@ -1184,7 +1201,7 @@ class Updater():
                 s : str
                 for s in ("_1.png", "_2.png", "_3.png", "_4.png", "_5.png", ".png"): # request for each (we only need one good one), ".png" is last because it's rarely used nowadays
                     try:
-                        headers : Any = await self.head(IMG + "sp/ui/icon/ability/m/" + str(i) + s)
+                        headers : Any = await self.head_gbf(IMG_SP + "/ui/icon/ability/m/" + str(i) + s)
                         if 'content-length' in headers and int(headers['content-length']) < 200:
                             raise Exception()
                         ts.good()
@@ -1201,7 +1218,7 @@ class Updater():
     # Search for new manaturas
     async def search_manatura(self : Updater, ts : TaskStatus) -> None:
         manaturas = self.data['manaturas'] # reference
-        path : list[str] = [IMG, "sp/assets/familiar/m/", None, "", ".jpg"]
+        path : list[str] = [IMG_SP, "assets/familiar/m/", None, "", ".jpg"]
         while not ts.complete:
             i : int = ts.get_next_index()
             fi : str = str(i).zfill(4) # formatted id
@@ -1210,7 +1227,7 @@ class Updater():
             else:
                 try:
                     path[2] = str(i)
-                    await self.head("".join(path))
+                    await self.head_gbf("".join(path))
                     manaturas[fi] = [[str(i)]]
                     self.add(fi, ADD_MANATURA)
                     self.modified = True
@@ -1222,7 +1239,7 @@ class Updater():
     # Search for new buffs
     async def search_buff(self : Updater, ts : TaskStatus) -> None:
         buffs = self.data['buffs'] # reference
-        path : list[str] = [IMG, "sp/ui/icon/status/x64/status_", None, "", ".png"]
+        path : list[str] = [IMG_SP, "ui/icon/status/x64/status_", None, "", ".png"]
         while not ts.complete:
             i : int = ts.get_next_index()
             fi : str = str(i).zfill(4) # formatted id
@@ -1238,7 +1255,7 @@ class Updater():
                 path[3] = s
                 try:
                     # make sure the file size is right, some buff icons are empty transparent files
-                    if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                    if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                         raise Exception()
                     buffs[fi] = [[path[2]], [s]]
                     found = True
@@ -1263,7 +1280,7 @@ class Updater():
         if buffs.get(element_id, 0) == 0: # init array
             buffs[element_id] = [[str(int(element_id))], []]
         known : set[str] = set(buffs.get(element_id, [[], []])[1])
-        path : list[str] = [IMG, "sp/ui/icon/status/x64/status_", fi, "", ".png"]
+        path : list[str] = [IMG_SP, "ui/icon/status/x64/status_", fi, "", ".png"]
         mode_count : int = 7
         ts : TaskStatus = TaskStatus(1, 1, running=mode_count)
         
@@ -1286,7 +1303,7 @@ class Updater():
                 # default
                 path[3] = ""
                 try:
-                    if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                    if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                         raise Exception()
                     known.add("")
                 except:
@@ -1299,7 +1316,7 @@ class Updater():
                         err = 0
                     else:
                         try:
-                            if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                            if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                                 raise Exception()
                             known.add("_" + str(n))
                             err = 0
@@ -1314,7 +1331,7 @@ class Updater():
                         err = 0
                     else:
                         try:
-                            if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                            if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                                 raise Exception()
                             known.add(str(n))
                             err = 0
@@ -1334,7 +1351,7 @@ class Updater():
                             err = 0
                         else:
                             try:
-                                if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                                if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                                     raise Exception()
                                 known.add("_" + str(n))
                                 err = 0
@@ -1352,7 +1369,7 @@ class Updater():
                             err = 0
                         else:
                             try:
-                                if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                                if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                                     raise Exception()
                                 known.add("_" + str(x) + str(n).zfill(2))
                                 err = 0
@@ -1366,7 +1383,7 @@ class Updater():
                 path[3] = "_110"
                 if path[3] not in known:
                     try:
-                        if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                        if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                             raise Exception()
                         known.add("_110")
                     except:
@@ -1384,7 +1401,7 @@ class Updater():
                             err = 0
                         else:
                             try:
-                                if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                                if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                                     raise Exception()
                                 known.add("_" + str(x) + "_" + str(n))
                                 err = 0
@@ -1404,7 +1421,7 @@ class Updater():
                             err = 0
                         else:
                             try:
-                                if int((await self.head("".join(path))).get('content-length', 0)) < 200:
+                                if int((await self.head_gbf("".join(path))).get('content-length', 0)) < 200:
                                     raise Exception()
                                 known.add("_" + str(x) + "_" + str(n))
                                 err = 0
@@ -1504,11 +1521,11 @@ class Updater():
         data = [[], [], [], [], [], []] # general, sprite, appear, ehit, esp, esp_all
         # icon
         try:
-            await self.head(f"{IMG}sp/assets/enemy/s/{element_id}.png")
+            await self.head_gbf(f"{IMG_SP}assets/enemy/s/{element_id}.png")
             data[BOSS_GENERAL].append(element_id)
         except:
             try:
-                await self.head(f"{IMG}sp/assets/enemy/m/{element_id}.png")
+                await self.head_gbf(f"{IMG_SP}assets/enemy/m/{element_id}.png")
                 data[BOSS_GENERAL].append(element_id)
             except:
                 pass
@@ -1583,7 +1600,7 @@ class Updater():
                     self.add(f, ADD_BG)
                 else: # request for given suffix
                     try:
-                        await self.head(IMG + path.format(f))
+                        await self.head_gbf(IMG + path.format(f))
                         data[0].append(f)
                         modified = True
                         self.add(f, ADD_BG)
@@ -1598,7 +1615,7 @@ class Updater():
                     try:
                         f : str = f"{element_id}_{i}{s}"
                         if f not in existing:
-                            await self.head(f"{IMG}sp/raid/bg/{f}.jpg")
+                            await self.head_gbf(f"{IMG_SP}raid/bg/{f}.jpg")
                             modified = True
                             existing.add(f)
                             self.add(f, ADD_BG)
@@ -1631,10 +1648,10 @@ class Updater():
         uncaps : list[str] = []
         # main sheet
         uncap : str
-        fn : str = f"{IMG}sp/assets/summon/m/{element_id}"
+        fn : str = f"{IMG_SP}assets/summon/m/{element_id}"
         for uncap in ("", "_02", "_03", "_04"):
             try:
-                await self.head(f"{fn}{uncap}.jpg")
+                await self.head_gbf(f"{fn}{uncap}.jpg")
                 data[SUM_GENERAL].append(element_id + uncap)
                 uncaps.append(uncap if uncap != "" else "")
                 if uncap == "":
@@ -1701,15 +1718,15 @@ class Updater():
                 g : str
                 m : str
                 n : str
-                fn : str = f"{IMG}sp/assets/npc/raid_normal/{element_id}"
+                fn : str = f"{IMG_SP}assets/npc/raid_normal/{element_id}"
                 async with asyncio.TaskGroup() as tg:
                     for g in ("_1", ""): # gender
                         for m in ("_101", ""): # multi
                             for n in ("_01", ""): # null
-                                tasks[(uncap, g, m, n)] = tg.create_task(self.head_nx(f"{fn}_{uncap}{style}{g}{m}{n}.jpg"))
+                                tasks[(uncap, g, m, n)] = tg.create_task(self.head_gbf_noex(f"{fn}_{uncap}{style}{g}{m}{n}.jpg"))
                 positive : bool = False
                 for tup, task in tasks.items():
-                    if task.result() is not None:
+                    if task.result():
                         positive = True
                         uncap, g, m, n = tup
                         if uncap not in flags:
@@ -1784,7 +1801,7 @@ class Updater():
                     # different sprites
                     if g != "":
                         try:
-                            await self.head(f"{IMG}/sp/assets/npc/sd/{base_fn}{g}.png")
+                            await self.head_gbf(f"{IMG_SP}assets/npc/sd/{base_fn}{g}.png")
                             sd.append(base_fn + g)
                         except:
                             pass
@@ -2043,7 +2060,7 @@ class Updater():
             data[NPC_SOUND] = npcs[element_id][NPC_SOUND]
         exist : bool = False
         try:
-            await self.head(f"{IMG}sp/assets/npc/m/{element_id}_01.jpg")
+            await self.head_gbf(f"{IMG_SP}assets/npc/m/{element_id}_01.jpg")
             data[NPC_JOURNAL] = True
             exist = True
         except:
@@ -2052,7 +2069,7 @@ class Updater():
         if not exist:
             # base scene
             base_target = self.get_scene_file_list_base(element_id)
-            path : list[str] = [IMG, "", element_id, "", "", ".png"]
+            path : list[str] = [IMG_SP, "", element_id, "", "", ".png"]
             for u in ("", "_02", "_03"):
                 for f in base_target:
                     if f != "" and u != "":
@@ -2063,10 +2080,10 @@ class Updater():
                         path[3] = u
                         path[4] = f
                         found : bool = False
-                        for fpath in ("sp/quest/scene/character/body/", "sp/raid/navi_face/"):
+                        for fpath in ("quest/scene/character/body/", "raid/navi_face/"):
                             path[1] = fpath
                             try:
-                                await self.head("".join(path))
+                                await self.head_gbf("".join(path))
                                 data[NPC_SCENE].append(u+f)
                                 exist = True
                                 found = True
@@ -2082,7 +2099,7 @@ class Updater():
                 for k in base_target:
                     try:
                         if k not in data[NPC_SOUND]:
-                            await self.head(f"{fn}{k}.mp3")
+                            await self.head_gbf(f"{fn}{k}.mp3")
                             data[NPC_SOUND].append(k)
                             exist = True
                         else:
@@ -2115,7 +2132,7 @@ class Updater():
         for s in ("", "_02", "_03"):
             # art
             try:
-                await self.head(f"{IMG}sp/assets/weapon/m/{element_id}{s}.jpg")
+                await self.head_gbf(f"{IMG_SP}assets/weapon/m/{element_id}{s}.jpg")
                 data[WEAP_GENERAL].append(element_id + s)
             except:
                 if s == "":
@@ -2158,7 +2175,7 @@ class Updater():
         if element_id not in shields:
             # art check
             try:
-                await self.head(f"{IMG}sp/assets/shield/m/{element_id}.jpg")
+                await self.head_gbf(f"{IMG_SP}assets/shield/m/{element_id}.jpg")
             except:
                 return
         elif isinstance(shields[element_id], list):
@@ -2183,20 +2200,20 @@ class Updater():
         colors = [int(element_id[-1])]
         alts = []
         # mh check
-        fn = f"{IMG}sp/assets/leader/raid_normal/{element_id}"
+        fn = f"{IMG_SP}assets/leader/raid_normal/{element_id}"
         for mh in MAINHAND:
             try:
-                await self.head(f"{fn}_{mh}_0_01.jpg")
+                await self.head_gbf(f"{fn}_{mh}_0_01.jpg")
                 cmh.append(mh)
             except:
                 continue
         if len(cmh) > 0:
             # alt check
             if colors[0] == 1:
-                fn = f"{IMG}sp/assets/leader/sd/{element_id[:-2]}"
+                fn = f"{IMG_SP}assets/leader/sd/{element_id[:-2]}"
                 for j in (2, 3, 4, 5, 80):
                     try:
-                        await self.head(f"{fn}{j:02}_{cmh[0]}_0_01.png")
+                        await self.head_gbf(f"{fn}{j:02}_{cmh[0]}_0_01.png")
                         if element_id in UNIQUE_SKIN:
                             await self.update_job(element_id[:-2] + str(j).zfill(2))
                         else:
@@ -2241,7 +2258,16 @@ class Updater():
             return
         # get existing classes
         try:
-            job_list : dict[str, str] = json.loads((await self.get(JS + "constant/job.js")).decode('utf-8').split("=", 1)[1].split(";return", 1)[0].replace('{', '{"').replace(',', '","').replace(':', '":"').replace('}', '"}')) # contain a list of all classes. it misses the id of the outfits however.
+            job_list : dict[str, str] = json.loads(
+                (await self.get_gbf(JS + "constant/job.js"))
+                .decode('utf-8')
+                .split("=", 1)[1]
+                .split(";return", 1)[0]
+                .replace('{', '{"')
+                .replace(',', '","')
+                .replace(':', '":"')
+                .replace('}', '"}')
+            ) # contain a list of all classes. it misses the id of the outfits however.
         except Exception as ee:
             self.tasks.print("Couldn't initialize the job list:", ee)
             return
@@ -2266,7 +2292,7 @@ class Updater():
     # Subroutine for init_job_list
     async def init_job_list_check(self : Updater, eid : str) -> str|None:
         try:
-            await self.head(f"{IMG}sp/assets/leader/m/{eid}_01.jpg")
+            await self.head_gbf(f"{IMG_SP}assets/leader/m/{eid}_01.jpg")
             return eid
         except:
             return None
@@ -2335,7 +2361,7 @@ class Updater():
                 passed = True
                 for mh in cmh:
                     try:
-                        await self.head(f"{MANIFEST}{d}_{mh}_0_01.js")
+                        await self.head_gbf(f"{MANIFEST}{d}_{mh}_0_01.js")
                     except:
                         passed = False
                         break
@@ -2347,14 +2373,14 @@ class Updater():
     # search for job weapon
     async def detail_job_weapon_search(self: Updater, wid : str) -> None:
         try:
-            await self.head(IMG + '_low/sp/assets/weapon/m/' + wid + ".jpg")
+            await self.head_gbf(f"{IMG_SP}assets/weapon/m/{wid}.jpg")
             return
         except:
             pass
         for k in (("phit_", ""), ("phit_", "_2"), ("phit_", "_3"), ("sp_", "_s2"), ("sp_", "")):
             for g in ("", "_0"):
                 try:
-                    await self.head(MANIFEST + k[0] + wid + g + k[1] + ".js")
+                    await self.head_gbf(MANIFEST + k[0] + wid + g + k[1] + ".js")
                     self.data["job_wpn"][wid] = None
                     self.modified = True
                     self.tasks.print("Possible job skin related weapon:", wid)
@@ -2366,7 +2392,7 @@ class Updater():
     async def detail_job_search_single(self : Updater, key : str, mhs : list[str]) -> None:
         for mh in mhs:
             try:
-                await self.head(f"{MANIFEST}{key}_{mh}_0_01.js")
+                await self.head_gbf(f"{MANIFEST}{key}_{mh}_0_01.js")
                 self.data["job_key"][key] = None
                 self.modified = True
                 self.tasks.print("\nUnknown job key", key, "for mh", mh)
@@ -2540,7 +2566,7 @@ class Updater():
         for s in suffixes:
             if s not in ref[idx]:
                 try:
-                    await self.head(f"{IMG_BODY}{element_id}{s}.png")
+                    await self.head_gbf(f"{IMG_BODY}{element_id}{s}.png")
                     ref[idx].append(s)
                     ref[idx].sort(key=lambda e: (int(e.split("_")[1]) if ("_" in e and e.split("_")[1].isnumeric()) else 0, e, len(e)))
                     self.add(element_id, add_t)
@@ -2794,13 +2820,13 @@ class Updater():
                 if len(filters) == 0 or self.file_is_matching(f, filters):
                     file : str = f"{file_id}{f}.png"
                     try:
-                        await self.head(f"{IMG_BODY}{file}")
+                        await self.head_gbf(f"{IMG_BODY}{file}")
                         existing.add(f)
                     except:
                         try:
                             if not navi:
                                 raise Exception()
-                            await self.head(f"{IMG}sp/raid/navi_face/{file}")
+                            await self.head_gbf(f"{IMG_SP}raid/navi_face/{file}")
                             existing.add(f)
                         except:
                             if not allow_continue:
@@ -2868,12 +2894,12 @@ class Updater():
     async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str], navi : bool) -> None:
         file : str = f"{file_id}{f}.png"
         try:
-            await self.head(f"{IMG_BODY}{file}")
+            await self.head_gbf(f"{IMG_BODY}{file}")
             existing.add(f)
         except:
             try:
                 if navi:
-                    await self.head(f"{IMG}sp/raid/navi_face/{file}")
+                    await self.head_gbf(f"{IMG_SP}raid/navi_face/{file}")
                     existing.add(f)
             except:
                 pass
@@ -2925,7 +2951,7 @@ class Updater():
             for ext in ('png', 'jpg'):
                 try:
                     file = f"{f}.{ext}"
-                    await self.head(url + file)
+                    await self.head_gbf(url + file)
                     if f not in existing:
                         existing[f] = [ext]
                     else:
@@ -3205,7 +3231,8 @@ class Updater():
             if cp <= ts.index:
                 break
             try:
-                await self.head(f"{uri}_{m}.mp3") # note: we don't bother checking for variations, this function is simply trying to find ONE file
+                await self.head_gbf(f"{uri}_{m}.mp3")
+                # note: we don't bother checking for variations, this function is simply trying to find ONE file
                 if cp > ts.index:
                     ts.index = cp # we use the TaskStatus index variable to store the highest chapter we encountered
                 break
@@ -3325,7 +3352,7 @@ class Updater():
                 i : int = start+ts.get_next_index() # get next id
                 f : str = f"{i}0"
                 if f not in eventthumb:
-                    await self.head(f"{IMG}sp/archive/assets/island_m2/{f}.png") # try to request
+                    await self.head_gbf(f"{IMG_SP}archive/assets/island_m2/{f}.png")
                     eventthumb[f] = 0 # set it in memory
                     self.modified = True
                     self.tasks.print("New event thumbnail", f)
@@ -3818,7 +3845,7 @@ class Updater():
                     existing.add(f)
                 else:
                     try:
-                        await self.head(f"{VOICE}{element_id}{f}.mp3")
+                        await self.head_gbf(f"{VOICE}{element_id}{f}.mp3")
                         existing.add(f)
                     except:
                         pass
@@ -3838,7 +3865,7 @@ class Updater():
                         f = uncap + suffix.format(str(current).zfill(zfill)) + p
                         if f not in existing:
                             try:
-                                await self.head(f"{VOICE}{element_id}{f}.mp3")
+                                await self.head_gbf(f"{VOICE}{element_id}{f}.mp3")
                                 found = True
                                 existing.add(f)
                             except:
@@ -3866,7 +3893,7 @@ class Updater():
                     try:
                         f = f"_pair_{A}_{B:0{i}}"
                         if f not in existing:
-                            await self.head(f"{VOICE}{element_id}{f}.mp3")
+                            await self.head_gbf(f"{VOICE}{element_id}{f}.mp3")
                         existing.add(f)
                         success = True
                         Z = i
@@ -4404,14 +4431,14 @@ class Updater():
                         continue
                     if bid not in buffs:
                         # check if icon exists
-                        if not await self.head_nx(IMG + "sp/ui/icon/status/x64/status_" + icon + ".png"):
+                        if not await self.head_gbf_noex(f"{IMG_SP}/ui/icon/status/x64/status_{icon}.png"):
                             continue
                         buffs[bid] = [[str(int(bid))], [ext]]
                         self.modified = True
                         self.add(bid, ADD_BUFF)
                         count += 1
                     elif ext not in buffs[bid][1]:
-                        if not await self.head_nx(IMG + "sp/ui/icon/status/x64/status_" + icon + ".png"):
+                        if not await self.head_gbf_noex(f"{IMG_SP}/ui/icon/status/x64/status_{icon}.png"):
                             continue
                         buffs[bid][1].append(ext)
                         buffs[bid][1].sort(key=lambda x: str(x.count('_'))+"".join([j.zfill(3) for j in x.split('_')]))
@@ -4442,7 +4469,7 @@ class Updater():
     # maintenance_npc_thumbnail() subroutine
     async def update_npc_thumb(self : Updater, element_id : str) -> None: # subroutine
         try:
-            await self.head(f"{IMG}sp/assets/npc/m/{element_id}_01.jpg")
+            await self.head_gbf(f"{IMG_SP}assets/npc/m/{element_id}_01.jpg")
             self.data['npcs'][element_id][NPC_JOURNAL] = True
             self.modified = True
         except:
@@ -4569,7 +4596,7 @@ class Updater():
         count : int = 0
         for s in scene_strings:
             uris.append((f"{IMG_BODY}{{}}{s}.png", NPC_SCENE))
-            uris.append((f"{IMG}sp/raid/navi_face/{{}}{s}.png", NPC_SCENE))
+            uris.append((f"{IMG_SP}raid/navi_face/{{}}{s}.png", NPC_SCENE))
         for s in sound_strings:
             uris.append((f"{SOUND}voice/{{}}{s}.mp3", NPC_SOUND))
         for i in range(0, highest+5):
@@ -4590,7 +4617,7 @@ class Updater():
                 if element_id in npcs:
                     break
                 url = uri.format(element_id)
-                await self.head(url)
+                await self.head_gbf(url)
                 self.modified = True
                 npcs[element_id] = [False, [], []]
                 npcs[element_id][idx].append(url.rsplit('/', 1)[-1].split('.')[0])
@@ -4992,6 +5019,30 @@ class Updater():
             # update job list
             await self.init_job_list()
 
+    # HTTP client factory
+    def init_http_client(self : Updater) -> httpx2.AsyncClient:
+        transport : httpx2.AsyncHTTPTransport = httpx2.AsyncHTTPTransport(
+            http2=True,
+            limits=httpx2.Limits(
+                max_connections=200,
+                max_keepalive_connections=40,
+                keepalive_expiry=30.0
+            ),
+            socket_options=[
+                (socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            ]
+        )
+        return httpx2.AsyncClient(
+            transport=transport,
+            timeout=httpx2.Timeout(
+                connect=5.0,
+                read=30.0,
+                write=10.0,
+                pool=10.0
+            ),
+            headers={"User-Agent":BASE_USER_AGENT}
+        )
+
     # Start function
     async def start(self : Updater) -> None:
         self.tasks.print(f"GBFAL Updater v{VERSION}")
@@ -5051,24 +5102,7 @@ class Updater():
         settings.add_argument('-da', '--gbfdaio', help="import index.json from GBFDAIO.", action='store', nargs=1, type=str, metavar='PATH')
         args : argparse.Namespace = parser.parse_args()
         
-        # init HTTP client
-        async with (
-            ClientBuilder()
-            .runtime_multithreaded(True)
-            .user_agent(
-                BASE_USER_AGENT
-            )
-            .gzip(True)
-            .brotli(False)
-            .zstd(False)
-            .deflate(False)
-            .http2(True)
-            .pool_max_idle_per_host(1)
-            .max_connections(MAX_REQUEST)
-            .http2_prior_knowledge()
-            .http2_keep_alive_while_idle(False)
-            .build()
-        ) as self.client:
+        async with self.init_http_client() as self.client:
             # load self.data NOW
             self.load()
             # settings
