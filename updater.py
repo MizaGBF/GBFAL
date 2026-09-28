@@ -19,7 +19,7 @@ import argparse
 from tqdm import tqdm
 
 ### Constant variables
-VERSION = '3.79'
+VERSION = '3.80'
 CONCURRENT_TASKS = 70
 MAX_REQUEST = 70
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36'
@@ -3451,7 +3451,7 @@ class Updater():
         existing : dict[str, list[str]]
         ts : TaskStatus
         # special recap chapters
-        index : str = ("story" + str(arc)) if arc > 0 else "free"
+        index : str = ("story" + str(arc + 1)) if arc >= 0 else "free"
         msq_data = self.data[index] # reference
         for k in MSQ_SPECIALS[arc]:
             if k not in msq_data:
