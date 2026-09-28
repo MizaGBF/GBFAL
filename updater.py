@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable
+from typing import Any, Callable, Sized, Iterable
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone, UTC
@@ -261,6 +261,25 @@ class TaskManager():
         self.total += 1
         self.work_available.set()
 
+    def format_task_info(self : TaskManager, coro : Callable, params : tuple) -> str:
+        coro_name = getattr(coro, "__qualname__", str(coro))
+        parts = []
+        for p in params:
+            if isinstance(p, Sized) and isinstance(p, Iterable) and not isinstance(p, (str, bytes)):
+                try:
+                    if len(p) > 5:
+                        parts.append(f"<{type(p).__name__} len={len(p)}>")
+                    else:
+                        parts.append(str(p))
+                except:
+                    parts.append(str(p))
+            else:
+                parts.append(str(p))
+        if len(parts) > 0:
+            return f"{coro_name}({", ".join(parts)})"
+        else:
+            return f"{coro_name}()"
+
     async def _autosave_worker(self : TaskManager) -> None:
         try:
             while True:
@@ -311,7 +330,7 @@ class TaskManager():
                     # execute
                     await task.awaitable(*task.parameters)
                 except Exception as e:
-                    self.print(f"The following exception occured for task {task.awaitable} with parameters: {task.parameters}")
+                    self.print(f"The following exception occured for {self.format_task_info(task.awaitable, task.parameters)}")
                     self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                 finally:
                     self.finished += 1
@@ -499,6 +518,9 @@ class TaskStatus():
     async def wait_finish(self : TaskStatus) -> None:
         if self.running > 0:
             await self._finished_event.wait()
+
+    def __repr__(self : TaskStatus) -> str:
+        return f"<Status: {self.index}/{self.max_index}, Errors: {self.err}/{self.max_err}, {"Running" if self.running else "Idle"}>"
 
 @dataclass(slots=True)
 class Updater():
@@ -2891,8 +2913,8 @@ class Updater():
                 )
             ):
                 Z = 2
-        except Exception as e:
-            self.tasks.print(f"TEST: {base_stem}")
+        except:
+            pass
         loop_err_limit : int = 60 if index == "story0" and element_id == "191" else 30
         
         async def test_file(f) -> bool:
