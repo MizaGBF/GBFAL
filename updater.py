@@ -261,20 +261,21 @@ class TaskManager():
         self.total += 1
         self.work_available.set()
 
-    def format_task_info(self : TaskManager, coro : Callable, params : tuple) -> str:
+    def format_task_info(self : TaskManager, coro : Callable, params : Iterable) -> str:
         coro_name = getattr(coro, "__qualname__", str(coro))
         parts = []
-        for p in params:
-            if isinstance(p, Sized) and isinstance(p, Iterable) and not isinstance(p, (str, bytes)):
-                try:
-                    if len(p) > 5:
-                        parts.append(f"<{type(p).__name__} len={len(p)}>")
-                    else:
+        if isinstance(params, Iterable):
+            for p in params:
+                if isinstance(p, Sized) and isinstance(p, Iterable) and not isinstance(p, (str, bytes)):
+                    try:
+                        if len(p) > 5:
+                            parts.append(f"<{type(p).__name__} len={len(p)}>")
+                        else:
+                            parts.append(str(p))
+                    except:
                         parts.append(str(p))
-                except:
+                else:
                     parts.append(str(p))
-            else:
-                parts.append(str(p))
         if len(parts) > 0:
             return f"{coro_name}({", ".join(parts)})"
         else:
