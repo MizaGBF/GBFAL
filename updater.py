@@ -3452,7 +3452,7 @@ class Updater():
         existing : dict[str, list[str]]
         ts : TaskStatus
         # special recap chapters
-        index : str = ("story" + str(arc + 1)) if arc >= 0 else "free"
+        index : str = (f"story{arc}") if arc >= 0 else "free"
         msq_data = self.data[index] # reference
         for k in MSQ_SPECIALS[arc]:
             if k not in msq_data:
