@@ -5063,12 +5063,10 @@ class Updater():
             .zstd(False)
             .deflate(False)
             .http2(True)
-            .pool_max_idle_per_host(MAX_REQUEST)
+            .pool_max_idle_per_host(1)
             .max_connections(MAX_REQUEST)
             .http2_prior_knowledge()
-            .http2_keep_alive_interval(timedelta(days=1))
-            .http2_keep_alive_timeout(timedelta(days=1))
-            .http2_keep_alive_while_idle(True)
+            .http2_keep_alive_while_idle(False)
             .build()
         ) as self.client:
             # load self.data NOW
