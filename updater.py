@@ -311,7 +311,7 @@ class TaskManager():
                     # execute
                     await task.awaitable(*task.parameters)
                 except Exception as e:
-                    self.print("The following exception occured:")
+                    self.print(f"The following exception occured for task {task.awaitable} with parameters: {task.parameters}")
                     self.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                 finally:
                     self.finished += 1
@@ -2879,18 +2879,21 @@ class Updater():
     # generic function to update: A story chapter, a fate episode scene or an event chapter
     # horrible but can't find a better way
     async def update_chapter(self : Updater, ts : TaskStatus, index : str, element_id : str, idx : int, url : str, base_stem : str, existing : dict[str, list[str]]) -> None:
-        is_old = "tuto_scene" in base_stem # check for MSQ tutorial
-        Z = ( # zfill value used in the filename, for MSQ tutorial
-            1
+        is_old : bool = "tuto_scene" in base_stem # check for MSQ tutorial
+        Z : int = 1 # zfill value used in the filename
+        # some exceptions require Zfill = 2
+        try: # use try: to avoid crashes in some cases
             if (
                 "tuto_scene" in base_stem
                 or (
                     base_stem.startswith("scene_cp")
                     and int(base_stem[len("scene_cp"):].split("_", 1)[0]) < 90
                 )
-            ) else 2
-        )
-        loop_err_limit = 60 if index == "story0" and element_id == "191" else 30
+            ):
+                Z = 2
+        except Exception as e:
+            self.tasks.print(f"TEST: {base_stem}")
+        loop_err_limit : int = 60 if index == "story0" and element_id == "191" else 30
         
         async def test_file(f) -> bool:
             if f in existing:
