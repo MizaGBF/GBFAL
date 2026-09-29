@@ -49,11 +49,14 @@ ADD_STORY1 = 15
 ADD_FREE = 16
 ADD_SINGLE_ASSET = [
     "profile_npcs",
+    "profile_stickers",
     "profile_arts",
     "profile_bgs",
     "arca3_maps",
     "arca3_specials",
     "title",
+    "stamp",
+    "story_memory",
     "subskills",
     "suptix",
     "mypage_bg",
@@ -576,13 +579,16 @@ class Updater():
             "job_key":{},
             "npcs":{},
             "profile_npcs":{},
+            "profile_stickers":{},
             "profile_arts":{},
             "profile_bgs":{},
             "arca3_maps":{},
             "arca3_specials":{},
             "background":{},
             "mypage_bg":{},
+            "story_memory":{},
             "title":{},
+            "stamp":{},
             "sky_title":{},
             "suptix":{},
             "lookup":{},
@@ -1075,12 +1081,16 @@ class Updater():
         ts = TaskStatus(1000, 5)
         for i in range(3):
             self.tasks.add(self.search_generic, parameters=(ts, "profile_npcs", "{}", 1, [IMG_SP + "assets/profile_room/character/other/{}.png"]))
+        # profile room stickers
+        ts = TaskStatus(1000, 10)
+        for i in range(3):
+            self.tasks.add(self.search_generic, parameters=(ts, "profile_stickers", "{}", 1, [IMG_SP + "assets/profile_room/memorial_frame/sticker/{}.png"]))
         # profile room arts
         for j in [1, 101, 201, 301, 5001, 6001, 7001]:
             ts = TaskStatus(999999, 20, start=j)
             for i in range(3):
                 self.tasks.add(self.search_generic, parameters=(ts, "profile_arts", "{}", 1, [IMG_SP + "assets/profile_room/memorial_frame/painting/{}.png"]))
-        for j in [500, 10001, 20001, 30001, 40001]:
+        for j in [500, 10001, 20001, 30001, 40001, 50001]:
             ts = TaskStatus(999999, 20, start=j)
             for i in range(3):
                 self.tasks.add(self.search_generic, parameters=(ts, "profile_bgs", "{}", 1, [IMG_SP + "assets/profile_room/profile_card/bg/{}.jpg"]))
@@ -1091,10 +1101,19 @@ class Updater():
         ts = TaskStatus(1000, 10)
         for i in range(3): # special events
             self.tasks.add(self.search_generic, parameters=(ts, "arca3_specials", "{}", 1, [IMG_SP + "arcarum3/assets/scpecial_node_bg/{}.png"]))
+        # story memories
+        for j in [1, 101, 201, 301]:
+            ts = TaskStatus(j + 99, 3, start=j)
+            for i in range(3):
+                self.tasks.add(self.search_generic, parameters=(ts, "story_memory", "{}", 4, [IMG_SP + "compilation/estalucia/memory/scene/large/mm_image_large_{}.png"]))
         # titles
         ts = TaskStatus(1000, 5)
         for i in range(3):
             self.tasks.add(self.search_generic, parameters=(ts, "title", "{}", 1, [IMG_SP + "top/bg/bg_{}.jpg"]))
+        # stamps
+        ts = TaskStatus(1000, 5)
+        for i in range(3):
+            self.tasks.add(self.search_generic, parameters=(ts, "stamp", "{}", 1, [IMG_SP + "assets/stamp/full/stamp{}.png"]))
         # sky compass title
         ts = TaskStatus(1000, 8)
         for i in range(2):
@@ -4647,9 +4666,9 @@ class Updater():
             file_estimation = 0
             for t in (
                 "characters", "partners", "summons", "weapons", "enemies", "skins", "job", "npcs",
-                "profile_npcs", "profile_arts", "profile_bgs",
+                "profile_npcs", "profile_stickers", "profile_arts", "profile_bgs",
                 "arca3_maps", "arca3_specials",
-                "title", "sky_title", "suptix",
+                "story_memory", "title", "stamp", "sky_title", "suptix",
                 "events", "skills", "subskills", 'buffs', "story", "background", "mypage_bg"
             ):
                 ref = self.data.get(t, {})
@@ -4739,7 +4758,7 @@ class Updater():
                             file_estimation += len(v[0])
                         case "mypage_bg":
                             file_estimation += 1
-                        case "profile_npcs"|"profile_arts"|"profile_bgs"|"arca3_maps"|"arca3_specials"|"title"|"sky_title":
+                        case "profile_npcs"|"profile_stickers"|"profile_arts"|"profile_bgs"|"arca3_maps"|"arca3_specials"|"title"|"stamp"|"story_memory"|"sky_title":
                             file_estimation += 1
                         case _:
                             file_estimation += 2

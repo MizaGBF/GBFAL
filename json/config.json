@@ -1210,6 +1210,13 @@
                     "pad":10
                 },
                 {
+                    "name":"Stickers",
+                    "icon":"../GBFML/assets/ui/icon/sticker.png",
+                    "target":"profile_stickers",
+                    "pad":10,
+                    "text": "ID order"
+                },
+                {
                     "name":"Backgrounds",
                     "icon":"../GBFML/assets/ui/icon/backgrounds.png",
                     "childs":[
@@ -1349,6 +1356,13 @@
                             "reverse":1
                         }
                     ]
+                },
+                {
+                    "name":"Memories",
+                    "icon":"../GBFML/assets/ui/icon/memory.png",
+                    "target":"story_memory",
+                    "reverse":0,
+                    "text": "In the Story order"
                 }
             ]
         },
@@ -2045,6 +2059,56 @@
             "icon":"../GBFML/assets/ui/icon/titles.png",
             "target":"title",
             "pad":10
+        },
+        {
+            "name":"Stamps",
+            "icon":"../GBFML/assets/ui/icon/stamp.png",
+            "childs":[
+                {
+                    "name":"1 to 100",
+                    "icon":"../GBFML/assets/ui/icon/stamp1.png",
+                    "target":"stamp",
+                    "arg1":1,
+                    "arg2":100,
+                    "pad":10,
+                    "text":"ID order"
+                },
+                {
+                    "name":"101 to 200",
+                    "icon":"../GBFML/assets/ui/icon/stamp2.png",
+                    "target":"stamp",
+                    "arg1":101,
+                    "arg2":200,
+                    "pad":10,
+                    "text":"ID order"
+                },
+                {
+                    "name":"201 to 300",
+                    "icon":"../GBFML/assets/ui/icon/stamp3.png",
+                    "target":"stamp",
+                    "arg1":201,
+                    "arg2":300,
+                    "pad":10,
+                    "text":"ID order"
+                },
+                {
+                    "name":"301 to 400",
+                    "icon":"../GBFML/assets/ui/icon/stamp4.png",
+                    "target":"stamp",
+                    "arg1":301,
+                    "arg2":400,
+                    "pad":10,
+                    "text":"ID order"
+                },
+                {
+                    "name":"401 and beyond",
+                    "icon":"../GBFML/assets/ui/icon/stamp5.png",
+                    "target":"stamp",
+                    "arg1":401,
+                    "pad":10,
+                    "text":"ID order"
+                }
+            ]
         },
         {
             "name":"Sky Compass Gallery",
