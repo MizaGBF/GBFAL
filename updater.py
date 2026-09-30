@@ -1318,7 +1318,7 @@ class Updater():
         n : int = 0
         m : int
         url = httpcore2.URL(DOMAIN)
-        path : bytes = b"/assets_en/img/sp/ui/icon/status/x64/status_" + str(element_id).encode("ascii") + "%s.png"
+        path : bytes = b"/assets_en/img/sp/ui/icon/status/x64/status_" + str(element_id).encode("ascii") + b"%s.png"
         match mode:
             case 0:
                 # default
