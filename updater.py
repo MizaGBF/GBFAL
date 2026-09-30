@@ -823,24 +823,29 @@ class Updater():
     # Generic GET request function
     async def get(self : Updater, url : str|bytes|httpcore2.URL) -> Any:
         async with self.http_limit:
-            async with self.client.stream(
-                "GET",
-                url,
-                headers={
-                    "Accept-Encoding":"gzip",
-                    "User-Agent":BASE_USER_AGENT
-                }
-            ) as response:
-                if response.status != 200:
-                    raise Exception(f"HTTP error {response.status}")
-                is_gzip = False
-                for header, value in response.headers:
-                    if header == b'content-encoding' and b'gzip' in value:
-                        is_gzip = True
-                content : bytes = await response.aread()
-                if is_gzip:
-                    content = gzip.decompress(content)
-                return content
+            while True:
+                try:
+                    async with self.client.stream(
+                        "GET",
+                        url,
+                        headers={
+                            "Accept-Encoding":"gzip",
+                            "User-Agent":BASE_USER_AGENT
+                        }
+                    ) as response:
+                        if response.status != 200:
+                            return None
+                        is_gzip = False
+                        for header, value in response.headers:
+                            if header == b'content-encoding' and b'gzip' in value:
+                                is_gzip = True
+                        content : bytes = await response.aread()
+                        if is_gzip:
+                            content = gzip.decompress(content)
+                        return content
+                except Exception as e:
+                    self.tasks.print(f"The following exception occurred in get():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    await asyncio.sleep(0.2)
 
     # Same as GET but for gbf.wiki
     async def get_wiki(self : Updater, url : str|bytes|httpcore2.URL, *, get_json : bool = False) -> Any:
@@ -869,15 +874,16 @@ class Updater():
     # Generic HEAD request function
     async def head(self : Updater, url : str|bytes|httpcore2.URL) -> tuple[bool, list]:
         async with self.http_limit:
-            try:
-                async with self.client.stream("HEAD", url) as response:
-                    return (
-                        response.status == 200,
-                        response.headers
-                    )
-            except Exception as e:
-                self.tasks.print(f"The following exception occurred in head():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                return False, []
+            while True:
+                try:
+                    async with self.client.stream("HEAD", url) as response:
+                        return (
+                            response.status == 200,
+                            response.headers
+                        )
+                except Exception as e:
+                    self.tasks.print(f"The following exception occurred in head():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    await asyncio.sleep(0.2)
 
     # Extract json data from a GBF animation manifest file
     async def processManifest(self : Updater, file : str, verify_file : bool = False) -> list:
