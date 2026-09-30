@@ -847,6 +847,7 @@ class Updater():
                     await asyncio.sleep(0.2)
                 except Exception as e:
                     self.tasks.print(f"The following exception occurred in get():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    return None
 
     # Same as GET but for gbf.wiki
     async def get_wiki(self : Updater, url : str|bytes|httpcore2.URL, *, get_json : bool = False) -> Any:
@@ -886,6 +887,7 @@ class Updater():
                     await asyncio.sleep(0.2)
                 except Exception as e:
                     self.tasks.print(f"The following exception occurred in head():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    return (False, [])
 
     # Extract json data from a GBF animation manifest file
     async def processManifest(self : Updater, file : str, verify_file : bool = False) -> list:
