@@ -2804,10 +2804,9 @@ class Updater():
             else:
                 checked.add(f)
                 if len(filters) == 0 or self.file_is_matching(f, filters):
-                    file : str = f"{file_id}{f}.png"
-                    if (await self.head(f"{IMG_BODY}{file}"))[0]:
+                    if (await self.head(f"{IMG_BODY}{file_id}{f}.png"))[0]:
                         existing.add(f)
-                    elif navi and (await self.head(f"{IMG_SP}raid/navi_face/{file}"))[0]:
+                    elif navi and (await self.head(f"{IMG_SP}raid/navi_face/{file_id}{f}.png"))[0]:
                         existing.add(f)
                     elif not allow_continue:
                         ts.finish() # task ended
