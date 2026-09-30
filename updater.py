@@ -843,9 +843,10 @@ class Updater():
                         if is_gzip:
                             content = gzip.decompress(content)
                         return content
+                except httpcore2.RemoteProtocolError:
+                    await asyncio.sleep(0.2)
                 except Exception as e:
                     self.tasks.print(f"The following exception occurred in get():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                    await asyncio.sleep(0.2)
 
     # Same as GET but for gbf.wiki
     async def get_wiki(self : Updater, url : str|bytes|httpcore2.URL, *, get_json : bool = False) -> Any:
@@ -881,9 +882,10 @@ class Updater():
                             response.status == 200,
                             response.headers
                         )
+                except httpcore2.RemoteProtocolError:
+                    await asyncio.sleep(0.2)
                 except Exception as e:
                     self.tasks.print(f"The following exception occurred in head():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                    await asyncio.sleep(0.2)
 
     # Extract json data from a GBF animation manifest file
     async def processManifest(self : Updater, file : str, verify_file : bool = False) -> list:
