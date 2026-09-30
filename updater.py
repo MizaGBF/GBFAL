@@ -132,7 +132,7 @@ FATE_TRANSCENDENCE_CONTENT = 2
 FATE_OTHER_CONTENT = 3
 FATE_LINK = 4
 # buff suffix list
-BUFF_LIST_EXTENDED = [b"", b"_1", b"_2", b"1", b"_10", b"_11", b"_1_1", b"_2_1", "b_1_10", b"_2_10"]
+BUFF_LIST_EXTENDED = [b"", b"_1", b"_2", b"1", b"_10", b"_11", b"_1_1", b"_2_1", b"_1_10", b"_2_10"]
 BUFF_LIST = BUFF_LIST_EXTENDED.copy()
 BUFF_LIST.pop(BUFF_LIST.index(b"1")) # remove the ones not intended for ID < 1000
 # job update
@@ -1224,7 +1224,7 @@ class Updater():
                     if res and self.get_content_length(headers) >= 200:
                         ts.good()
                         found = True
-                        skills[fi] = [[str(i) + s.split('.')[0]]]
+                        skills[fi] = [[str(i) + s.decode("ascii").split('.')[0]]]
                         self.add(fi, ADD_SKILL)
                         self.modified = True
                         break
