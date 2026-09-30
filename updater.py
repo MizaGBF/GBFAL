@@ -1876,7 +1876,12 @@ class Updater():
                     fn = f"ab_all_{tid}{style}_{el:02}"
                     sheets += await self.processManifest(fn)
                 except:
-                    pass
+                    if el < 10:
+                        try:
+                            fn = f"ab_all_{tid}{style}_{el}"
+                            sheets += await self.processManifest(fn)
+                        except:
+                            pass
             self.extend_list(data[CHARA_AB_ALL], sheets)
             sheets = []
             for el in range(1, 15):
@@ -1884,7 +1889,12 @@ class Updater():
                     fn = f"ab_{tid}{style}_{el:02}"
                     sheets += await self.processManifest(fn)
                 except:
-                    pass
+                    if el < 10:
+                        try:
+                            fn = f"ab_{tid}{style}_{el}"
+                            sheets += await self.processManifest(fn)
+                        except:
+                            pass
             sheets = list(dict.fromkeys(sheets)) # remove dupes
             self.extend_list(data[CHARA_AB], sheets)
         if self.count_file(data) > file_count:
@@ -2019,7 +2029,12 @@ class Updater():
                         if fn not in lookup:
                             attacks += await self.processManifest(fn, True)
                     except:
-                        pass
+                        if el < 10:
+                            try:
+                                fn = f"ab_all_{tid}{style}_{el}"
+                                sheets += await self.processManifest(fn, True)
+                            except:
+                                pass
                 tmp[CHARA_AB_ALL] = attacks
                 attacks = []
                 for el in range(1, 15):
@@ -2027,7 +2042,12 @@ class Updater():
                         fn = f"ab_{tid}{style}_{el:02}"
                         if fn not in lookup: attacks += await self.processManifest(fn, True)
                     except:
-                        pass
+                        if el < 10:
+                            try:
+                                fn = f"ab_{tid}{style}_{el}"
+                                sheets += await self.processManifest(fn, True)
+                            except:
+                                pass
                 tmp[CHARA_AB] = attacks
                 # verification
                 l = 0
@@ -2467,7 +2487,10 @@ class Updater():
                     try:
                         sheets += await self.processManifest(f"ab_all_{s}_{u:02}")
                     except:
-                        pass
+                        try:
+                            sheets += await self.processManifest(f"ab_all_{s}_{u}")
+                        except:
+                            pass
                 sheets = list(dict.fromkeys(sheets))
                 self.data['job'][jid][JOB_AB_ALL] = sheets
                 # ab
@@ -2476,7 +2499,10 @@ class Updater():
                     try:
                         sheets += await self.processManifest(f"ab_{s}_{u:02}")
                     except:
-                        pass
+                        try:
+                            sheets += await self.processManifest(f"ab_{s}_{u}")
+                        except:
+                            pass
                 sheets = list(dict.fromkeys(sheets))
                 self.data['job'][jid][JOB_AB] = sheets
                 # mypage
