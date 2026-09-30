@@ -604,7 +604,7 @@ class Updater():
             "npc_replace":{}
         }
         self.modified = False # if set to true, data.json will be written on the next call of save()
-        self.resume = {} # list of items completed (for the resume file)
+        self.resume = {"scene":{}, "sound":{}} # list of items completed (for the resume file)
         self.pending_npc_data = None
         self.stat_string = None # set and updated by make_stats
         self.addition = set() # new elements for changelog.json
@@ -947,8 +947,12 @@ class Updater():
     ### Main #################################################################################################################
 
     # called by -run
-    async def run(self : Updater) -> None:
+    def run(self : Updater) -> None:
+        if "run_process" in self.flags:
+            return
+        self.tasks.print("Searching for new elements...")
         self.raise_flag("run_process")
+        self.load_uncap_queue()
         i : int
         j : int
         r : int
@@ -1125,8 +1129,6 @@ class Updater():
         ts = TaskStatus(1000, 15)
         for i in range(3):
             self.tasks.add(self.search_generic, parameters=(ts, "suptix", "{}", 1, [IMG_SP + "gacha/campaign/surprise/top_%d.jpg"]))
-        # start the tasks
-        await self.tasks.start()
 
     # generic search for assets
     async def search_generic(self : Updater, ts : TaskStatus, index : str, file : str, zfill : int, paths : list[str]) -> None:
@@ -1457,13 +1459,10 @@ class Updater():
     ### Update #################################################################################################################
 
     # Attempt to update all given element ids
-    async def update_all(self : Updater, elements : list[str]) -> None:
+    def update_all(self : Updater, elements : list[str]) -> None:
         element_id : str
         for element_id in elements:
             self.tasks.add(self.update_element, parameters=(element_id, None))
-        if await self.tasks.start():
-            if len(self.addition) > 0: # update lookup
-                await self.lookup()
 
     # Update element data by calling the corresponding function
     async def update_element(self : Updater, element_id : str, index : str|None) -> None:
@@ -2310,6 +2309,7 @@ class Updater():
 
     # Used by --job, more specific but also slower job detection system
     async def search_job_detail(self : Updater, full_key_search : bool) -> None: # even slower with full_key_search but sure to find something
+        self.tasks.print("Searching detailed job data...")
         if self.job_list is None:
             self.tasks.print("Couldn't retrieve job list from the game")
             return
@@ -2345,9 +2345,9 @@ class Updater():
                         if d in job_keys:
                             continue
                         self.tasks.add(self.detail_job_search_single, parameters=(d, MAINHAND))
-        await self.tasks.start()
 
-    async def search_job_second_id(self : Updater, mhs : list[str]) -> None:
+    def search_job_second_id(self : Updater, mhs : list[str]) -> None:
+        self.tasks.print("Searching job secondary ID...")
         if len(mhs) == 0:
             mhs = MAINHAND
         job_keys = self.data["job_key"] # reference
@@ -2358,7 +2358,6 @@ class Updater():
                     if d in job_keys:
                         continue
                     self.tasks.add(self.detail_job_search_single, parameters=(d, mhs))
-        await self.tasks.start()
 
     # test a job mh
     async def detail_job_search(self : Updater, key : str, job : str) -> None:
@@ -2405,7 +2404,7 @@ class Updater():
                 pass
 
     # import job_data_export data
-    async def importjob(self : Updater) -> None:
+    def importjob(self : Updater) -> None:
         try:
             with open("json/job_data_export.json", mode="r", encoding="ascii") as f:
                 tmp = json.load(f)
@@ -2431,11 +2430,6 @@ class Updater():
             for jid, s in tmp["weapon"].items():
                 if s is not None:
                     self.tasks.add(self.job_import_task, parameters=(jid, s, 1))
-            if await self.tasks.start():
-                self.tasks.print("Job Data Import finished with success")
-            else:
-                self.tasks.print("An error occurred, exiting to not compromise the data")
-                os._exit(0)
 
     # task to verify job_data_export data and import it
     async def job_import_task(self : Updater, jid : str, s : Any, mode : int) -> None:
@@ -2521,7 +2515,7 @@ class Updater():
                 self.modified = True
 
     # export job_data_export data
-    async def exportjob(self : Updater) -> None:
+    def exportjob(self : Updater) -> None:
         self.tasks.print("Export the data to json/job_data_export.json? (y/Y)")
         if input().lower() == 'y':
             tmp = {"lookup":{}, "weapon":{}, "unset_key":[], "unset_wpn":[]}
@@ -2543,7 +2537,7 @@ class Updater():
 
     ### Scene #################################################################################################################
     
-    async def search_scene_files(self : Updater, suffixes : list[str]) -> None:
+    def search_scene_files(self : Updater, suffixes : list[str]) -> None:
         for i in range(len(suffixes)):
             if not suffixes[i].startswith("_"):
                 suffixes[i] = "_" + suffixes[i]
@@ -2559,7 +2553,6 @@ class Updater():
                     self.tasks.add(self.search_scene_for, parameters=(element_id, t, suffixes), priority=3)
                     count += 1
         self.tasks.print(f"Searching {len(suffixes)} scene file suffixes for {count} elements...")
-        await self.tasks.start()
 
     async def search_scene_for(self : Updater, element_id : str, index : str, suffixes : list[str]) -> None:
         match index:
@@ -2603,30 +2596,24 @@ class Updater():
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, "npcs"))
                 count += 1
         self.tasks.print(f"Updating scenes for {count} elements...")
-        await self.tasks.start()
 
     # update ALL npc/character/skin scene files, time consuming, can be resumed, can be filtered
-    async def update_all_scene(self : Updater, filters : list[str] = []) -> None:
+    def update_all_scene(self : Updater, filters : list[str] = []) -> None:
         self.raise_flag("use_resume")
-        self.raise_flag("scene_update")
-        self.load_resume("scene")
-        if len(self.resume.get('done', {})) != 0:
-            self.tasks.print("Note: Resuming the previous run...")
+        self.raise_flag("update_all_scene")
         if len(filters) > 0:
             for invalid in ("", "_"):
                 while invalid in filters:
                     filters.remove(invalid)
-            self.tasks.print(f"Note: {len(filters)} filter(s) in use. Not matching filenames will be ignored.")
-        if 'name' not in self.resume:
-            self.resume['name'] = "scene"
-        if 'done' not in self.resume:
-            self.resume['done'] = {}
+        start = self.tasks.total
         for index in ("characters", "skins", 'npcs'):
             for element_id in self.data[index]:
                 self.tasks.add(self.update_scenes_of, parameters=(element_id, index, filters))
-        self.tasks.print(f"Updating scenes for {self.tasks.total} elements...")
-        await self.tasks.start()
-        self.clear_resume()
+        self.tasks.print(f"Updating scenes for {self.tasks.total - start} elements...")
+        if len(self.resume["scene"]) != 0:
+            self.tasks.print("Note: Resuming the previous update_all_scene() run...")
+        if len(filters) > 0:
+            self.tasks.print(f"Note: {len(filters)} filter(s) in use. Not matching filenames will be ignored.")
     
     # used by update_npc
     def get_scene_file_list_base(self : Updater, element_id : str = "") -> list[str]:
@@ -2706,16 +2693,6 @@ class Updater():
     #   update_scene_end & (multiples) update_scene_check  (for each uncap)
     #
  
-    # utility functions
-    def scene_is_in_resume(self : Updater, element_id : str, uncap : str) -> bool:
-        return 'scene_update' in self.flags and uncap in self.resume.get('done', {}).get(element_id, [])
- 
-    def scene_add_to_resume(self : Updater, element_id : str, uncap : str) -> None:
-        if "scene_update" in self.flags:
-            if element_id not in self.resume['done']:
-                self.resume['done'][element_id] = []
-            self.resume['done'][element_id].append(uncap)
- 
     # update the scene files of one element
     async def update_scenes_of(self : Updater, element_id : str, index : str, filters : list[str] = []) -> None:
         u : str
@@ -2761,7 +2738,7 @@ class Updater():
                 u = ""
             else:
                 u = "_" + u
-            if self.scene_is_in_resume(element_id, u): # skip if in resume file
+            if u in self.resume["scene"].get(element_id, []): # skip if in resume file
                 continue
             # start update_scene
             self.tasks.add(
@@ -2785,7 +2762,7 @@ class Updater():
             # check if uncap string exists
             await self.update_scene_check(TaskStatus(1, 1, running=1), file_id, uncap, existing, True)
             if uncap not in existing:
-                self.scene_add_to_resume(element_id, uncap)
+                self.resume["scene"][element_id].append(uncap)
                 return
             checked.add(uncap)
         # check other base strings
@@ -2807,7 +2784,7 @@ class Updater():
                 priority=0
             )
         if ts.running == 0:
-            self.scene_add_to_resume(element_id, uncap)
+            self.resume["scene"][element_id].append(uncap)
 
     # test base files then queue suffix if it exisst OR if allow_continue
     async def update_scene_main_check(
@@ -2891,7 +2868,7 @@ class Updater():
                         break
             self.tasks.print("Scene file list updated for", element_id)
         # add element id and uncap to resume save
-        self.scene_add_to_resume(element_id, uncap)
+        self.resume["scene"][element_id].append(uncap)
 
     # request scene assets
     async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str], navi : bool) -> None:
@@ -3113,7 +3090,7 @@ class Updater():
         return l
     
     # exactly what the name implies. A specific list of events can also be provided to only update those
-    async def update_all_event(self : Updater, events : list[str], forceflag : bool = False) -> None:
+    def update_all_event(self : Updater, events : list[str], forceflag : bool = False) -> None:
         if len(events) == 0:
             if forceflag: # shouldn't be used without specific events
                 return
@@ -3122,10 +3099,10 @@ class Updater():
         self.tasks.print("Updating", len(events), "event(s)...")
         for ev in events:
             self.tasks.add(self.update_event, parameters=(ev, forceflag))
-        await self.tasks.start()
 
     # also a pretty implicit name
     async def check_new_event(self : Updater) -> None:
+        self.tasks.print("Searching new event data...")
         self.raise_flag("checking_event")
         evt_data = self.data['events'] # reference
         # get today date
@@ -3150,7 +3127,6 @@ class Updater():
                 if now >= int(ev):
                     self.tasks.print("Checking new event:", ev)
                     self.tasks.add(self.check_event_exist, parameters=(ev,), priority=3)
-        await self.tasks.start()
 
     # we check if we can access voice lines to detect if an event is accessible and its number of chapters. This solution isn't perfect
     async def check_event_exist(self : Updater, element_id : str) -> None:
@@ -3356,6 +3332,7 @@ class Updater():
     def update_manual_event(self : Updater) -> None:
         evt_data = self.data['events'] # reference
         try:
+            self.tasks.print("Checking manual_event.json...")
             with open("json/manual_event.json", mode="r", encoding="utf-8") as f:
                 data = json.load(f)
             updated_lookup : dict[str, list[str]] = {}
@@ -3459,14 +3436,18 @@ class Updater():
     ### Story #################################################################################################################
 
     # Update every (unset) story chapters
-    async def update_all_story(self : Updater, arc : int, limit : int|None) -> None:
+    def update_all_story(self : Updater, arc : int, limit : int|None) -> None:
         if arc < -1 or arc > 1:
             return
+        if arc >= 0:
+            self.tasks.print(f"Searching new story arc {arc} data...")
+        else:
+            self.tasks.print("Searching new free quest data...")
         if limit is None or limit < 1: # upate limit accordingly
             try:
                 limit = MSQ_LAST_CHAPTER[arc]
             except:
-                self.tasks.print("An error occurred while attempting to retrieve the MSQ Chapter count from gbf.wiki")
+                self.tasks.print("An error occurred while reading the Chapter count")
                 return
         existing : dict[str, list[str]]
         ts : TaskStatus
@@ -3497,7 +3478,10 @@ class Updater():
                 for n in range(10):
                     self.tasks.add(self.update_chapter, parameters=(ts, index, k, STORY_CONTENT, IMG_BODY, "scene" + f, existing), priority=2)
         # chapters
-        for i in range(0, limit + 1):
+        start : int = (
+            1 if arc < 0 else 0
+        )
+        for i in range(start, limit + 1):
             element_id = f"{i:03}"
             if element_id not in msq_data and element_id not in MSQ_SPECIALS[arc]:
                 if element_id not in msq_data:
@@ -3527,7 +3511,6 @@ class Updater():
                         ts = TaskStatus(200, 10, running=10)
                         for n in range(10):
                             self.tasks.add(self.update_chapter, parameters=(ts, index, element_id, STORY_CONTENT, IMG_BODY, fn + "_q" + str(q), existing), priority=2)
-        await self.tasks.start()
 
     ### Fate #################################################################################################################
 
@@ -3680,17 +3663,18 @@ class Updater():
                 # evokers
                 if cid in ("3040160000", "3040161000", "3040162000", "3040163000", "3040164000", "3040165000", "3040166000", "3040167000", "3040168000", "3040169000"):
                     self.tasks.add(self.check_fate, parameters=(element_id, FATE_UNCAP_CONTENT, fid, f"scene_ult_chr{element_id}_world", True, None, False))
-        await self.tasks.start()
 
     ### Sound #################################################################################################################
 
     # update npc/character/skin scene files for given IDs
-    async def update_all_sound_for_ids(self : Updater, ids : list[str] = []) -> None:
+    def update_all_sound_for_ids(self : Updater, ids : list[str] = []) -> None:
+        self.tasks.print("Updating sound data...")
         # references
         characters = self.data["characters"]
         skins = self.data["skins"]
         npcs = self.data["npcs"]
         
+        start = self.tasks.total
         for element_id in ids:
             if element_id in characters:
                 self.tasks.add(self.update_sound_of, parameters=(element_id, "characters"))
@@ -3698,29 +3682,22 @@ class Updater():
                 self.tasks.add(self.update_sound_of, parameters=(element_id, "skins"))
             elif element_id in npcs:
                 self.tasks.add(self.update_sound_of, parameters=(element_id, "npcs"))
-        self.tasks.print(f"Updating sounds for {self.tasks.total} elements...")
-        await self.tasks.start()
+        self.tasks.print(f"Updating sounds for {self.tasks.total - start} elements...")
 
     # the functions are similar to scene ones
     # this one update the sound data of all elements and support resuming and filtering
-    async def update_all_sound(self : Updater, filters : list[str] = []) -> None:
+    def update_all_sound(self : Updater, filters : list[str] = []) -> None:
         self.raise_flag("use_resume")
-        self.raise_flag("sound_update")
-        self.load_resume("sound")
-        if len(self.resume.get('done', {})) != 0:
-            self.tasks.print("Note: Resuming the previous run...")
+        self.raise_flag("update_all_sound")
         if len(filters) > 0:
             self.tasks.print(f"Note: {len(filters)} filter(s) in use. Not matching filenames will be ignored.")
-        if 'name' not in self.resume:
-            self.resume['name'] = "sound"
-        if 'done' not in self.resume:
-            self.resume['done'] = {}
+        start = self.tasks.total
         for index in ("characters", "skins", 'npcs'):
             for element_id in self.data[index]:
                 self.tasks.add(self.update_sound_of, parameters=(element_id, index, filters))
-        self.tasks.print(f"Updating sounds for {self.tasks.total} elements...")
-        await self.tasks.start()
-        self.clear_resume()
+        self.tasks.print(f"Updating sounds for {self.tasks.total - start} elements...")
+        if len(self.resume["sound"]) != 0:
+            self.tasks.print("Note: Resuming the previous update_all_sound() run...")
 
     # cache sound strings if needed and return them
     def get_sound_strings(self : Updater) -> list[tuple[str, list[str], int, int, int]]:
@@ -3767,7 +3744,7 @@ class Updater():
     #
 
     async def update_sound_of(self : Updater, element_id : str, index : str, filters : list[str] = []) -> None:
-        if 'sound_update' in self.flags and element_id in self.resume.get('done', {}):
+        if element_id in self.resume["sound"]:
             return
         u : str
         uncaps : list[str]
@@ -3905,17 +3882,17 @@ class Updater():
             self.modified = True
             self.tasks.print("Sound file list updated for", element_id)
         # Add to resume file
-        if "sound_update" in self.flags:
-            self.resume['done'][element_id] = 0
+        self.resume["sound"][element_id] = 0
 
     ### Lookup ##################################################################################################################
 
     # Check for new elements to lookup on the wiki, to update the lookup list
     # Gigantic function but nothing complicated
     async def lookup(self : Updater) -> None:
-        if not self.use_wiki or 'lookup_updated' in self.flags:
+        await self.init_wiki()
+        if not self.use_wiki or "lookup_updated" in self.flags:
             return
-        self.raise_flag('lookup_updated')
+        self.raise_flag("lookup_updated")
         npcs = self.data['npcs'] # reference
         lookup_data = self.data['lookup'] # reference
         modified = set()
@@ -4378,7 +4355,6 @@ class Updater():
             self.tasks.print("Starting tasks to update known Buffs...")
             for element_id in self.data['buffs']:
                 await self.prepare_update_buff(element_id)
-        await self.tasks.start()
 
     # Called by maintenancebuff, maintenance or raise_flag
     async def maintenance_compare_wiki_buff(self : Updater) -> None:
@@ -4447,7 +4423,6 @@ class Updater():
         for element_id in self.data['npcs']:
             if not isinstance(self.data['npcs'][element_id], int) and not self.data['npcs'][element_id][NPC_JOURNAL]:
                 self.tasks.add(self.update_npc_thumb, parameters=(element_id,))
-        await self.tasks.start()
 
     # maintenance_npc_thumbnail() subroutine
     async def update_npc_thumb(self : Updater, element_id : str) -> None: # subroutine
@@ -4464,7 +4439,6 @@ class Updater():
         for element_id in self.data['enemies']:
             if not isinstance(self.data['enemies'][element_id], int):
                 self.tasks.add(self.update_enemy_appear, parameters=(element_id,))
-        await self.tasks.start()
 
     # maintenance_raid_appear() subroutine
     async def update_enemy_appear(self : Updater, element_id : str) -> None: # subroutine
@@ -4499,7 +4473,6 @@ class Updater():
             if self.data['events'][ev][EVENT_THUMB] is not None:
                 self.tasks.add(self.update_event_skycompass, parameters=(ev,))
         self.tasks.add(self.update_all_event_thumbnail)
-        await self.tasks.start()
 
     # Called by maintenance or raise_flag
     async def maintenance_generic_background(self : Updater) -> None:
@@ -4510,7 +4483,6 @@ class Updater():
         for k in self.data["background"]:
             if not k.startswith(("event_", "main_", "common_")):
                 self.tasks.add(self.update_background, parameters=(k,), priority=0)
-        await self.tasks.start()
 
     # Check if an event got skycompass art. Note: The event must have a valid thumbnail ID set
     async def update_event_skycompass(self : Updater, ev : str) -> None:
@@ -4552,12 +4524,13 @@ class Updater():
     ### Other #################################################################################################################
 
     # check file existence for npcs ids without any data
-    async def search_missing_npc(self : Updater) -> None:
+    def search_missing_npc(self : Updater) -> None:
         npcs = self.data['npcs'] # reference
         try:
             highest : int = (max([int(k) for k in npcs if k.startswith('399')]) // 1000) % 10000
         except:
             return
+        self.tasks.print("Searching for missing NPC data...")
         # scene
         base_target, main_x, _ = self.generate_scene_file_list()
         scene_strings : list[str] = base_target + main_x
@@ -4586,7 +4559,6 @@ class Updater():
                 for n in range(50):
                     self.tasks.add(self.test_missing_npc, parameters=(fid, ts, uris))
         self.tasks.print("Testing", count, "NPCs...")
-        await self.tasks.start()
 
     async def test_missing_npc(self : Updater, element_id : str, ts : TaskStatus, uris : list[str]) -> None:
         npcs = self.data['npcs'] # reference
@@ -4607,10 +4579,10 @@ class Updater():
                 ts.bad() # to force stop the other tasks
 
     # simply call update_element on each partner id
-    async def update_all_partner(self : Updater) -> None:
+    def update_all_partner(self : Updater) -> None:
+        self.tasks.print("Updating all partner data...")
         for element_id in self.data['partners']:
             self.tasks.add(self.update_element, parameters=(element_id, None))
-        await self.tasks.start()
 
     # Update changelog.json stat string
     def make_stats(self) -> None:
@@ -4723,17 +4695,15 @@ class Updater():
             self.tasks.print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
 
     # load resume file
-    def load_resume(self : Updater, name : str) -> None:
+    def load_resume(self : Updater) -> None:
         try:
             if not self.use_resume:
                 raise Exception()
             with open("resume", mode="r", encoding="utf-8") as f:
                 self.resume = json.load(f)
-                if name != self.resume['name'] or not isinstance(self.resume, dict):
-                    raise Exception()
                 self.raise_flag("resume_loaded")
         except:
-            self.resume = {}
+            self.resume = {"scene":{}, "sound":{}}
 
     # save resume file
     def save_resume(self : Updater) -> None:
@@ -4753,7 +4723,13 @@ class Updater():
             if not self.use_resume:
                 return
             if "resume_loaded" in self.flags:
-                os.remove("resume")
+                if "update_all_scene" in self.flags:
+                    self.resume["scene"] = {}
+                if "update_all_sound" in self.flags:
+                    self.resume["sound"] = {}
+                if len(self.resume["scene"]) + len(self.resume["sound"]) == 0:
+                    os.remove("resume")
+                    self.tasks.print("The resume file has been cleared")
         except:
             pass
 
@@ -4978,16 +4954,20 @@ class Updater():
 
     ### Entry Point #################################################################################################################
 
-    # To be called before running anything
-    async def init_updater(self : Updater, *, wiki : bool = False, job : bool = False) -> None:
-        if wiki and not self.use_wiki:
-            # test wiki
-            self.use_wiki = await self.test_wiki()
-            if not self.use_wiki:
-                self.tasks.print("WARNING: Use of gbf.wiki is currently impossible")
-        if job:
-            # update job list
-            await self.init_job_list()
+    # To be called if needed before anything
+    async def init_wiki(self : Updater) -> None:
+        if "tested_wiki" in self.flags:
+            return
+        self.raise_flag("tested_wiki")
+        self.use_wiki = await self.test_wiki()
+        if not self.use_wiki:
+            self.tasks.print("WARNING: Use of gbf.wiki is currently impossible")
+        
+    async def init_job(self : Updater) -> None:
+        if "tested_job" in self.flags:
+            return
+        self.raise_flag("tested_job")
+        await self.init_job_list()
 
     # HTTP client factory
     def init_http_client(self : Updater) -> httpcore2.AsyncConnectionPool:
@@ -5015,6 +4995,11 @@ class Updater():
         except: prog_name = "updater.py" # fallback to default
         # Set Argument Parser
         parser : argparse.ArgumentParser = argparse.ArgumentParser(prog=prog_name, description=f"Asset Updater v{VERSION} for GBFAL https://mizagbf.github.io/GBFAL/")
+        
+        job = parser.add_mutually_exclusive_group()
+        job.add_argument('-ij', '--importjob', help="import data from job_data_export.json.", action='store_const', const=True, default=False, metavar='')
+        job.add_argument('-ej', '--exportjob', help="export data to job_data_export.json.", action='store_const', const=True, default=False, metavar='')
+        
         primary = parser.add_argument_group('primary', 'main commands to update the data.')
         primary.add_argument('-r', '--run', help="search for new content.", action='store_const', const=True, default=False, metavar='')
         primary.add_argument('-u', '--update', help="update given elements.", nargs='+', default=None)
@@ -5038,18 +5023,14 @@ class Updater():
         secondary.add_argument('-mn', '--missingnpc', help="search for missing NPCs. Time consuming.", action='store_const', const=True, default=False, metavar='')
         
         maintenance = parser.add_argument_group('maintenance', 'commands to perform specific maintenance tasks.')
-        maintenance.add_argument('-ij', '--importjob', help="import data from job_data_export.json.", action='store_const', const=True, default=False, metavar='')
-        maintenance.add_argument('-ej', '--exportjob', help="export data to job_data_export.json.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-lk', '--lookup', help="import and update manual_lookup.json and fetch the wiki to update the lookup table.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-fj', '--fatejson', help="import and update manual_fate.json.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-evj', '--eventjson', help="import and update manual_event.json.", action='store_const', const=True, default=False, metavar='')
-        maintenance.add_argument('-mt', '--maintenance', help="run all existing maintenance tasks.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mb', '--maintenancebuff', help="maintenance task to check existing buffs for new icons.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-ms', '--maintenancesky', help="maintenance task to check sky compass arts for existing events.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mu', '--maintenancenpcthumbnail', help="maintenance task to check NPC thumbnails for existing NPCs.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mr', '--maintenanceraidappear', help="maintenance task to check Enemy Raid Appear spritesheets.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-mbg', '--maintenancebackground', help="maintenance task to update generic backgrounds.", action='store_const', const=True, default=False, metavar='')
-        maintenance.add_argument('-js', '--json', help="import all manual JSON files.", action='store_const', const=True, default=False, metavar='')
         maintenance.add_argument('-vl', '--valentine', help="rebuild valentine/white day list.", action='store_const', const=True, default=False, metavar='')
         
         settings = parser.add_argument_group('settings', 'commands to alter the updater behavior.')
@@ -5065,10 +5046,13 @@ class Updater():
             self.load()
             # settings
             run_help : bool = True
+            exit_on_fail : bool = False
             if args.nochange:
                 self.update_changelog = False
             if args.noresume:
                 self.use_resume = False
+            else:
+                self.load_resume()
             if args.ignorefilecount:
                 self.ignore_file_count = True
             if args.adduncap is not None:
@@ -5081,111 +5065,107 @@ class Updater():
                 run_help = False
             # run
             if args.run:
-                self.tasks.print("Searching for new elements...")
-                await self.init_updater(wiki=True, job=True)
-                self.load_uncap_queue()
-                await self.run()
-            elif args.update is not None and len(args.update) > 0:
-                self.tasks.print("Updating", len(args.update)+len(self.data['uncap_queue']), "element(s)...")
-                await self.init_updater(wiki=True)
-                self.load_uncap_queue()
-                await self.update_all(list(set(args.update)))
-            elif args.job is not False:
-                self.tasks.print("Searching detailed job data...")
-                await self.init_updater(wiki=False, job=True)
-                await self.search_job_detail(args.job == "full")
-            elif args.jobquick is not False:
-                self.tasks.print("Searching job secondary ID...")
-                await self.init_updater(wiki=False, job=True)
-                await self.search_job_second_id(args.jobquick)
-            elif args.scene is not None:
-                self.tasks.print("Updating scene data...")
-                await self.update_all_scene(list(set(args.scene)))
-            elif args.sceneid is not None and len(args.sceneid) > 0:
-                self.tasks.print("Updating scene data...")
+                await self.init_wiki()
+                await self.init_job()
+                self.run()
+                run_help = False
+            if args.update is not None and len(args.update) > 0:
+                self.update_all(list(set(args.update)))
+                run_help = False
+            if args.job is not False:
+                await self.init_job()
+                self.search_job_detail(args.job == "full")
+                run_help = False
+            if args.jobquick is not False:
+                self.search_job_second_id(args.jobquick)
+                run_help = False
+            if args.scene is not None:
+                self.update_all_scene(list(set(args.scene)))
+                run_help = False
+            if args.sceneid is not None and len(args.sceneid) > 0:
                 await self.update_all_scene_for_ids(list(set(args.sceneid)))
-            elif args.lookscene is not None and len(args.lookscene) > 0:
-                await self.search_scene_files(list(set(args.lookscene)))
-            elif args.sound is not None:
-                self.tasks.print("Updating sound data...")
-                await self.update_all_sound(list(set(args.sound)))
-            elif args.soundid is not None and len(args.soundid) > 0:
-                self.tasks.print("Updating sound data...")
-                await self.update_all_sound_for_ids(list(set(args.soundid)))
-            elif args.event is not None:
-                self.tasks.print("Updating event data...")
-                await self.init_updater(wiki=True)
-                await self.update_all_event(args.event)
-            elif args.forceevent is not None and len(args.forceevent) > 0:
-                self.tasks.print("Updating event data...")
-                await self.init_updater(wiki=True)
-                await self.update_all_event(list(set(args.forceevent)), True)
-            elif args.newevent:
-                self.tasks.print("Searching new event data...")
-                await self.init_updater(wiki=True)
+                run_help = False
+            if args.lookscene is not None and len(args.lookscene) > 0:
+                self.search_scene_files(list(set(args.lookscene)))
+                run_help = False
+            if args.sound is not None:
+                self.update_all_sound(list(set(args.sound)))
+                run_help = False
+            if args.soundid is not None and len(args.soundid) > 0:
+                self.update_all_sound_for_ids(list(set(args.soundid)))
+                run_help = False
+            if args.event is not None:
+                self.update_all_event(args.event)
+                run_help = False
+            if args.forceevent is not None and len(args.forceevent) > 0:
+                self.update_all_event(list(set(args.forceevent)), True)
+                run_help = False
+            if args.newevent:
+                await self.init_wiki()
                 await self.check_new_event()
-            elif args.free is None or args.free > 0:
-                self.tasks.print("Searching new free quest data...")
-                await self.update_all_story(-1, args.free)
-            elif args.story1 is None or args.story1 > 0:
-                self.tasks.print("Searching new story arc 1 data...")
-                await self.update_all_story(0, args.story1)
-            elif args.story2 is None or args.story2 > 0:
-                self.tasks.print("Searching new story arc 2 data...")
-                await self.update_all_story(1, args.story2)
-            elif args.fate is None or args.fate != "":
-                self.tasks.print("Searching fate episode data...")
+                run_help = False
+            if args.free is None or args.free > 0:
+                self.update_all_story(-1, args.free)
+                run_help = False
+            if args.story1 is None or args.story1 > 0:
+                self.update_all_story(0, args.story1)
+                run_help = False
+            if args.story2 is None or args.story2 > 0:
+                self.update_all_story(1, args.story2)
+                run_help = False
+            if args.fate is None or args.fate != "":
                 await self.update_all_fate(args.fate)
-            elif args.partner:
-                self.tasks.print("Updating all partner data...")
-                await self.update_all_partner()
-            elif args.missingnpc:
-                self.tasks.print("Searching for missing NPC data...")
-                await self.search_missing_npc()
-            elif args.importjob:
-                await self.importjob()
+                run_help = False
+            if args.partner:
+                self.update_all_partner()
+                run_help = False
+            if args.missingnpc:
+                self.search_missing_npc()
+                run_help = False
+            if args.importjob:
+                self.importjob()
+                exit_on_fail = True
+                run_help = False
             elif args.exportjob:
-                await self.exportjob()
-            elif args.lookup:
-                await self.init_updater(wiki=True)
+                self.exportjob()
+                run_help = False
+            if args.lookup:
                 await self.lookup()
-            elif args.fatejson:
+                run_help = False
+            if args.fatejson:
                 self.update_manual_fate()
-            elif args.eventjson:
+                run_help = False
+            if args.eventjson:
                 self.update_manual_event()
-            elif args.maintenance:
-                await self.init_updater(wiki=True)
-                self.tasks.print("Performing maintenance...")
-                self.tasks.add(self.maintenance_buff, parameters=(False,))
-                self.tasks.add(self.maintenance_npc_thumbnail)
-                self.tasks.add(self.maintenance_raid_appear)
-                self.tasks.add(self.maintenance_event_skycompass)
-                self.tasks.add(self.maintenance_generic_background)
-                await self.tasks.start()
-            elif args.maintenancebuff:
-                await self.init_updater(wiki=True)
-                self.tasks.print("Performing maintenance...")
+                run_help = False
+            if args.maintenancebuff:
+                await self.init_wiki()
                 await self.maintenance_buff(False)
-            elif args.maintenancesky:
-                self.tasks.print("Performing maintenance...")
+                run_help = False
+            if args.maintenancesky:
                 await self.maintenance_event_skycompass()
-            elif args.maintenancenpcthumbnail:
-                self.tasks.print("Performing maintenance...")
+                run_help = False
+            if args.maintenancenpcthumbnail:
                 await self.maintenance_npc_thumbnail()
-            elif args.maintenanceraidappear:
-                self.tasks.print("Performing maintenance...")
+                run_help = False
+            if args.maintenanceraidappear:
                 await self.maintenance_raid_appear()
-            elif args.maintenancebackground:
-                self.tasks.print("Performing maintenance...")
+                run_help = False
+            if args.maintenancebackground:
                 await self.maintenance_generic_background()
-            elif args.json:
-                await self.lookup()
-                self.update_manual_fate()
-                self.update_manual_event()
-            elif args.valentine:
+                run_help = False
+            if args.valentine:
                 self.rebuild_valentine()
-            elif run_help:
+                run_help = False
+            if run_help:
                 parser.print_help()
+                return
+            if not await self.tasks.start() and exit_on_fail:
+                self.tasks.print("An error occurred, exiting to not compromise the data")
+                return
+            # clean up
+            if self.use_resume:
+                self.clear_resume()
             # post process
             if len(self.addition) > 0: # we found stuff
                 await self.lookup() # update the lookup
