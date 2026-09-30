@@ -1224,7 +1224,7 @@ class Updater():
                     if res and self.get_content_length(headers) >= 200:
                         ts.good()
                         found = True
-                        skills[fi] = [[str(i) + s.decode("ascii").split('.')[0]]]
+                        skills[fi] = [[str(i) + s.decode("ascii")]]
                         self.add(fi, ADD_SKILL)
                         self.modified = True
                         break
@@ -1270,7 +1270,7 @@ class Updater():
                 res, headers = await self.head(url)
                 # make sure the file size is right, some buff icons are empty transparent files
                 if res and self.get_content_length(headers) >= 200:
-                    buffs[fi] = [str(i), [s]]
+                    buffs[fi] = [str(i), [s.decode("ascii")]]
                     found = True
                     break
             if found:
@@ -1287,11 +1287,9 @@ class Updater():
             priority = 0
         buffs = self.data['buffs'] # reference
         i : int = int(element_id)
-        fi : str = str(i)
         if buffs.get(element_id, 0) == 0: # init array
             buffs[element_id] = [[str(int(element_id))], []]
         known : set[str] = set(buffs.get(element_id, [[], []])[1])
-        path : list[str] = [IMG_SP, "ui/icon/status/x64/status_", fi, "", ".png"]
         mode_count : int = 7
         ts : TaskStatus = TaskStatus(1, 1, running=mode_count)
         
@@ -1300,32 +1298,35 @@ class Updater():
             if (mode == 0 and "" in known) or (mode == 2 and i < 1000) or (mode == 6 and i < 1000): # skip these if the condition matches
                 ts.finish()
                 continue
-            self.tasks.add(self.update_buff, parameters=(mode, ts, path, element_id, known), priority=priority)
+            self.tasks.add(self.update_buff, parameters=(mode, ts, element_id, known), priority=priority)
 
     # Subroutine of prepare_update_buff to check for varitions
     # Mode control which variation to check
     # Mode 0 is only if "" is not in known files, Mode 2 is only for IDs lesser than 1000
-    async def update_buff(self : Updater, mode : int, ts : TaskStatus, path : list[str], element_id : str, known : set[str]) -> None:
+    async def update_buff(self : Updater, mode : int, ts : TaskStatus, element_id : str, known : set[str]) -> None:
         err : int = 0
         n : int = 0
         m : int
+        url = httpcore2.URL(DOMAIN)
+        path : bytes = b"/assets_en/img/sp/ui/icon/status/x64/status_" + str(element_id).encode("ascii") + "%s.png"
         match mode:
             case 0:
                 # default
-                path[3] = ""
-                res, headers = await self.head("".join(path))
+                url.target = path % b""
+                res, headers = await self.head(url)
                 if res and self.get_content_length(headers) >= 200:
                     known.add("")
             case 1:
                 # _1, _2...
                 while err < 3 and n < 10:
-                    path[3] = "_" + str(n)
-                    if path[3] in known:
+                    suffix = f"_{n}"
+                    if suffix in known:
                         err = 0
                     else:
-                        res, headers = await self.head("".join(path))
+                        url.target = path % suffix.encode("ascii")
+                        res, headers = await self.head(url)
                         if res and self.get_content_length(headers) >= 200:
-                            known.add("_" + str(n))
+                            known.add(suffix)
                             err = 0
                         else:
                             err += 1
@@ -1333,13 +1334,14 @@ class Updater():
             case 2:
                 # 1, 2...
                 while err < 5:
-                    path[3] = str(n)
-                    if path[3] in known:
+                    suffix = str(n)
+                    if suffix in known:
                         err = 0
                     else:
-                        res, headers = await self.head("".join(path))
+                        url.target = path % suffix.encode("ascii")
+                        res, headers = await self.head(url)
                         if res and self.get_content_length(headers) >= 200:
-                            known.add(str(n))
+                            known.add(suffix)
                             err = 0
                         else:
                             err += 1
@@ -1352,13 +1354,14 @@ class Updater():
                     m = n + 10
                     err = 0
                     while err < errlimit and n < m:
-                        path[3] = "_" + str(n)
-                        if path[3] in known:
+                        suffix = f"_{n}"
+                        if suffix in known:
                             err = 0
                         else:
-                            res, headers = await self.head("".join(path))
+                            url.target = path % suffix.encode("ascii")
+                            res, headers = await self.head(url)
                             if res and self.get_content_length(headers) >= 200:
-                                known.add("_" + str(n))
+                                known.add(suffix)
                                 err = 0
                             else:
                                 err += 1
@@ -1369,13 +1372,14 @@ class Updater():
                     n = 0
                     err = 0
                     while err < 3:
-                        path[3] = f"_{x}{n:02}"
-                        if path[3] in known:
+                        suffix = f"_{x}{n:02}"
+                        if suffix in known:
                             err = 0
                         else:
-                            res, headers = await self.head("".join(path))
+                            url.target = path % suffix.encode("ascii")
+                            res, headers = await self.head(url)
                             if res and self.get_content_length(headers) >= 200:
-                                known.add(f"_{x}{n:02}")
+                                known.add(suffix)
                                 err = 0
                             else:
                                 err += 1
@@ -1384,11 +1388,12 @@ class Updater():
                                     err = 0
                         n += 1
                 # exception, testing for _110
-                path[3] = "_110"
-                if path[3] not in known:
-                    res, headers = await self.head("".join(path))
+                suffix = "_110"
+                if suffix not in known:
+                    url.target = path % suffix.encode("ascii")
+                    res, headers = await self.head(url)
                     if res and self.get_content_length(headers) >= 200:
-                        known.add("_110")
+                        known.add(suffix)
             case 5:
                 baselimit : int = 24 if element_id in ("6579","6967") else 10
                 errlimit : int = 6 if element_id in ("1019",) else 4
@@ -1397,13 +1402,14 @@ class Updater():
                     n = 0
                     err = 0
                     while err < errlimit:
-                        path[3] = "_" + str(x) + "_" + str(n)
-                        if path[3] in known:
+                        suffix = f"_{x}_{n}"
+                        if suffix in known:
                             err = 0
                         else:
-                            res, headers = await self.head("".join(path))
+                            url.target = path % suffix.encode("ascii")
+                            res, headers = await self.head(url)
                             if res and self.get_content_length(headers) >= 200:
-                                known.add("_" + str(x) + "_" + str(n))
+                                known.add(suffix)
                                 err = 0
                             else:
                                 err += 1
@@ -1416,13 +1422,14 @@ class Updater():
                     n = 0
                     err = 0
                     while err < errlimit:
-                        path[3] = str(x) + "_" + str(n)
-                        if path[3] in known:
+                        suffix = f"{x}_{n}"
+                        if suffix in known:
                             err = 0
                         else:
-                            res, headers = await self.head("".join(path))
+                            url.target = path % suffix.encode("ascii")
+                            res, headers = await self.head(url)
                             if res and self.get_content_length(headers) >= 200:
-                                known.add("_" + str(x) + "_" + str(n))
+                                known.add(suffix)
                                 err = 0
                             else:
                                 err += 1
