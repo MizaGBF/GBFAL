@@ -2762,7 +2762,10 @@ class Updater():
         # quit if npc and no uncap string existing beyond base one
         if index == 'npcs' and uncap != "" and uncap not in existing:
             # check if uncap string exists
-            await self.update_scene_check(TaskStatus(1, 1, running=1), file_id, uncap, existing, True)
+            await self.update_scene_check(
+                TaskStatus(1, 1, running=1), file_id, uncap, existing, True,
+                index, element_id, idx, uncap
+            )
             if uncap not in existing:
                 self.resume["scene"][element_id].append(uncap)
                 return
@@ -2828,7 +2831,7 @@ class Updater():
             ts.running += 1
             self.tasks.add(
                 self.update_scene_check,
-                parameters=(ts, file_id, g, existing, navi),
+                parameters=(ts, file_id, g, existing, navi, index, element_id, idx, uncap),
                 priority=0
             )
         ts.finish() # task ended
@@ -2872,13 +2875,20 @@ class Updater():
         self.resume["scene"][element_id].append(uncap)
 
     # request scene assets
-    async def update_scene_check(self : Updater, ts : TaskStatus, file_id : str, f : str, existing : set[str], navi : bool) -> None:
+    async def update_scene_check(
+        self : Updater,
+        ts : TaskStatus, file_id : str, f : str, existing : set[str], navi : bool,
+        index : str, element_id : str,
+        idx : int, uncap : str
+    ) -> None:
         file : str = f"{file_id}{f}.png"
         if (await self.head(f"{IMG_BODY}{file}"))[0]:
             existing.add(f)
         elif navi and (await self.head(f"{IMG_SP}raid/navi_face/{file}"))[0]:
             existing.add(f)
         ts.finish() # task ended
+        if ts.finished:
+            self.update_scene_end(index, element_id, idx, uncap, existing)
 
     ### Generic Chapter Update #################################################################################################################
 
