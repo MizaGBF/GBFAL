@@ -2730,6 +2730,8 @@ class Updater():
                 existing = set()
         except:
             return
+        if element_id not in self.resume["scene"]:
+            self.resume["scene"][element_id] = []
         # retrieve strings
         base_target, main_x, uncap_x = self.generate_scene_file_list(element_id) # we save memory this way as most elements share the same strings, instead of building them on the spot
         # for each uncap...
@@ -4701,6 +4703,9 @@ class Updater():
             with open("resume", mode="r", encoding="utf-8") as f:
                 self.resume = json.load(f)
                 self.raise_flag("resume_loaded")
+                for k in ("scene","sound"):
+                    if k not in self.resume:
+                        self.resume[k] = {}
         except:
             self.resume = {"scene":{}, "sound":{}}
 

@@ -2020,18 +2020,18 @@
 ],
 "sidestory_id":null
 },
+"94570":{
+"name":"Foxtale Summer",
+"event_ids":[
+"260729"
+],
+"sidestory_id":null
+},
 "94630":{
 "name":"Bleach Echoes in the Blue Hollow",
 "event_ids":[
 "260722",
 "260727"
-],
-"sidestory_id":null
-},
-"94570":{
-"name":"Foxtale Summer",
-"event_ids":[
-"260729"
 ],
 "sidestory_id":null
 },
@@ -2047,6 +2047,11 @@
 "event_ids":[
 "260928"
 ],
+"sidestory_id":null
+},
+"94800":{
+"name":"",
+"event_ids":[],
 "sidestory_id":null
 },
 "95000":{
