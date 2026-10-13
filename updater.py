@@ -2780,7 +2780,7 @@ class Updater():
         if index == 'npcs' and uncap != "" and uncap not in existing:
             # check if uncap string exists
             await self.update_scene_check(
-                TaskStatus(1, 1, running=1), file_id, uncap, existing, True,
+                TaskStatus(1, 1, running=1), file_id, uncap, existing,
                 index, element_id, idx, uncap
             )
             if uncap not in existing:
@@ -2793,16 +2793,11 @@ class Updater():
         # test all base files
         ts = TaskStatus(1, 1, running=0)
         for base in bases:
-            navi : bool = True
-            for part in base.split("_"):
-                if "_" + part in SCENE_NAVI_EXCLUSIONS:
-                    navi = False
-                    break
             f = uncap + base
             ts.running += 1
             self.tasks.add(
                 self.update_scene_main_check,
-                parameters=(ts, element_id, file_id, f, index, uncap, idx, existing, checked, suffixes, filters, base == "", navi),
+                parameters=(ts, element_id, file_id, f, index, uncap, idx, existing, checked, suffixes, filters, base == ""),
                 priority=0
             )
         if ts.running == 0:
@@ -2816,7 +2811,7 @@ class Updater():
         index : str, uncap : str, idx : int,
         existing : set[str], checked : set[str],
         suffixes : list[str], filters : list[str],
-        allow_continue : bool, navi : bool
+        allow_continue : bool
     ) -> None:
         if f not in existing:
             if f in checked:
@@ -2827,8 +2822,6 @@ class Updater():
                 checked.add(f)
                 if len(filters) == 0 or self.file_is_matching(f, filters):
                     if (await self.head(f"{IMG_BODY}{file_id}{f}.png"))[0]:
-                        existing.add(f)
-                    elif navi and (await self.head(f"{IMG_SP}raid/navi_face/{file_id}{f}.png"))[0]:
                         existing.add(f)
                     elif not allow_continue:
                         ts.finish() # task ended
@@ -2844,11 +2837,10 @@ class Updater():
             checked.add(g)
             if g in existing or (len(filters) > 0 and not self.file_is_matching(g, filters)):
                 continue
-            navi = navi and suffix not in SCENE_NAVI_EXCLUSIONS
             ts.running += 1
             self.tasks.add(
                 self.update_scene_check,
-                parameters=(ts, file_id, g, existing, navi, index, element_id, idx, uncap),
+                parameters=(ts, file_id, g, existing, index, element_id, idx, uncap),
                 priority=0
             )
         ts.finish() # task ended
@@ -2894,14 +2886,12 @@ class Updater():
     # request scene assets
     async def update_scene_check(
         self : Updater,
-        ts : TaskStatus, file_id : str, f : str, existing : set[str], navi : bool,
+        ts : TaskStatus, file_id : str, f : str, existing : set[str],
         index : str, element_id : str,
         idx : int, uncap : str
     ) -> None:
         file : str = f"{file_id}{f}.png"
         if (await self.head(f"{IMG_BODY}{file}"))[0]:
-            existing.add(f)
-        elif navi and (await self.head(f"{IMG_SP}raid/navi_face/{file}"))[0]:
             existing.add(f)
         ts.finish() # task ended
         if ts.finished:
