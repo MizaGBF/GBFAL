@@ -3,6 +3,7 @@ from typing import Any, Callable, Sized, Iterable
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone, UTC
+from contextlib import asynccontextmanager
 import asyncio
 import httpcore2
 import socket
@@ -20,6 +21,11 @@ import traceback
 import signal
 import argparse
 from tqdm import tqdm
+try:
+    import http2
+    HTTP2_IMPORTED = True
+except:
+    HTTP2_IMPORTED = False
 
 ### Constant variables
 VERSION = '4.0'
@@ -550,6 +556,8 @@ class Updater():
     job_list : dict[str, str]|None
     scene_strings : None|tuple[dict, dict]
     sound_base_strings : list[str, list[str], int, int, int]
+    get : Callable
+    head : Callable
     def __init__(self : Updater):
         # other init
         self.client = None # the http client
@@ -838,7 +846,7 @@ class Updater():
         return 0
 
     # Generic GET request function
-    async def get(self : Updater, url : str|bytes|httpcore2.URL) -> Any:
+    async def get_httpcore(self : Updater, url : str|bytes|httpcore2.URL) -> Any:
         async with self.http_limit:
             while True:
                 try:
@@ -863,8 +871,27 @@ class Updater():
                 except httpcore2.RemoteProtocolError:
                     await asyncio.sleep(0.2)
                 except Exception as e:
-                    self.tasks.print(f"The following exception occurred in get():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    self.tasks.print(f"The following exception occurred in get_httpcore():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
                     return None
+
+    async def get_http2(self : Updater, url : str|bytes|httpcore2.URL) -> tuple[bool, list]:
+        async with self.http_limit:
+            try:
+                match url:
+                    case str():
+                        response = await http2.queue_request(url, "GET")
+                    case bytes():
+                        response = await http2.queue_request(url.decode("ascii"), "GET")
+                    case httpcore2.URL():
+                        response = await http2.queue_request(bytes(url).decode("ascii"), "GET")
+                response = await http2.queue_request(url, "GET")
+                if response.status != 200:
+                    return None
+                else:
+                    return response.body
+            except Exception as e:
+                self.tasks.print(f"The following exception occurred in get_http2():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                return None
 
     # Same as GET but for gbf.wiki
     async def get_wiki(self : Updater, url : str|bytes|httpcore2.URL, *, get_json : bool = False) -> Any:
@@ -891,7 +918,7 @@ class Updater():
                 return content
 
     # Generic HEAD request function
-    async def head(self : Updater, url : str|bytes|httpcore2.URL) -> tuple[bool, list]:
+    async def head_httpcore(self : Updater, url : str|bytes|httpcore2.URL) -> tuple[bool, list]:
         async with self.http_limit:
             while True:
                 try:
@@ -903,8 +930,26 @@ class Updater():
                 except httpcore2.RemoteProtocolError:
                     await asyncio.sleep(0.2)
                 except Exception as e:
-                    self.tasks.print(f"The following exception occurred in head():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    self.tasks.print(f"The following exception occurred in head_httpcore():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
                     return (False, [])
+
+    async def head_http2(self : Updater, url : str|bytes|httpcore2.URL) -> tuple[bool, list]:
+        async with self.http_limit:
+            try:
+                match url:
+                    case str():
+                        response = await http2.queue_request(url, "HEAD")
+                    case bytes():
+                        response = await http2.queue_request(url.decode("ascii"), "HEAD")
+                    case httpcore2.URL():
+                        response = await http2.queue_request(bytes(url).decode("ascii"), "HEAD")
+                return (
+                    response.status == 200,
+                    [(b'content-length', response.body)]
+                )
+            except Exception as e:
+                self.tasks.print(f"The following exception occurred in head_http2():\nAt: {url}\n" + "".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                return (False, [])
 
     # Extract json data from a GBF animation manifest file
     async def processManifest(self : Updater, file : str, verify_file : bool = False) -> list:
@@ -5002,6 +5047,24 @@ class Updater():
             ]
         )
 
+    @asynccontextmanager
+    async def init_all_http(self : Updater):
+        try:
+            self.client = self.init_http_client()
+            if HTTP2_IMPORTED:
+                http2.init(MAX_REQUEST)
+                self.get = self.get_http2
+                self.head = self.head_http2
+                print("Note: http2.pyd/so has been loaded and set")
+            else:
+                self.get = self.get_httpcore
+                self.head = self.head_httpcore
+            yield
+        finally:
+            await self.client.aclose()
+            if HTTP2_IMPORTED:
+                http2.close()
+
     # Start function
     async def start(self : Updater) -> None:
         self.tasks.print(f"GBFAL Updater v{VERSION}")
@@ -5062,7 +5125,7 @@ class Updater():
         settings.add_argument('-da', '--gbfdaio', help="import index.json from GBFDAIO.", action='store', nargs=1, type=str, metavar='PATH')
         args : argparse.Namespace = parser.parse_args()
         
-        async with self.init_http_client() as self.client:
+        async with self.init_all_http():
             # load self.data NOW
             self.load()
             # settings

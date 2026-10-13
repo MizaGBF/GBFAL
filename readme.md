@@ -49,6 +49,9 @@ This script is in charge of updating the JSON files.
 > [!CAUTION]  
 > Using it can be time and bandwidth consuming.  
   
+> [!WARNING]  
+> You can optionally find my libcurl-based HTTP2 client [here](https://github.com/MizaGBF/GBFAL_http2).  
+  
 ### Updater Requirements  
 * Python 3.13.
 * Run `pip install -r requirements.txt` in a command prompt.
