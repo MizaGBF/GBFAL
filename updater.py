@@ -7,6 +7,7 @@ import asyncio
 import httpcore2
 import socket
 import gzip
+import brotli
 import pyperclip
 import os
 import sys
@@ -701,7 +702,7 @@ class Updater():
         return data
 
     # Save data.json and changelog.json (only if self.modified is True)
-    def save(self : Updater) -> None:
+    def save(self : Updater, *, write_compress : bool = False) -> None:
         try:
             if not self.loaded:
                 return
@@ -754,6 +755,22 @@ class Updater():
                                 outfile.write(",")
                             outfile.write("\n")
                     outfile.write("}")
+                if write_compress:
+                    # write compressed version
+                    with open('json/data.json.gz', mode='wb') as outfile:
+                        outfile.write(
+                            gzip.compress(
+                                json.dumps(self.data, ensure_ascii=False, separators=(',', ':')).encode('utf-8'),
+                                compresslevel=9
+                            )
+                        )
+                    with open('json/data.json.br', mode='wb') as outfile:
+                        outfile.write(
+                            brotli.compress(
+                                json.dumps(self.data, ensure_ascii=False, separators=(',', ':')).encode('utf-8'),
+                                quality=11
+                            )
+                        )
                 # changelog.json
                 stat : str|None
                 new : dict[str, list[Any]]
