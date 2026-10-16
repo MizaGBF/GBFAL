@@ -1336,6 +1336,8 @@ class Updater():
             i : int = ts.get_next_index()
             fi : str = f"{i:04}" # formatted id
             if fi in buffs: # already indexed
+                if isinstance(buffs[fi], int):
+                    await self.prepare_update_buff(fi, priority=3)
                 ts.good()
                 continue
             found : bool = False
@@ -2370,7 +2372,7 @@ class Updater():
             return None
 
     # Used by --job, more specific but also slower job detection system
-    async def search_job_detail(self : Updater, full_key_search : bool) -> None: # even slower with full_key_search but sure to find something
+    def search_job_detail(self : Updater, full_key_search : bool) -> None: # even slower with full_key_search but sure to find something
         self.tasks.print("Searching detailed job data...")
         if self.job_list is None:
             self.tasks.print("Couldn't retrieve job list from the game")
