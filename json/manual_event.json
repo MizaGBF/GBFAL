@@ -2050,8 +2050,22 @@
 "sidestory_id":null
 },
 "94800":{
-"name":"",
+"name":"Gin Tama Shonen Jump Is Best Enjoyed Cover to Cover",
 "event_ids":[],
+"sidestory_id":null
+},
+"94880":{
+"name":"Helping the Genius Alchemist",
+"event_ids":[
+"alchm6"
+],
+"sidestory_id":null
+},
+"94900":{
+"name":"Trick of Treat! 2026",
+"event_ids":[
+"261017"
+],
 "sidestory_id":null
 },
 "95000":{
