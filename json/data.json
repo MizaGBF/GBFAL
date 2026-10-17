@@ -12862,7 +12862,8 @@
 "3994600000":[false,[],["_boss_v_16","_boss_v_28","_boss_v_40","_boss_v_11","_boss_v_42","_boss_v_15","_boss_v_32","_boss_v_6","_boss_v_4","_boss_v_34","_boss_v_1","_boss_v_17","_boss_v_18","_boss_v_7","_boss_v_14","_boss_v_24","_boss_v_46","_boss_v_25","_boss_v_8","_boss_v_5","_boss_v_43","_boss_v_44","_boss_v_23","_boss_v_20","_boss_v_26","_boss_v_3","_boss_v_45","_boss_v_21","_boss_v_27","_boss_v_31","_boss_v_10","_boss_v_41","_boss_v_9","_boss_v_2","_boss_v_19","_boss_v_30","_boss_v_36","_boss_v_38","_boss_v_39","_boss_v_29","_boss_v_35","_boss_v_37","_boss_v_33","_boss_v_12","_boss_v_13","_boss_v_22"]],
 "3994628000":[false,["","_ghost","_up","_up_ghost"],[]],
 "3994629000":[false,["","_ef","_laugh","_laugh2","_laugh2_up","_laugh2_up_speed","_laugh_up","_laugh_up_speed","_mask","_painful","_painful2","_painful2_up","_painful2_up_speed","_painful_up","_painful_up_speed","_shadow","_shout","_shout_up","_shout_up_speed","_surprise","_surprise2","_surprise2_up","_surprise2_up_speed","_surprise_up","_surprise_up_speed","_up","_up_speed","_weak","_weak2","_weak2_up","_weak2_up_speed","_weak_up","_weak_up_speed"],[]],
-"3994630000":[false,["","_angry","_angry_light","_angry_up","_angry_up_light","_close","_close_light","_close_up","_close_up_light","_laugh","_laugh2","_laugh2_light","_laugh2_up","_laugh2_up_light","_laugh_light","_laugh_up","_laugh_up_light","_light","_shadow_light","_shout","_shout_light","_shout_up","_shout_up_light","_sleepy","_sleepy_light","_sleepy_up","_sleepy_up_light","_surprise","_surprise2","_surprise2_light","_surprise2_up","_surprise2_up_light","_surprise_light","_surprise_up","_surprise_up_light","_up","_up_light"],[]]
+"3994630000":[false,["","_angry","_angry_light","_angry_up","_angry_up_light","_close","_close_light","_close_up","_close_up_light","_laugh","_laugh2","_laugh2_light","_laugh2_up","_laugh2_up_light","_laugh_light","_laugh_up","_laugh_up_light","_light","_shadow_light","_shout","_shout_light","_shout_up","_shout_up_light","_sleepy","_sleepy_light","_sleepy_up","_sleepy_up_light","_surprise","_surprise2","_surprise2_light","_surprise2_up","_surprise2_up_light","_surprise_light","_surprise_up","_surprise_up_light","_up","_up_light"],[]],
+"3994632000":[false,["","_serious","_serious_up","_surprise","_surprise2","_surprise2_up","_surprise_up","_up"],[]]
 },
 "profile_npcs":
 {
@@ -26959,7 +26960,9 @@
 "170501":"/w Ranger_Origin /x main character /n ranger origin /m class /y レンジャー・オリジン 2026-10-14",
 "3994628000":"/n manu ponumau /b wolvir /s female /y マヌ＝ポヌマウ hikaru tono 遠野ひかる",
 "3994629000":"/n azusa /b draph /s female /y アズサ asami seto 瀬戸麻沙美",
-"3994630000":"/n ewiyar /b unknown /s other /y イーウィヤ rie hikisaka 引坂理絵"
+"3994630000":"/n ewiyar /b unknown /s other /y イーウィヤ rie hikisaka 引坂理絵",
+"3994632000":"/n godsworn alexiel /b primal /s female /y ブローディア aya hirano 平野綾",
+"371001":"/w Main_Character /x main character /k conqueror's carapace /y 2026-10-16"
 },
 "evt_lookup":
 {
@@ -28076,7 +28079,7 @@
 "261007":[1,"",null,null,[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]],
 "261014":[1,"",null,null,[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]],
 "261016":[1,"",null,null,[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]],
-"261017":[0,"Trick of Treat! 2026","94900",null,[],[],[],["scene_evt261017_cp01_30.jpg","scene_evt261017_cp01_30_a.jpg"],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]],
+"261017":[0,"Trick of Treat! 2026","94900",null,[],[],[],["scene_evt261017_cp01_30.jpg","scene_evt261017_cp01_30_a.jpg"],["scene_evt261017_cp02_01.png"],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]],
 "alchm6":[0,"Helping the Genius Alchemist","94880",null,[],[],["scene_kaitaku_renkin_hwop3_01.png","scene_kaitaku_renkin_hwop3_02.png","scene_kaitaku_renkin_hwop3_03.png","scene_kaitaku_renkin_hwop3_31.jpg"],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]
 },
 "skills":
