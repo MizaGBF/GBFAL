@@ -28,7 +28,7 @@ except:
     HTTP2_IMPORTED = False
 
 ### Constant variables
-VERSION = '4.0'
+VERSION = "4.1"
 CONCURRENT_TASKS = 100
 MAX_REQUEST = 90
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
@@ -5054,10 +5054,15 @@ class Updater():
         try:
             self.client = self.init_http_client()
             if HTTP2_IMPORTED:
-                http2.init(MAX_REQUEST)
-                self.get = self.get_http2
-                self.head = self.head_http2
-                print("Note: http2.pyd/so has been loaded and set")
+                try:
+                    http2.init(MAX_REQUEST, BASE_USER_AGENT)
+                    self.get = self.get_http2
+                    self.head = self.head_http2
+                    print(f"Note: http2.pyd/so v{http2.version()} has been loaded and set")
+                except Exception as e:
+                    print("Failed to initialize http2.pyd/so:", e)
+                    self.get = self.get_httpcore
+                    self.head = self.head_httpcore
             else:
                 self.get = self.get_httpcore
                 self.head = self.head_httpcore
