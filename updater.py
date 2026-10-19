@@ -5051,6 +5051,7 @@ class Updater():
 
     @asynccontextmanager
     async def init_all_http(self : Updater):
+        global HTTP2_IMPORTED
         try:
             self.client = self.init_http_client()
             if HTTP2_IMPORTED:
