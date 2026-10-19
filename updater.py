@@ -4451,6 +4451,8 @@ class Updater():
                     if len(bid) >= 5:
                         ext = bid[4:] + ext
                         bid = bid[:4]
+                    if " " in icon:
+                        continue
                     if isinstance(buffs.get(bid, None), int): # uninitialized buff, skip
                         continue
                     if bid not in buffs:
