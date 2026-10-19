@@ -5061,6 +5061,7 @@ class Updater():
                     print(f"Note: http2.pyd/so v{http2.version()} has been loaded and set")
                 except Exception as e:
                     print("Failed to initialize http2.pyd/so:", e)
+                    HTTP2_IMPORTED = False
                     self.get = self.get_httpcore
                     self.head = self.head_httpcore
             else:
