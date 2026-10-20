@@ -4821,7 +4821,7 @@
 "4301013":"/e light /n miss heaty the bedazzled",
 "4301023":"/e light /n archipelago annihiloid",
 "4301033":"/e water /n tetragod",
-"4301043":"/e dark /n titanium taskmaster feat. chief",
+"4301043":"/x arx moven /e dark /n titanium taskmaster feat. chief",
 "4301053":"/e dark /n titanium taskmaster feat. chief",
 "4301063":"/x archipelago annihiloid /e fire /n destructive frame",
 "4301073":"/e fire /n leotron",
@@ -4829,6 +4829,9 @@
 "4301093":"/e water /n mobile defense unit",
 "4301103":"/e water /n automagod ohr morhes",
 "4301113":"/e water /n automagod ohr morhes",
+"4301123":"/x ruby machina /e earth /n corpus volans",
+"4301133":"/x montague guard /e earth /n ferrum grave",
+"4301143":"/e earth /n arx moven",
 "5100012":"/x ruination gargoyle /e dark /n gargoyle",
 "5100021":"/e dark /n imp",
 "5100022":"/e dark /n imp",
@@ -6915,5 +6918,8 @@
 "9103433":"/e fire /n belmervolk",
 "9103443":"/e fire /n belmervolk",
 "9103453":"/e fire /n belmervolk",
-"9103493":"/e null /n the wind walker"
+"9103483":"/x agastia abomination battleship /e earth /n ultimus atrox",
+"9103493":"/e null /n the wind walker",
+"9103503":"/e dark /n zamalvoch",
+"9103513":"/e dark /n zamalvoch"
 }

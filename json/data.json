@@ -4,8 +4,7 @@
 ,
 "uncap_queue":
 [
-"3040180000",
-"2040454000"
+"3040180000"
 ],
 "valentines":
 {
@@ -2267,7 +2266,7 @@
 "2040451000":[["2040451000"],["summon_2040451000_01_attack.png"],["summon_2040451000_01_damage.png"],[]],
 "2040452000":[["2040452000"],["summon_2040452000_01_attack.png"],["summon_2040452000_01_damage.png"],[]],
 "2040453000":[["2040453000"],["summon_2040453000_01_attack.png","summon_2040453000_01_attack_b.png","summon_2040453000_01_attack_c.png"],["summon_2040453000_01_damage.png"],[]],
-"2040454000":[["2040454000"],["summon_2040454000_01_attack_a.png","summon_2040454000_01_attack_b.png","summon_2040454000_01_attack_c.png"],["summon_2040454000_01_damage.png"],[]],
+"2040454000":[["2040454000","2040454000_02"],["summon_2040454000_01_attack_a.png","summon_2040454000_01_attack_b.png","summon_2040454000_01_attack_c.png","summon_2040454000_02_attack_a.png","summon_2040454000_02_attack_b.png"],["summon_2040454000_01_damage.png","summon_2040454000_02_damage_a.png","summon_2040454000_02_damage_b.png"],[]],
 "2040455000":[["2040455000"],["summon_2040455000_01_attack_a.png","summon_2040455000_01_attack_b.png","summon_2040455000_01_attack_c.png"],["summon_2040455000_01_damage.png"],[]],
 "2040456000":[["2040456000"],["summon_2040456000_01_attack_a.png","summon_2040456000_01_attack_b.png","summon_2040456000_01_attack_c.png"],["summon_2040456000_01_damage.png"],[]],
 "2040457000":[["2040457000"],["summon_2040457000_01_attack_a.png","summon_2040457000_01_attack_b.png","summon_2040457000_01_attack_c.png"],["summon_2040457000_01_damage.png"],[]],
@@ -5347,7 +5346,9 @@
 "1040320500":[["1040320500"],["phit_1040320500.png"],["sp_1040320500_0_s2_a.png","sp_1040320500_0_s2_b.png","sp_1040320500_1_s2_a.png","sp_1040320500_1_s2_b.png"]],
 "1040818800":[["1040818800"],["phit_1040818800.png"],["sp_1040818800_0_s2.png","sp_1040818800_1_s2.png"]],
 "1040622400":[["1040622400"],["phit_1040622400.png"],["sp_1040622400_0_s2.png","sp_1040622400_1_s2.png"]],
-"1040919100":[["1040919100"],["phit_1040919100.png"],["sp_1040919100_0_s2_a.png","sp_1040919100_0_s2_b.png","sp_1040919100_1_s2_a.png","sp_1040919100_1_s2_b.png"]]
+"1040919100":[["1040919100"],["phit_1040919100.png"],["sp_1040919100_0_s2_a.png","sp_1040919100_0_s2_b.png","sp_1040919100_1_s2_a.png","sp_1040919100_1_s2_b.png"]],
+"1040715600":[["1040715600"],["phit_1040715600.png"],["sp_1040715600_0_s2.png","sp_1040715600_1_s2.png"]],
+"1040622500":[["1040622500"],["phit_1040622500.png"],["sp_1040622500_0_s2_a.png","sp_1040622500_0_s2_b.png","sp_1040622500_1_s2_a.png","sp_1040622500_1_s2_b.png"]]
 },
 "shields":
 {
@@ -8356,7 +8357,13 @@
 "9101783":[["9101783"],["enemy_9101783.png"],[],["ehit_9101783.png"],["esp_9101783_01.png"],["esp_9101783_02_all.png","esp_9101783_03_all.png"]],
 "9103383":[["9103383"],["enemy_9103383_a.png","enemy_9103383_b.png"],[],[],[],[]],
 "9103393":[["9103393"],["enemy_9103393_a.png","enemy_9103393_b.png","enemy_9103393_c.png"],[],[],[],[]],
-"9103403":[["9103403"],["enemy_9103403_a.png","enemy_9103403_b.png","enemy_9103403_c.png"],[],[],[],["esp_9103403_01_all_a.png","esp_9103403_01_all_b.png","esp_9103403_01_all_c.png","esp_9103403_02_all_a.png","esp_9103403_02_all_b.png","esp_9103403_03_all_a.png","esp_9103403_03_all_b.png","esp_9103403_04_all.png","esp_9103403_05_all_a.png","esp_9103403_05_all_b.png","esp_9103403_05_all_c.png"]]
+"9103403":[["9103403"],["enemy_9103403_a.png","enemy_9103403_b.png","enemy_9103403_c.png"],[],[],[],["esp_9103403_01_all_a.png","esp_9103403_01_all_b.png","esp_9103403_01_all_c.png","esp_9103403_02_all_a.png","esp_9103403_02_all_b.png","esp_9103403_03_all_a.png","esp_9103403_03_all_b.png","esp_9103403_04_all.png","esp_9103403_05_all_a.png","esp_9103403_05_all_b.png","esp_9103403_05_all_c.png"]],
+"4301123":[["4301123"],["enemy_4301123.png"],["raid_appear_4301123.png"],[],[],[]],
+"4301133":[["4301133"],["enemy_4301133_a.png","enemy_4301133_b.png"],["raid_appear_4301133.png"],["ehit_4301133.png"],[],[]],
+"4301143":[["4301143"],["enemy_4301143.png"],["raid_appear_4301143.png"],[],[],[]],
+"9103483":[["9103483"],["enemy_9103483_a.png","enemy_9103483_b.png","enemy_9103483_c.png"],["raid_appear_9103483.png"],[],[],[]],
+"9103503":[["9103503"],["enemy_9103503_a.png","enemy_9103503_b.png","enemy_9103503_c.png"],["raid_appear_9103503.png"],[],[],[]],
+"9103513":[["9103513"],["enemy_9103513_a.png","enemy_9103513_b.png","enemy_9103513_c.png"],[],[],[],[]]
 },
 "skins":
 {
@@ -14250,7 +14257,8 @@
 "common_093":[["common_093"]],
 "event_572":[["event_572"]],
 "event_573":[["event_573"]],
-"event_568":[["event_568"]]
+"event_568":[["event_568"]],
+"common_094":[["common_094"]]
 },
 "mypage_bg":
 {
@@ -19609,7 +19617,7 @@
 "4301013":"/f machine-boss /e light /n miss heaty the bedazzled",
 "4301023":"/f machine-boss /e light /n archipelago annihiloid",
 "4301033":"/f machine-boss /e water /n tetragod",
-"4301043":"/f machine-boss /e dark /n titanium taskmaster feat. chief",
+"4301043":"/f machine-boss /x arx moven /e dark /n titanium taskmaster feat. chief",
 "4301053":"/f machine-boss /e dark /n titanium taskmaster feat. chief",
 "4301063":"/f machine-boss /x archipelago annihiloid /e fire /n destructive frame",
 "4301073":"/f machine-boss /e fire /n leotron",
@@ -26974,11 +26982,17 @@
 "3994631000":"/n randall /b human /s male /y ランドル wataru hatano 羽多野渉",
 "3040681000":"/w Azusa_(Halloween) /e fire /a ssr /n azusa /c halloween /b draph /s female /t attack /p katana /y アズサ asami seto 瀬戸麻沙美 2026-10-19",
 "3040680000":"/w Ewiyar_(Halloween) /e dark /a ssr /n ewiyar /c halloween /b unknown /s other /t special /p melee /y イーウィヤ rie hikisaka 引坂理絵 2026-10-19",
-"3040682000":"/w Randall_(Halloween) /e light /a ssr /n randall /c halloween /b human /s male /t attack /p melee /y アズサ wataru hatano 羽多野渉 2026-10-19",
-"1040818800":"/w Ewiyar-Pocus /e dark /t harp /a ssr /n ewiyar-pocus /y 2026-10-19",
-"1040622400":"/w Fugitive's_Claw /e light /t melee /a ssr /n fugitive's claw /y 2026-10-19",
-"1040919100":"/w Kumogirimaru /e fire /t katana /a ssr /n kumogirimaru /y 2026-10-19",
-"3710263000":"/w Alexiel /x alexiel /k guising ward /n alexiel /y 2026-10-19"
+"3040682000":"/w Randall_(Halloween) /e light /a ssr /n randall /c halloween /b human /s male /t attack /p melee /y ランドル wataru hatano 羽多野渉 2026-10-19",
+"1040818800":"/w Ewiyar-Pocus /e dark /t harp /a ssr /n ewiyar-pocus /y イーウィヤ・ポーカス 2026-10-19",
+"1040622400":"/w Fugitive's_Claw /e light /t melee /a ssr /n fugitive's claw /y フュージティヴ・クロウ 2026-10-19",
+"1040919100":"/w Kumogirimaru /e fire /t katana /a ssr /n kumogirimaru /y 蜘蛛切丸 2026-10-19",
+"3710263000":"/w Alexiel /x alexiel /k guising ward /n alexiel /y 2026-10-19",
+"4301123":"/f machine-boss /x ruby machina /e earth /n corpus volans",
+"4301133":"/f machine-boss /x montague guard /e earth /n ferrum grave",
+"4301143":"/f machine-boss /e earth /n arx moven",
+"9103483":"/f other-boss /x agastia abomination battleship /e earth /n ultimus atrox",
+"9103503":"/f other-boss /e dark /n zamalvoch",
+"9103513":"/f other-boss /e dark /n zamalvoch"
 },
 "evt_lookup":
 {
