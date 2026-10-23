@@ -28,7 +28,7 @@ except:
     HTTP2_IMPORTED = False
 
 ### Constant variables
-VERSION = "4.1"
+VERSION = "4.2"
 CONCURRENT_TASKS = 100
 MAX_REQUEST = 90
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
@@ -552,6 +552,7 @@ class Updater():
     pending_npc_data : None|dict[str, Any]
     stat_string : str|None
     addition : set[tuple[str, int|str]]
+    added : bool
     updated_elements : set[str]
     job_list : dict[str, str]|None
     scene_strings : None|tuple[dict, dict]
@@ -617,6 +618,7 @@ class Updater():
         self.pending_npc_data = None
         self.stat_string = None # set and updated by make_stats
         self.addition = set() # new elements for changelog.json
+        self.added = False # set to True once something is added to addition
         self.updated_elements = set() # set of elements ran through update_element()
         self.job_list = None # job dictionary of id string pair
         self.scene_strings = None # scene string containers
@@ -832,6 +834,7 @@ class Updater():
     def add(self : Updater, element_id : str, element_type : int|str) -> bool:
         r : bool = (element_id, element_type) in self.addition
         self.addition.add((element_id, element_type))
+        self.added = True
         return r
 
     # Utility function to append elements to an array
@@ -5262,7 +5265,7 @@ class Updater():
             if self.use_resume:
                 self.clear_resume()
             # post process
-            if len(self.addition) > 0: # we found stuff
+            if self.added: # we found stuff
                 await self.lookup() # update the lookup
                 # update other manual json files if needed
                 if "found_event" in self.flags:
