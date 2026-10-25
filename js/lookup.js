@@ -308,7 +308,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		case GBFType.weapon:
 		{
 			include_link = true;
-			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]]; // format is title, icon, link
+			extra_links = [["Animations for " + id, "../GBFAP/assets/webp/icon.webp", "../GBFAP/?id="+id]]; // format is title, icon, link
 			last_id = id; // update last id
 			// tabs to display
 			pages = [
@@ -381,7 +381,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		case GBFType.summon:
 		{
 			include_link = true;
-			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
+			extra_links = [["Animations for " + id, "../GBFAP/assets/webp/icon.webp", "../GBFAP/?id="+id]];
 			last_id = id;
 			pages = [
 				{
@@ -437,7 +437,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		case GBFType.character:
 		{
 			include_link = true;
-			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
+			extra_links = [["Animations for " + id, "../GBFAP/assets/webp/icon.webp", "../GBFAP/?id="+id]];
 			last_id = id;
 			pages = [
 				{
@@ -606,7 +606,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		case GBFType.enemy:
 		{
 			include_link = true;
-			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
+			extra_links = [["Animations for " + id, "../GBFAP/assets/webp/icon.webp", "../GBFAP/?id="+id]];
 			last_id = "e"+id;
 			pages = [
 				{
@@ -627,7 +627,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 		case GBFType.job:
 		{
 			include_link = true;
-			extra_links = [["Animations for " + id, "../GBFAP/assets/icon.png", "../GBFAP/?id="+id]];
+			extra_links = [["Animations for " + id, "../GBFAP/assets/webp/icon.webp", "../GBFAP/?id="+id]];
 			last_id = id;
 			pages = [
 				{
