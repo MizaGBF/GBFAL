@@ -28,7 +28,7 @@ except:
     HTTP2_IMPORTED = False
 
 ### Constant variables
-VERSION = "4.2"
+VERSION = "4.3"
 CONCURRENT_TASKS = 100
 MAX_REQUEST = 90
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
@@ -1183,9 +1183,10 @@ class Updater():
         for i in range(3):
             self.tasks.add(self.search_generic, parameters=(ts, "stamp", "{}", 1, [IMG_SP + "assets/stamp/full/stamp%d.png"]))
         # sky compass title
-        ts = TaskStatus(1000, 8)
+        # NOTE: Not accessible anymore
+        """ts = TaskStatus(1000, 8)
         for i in range(2):
-            self.tasks.add(self.search_generic, parameters=(ts, "sky_title", "{}", 1, ["https://media.skycompass.io/assets/archives/galleries/%d/detail_s.png"]))
+            self.tasks.add(self.search_generic, parameters=(ts, "sky_title", "{}", 1, ["https://media.skycompass.io/assets/archives/galleries/%d/detail_s.png"]))"""
         # subskills
         ts = TaskStatus(1000, 5)
         for i in range(3):
@@ -4828,7 +4829,8 @@ class Updater():
                 self.flags.add("checking_event_related")
                 self.tasks.add(self.maintenance_npc_thumbnail, priority=0)
                 self.tasks.add(self.maintenance_raid_appear, priority=0)
-                self.tasks.add(self.maintenance_event_skycompass, priority=0)
+                # NOTE: Skycompass isn't accessible anymore
+                # self.tasks.add(self.maintenance_event_skycompass, priority=0)
                 self.tasks.add(self.maintenance_compare_wiki_buff, priority=0)
                 self.tasks.add(self.maintenance_generic_background)
                 for element_id in ("1019", "6579"): # buffs to check for updates
@@ -5241,7 +5243,8 @@ class Updater():
                 await self.maintenance_buff(False)
                 run_help = False
             if args.maintenancesky:
-                await self.maintenance_event_skycompass()
+                self.tasks.print("Skycompass assets aren't accessible anymore")
+                #await self.maintenance_event_skycompass()
                 run_help = False
             if args.maintenancenpcthumbnail:
                 await self.maintenance_npc_thumbnail()
