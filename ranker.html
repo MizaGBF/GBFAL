@@ -45,10 +45,26 @@
 	</script>
 </head>
 <body onload="init()">
-	<button class="theme-toggle" onclick="toggle_theme();"></button>
-	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
-	<div id="header">
-		<div>Character Ranker v1.7</div>
+	<header class="header-container">
+		<a href="index.html">
+			<img class="header-icon" src="assets/icon.png">
+		</a>
+		<div class="header-content">
+			<div class="header-line header-text">
+				<span class="header-word-group"><span class="header-colored-capitalized">G</span>ranblue</span>&nbsp;<span class="header-word-group"><span class="header-colored-capitalized">F</span>antasy</span>&nbsp;<span class="header-word-group"><span class="header-colored-capitalized">A</span>sset</span>&nbsp;<span class="header-word-group"><span class="header-colored-capitalized">L</span>ookup</span>
+			</div>
+			<div class="header-line">
+				<button class="theme-toggle" onclick="toggle_theme();"></button>
+				<a class="sub-link-btn" href="index.html" title="Assets"><img class="mini-btn-icon" src="assets/icon.png" /> Assets</a>
+				<a class="sub-link-btn" href="spark.html" title="Spark Maker"><img class="mini-btn-icon" src="assets/spark/moon.png" /> Spark</a>
+				<a class="sub-link-btn" href="smash.html" title="Smash or Pass"><img class="mini-btn-icon" src="assets/smash/smash.png" /> Smash</a>
+				<a class="sub-link-btn" href="../GBFAP" title="Animation Player"><img class="mini-btn-icon" src="../GBFAP/assets/icon.png" /> Animations</a>
+				<a class="sub-link-btn" href="../GBFTU" title="Tool Utility"><img class="mini-btn-icon" src="../GBFTU/assets/icon.png" /> Utility</a>
+			</div>
+		</div>
+	</header>
+	<div id="info-updated">
+		<div>Character Ranker v1.8</div>
 		<div id="timestamp"></div>
 	</div>
 	<!-- Know issues -->

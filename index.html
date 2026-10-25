@@ -44,11 +44,32 @@
 	</script>
 </head>
 <body onload="init()">
-	<button class="theme-toggle" onclick="toggle_theme();"></button>
-	<a href="index.html"><img id="title-header" src="assets/ui/header.png" alt="header"></a>
-	<div id="header">
-		<div>v11.31</div>
-		<div id="timestamp">Loading...</div>
+	<header class="header-container">
+		<a href="index.html">
+			<img class="header-icon" src="assets/icon.png">
+		</a>
+		<div class="header-content">
+			<div class="header-line header-text">
+				<span class="header-word-group"><span class="header-colored-capitalized">G</span>ranblue</span>&nbsp;<span class="header-word-group"><span class="header-colored-capitalized">F</span>antasy</span>&nbsp;<span class="header-word-group"><span class="header-colored-capitalized">A</span>sset</span>&nbsp;<span class="header-word-group"><span class="header-colored-capitalized">L</span>ookup</span>
+			</div>
+			<div class="header-line">
+				<button class="theme-toggle" onclick="toggle_theme();"></button>
+				<a class="sub-link-btn" title="Random Element" onclick="random_lookup();"><img class="mini-btn-icon" src="assets/ui/random.png" /> Random</a>
+				<a class="sub-link-btn" href="spark.html" title="Spark Maker"><img class="mini-btn-icon" src="assets/spark/moon.png" /> Spark</a>
+				<a class="sub-link-btn" href="ranker.html" title="Character Ranker"><img class="mini-btn-icon" src="../GBFML/assets/ui/icon/appear.png" /> Ranker</a>
+				<a class="sub-link-btn" href="smash.html" title="Smash or Pass"><img class="mini-btn-icon" src="assets/smash/smash.png" /> Smash</a>
+				<a class="sub-link-btn" href="../GBFAP" title="Animation Player"><img class="mini-btn-icon" src="../GBFAP/assets/icon.png" /> Animations</a>
+				<a class="sub-link-btn" href="../GBFTU" title="Tool Utility"><img class="mini-btn-icon" src="../GBFTU/assets/icon.png" /> Utility</a>
+			</div>
+		</div>
+	</header>
+	<div class="info-container">
+		<div class="navigation clickable" onclick="window.scroll(0, document.body.scrollHeight);">▼</div>
+		<div></div>
+		<div id="info-updated">
+			<div>v12.0</div>
+			<div id="timestamp">Loading...</div>
+		</div>
 	</div>
 	<!-- Know issues -->
 	<div id="issues" style="display:none">
@@ -58,7 +79,6 @@
 	<div id="notice" style="display:none">
 	</div>
 	<!-- Top section -->
-	<div class="navigation clickable" onclick="window.scroll(0, document.body.scrollHeight);">▼</div>
 	<input type="search" id="filter" placeholder="Search" aria-label="Search an element">
 	<button id="fav-btn" style="display:none">☆</button>
 	<br>
@@ -74,15 +94,6 @@
 		<button class="tab-button" id="tab-bookmark" alt="bookmark" onclick="open_tab('bookmark')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/bookmark.png" />Bookmarks</button>
 		<button class="tab-button" id="tab-jukebox" alt="jukebox" onclick="open_tab('jukebox')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/jukebox.png" />Jukebox</button>
 		<button class="tab-button" id="tab-about" alt="about" onclick="open_tab('about')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/about.png" />About</button>
-	</div>
-	<!-- Mini buttons -->
-	<div class="margin">
-		<a class="sub-link-btn" title="Random Element" onclick="random_lookup();"><img class="mini-btn-icon" src="assets/ui/random.png" /> Random</a>
-		<a class="sub-link-btn" href="spark.html" title="Spark Maker"><img class="mini-btn-icon" src="assets/spark/moon.png" /> Spark</a>
-		<a class="sub-link-btn" href="ranker.html" title="Character Ranker"><img class="mini-btn-icon" src="../GBFML/assets/ui/icon/appear.png" /> Ranker</a>
-		<a class="sub-link-btn" href="smash.html" title="Smash or Pass"><img class="mini-btn-icon" src="assets/smash/smash.png" /> Smash</a>
-		<a class="sub-link-btn" href="../GBFAP" title="Animation Player"><img class="mini-btn-icon" src="../GBFAP/assets/icon.png" /> Animations</a>
-		<a class="sub-link-btn" href="../GBFTU" title="Tool Utility"><img class="mini-btn-icon" src="../GBFTU/assets/icon.png" /> Utility</a>
 	</div>
 	<!-- mypage/profile preview part -->
 	<div class="fullscreen-preview" id="preview" style="display:none;">
