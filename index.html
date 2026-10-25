@@ -10,14 +10,14 @@
 	<meta property="og:url" content="https://mizagbf.github.io/GBFAL/">
 	<meta property="og:title" content="Granblue Fantasy Asset Lookup">
 	<meta property="og:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
-	<meta property="og:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+	<meta property="og:image" content="https://mizagbf.github.io/GBFAL/assets/webp/ui/card.webp">
 	<meta property="twitter:card" content="summary_large_image">
 	<meta property="twitter:url" content="https://mizagbf.github.io/GBFAL/">
 	<meta property="twitter:title" content="Granblue Fantasy Asset Lookup">
 	<meta property="twitter:description" content="The Granblue Fantasy Asset Lookup project (GBFAL). Find images and sounds of your favorite Granblue Fantasy characters, and many more!">
-	<meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/ui/card.png">
+	<meta property="twitter:image" content="https://mizagbf.github.io/GBFAL/assets/webp/ui/card.webp">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="icon" type="image/png" href="assets/icon.png">
+	<link rel="icon" type="image/webp" href="assets/webp/icon.webp">
 	<link rel="stylesheet" href="../GBFML/css/style.css">
 	<script src="../GBFML/js/gbf.js"></script>
 	<script src="../GBFML/js/page.js"></script>
@@ -46,7 +46,7 @@
 <body onload="init()">
 	<header class="header-container">
 		<a href="index.html">
-			<img class="header-icon" src="assets/icon.png">
+			<img class="header-icon" src="assets/webp/icon.webp">
 		</a>
 		<div class="header-content">
 			<div class="header-line header-text">
@@ -54,12 +54,12 @@
 			</div>
 			<div class="header-line">
 				<button class="theme-toggle" onclick="toggle_theme();"></button>
-				<a class="sub-link-btn" title="Random Element" onclick="random_lookup();"><img class="mini-btn-icon" src="assets/ui/random.png" /> Random</a>
-				<a class="sub-link-btn" href="spark.html" title="Spark Maker"><img class="mini-btn-icon" src="assets/spark/moon.png" /> Spark</a>
-				<a class="sub-link-btn" href="ranker.html" title="Character Ranker"><img class="mini-btn-icon" src="../GBFML/assets/ui/icon/appear.png" /> Ranker</a>
-				<a class="sub-link-btn" href="smash.html" title="Smash or Pass"><img class="mini-btn-icon" src="assets/smash/smash.png" /> Smash</a>
-				<a class="sub-link-btn" href="../GBFAP" title="Animation Player"><img class="mini-btn-icon" src="../GBFAP/assets/icon.png" /> Animations</a>
-				<a class="sub-link-btn" href="../GBFTU" title="Tool Utility"><img class="mini-btn-icon" src="../GBFTU/assets/icon.png" /> Utility</a>
+				<a class="sub-link-btn" title="Random Element" onclick="random_lookup();"><img class="mini-btn-icon" src="assets/webp/ui/random.webp" /> Random</a>
+				<a class="sub-link-btn" href="spark.html" title="Spark Maker"><img class="mini-btn-icon" src="assets/webp/spark/moon.webp" /> Spark</a>
+				<a class="sub-link-btn" href="ranker.html" title="Character Ranker"><img class="mini-btn-icon" src="../GBFML/assets/webp/icon/appear.webp" /> Ranker</a>
+				<a class="sub-link-btn" href="smash.html" title="Smash or Pass"><img class="mini-btn-icon" src="assets/webp/smash/smash.webp" /> Smash</a>
+				<a class="sub-link-btn" href="../GBFAP" title="Animation Player"><img class="mini-btn-icon" src="../GBFAP/assets/webp/icon.webp" /> Animations</a>
+				<a class="sub-link-btn" href="../GBFTU" title="Tool Utility"><img class="mini-btn-icon" src="../GBFTU/assets/webp/icon.webp" /> Utility</a>
 			</div>
 		</div>
 	</header>
@@ -87,13 +87,13 @@
 	<br>
 	<!-- Tab buttons -->
 	<div class="margin">
-		<button class="tab-button" id="tab-index" alt="index" onclick="open_tab('index')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/index.png" />Index</button>
-		<button class="tab-button" id="tab-view" alt="view" onclick="open_tab('view')", style="display:none"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/view.png" />Assets</button>
-		<button class="tab-button" id="tab-new" alt="updated" onclick="open_tab('new')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/new.png" />Updated</button>
-		<button class="tab-button" id="tab-history" alt="history" onclick="open_tab('history')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/history.png" />History</button>
-		<button class="tab-button" id="tab-bookmark" alt="bookmark" onclick="open_tab('bookmark')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/bookmark.png" />Bookmarks</button>
-		<button class="tab-button" id="tab-jukebox" alt="jukebox" onclick="open_tab('jukebox')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/jukebox.png" />Jukebox</button>
-		<button class="tab-button" id="tab-about" alt="about" onclick="open_tab('about')"><img class="tab-button-icon" src="../GBFML/assets/ui/icon/about.png" />About</button>
+		<button class="tab-button" id="tab-index" alt="index" onclick="open_tab('index')"><img class="tab-button-icon" src="../GBFML/assets/webp/icon/index.webp" />Index</button>
+		<button class="tab-button" id="tab-view" alt="view" onclick="open_tab('view')", style="display:none"><img class="tab-button-icon" src="../GBFML/assets/webp/icon/view.webp" />Assets</button>
+		<button class="tab-button" id="tab-new" alt="updated" onclick="open_tab('new')"><img class="tab-button-icon" src="../GBFML/assets/webp/icon/new.webp" />Updated</button>
+		<button class="tab-button" id="tab-history" alt="history" onclick="open_tab('history')"><img class="tab-button-icon" src="../GBFML/assets/webp/icon/history.webp" />History</button>
+		<button class="tab-button" id="tab-bookmark" alt="bookmark" onclick="open_tab('bookmark')"><img class="tab-button-icon" src="../GBFML/assets/webp/icon/bookmark.webp" />Bookmarks</button>
+		<button class="tab-button" id="tab-jukebox" alt="jukebox" onclick="open_tab('jukebox')"><img class="tab-button-icon" src="../GBFML/assets/webp/icon/jukebox.webp" />Jukebox</button>
+		<button class="tab-button" id="tab-about" alt="about" onclick="open_tab('about')"><img class="tab-button-icon" src="../GBFML/assets/webp/icon/about.webp" />About</button>
 	</div>
 	<!-- mypage/profile preview part -->
 	<div class="fullscreen-preview" id="preview" style="display:none;">
@@ -160,9 +160,9 @@
 		<br>
 		While using this webpage, you might come across the following icons:<br>
 		<ul>
-			<li><img src="../GBFML/assets/ui/more.png" class="corner-icon"> indicates that more variations of this buff icon can be found inside.</li>
-			<li><img src="../GBFML/assets/ui/link.png" class="corner-icon"> indicates that this is a direct link to a high quality asset.</li>
-			<li><img src="../GBFML/assets/ui/vs.png" class="corner-icon"> indicates that this enemy has Raid Entry spritesheets.</li>
+			<li><img src="../GBFML/assets/webp/more.webp" class="corner-icon"> indicates that more variations of this buff icon can be found inside.</li>
+			<li><img src="../GBFML/assets/webp/link.webp" class="corner-icon"> indicates that this is a direct link to a high quality asset.</li>
+			<li><img src="../GBFML/assets/webp/vs.webp" class="corner-icon"> indicates that this enemy has Raid Entry spritesheets.</li>
 		</ul>
 		For event elements, a cyan background indicates they have available <a href="https://gbf.wiki/Granblue_Fantasy_Sky_Compass">Sky Compass</a> assets, a golden background indicates they have available Side Story assets, and both indicates they have both available.
 		</p>
@@ -243,10 +243,10 @@
 </body>
 <footer>
 	<div id="footer">
-		<a href="https://github.com/MizaGBF/GBFAL" title="Source Code"><img class="img-link" src="../GBFML/assets/ui/icon/github.png" loading="lazy"></a>
-		<a href="../GBFAP" title="GBF Animation Player"><img class="img-link" src="../GBFAP/assets/icon.png" loading="lazy"></a>
-		<a href="../GBFTU" title="GBF Tool Utility"><img class="img-link" src="../GBFTU/assets/icon.png" loading="lazy"></a>
-		<a href="https://mizagbf.github.io/" title="Home Page"><img class="img-link" src="../GBFML/assets/ui/mypage.png" loading="lazy"></a>
+		<a href="https://github.com/MizaGBF/GBFAL" title="Source Code"><img class="img-link" src="../GBFML/assets/webp/icon/github.webp" loading="lazy"></a>
+		<a href="../GBFAP" title="GBF Animation Player"><img class="img-link" src="../GBFAP/assets/webp/icon.webp" loading="lazy"></a>
+		<a href="../GBFTU" title="GBF Tool Utility"><img class="img-link" src="../GBFTU/assets/webp/icon.webp" loading="lazy"></a>
+		<a href="https://mizagbf.github.io/" title="Home Page"><img class="img-link" src="../GBFML/assets/webp/mypage.webp" loading="lazy"></a>
 	</div>
 	<div id="copyright">
 		Granblue Fantasy content and materials are trademarks and copyrights of Cygames, Inc. or its licensors. All rights reserved.

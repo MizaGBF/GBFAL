@@ -125,7 +125,7 @@ function init_start_ui(clear = true)
 {
 	if(clear)
 		output.innerHTML = "";
-	add_to(output, "button", {cls:["tab-button"], onclick:init_ranking}).innerHTML = '<img class="tab-button-icon" src="../GBFML/assets/ui/icon/view.png">Start';
+	add_to(output, "button", {cls:["tab-button"], onclick:init_ranking}).innerHTML = '<img class="tab-button-icon" src="../GBFML/assets/webp/icon/view.webp">Start';
 	init_checkboxes();
 }
 

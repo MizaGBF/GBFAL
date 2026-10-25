@@ -316,7 +316,7 @@ td {
     -webkit-appearance: none;
     height: 24px;
     width: 24px;
-    background-image: url("../../GBFML/assets/ui/seal.png");
+    background-image: url("../../GBFML/assets/webp/seal.webp");
 	background-size: 100% 100%;
     cursor: pointer;
 }

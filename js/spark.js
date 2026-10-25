@@ -14,7 +14,7 @@ const COUNT = 3;
 const DEFAULT_SIZE = [140, 80];
 var resize_timer = null;
 // image generation
-const HEADERS = ["assets/spark/gem.jpg", "assets/spark/moon.jpg", "assets/spark/sunstone.jpg"];
+const HEADERS = ["assets/jpg/spark/gem.jpg", "assets/jpg/spark/moon.jpg", "assets/jpg/spark/sunstone.jpg"];
 var canvas = null; // contains last canvas
 var canvas_state = 0; // 0 = not running, 1 = running, 2 = error
 var canvas_wait = 0; // used to track pending loadings
@@ -404,7 +404,7 @@ function add_spark(div) // add spark icon
 	const img = document.createElement("img");
 	img.classList.add("spark-icon");
 	img.draggable = false;
-	img.src = "assets/spark/spark.png";
+	img.src = "assets/webp/spark/spark.webp";
 	div.appendChild(img);
 	div.classList.add("sparked");
 }
@@ -1283,7 +1283,7 @@ function draw_spark_end(ctx, sparkIcon_list) // draw the spark icons
 		ctx.rect(ico[0], ico[1], ico[2], ico[3]);
 		ctx.stroke();
 		ctx.closePath();
-		draw_image(ctx, "assets/spark/spark.png", ico[0], ico[1], ico[3]*0.4, ico[3]*0.4);
+		draw_image(ctx, "assets/webp/spark/spark.webp", ico[0], ico[1], ico[3]*0.4, ico[3]*0.4);
 	}
 	// over
 	--canvas_wait;
