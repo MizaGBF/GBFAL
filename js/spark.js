@@ -48,6 +48,7 @@ var canvas_opacity = 1;
 var canvas_target_opacity = 0.4;
 var canvas_target_h_position = 0.3;
 var canvas_target_v_position = 0.5;
+var canvas_displayed = false;
 // drag and drop
 var drag_state = DragState.IDLE; // 0 = not running, 1 = drag check, 2 = running
 var drag_event = null; // contains the last event received to process
@@ -304,7 +305,7 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 			img_text.classList.add("spark-image-text");
 		}
 		container.onclick = () => {
-			if(canvas_state != CanvasState.IDLE) // if canvas processing
+			if(canvas_state == CanvasState.RUNNING) // if canvas processing
 			{
 				push_popup("Wait for the image to be processed");
 			}
@@ -384,7 +385,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 	div.spark_draggable = true;
 	div.classList.add("spark-result");
 	div.onclick = () => {
-		if(canvas_state != CanvasState.IDLE) // if canvas processing
+		if(canvas_state == CanvasState.RUNNING) // if canvas processing
 		{
 			push_popup("Wait for the image to be processed");
 		}
@@ -500,7 +501,7 @@ function handle_dragstart(event)
 	{
 		return;
 	}
-	if(canvas_state != CanvasState.IDLE) // if canvas processing
+	if(canvas_state == CanvasState.RUNNING) // if canvas processing
 	{
 		push_popup("Wait for the image to be processed");
 	}
@@ -949,7 +950,7 @@ function update_spark_result_size(mode) // update spark column
 
 function update_rate(to_update) // update ssr rate text
 {
-	if(canvas_state != CanvasState.IDLE) // if canvas processing
+	if(canvas_state == CanvasState.RUNNING) // if canvas processing
 	{
 		push_popup("Wait for the image to be processed");
 	}
@@ -988,15 +989,46 @@ function update_rate(to_update) // update ssr rate text
 
 function confirm_spark_clear() // open popup when pressing reset button
 {
-	if(canvas_state != CanvasState.IDLE) // if canvas processing
+	if(canvas_state == CanvasState.RUNNING) // if canvas processing
 	{
 		push_popup("Wait for the image to be processed");
 	}
 	else
 	{
-		let div = document.createElement("div");
+		const div = document.createElement("div");
 		div.classList.add("fullscreen-preview");
-		div.innerHTML = '<div class="spark-delete-confirm"><div class="fullscreen-prompt">Are you certain that you want to reset the spark screen?<div/><button class="std-button" onclick="result_close(); spark_clear();">Yes</button><button class="std-button" onclick="result_close();">No</button></div>';
+		const cont = add_to(div, "div", {cls:["spark-delete-confirm"]});
+		add_to(
+			cont,
+			"div",
+			{
+				cls:["fullscreen-prompt"],
+				innertext:"Are you certain that you want to reset the spark screen?"
+			}
+		);
+		add_to(
+			cont,
+			"button",
+			{
+				cls:["std-button"],
+				innertext:"Yes",
+				onclick:() => {
+					div.remove();
+					spark_clear();
+				}
+			}
+		);
+		add_to(
+			cont,
+			"button",
+			{
+				cls:["std-button"],
+				innertext:"No",
+				onclick:() => {
+					div.remove();
+				}
+			}
+		);
 		document.body.appendChild(div);
 	}
 }
@@ -1302,11 +1334,12 @@ function result_close() // close result area
 {
 	beep();
 	canvas_area.remove();
+	canvas_displayed = false;
 }
 
 function generate_image() // generate spark canvas
 {
-	if(canvas_state == CanvasState.IDLE)
+	if(canvas_state != CanvasState.RUNNING)
 	{
 		beep();
 		canvas_state = CanvasState.RUNNING;
@@ -1337,15 +1370,11 @@ function generate_image() // generate spark canvas
 
 function result_clean()
 {
-	switch(canvas_state)
+	if(canvas_displayed)
 	{
-		case CanvasState.ERROR:
-			canvas_state = CanvasState.IDLE;
-		case CanvasState.IDLE:
-			break;
-		default:
-			return;
+		return;
 	}
+	canvas_state = CanvasState.IDLE;
 	// cache cleanups
 	const keys = Object.keys(canvas_cache);
 	if(keys.length > CACHE_LIMIT)
@@ -1454,7 +1483,6 @@ function result_start_draw()
 			delete canvas_cache["sparked"];
 		}
 		result_compute();
-		canvas_state = CanvasState.DONE;
 		result_display();
 	}).catch((err) => {
 		console.error("An error occurred while loading images:", err);
@@ -1517,10 +1545,11 @@ function result_display()
 		result_clean();
 		return;
 	}
+	canvas_state = CanvasState.DONE;
 	document.body.appendChild(canvas_area);
 	push_popup("Right Click / Hold Touch, then Save as...");
 	canvas.scrollIntoView();
-	canvas_state = CanvasState.IDLE;
+	canvas_displayed = true;
 }
 
 function draw_image(ctx, img, x, y, w, h) // draw an image on the canvas
