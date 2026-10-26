@@ -1416,10 +1416,12 @@ function result_start_draw()
 	// loading images
 	let sparked = null;
 	let sources = new Set();
+	let has_content = false;
 	for(let i = 0; i < SparkMode.COUNT; ++i)
 	{
 		for(let j = 0; j < lists[i].length; ++j)
 		{
+			has_content = true;
 			const src = lists[i][j][1].childNodes[0].src.replace("img_low", "img");
 			// regular image
 			if(!(src in canvas_cache))
@@ -1455,6 +1457,12 @@ function result_start_draw()
 			}
 		}
 	}
+	if(!has_content)
+	{
+		push_popup("Please add some elements first");
+		canvas_state = CanvasState.IDLE;
+		return;
+	}
 	// convert to array
 	sources = Array.from(sources);
 	// load used icons
@@ -1471,12 +1479,6 @@ function result_start_draw()
 		{
 			sources.push(SPARK_ICON);
 		}
-	}
-	else
-	{
-		push_popup("Please add some elements first");
-		canvas_state = CanvasState.IDLE;
-		return;
 	}
 	load_images(sources).then(() => {
 		// set sparked
