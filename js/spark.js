@@ -1472,6 +1472,12 @@ function result_start_draw()
 			sources.push(SPARK_ICON);
 		}
 	}
+	else
+	{
+		push_popup("Please add some elements first");
+		canvas_state = CanvasState.IDLE;
+		return;
+	}
 	load_images(sources).then(() => {
 		// set sparked
 		if(sparked != null)
@@ -1486,6 +1492,8 @@ function result_start_draw()
 		result_display();
 	}).catch((err) => {
 		console.error("An error occurred while loading images:", err);
+		push_popup("A critical error occured");
+		result_clean();
 		canvas_state = CanvasState.ERROR;
 	});
 }
