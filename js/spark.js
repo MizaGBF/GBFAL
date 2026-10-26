@@ -1352,7 +1352,6 @@ function result_clean()
 	{
 		for(const k of keys)
 		{
-			console.log(k, !HEADERS.includes(k) && k != SPARK_ICON);
 			if(!HEADERS.includes(k) && k != SPARK_ICON)
 			{
 				delete canvas_cache[k];
