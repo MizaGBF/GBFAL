@@ -85,10 +85,10 @@ function start(changelog)
 		}
 	);
 	// add search event listeners
-	document.addEventListener('search-update', function() {
+	document.addEventListener('search-update', () => {
 		spark_apply_results(document.getElementById('spark-filter').value.trim().toLowerCase());
 	});
-	document.addEventListener('search-clear', function() {
+	document.addEventListener('search-clear', () => {
 		spark_reset_results();
 	});
 	// add Shift-Tab listener
@@ -341,8 +341,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 	div.draggable = false;
 	div.spark_draggable = true;
 	div.classList.add("spark-result");
-	div.onclick = function()
-	{
+	div.onclick = () => {
 		if(canvas_state > 0) // if canvas processing
 		{
 			push_popup("Wait for the image to be processed");
@@ -358,7 +357,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 			}
 			else
 			{
-				remove_image_result_spark(this);
+				remove_image_result_spark(div);
 			}
 			spark_save_settings();
 			
@@ -1293,11 +1292,11 @@ function draw_image(ctx, src, x, y, w, h) // draw an image at the specified src 
 {
 	++canvas_wait; // canvas_wait is used like a mutex
 	const img = new Image(w, h);
-	img.onload = function() {
-		ctx.drawImage(this,x,y,w,h);
+	img.onload = () => {
+		ctx.drawImage(img,x,y,w,h);
 		--canvas_wait;
 	};
-	img.onerror = function() {
+	img.onerror = () => {
 		canvas_state = 2; // put the process in error state
 	};
 	img.src = src;
