@@ -28,7 +28,7 @@ except:
     HTTP2_IMPORTED = False
 
 ### Constant variables
-VERSION = "4.2"
+VERSION = "4.3"
 CONCURRENT_TASKS = 100
 MAX_REQUEST = 90
 BASE_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36'
