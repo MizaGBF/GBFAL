@@ -401,6 +401,6 @@
     ]
   },
   "stat":"20,615 indexed elements, for ~718.3K files",
-  "issues":["I've removed Skycompass assets: They aren't accessible externally anymore"],
+  "issues":[],
   "help":false
 }

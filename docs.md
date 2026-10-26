@@ -290,10 +290,6 @@ They are delimited by special markers using a `/`.
 - `/%` can be used to set multiple names.  
 
 # Skycompass  
-> [!CAUTION]  
-> This section is deprecated and only staying here for legacy purpose.
-> As of October 2026, skycompass urls return a 403 HTTP error.
-  
 Skycompass files can be accessed with the following URLs:  
 - Main characters Classes and Outfits: `https://media.skycompass.io/assets/customizes/jobs/1138x1138/ID_GENDER.png` where `ID` is a class ID and `GENDER` can be **0** (Gran) or **1** (Djeeta).  
 - Characters and Outfits: `https://media.skycompass.io/assets/customizes/characters/1138x1138/ID_UNCAP.png` where `ID` is a character ID and `UNCAP` can be an uncap ID (`01`) or bonus pose ID (`81`).  

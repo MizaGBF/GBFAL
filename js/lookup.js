@@ -392,14 +392,13 @@ function load_assets(id, data, type, target, indexed, allow_open)
 						{name:"Other Arts", paths:[["sp/assets/summon/summon_evolution/main/", "png"], ["sp/assets/summon/g/", "png"], ["sp/gacha/header/", "png"]], index:DataIdx.SUM_GENERAL, icon:"../GBFML/assets/webp/icon/other_category.webp"},
 					]
 				},
-				/* NOTE: Not accessible anymore
 				{
 					name:"Skycompass",
 					icon:"../GBFML/assets/webp/icon/skycompass_alpha.webp",
 					assets:[
 						{type:2, paths:[["assets/archives/summons/", "/detail_l.png"], ["assets/archives/summons/", "/detail_s.png"], ["assets/archives/summons/", "/list.png"]], special_index:"skycompass_base"}
 					]
-				},*/
+				},
 				{
 					name:"Home",
 					icon:"../GBFML/assets/webp/icon/home.webp",
@@ -456,9 +455,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/webp/btn_plus.webp",
 					assets:[
 						{name:"Profile Room", paths:[["sp/assets/npc/profile/", "png"]], icon:"../GBFML/assets/webp/icon/home.webp", index:DataIdx.CHARA_GENERAL, lazy:true},
-						/* NOTE: Not accessible anymore
 						{type:2, name:"Skycompass", paths:[["assets/customizes/characters/1138x1138/", ".png"]], icon:"../GBFML/assets/webp/icon/skycompass_alpha.webp", index:DataIdx.CHARA_GENERAL, lazy:true}
-						*/
 					]
 				},
 				{
@@ -642,9 +639,7 @@ function load_assets(id, data, type, target, indexed, allow_open)
 					icon:"../GBFML/assets/webp/btn_plus.webp",
 					assets:[
 						{name:"Profile Room", paths:[["sp/assets/leader/profile/", "png"]], icon:"../GBFML/assets/webp/icon/home.webp", index:DataIdx.JOB_DETAIL_ALT, lazy:true},
-						/* NOTE: Not accessible anymore
 						{type:2, name:"Skycompass", paths:[["assets/customizes/jobs/1138x1138/", ".png"]], icon:"../GBFML/assets/webp/icon/skycompass_alpha.webp", special_index:"skycompass_main_character", lazy:true}
-						*/
 					]
 				},
 				{
@@ -797,14 +792,13 @@ function load_assets(id, data, type, target, indexed, allow_open)
 						{type:1, paths:[["sp/quest/scene/character/body/", "png"]], index:DataIdx.EVENT_ED}
 					]
 				},
-				/* NOTE: Not accessible anymore
 				{
 					name:"Skycompass",
 					icon:"../GBFML/assets/webp/icon/skycompass_alpha.webp",
 					assets:[
 						{type:2, paths:[["assets/archives/events/"+data[DataIdx.EVENT_THUMB]+"/image/", "_free.png"]], index:DataIdx.EVENT_SKY}
 					]
-				},*/
+				},
 			]);
 			break;
 		}
