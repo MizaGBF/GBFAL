@@ -11,6 +11,11 @@ const SparkMode = Object.freeze({
 	STONE: 2,
 	COUNT: 3
 });
+const DragState = Object.freeze({
+	IDLE: 0,
+	CHECKING: 1,
+	RUNNING: 2
+});
 var search = null;
 var timestamp = Date.now();
 var index = null;
@@ -22,11 +27,13 @@ const DEFAULT_SIZE = [140, 80];
 var resize_timer = null;
 // image generation
 const HEADERS = ["assets/jpg/spark/gem.jpg", "assets/jpg/spark/moon.jpg", "assets/jpg/spark/sunstone.jpg"];
+const SPARK_ICON = "assets/webp/spark/spark.webp";
 var canvas = null; // contains last canvas
-var canvas_state = CanvasState.IDLE; // 0 = not running, 1 = running, 2 = error
-var canvas_wait = 0; // used to track pending loadings
+var canvas_state = CanvasState.IDLE;
+const CACHE_LIMIT = 50;
+var canvas_cache = {}; // image cache
 // drag and drop
-var drag_state = 0; // 0 = not running, 1 = drag check, 2 = running
+var drag_state = DragState.IDLE; // 0 = not running, 1 = drag check, 2 = running
 var drag_event = null; // contains the last event received to process
 var drag_original_div = null; // the div that the user clicked on when dragging
 var drag_placeholder_div = null; // placeholder div that is displayed to the user during drag-and-drop
@@ -287,7 +294,7 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 			}
 			else
 			{
-				canvas = null;
+				result_clear();
 				beep();
 				if(
 					img.gbtype == GBFType.character
@@ -367,7 +374,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 		}
 		else
 		{
-			canvas = null;
+			result_clear();
 			beep();
 			if(window.event.shiftKey || document.getElementById("spark-check").classList.contains("active")) // toggle spark icon
 			{
@@ -468,7 +475,7 @@ function find_target(base_target)
 
 function handle_dragstart(event)
 {
-	if(drag_state) // don't start if already on going
+	if(drag_state != DragState.IDLE) // don't start if already on going
 	{
 		return;
 	}
@@ -517,7 +524,7 @@ function handle_dragstart(event)
 			// do nothing
 		}
 		// set state
-		drag_state = 1;
+		drag_state = DragState.CHECKING;
 		drag_is_complete = false;
 		drag_coords.x = event.clientX;
 		drag_coords.y = event.clientY;
@@ -532,12 +539,12 @@ function handle_dragstart(event)
 // called by handle_dragmove
 function handle_draginit(event)
 {
-	if(drag_state != 1)
+	if(drag_state != DragState.CHECKING)
 	{
 		return;
 	}
 	// initialize dragging
-	drag_state = 2;
+	drag_state = DragState.RUNNING;
 	// create ghost
 	// don't clone, in case the img isn't loaded
 	drag_ghost = document.createElement("img");
@@ -631,7 +638,7 @@ function queue_drag_state(event)
 // processing the event
 function update_drag_state(event)
 {
-	if(drag_state != 2)
+	if(drag_state != DragState.RUNNING)
 	{
 		return;
 	}
@@ -721,7 +728,7 @@ function update_drag_state(event)
 // triggered when moving the mouse
 function handle_dragmove(event)
 {
-	if(!drag_state)
+	if(drag_state == DragState.IDLE)
 	{
 		return;
 	}
@@ -734,7 +741,7 @@ function handle_dragmove(event)
 		return;
 	}
 	event.preventDefault();
-	if(drag_state === 1)
+	if(drag_state === DragState.CHECKING)
 	{
 		const delta = {
 				x: Math.abs(event.clientX - drag_coords.x),
@@ -754,7 +761,7 @@ function handle_dragmove(event)
 // triggered when releasing the mouse
 function handle_dragend(event, allow_beep = true)
 {
-	if(drag_state == 0)
+	if(drag_state == DragState.IDLE)
 	{
 		return;
 	}
@@ -764,7 +771,7 @@ function handle_dragend(event, allow_beep = true)
 	}
 	drag_ghost = null;
 	// flag to check if we dragging went through
-	const process_drag = canvas_state == CanvasState.IDLE && drag_state == 2;
+	const process_drag = canvas_state == CanvasState.IDLE && drag_state == DragState.RUNNING;
 	// remove listeners
 	document.removeEventListener("pointermove", handle_dragmove);
 	document.removeEventListener("pointerup", handle_dragend);
@@ -814,7 +821,7 @@ function handle_dragend(event, allow_beep = true)
 // the drag system stop and reset function
 function handle_dragstop()
 {
-	if(drag_state == 0)
+	if(drag_state == DragState.IDLE)
 	{
 		return;
 	}
@@ -830,7 +837,7 @@ function handle_dragstop()
 		drag_placeholder_div = null;
 	}
 	// reset everything else
-	drag_state = 0;
+	drag_state = DragState.IDLE;
 	drag_coords = {x:0, y:0};
 	drag_original_div = null;
 	drag_placeholder_div = null;
@@ -932,7 +939,7 @@ function update_rate(to_update) // update ssr rate text
 	}
 	else
 	{
-		canvas = null;
+		result_clear();
 		let v;
 		try
 		{
@@ -980,7 +987,7 @@ function confirm_spark_clear() // open popup when pressing reset button
 
 function spark_clear() // clear everything
 {
-	canvas = null;
+	result_clear();
 	localStorage.removeItem('gbfal-spark');
 	lists = [[], [], []];
 	for(let i = 0; i < SparkMode.COUNT; ++i)
@@ -1193,7 +1200,7 @@ function generate_image() // generate spark canvas
 		canvas_wait = 0;
 		if(canvas != null) // if existing canvas
 		{
-			display_canvas(canvas);
+			result_display();
 		}
 		else
 		{
@@ -1203,8 +1210,7 @@ function generate_image() // generate spark canvas
 			if(canvas.getContext) // check if possible
 			{
 				push_popup("Generating...");
-				draw_spark(canvas);
-				display_canvas(canvas);
+				result_start_draw();
 			}
 			else // stop
 			{
@@ -1216,20 +1222,154 @@ function generate_image() // generate spark canvas
 	else push_popup("Wait before generating another image");
 }
 
-/* NOTE
-draw_spark is broken into three functions to ensure the draw order is respected (as image loading shuffle everything up), by syncing using the canvas_wait variable
-I'm sure there are better wait to do it in javascript but it works so...
-*/
-
-function draw_spark(canvas) // draw the spark on the canvas
+function result_clear()
 {
-	var ctx = canvas.getContext("2d");
+	canvas = null;
+	// cache cleanups
+	const keys = Object.keys(canvas_cache);
+	if(keys.length > CACHE_LIMIT)
+	{
+		for(const k of keys)
+		{
+			console.log(k, !HEADERS.includes(k) && k != SPARK_ICON);
+			if(!HEADERS.includes(k) && k != SPARK_ICON)
+			{
+				delete canvas_cache[k];
+			}
+		}
+	}
+	else if("sparked" in canvas_cache)
+	{
+		delete canvas_cache["sparked"];
+	}
+}
+
+function load_images(sources)
+{
+    // Map each url to a promise
+    const promises = sources.map(src => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+				resolve(img);
+				canvas_cache[src] = img;
+			};
+            img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+            img.src = src;
+        });
+    });
+    // wait all
+    return Promise.all(promises);
+}
+
+function result_start_draw()
+{
+	// loading images
+	let sparked = null;
+	let sources = new Set();
+	for(let i = 0; i < SparkMode.COUNT; ++i)
+	{
+		for(let j = 0; j < lists[i].length; ++j)
+		{
+			const src = lists[i][j][1].childNodes[0].src.replace("img_low", "img");
+			// regular image
+			if(!(src in canvas_cache))
+			{
+				sources.add(src);
+			}
+			if(sparked == null && lists[i][j][1].childNodes.length == 2)
+			{
+				// childNodes.length == 2 because the spark indicator adds a second element
+				const s = src.split("/");
+				switch(i)
+				{
+					case SparkMode.NPC:
+					case SparkMode.MOON:
+					{
+						sparked = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/zoom/" + s[s.length-1].replace(".jpg", ".png");
+						break;
+					}
+					case SparkMode.STONE:
+					{
+						sparked = "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/b/" + s[s.length-1].replace(".jpg", ".png");
+						break;
+					}
+					default:
+					{
+						continue;
+					}
+				}
+				if(!(sparked in canvas_cache))
+				{
+					sources.add(sparked);
+				}
+			}
+		}
+	}
+	// convert to array
+	sources = Array.from(sources);
+	// load used icons
+	if(sources.length > 0)
+	{
+		for(const header_img of HEADERS)
+		{
+			if(!(header_img in canvas_cache))
+			{
+				sources.push(header_img);
+			}
+		}
+		if(!(SPARK_ICON in canvas_cache))
+		{
+			sources.push(SPARK_ICON);
+		}
+	}
+	load_images(sources).then(() => {
+		// set sparked
+		if(sparked != null)
+		{
+			canvas_cache["sparked"] = canvas_cache[sparked];
+		}
+		else if("sparked" in canvas_cache)
+		{
+			delete canvas_cache["sparked"];
+		}
+		result_compute();
+		result_display();
+	}).catch((err) => {
+		console.error("An error occurred while loading images:", err);
+		canvas_state = CanvasState.ERROR;
+	});
+}
+
+function result_compute()
+{
+	let ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = true;
-	++canvas_wait;
 	// background
 	ctx.rect(0, 0, 1920, 1080);
 	ctx.fillStyle = "#252526";
 	ctx.fill();
+	// add sparked target
+	if("sparked" in canvas_cache)
+	{
+		ctx.globalAlpha = 0.4; // change opacity
+		const img = canvas_cache["sparked"];
+		const s = img.src.split('/');
+		switch(s[s.length - 1][0])
+		{
+			case '2':
+			{
+				draw_image(ctx, img, 1920-1100, 0, 1100, 1080);
+				break;
+			}
+			case '3':
+			{
+				draw_image(ctx, img, 30, 0, 1296, 1080);
+				break;
+			}
+		}
+		ctx.globalAlpha = 1; // back to normal
+	}
 	// texts
 	ctx.font = "40px sans-serif";
 	ctx.fillStyle = "#cccccc";
@@ -1237,108 +1377,70 @@ function draw_spark(canvas) // draw the spark on the canvas
 	ctx.fillStyle = "#1d1d1d";
 	// add source/credit
 	ctx.fillText("GBFAL", 1750, 1070);
-	// spark target
-	let sparked = null;
-	for(let i = 0; i < SparkMode.COUNT && sparked == null; ++i)
-	{
-		for(let j = 0; j < lists[i].length && sparked == null; ++j)
-		{
-			if(lists[i][j][1].childNodes.length == 2)
-			{
-				sparked = lists[i][j];
-			}
-		}
-	}
-	if(sparked != null)
-	{
-		ctx.globalAlpha = 0.4; // change opacity
-		const s = sparked[1].childNodes[0].src.split('/');
-		switch(sparked[0][0])
-		{
-			case '2':
-			{
-				draw_image(ctx, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/summon/b/" + s[s.length-1].replace('.jpg', '.png'), 1920-1100, 0, 1100, 1080);
-				break;
-			}
-			case '3':
-			{
-				draw_image(ctx, "https://prd-game-a-granbluefantasy.akamaized.net/assets_en/img/sp/assets/npc/zoom/" + s[s.length-1].replace('.jpg', '.png').replace('_01', '_02'), 30, 0, 1296, 1080);
-				break;
-			}
-		}
-	}
-	setTimeout(draw_spark_middle, 50, ctx);
-}
-
-function draw_spark_middle(ctx) // draw the spark content
-{
-	if(canvas_state == CanvasState.ERROR)
-	{
-		return;
-	}
-	if(canvas_wait > 1)
-	{
-		setTimeout(draw_spark_middle, 50, ctx);
-		return;
-	}
-	ctx.globalAlpha = 1; // reset opacity if changed previously
-	// content
-	let sparkIcon_list = []
+	// draw elements
 	for(let i = 0; i < SparkMode.COUNT; ++i)
 	{
 		const offset = 640 * i; // horizontal offset (1920 / 3 = 640)
-		draw_image(ctx, HEADERS[i], ((640-100)/2) + offset, 50, 100, 100); // draw column header
-		sparkIcon_list = sparkIcon_list.concat(draw_column(ctx, offset, lists[i])); // draw column content
+		draw_image(ctx, canvas_cache[HEADERS[i]], ((640-100)/2) + offset, 50, 100, 100); // draw column header
+		const sparks = draw_column(ctx, offset, lists[i]);
+		// spark indicators
+		for(const spk of sparks)
+		{
+			ctx.beginPath();
+			ctx.lineWidth = 3;
+			ctx.strokeStyle = "#3bddf6";
+			ctx.rect(spk[0], spk[1], spk[2], spk[3]);
+			ctx.stroke();
+			ctx.closePath();
+			draw_image(ctx, canvas_cache[SPARK_ICON], spk[0], spk[1], spk[3] * 0.4, spk[3] * 0.4);
+		}
 	}
-	setTimeout(draw_spark_end, 50, ctx, sparkIcon_list);
 }
 
-function draw_spark_end(ctx, sparkIcon_list) // draw the spark icons
+function result_display()
 {
-	if(canvas_state == CanvasState.ERROR)
+	if(canvas_state == CanvasState.ERROR) // if in error mode
 	{
+		push_popup("A critical error occured");
+		canvas_state = CanvasState.IDLE;
+		result_clear();
 		return;
 	}
-	if(canvas_wait > 1)
-	{
-		setTimeout(draw_spark_end, 50, ctx, sparkIcon_list);
-		return;
-	}
-	// draw spark outlines and icons
-	for(let ico of sparkIcon_list)
-	{
-		ctx.beginPath();
-		ctx.lineWidth = 3;
-		ctx.strokeStyle = "#3bddf6";
-		ctx.rect(ico[0], ico[1], ico[2], ico[3]);
-		ctx.stroke();
-		ctx.closePath();
-		draw_image(ctx, "assets/webp/spark/spark.webp", ico[0], ico[1], ico[3]*0.4, ico[3]*0.4);
-	}
-	// over
-	--canvas_wait;
+	push_popup("Complete");
+	// prepare canvas to be displayed
+	canvas.classList.add("spark-fullscreen");
+	// add background
+	let div = document.createElement("div");
+	div.classList.add("fullscreen-preview");
+	add_to(div, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:close_fullscreen
+	});
+	div.appendChild(canvas);
+	add_to(div, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:close_fullscreen
+	});
+	document.body.appendChild(div);
+	push_popup("Right Click / Hold Touch, then Save as...");
+	canvas_state = CanvasState.IDLE;
 }
 
-function draw_image(ctx, src, x, y, w, h) // draw an image at the specified src url on the canvas
+function draw_image(ctx, img, x, y, w, h) // draw an image on the canvas
 {
-	++canvas_wait; // canvas_wait is used like a mutex
-	const img = new Image(w, h);
-	img.onload = () => {
-		ctx.drawImage(img,x,y,w,h);
-		--canvas_wait;
-	};
-	img.onerror = () => {
-		canvas_state = CanvasState.ERROR; // put the process in error state
-	};
-	img.src = src;
+	if(img instanceof HTMLImageElement)
+	{
+		ctx.drawImage(img, x, y, w, h);
+	}
+	else
+	{
+		console.error("Unknown element", img);
+	}
 }
-
 
 function draw_column(ctx, offset, content)
 {
 	const imgcount = content.length;
 	if(imgcount == 0)
-		return []; // if no image, stop now
+	{
+		return []; // if nothing to draw, stop now
+	}
 	const RECT_CONTENT = [offset+50, 100+50+50, 640-100, 1080-200-50];
 	let size = [RECT_CONTENT[2], RECT_CONTENT[2]*DEFAULT_SIZE[1]/DEFAULT_SIZE[0]]; // default image size (make it fit the area horizontally, keeping the aspect ratio)
 	let grid = [0, 0]; // will contain the number of horizontal and vertical elements
@@ -1350,7 +1452,9 @@ function draw_column(ctx, offset, content)
 		grid[0] = Math.floor(RECT_CONTENT[2] / size[0]);
 		grid[1] = Math.floor(RECT_CONTENT[3] / size[1]);
 		if(grid[0]*grid[1] >= imgcount) // if the number we can fix is greater than our current element count...
+		{
 			break; // we stop
+		}
 		// else, we reduce the size by 10% and try again
 		size[0] *= 0.9;
 		size[1] *= 0.9;
@@ -1370,51 +1474,26 @@ function draw_column(ctx, offset, content)
 	for(let i = 0; i < imgcount && canvas_state != CanvasState.ERROR; ++i)
 	{
 		// draw image
-		draw_image(ctx, content[i][1].childNodes[0].src.replace('img_low', 'img'), RECT_CONTENT[0]+pos[0]+hoff, RECT_CONTENT[1]+pos[1], size[0], size[1]); // change to /img/ quality
+		const src = content[i][1].childNodes[0].src.replace('img_low', 'img');
+		draw_image(ctx, canvas_cache[src], RECT_CONTENT[0]+pos[0]+hoff, RECT_CONTENT[1]+pos[1], size[0], size[1]); // change to /img/ quality
 		if(content[i][1].childNodes.length == 2) // add spark icon
+		{
 			sparkIcon_list.push([RECT_CONTENT[0]+pos[0]+hoff, RECT_CONTENT[1]+pos[1], size[0], size[1]]);
+		}
 		// update position
 		if(pos[0] + size[0] >= RECT_CONTENT[2] - size[0])
 		{
 			pos[0] = 0;
 			pos[1] += size[1];
 			if(imgcount - i - 1 < grid[0]) // update offset for last line if needed
+			{
 				hoff = (RECT_CONTENT[2] - size[0] * (imgcount-i-1)) / 2;
+			}
 		}
 		else
+		{
 			pos[0] += size[0];
+		}
 	}
 	return sparkIcon_list;
-}
-
-function display_canvas(canvas)
-{
-	if(canvas_state == CanvasState.ERROR) // if in error mode
-	{
-		push_popup("A critical error occured");
-		canvas_state = CanvasState.IDLE;
-		canvas = null;
-		return;
-	}
-	else if(canvas_wait > 0) // image loading still on going
-	{
-		setTimeout(display_canvas, 100, canvas); // try again in one second
-	}
-	else
-	{
-		push_popup("Complete");
-		// prepare canvas to be displayed
-		canvas.classList.add("spark-fullscreen");
-		// add background
-		let div = document.createElement("div");
-		div.classList.add("fullscreen-preview");
-		add_to(div, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:close_fullscreen
-		});
-		div.appendChild(canvas);
-		add_to(div, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:close_fullscreen
-		});
-		document.body.appendChild(div);
-		push_popup("Right Click / Hold Touch, then Save as...");
-		canvas_state = CanvasState.IDLE;
-	}
 }
