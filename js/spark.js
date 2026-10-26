@@ -2,7 +2,16 @@
 const CanvasState = Object.freeze({
 	IDLE: 0,
 	RUNNING: 1,
-	ERROR: 2
+	DONE: 2,
+	ERROR: 3
+});
+const CanvasSize = Object.freeze({
+	W: 1920,
+	H: 1080
+});
+const CanvasTextColor = Object.freeze({
+	LIGHT: "#cccccc",
+	DARK: "#333333"
 });
 const SparkMode = Object.freeze({
 	UNDEF: -1,
@@ -28,10 +37,17 @@ var resize_timer = null;
 // image generation
 const HEADERS = ["assets/jpg/spark/gem.jpg", "assets/jpg/spark/moon.jpg", "assets/jpg/spark/sunstone.jpg"];
 const SPARK_ICON = "assets/webp/spark/spark.webp";
-var canvas = null; // contains last canvas
+var canvas_area = null; // contains the area where the canvas is displayed
+var canvas = null; // contains the canvas
 var canvas_state = CanvasState.IDLE;
 const CACHE_LIMIT = 50;
 var canvas_cache = {}; // image cache
+var canvas_color = "#252526";
+var canvas_text_color = CanvasTextColor.LIGHT;
+var canvas_opacity = 1;
+var canvas_target_opacity = 0.4;
+var canvas_target_h_position = 0.3;
+var canvas_target_v_position = 0.5;
 // drag and drop
 var drag_state = DragState.IDLE; // 0 = not running, 1 = drag check, 2 = running
 var drag_event = null; // contains the last event received to process
@@ -294,7 +310,7 @@ function add_image_spark(node, data, gbtype) // add an image to the selector
 			}
 			else
 			{
-				result_clear();
+				result_clean();
 				beep();
 				if(
 					img.gbtype == GBFType.character
@@ -374,7 +390,7 @@ function add_image_result_spark(mode, id, base_img, position) // add image to th
 		}
 		else
 		{
-			result_clear();
+			result_clean();
 			beep();
 			if(window.event.shiftKey || document.getElementById("spark-check").classList.contains("active")) // toggle spark icon
 			{
@@ -939,7 +955,7 @@ function update_rate(to_update) // update ssr rate text
 	}
 	else
 	{
-		result_clear();
+		result_clean();
 		let v;
 		try
 		{
@@ -980,14 +996,14 @@ function confirm_spark_clear() // open popup when pressing reset button
 	{
 		let div = document.createElement("div");
 		div.classList.add("fullscreen-preview");
-		div.innerHTML = '<div class="spark-delete-confirm"><div class="fullscreen-prompt">Are you certain that you want to reset the spark screen?<div/><button class="std-button" onclick="close_fullscreen(); spark_clear();">Yes</button><button class="std-button" onclick="close_fullscreen();">No</button></div>';
+		div.innerHTML = '<div class="spark-delete-confirm"><div class="fullscreen-prompt">Are you certain that you want to reset the spark screen?<div/><button class="std-button" onclick="result_close(); spark_clear();">Yes</button><button class="std-button" onclick="result_close();">No</button></div>';
 		document.body.appendChild(div);
 	}
 }
 
 function spark_clear() // clear everything
 {
-	result_clear();
+	result_clean();
 	localStorage.removeItem('gbfal-spark');
 	lists = [[], [], []];
 	for(let i = 0; i < SparkMode.COUNT; ++i)
@@ -1183,12 +1199,109 @@ function toggle_spark(btn) // toggle spark mode button
 	save_settings();
 }
 
-function close_fullscreen() // close fullscreen popups
+function result_init()
+{
+	// create the canvas
+	canvas = document.createElement("canvas");
+	canvas.width = CanvasSize.W;
+	canvas.height = CanvasSize.H;
+	// prepare canvas to be displayed
+	canvas.classList.add("spark-fullscreen");
+	// add background
+	canvas_area = document.createElement("div");
+	canvas_area.classList.add("fullscreen-preview");
+	add_to(canvas_area, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:result_close});
+	canvas_area.appendChild(canvas);
+	// spark result editing
+	const controls = add_to(canvas_area, "div", {cls:["spark-result-controls"]});
+	// bg color
+	let row = add_to(controls, "div", {cls:["spark-result-control-row"]});
+	add_to(row, "label", {cls:["spark-result-label"], innertext:"Background Color"}).htmlFor = "spark-bg-color";
+	const bg_color = add_to(row, "input", {cls:["std-button"], id:"spark-bg-color"});
+	bg_color.style.verticalAlign = "middle";
+	bg_color.type = "color";
+	bg_color.value = canvas_color;
+	bg_color.onchange = () => {
+		canvas_color = bg_color.value;
+		// compute text color
+		const hex = canvas_color.replace('#', '');
+		const r = parseInt(hex.substring(0, 2), 16);
+		const g = parseInt(hex.substring(2, 4), 16);
+		const b = parseInt(hex.substring(4, 6), 16);
+		// YIQ equation
+		const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+		canvas_text_color = yiq >= 128 ? CanvasTextColor.DARK : CanvasTextColor.LIGHT;
+		// update
+		result_compute();
+	};
+	// bg opacity
+	row = add_to(controls, "div", {cls:["spark-result-control-row"]});
+	add_to(row, "label", {cls:["spark-result-label"], innertext:"Background Opacity"}).htmlFor = "spark-bg-opacity";
+	const bg_opacity = add_to(row, "input", {
+		cls:["spark-result-slider"],
+		id:"spark-bg-opacity"
+	});
+	bg_opacity.type = "range";
+	bg_opacity.min = "0";
+	bg_opacity.max = "100";
+	bg_opacity.value = "" + canvas_opacity * 100;
+	bg_opacity.onchange = () => {
+		canvas_opacity = parseInt(bg_opacity.value) / 100.0;
+		result_compute();
+	};
+	// target opacity
+	row = add_to(controls, "div", {cls:["spark-result-control-row"]});
+	add_to(row, "label", {cls:["spark-result-label"], innertext:"Spark Target Opacity"}).htmlFor = "spark-target-opacity";
+	const spk_opacity = add_to(row, "input", {
+		cls:["spark-result-slider"],
+		id:"spark-target-opacity"
+	});
+	spk_opacity.type = "range";
+	spk_opacity.min = "0";
+	spk_opacity.max = "100";
+	spk_opacity.value = "" + canvas_target_opacity * 100;
+	spk_opacity.onchange = () => {
+		canvas_target_opacity = parseInt(spk_opacity.value) / 100.0;
+		result_compute();
+	};
+	// target horizontal position
+	row = add_to(controls, "div", {cls:["spark-result-control-row"]});
+	add_to(row, "label", {cls:["spark-result-label"], innertext:"Spark Target H. Position"}).htmlFor = "spark-target-h-position";
+	const spk_h_position = add_to(row, "input", {
+		cls:["spark-result-slider"],
+		id:"spark-target-h-position"
+	});
+	spk_h_position.type = "range";
+	spk_h_position.min = "0";
+	spk_h_position.max = "100";
+	spk_h_position.value = "" + canvas_target_h_position * 100;
+	spk_h_position.onchange = () => {
+		canvas_target_h_position = parseInt(spk_h_position.value) / 100.0;
+		result_compute();
+	};
+	// target vertical position
+	row = add_to(controls, "div", {cls:["spark-result-control-row"]});
+	add_to(row, "label", {cls:["spark-result-label"], innertext:"Spark Target V. Position"}).htmlFor = "spark-target-v-position";
+	const spk_v_position = add_to(row, "input", {
+		cls:["spark-result-slider"],
+		id:"spark-target-v-position"
+	});
+	spk_v_position.type = "range";
+	spk_v_position.min = "0";
+	spk_v_position.max = "100";
+	spk_v_position.value = "" + canvas_target_v_position * 100;
+	spk_v_position.onchange = () => {
+		canvas_target_v_position = parseInt(spk_v_position.value) / 100.0;
+		result_compute();
+	};
+	// end of controls
+	add_to(canvas_area, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:result_close});
+}
+
+function result_close() // close result area
 {
 	beep();
-	let bgs = document.getElementsByClassName("fullscreen-preview");
-	for(let bg of bgs)
-		bg.remove();
+	canvas_area.remove();
 }
 
 function generate_image() // generate spark canvas
@@ -1197,16 +1310,16 @@ function generate_image() // generate spark canvas
 	{
 		beep();
 		canvas_state = CanvasState.RUNNING;
-		canvas_wait = 0;
-		if(canvas != null) // if existing canvas
+		if(canvas_state == CanvasState.DONE)
 		{
 			result_display();
 		}
 		else
 		{
-			canvas = document.createElement("canvas"); // create
-			canvas.width = 1920;
-			canvas.height = 1080;
+			if(canvas_area == null)
+			{
+				result_init();
+			}
 			if(canvas.getContext) // check if possible
 			{
 				push_popup("Generating...");
@@ -1222,9 +1335,17 @@ function generate_image() // generate spark canvas
 	else push_popup("Wait before generating another image");
 }
 
-function result_clear()
+function result_clean()
 {
-	canvas = null;
+	switch(canvas_state)
+	{
+		case CanvasState.ERROR:
+			canvas_state = CanvasState.IDLE;
+		case CanvasState.IDLE:
+			break;
+		default:
+			return;
+	}
 	// cache cleanups
 	const keys = Object.keys(canvas_cache);
 	if(keys.length > CACHE_LIMIT)
@@ -1334,6 +1455,7 @@ function result_start_draw()
 			delete canvas_cache["sparked"];
 		}
 		result_compute();
+		canvas_state = CanvasState.DONE;
 		result_display();
 	}).catch((err) => {
 		console.error("An error occurred while loading images:", err);
@@ -1343,44 +1465,35 @@ function result_start_draw()
 
 function result_compute()
 {
-	let ctx = canvas.getContext("2d");
+	const ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = true;
+	// clean
+	ctx.clearRect(0, 0, CanvasSize.W, CanvasSize.H);
 	// background
-	ctx.rect(0, 0, 1920, 1080);
-	ctx.fillStyle = "#252526";
+	ctx.globalAlpha = canvas_opacity;
+	ctx.rect(0, 0, CanvasSize.W, CanvasSize.H);
+	ctx.fillStyle = canvas_color;
 	ctx.fill();
+	ctx.globalAlpha = 1;
 	// add sparked target
 	if("sparked" in canvas_cache)
 	{
-		ctx.globalAlpha = 0.4; // change opacity
+		ctx.globalAlpha = canvas_target_opacity; // change opacity
 		const img = canvas_cache["sparked"];
-		const s = img.src.split('/');
-		switch(s[s.length - 1][0])
-		{
-			case '2':
-			{
-				draw_image(ctx, img, 1920-1100, 0, 1100, 1080);
-				break;
-			}
-			case '3':
-			{
-				draw_image(ctx, img, 30, 0, 1296, 1080);
-				break;
-			}
-		}
+		const w = img.naturalWidth * CanvasSize.H / img.naturalHeight;
+		const x = canvas_target_h_position * CanvasSize.W - w / 2;
+		const y = canvas_target_v_position * CanvasSize.H - CanvasSize.H / 2
+		draw_image(ctx, img, x, y, w, CanvasSize.H);
 		ctx.globalAlpha = 1; // back to normal
 	}
 	// texts
 	ctx.font = "40px sans-serif";
-	ctx.fillStyle = "#cccccc";
+	ctx.fillStyle = canvas_text_color;
 	ctx.fillText(document.getElementById("spark-rate").innerHTML.replace("<br>", " - "), 50, 1070);
-	ctx.fillStyle = "#1d1d1d";
-	// add source/credit
-	ctx.fillText("GBFAL", 1750, 1070);
 	// draw elements
 	for(let i = 0; i < SparkMode.COUNT; ++i)
 	{
-		const offset = 640 * i; // horizontal offset (1920 / 3 = 640)
+		const offset = 640 * i; // horizontal offset (CanvasSize.W / 3 = 640)
 		draw_image(ctx, canvas_cache[HEADERS[i]], ((640-100)/2) + offset, 50, 100, 100); // draw column header
 		const sparks = draw_column(ctx, offset, lists[i]);
 		// spark indicators
@@ -1402,23 +1515,12 @@ function result_display()
 	if(canvas_state == CanvasState.ERROR) // if in error mode
 	{
 		push_popup("A critical error occured");
-		canvas_state = CanvasState.IDLE;
-		result_clear();
+		result_clean();
 		return;
 	}
-	push_popup("Complete");
-	// prepare canvas to be displayed
-	canvas.classList.add("spark-fullscreen");
-	// add background
-	let div = document.createElement("div");
-	div.classList.add("fullscreen-preview");
-	add_to(div, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:close_fullscreen
-	});
-	div.appendChild(canvas);
-	add_to(div, "button", {cls:["fullscreen-button"], innertext:"Close", onclick:close_fullscreen
-	});
-	document.body.appendChild(div);
+	document.body.appendChild(canvas_area);
 	push_popup("Right Click / Hold Touch, then Save as...");
+	canvas.scrollIntoView();
 	canvas_state = CanvasState.IDLE;
 }
 
@@ -1441,7 +1543,7 @@ function draw_column(ctx, offset, content)
 	{
 		return []; // if nothing to draw, stop now
 	}
-	const RECT_CONTENT = [offset+50, 100+50+50, 640-100, 1080-200-50];
+	const RECT_CONTENT = [offset+50, 100+50+50, 640-100, CanvasSize.H-200-50];
 	let size = [RECT_CONTENT[2], RECT_CONTENT[2]*DEFAULT_SIZE[1]/DEFAULT_SIZE[0]]; // default image size (make it fit the area horizontally, keeping the aspect ratio)
 	let grid = [0, 0]; // will contain the number of horizontal and vertical elements
 	let sparkIcon_list = [];
