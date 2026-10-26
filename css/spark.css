@@ -225,8 +225,8 @@ td {
 	margin: 0px;
 	box-sizing: border-box;
 	position: relative;
-	-webkit-animation: spark-img-fadein .5s;
-	animation: spark-img-fadein .5s;
+	-webkit-animation: spark-img-fadein .25s;
+	animation: spark-img-fadein .25s;
 	touch-action: none;
 }
 
