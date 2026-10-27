@@ -2112,7 +2112,7 @@
         },
         {
             "name":"Sky Compass Gallery",
-            "icon":"../GBFML/assets/ui/skycompass.png",
+            "icon":"../GBFML/assets/webp/skycompass.webp",
             "target":"sky_title",
             "pad":1,
             "reverse":100
