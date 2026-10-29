@@ -2985,15 +2985,15 @@ class Updater():
                 Z = 2
         except:
             pass
-        loop_err_limit : int = 60 if index == "story0" and element_id == "191" else 30
+        loop_err_limit : int = 60 if index == "story0" and element_id == "191" else 15
         
         async def test_file(f) -> bool:
             if f in existing:
                 return True
             found : bool = False
             for ext in ('png', 'jpg'):
-                file = f"{f}.{ext}"
-                if (await self.head(url + file))[0]:
+                file_url = f"{url}{f}.{ext}"
+                if (await self.head(file_url))[0]:
                     if f not in existing:
                         existing[f] = [ext]
                     else:
@@ -3070,10 +3070,6 @@ class Updater():
                 ts.good()
             else:
                 ts.bad()
-                # special edge case, for 250329 so far
-                if ts.err >= ts.max_err and ts.index < 50 and index == "events":
-                    ts.index = 50
-                    ts.err = 0
         ts.finish()
         # all tasks for this chapter finished
         # the last one is in charge of cleaning it up
@@ -3287,6 +3283,7 @@ class Updater():
     # Update an event data
     async def update_event(self : Updater, element_id : str, forceflag : bool = False) -> None:
         evt_data = self.data['events'] # reference
+        TASK_SPREAD : int = 20
         if element_id not in evt_data: # add container to index if not set
             evt_data[element_id] = self.create_event_container()
         # we must have a valid chapter count (==0 : undefined but valid event, >=0 : chapter count)
@@ -3312,51 +3309,51 @@ class Updater():
             if not no_prefix:
                 for i in range(0, ch_count+1):
                     fn = f"scene_{prefix}{name}_cp{i:02}"
-                    ts = TaskStatus(200, 5, running=10)
+                    ts = TaskStatus(200, 30, running=TASK_SPREAD)
                     didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
-                    for n in range(10):
+                    for n in range(TASK_SPREAD):
                         self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG_BODY, fn, existings[didx - EVENT_OP]), priority=2)
                     if i < 10:
                         fn = f"scene_{prefix}{name}_cp{i:}"
-                        ts = TaskStatus(200, 5, running=10)
-                        for n in range(10):
+                        ts = TaskStatus(200, 30, running=TASK_SPREAD)
+                        for n in range(TASK_SPREAD):
                             self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG_BODY, fn, existings[didx - EVENT_OP]), priority=2)
                 # opening
                 fn = f"scene_{prefix}{name}_op"
-                ts = TaskStatus(200, 5, running=10)
-                for n in range(10):
+                ts = TaskStatus(200, 30, running=TASK_SPREAD)
+                for n in range(TASK_SPREAD):
                     self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_OP, IMG_BODY, fn, existings[EVENT_OP - EVENT_OP]), priority=2)
                 # ending
                 fn = f"scene_{prefix}{name}_ed"
-                ts = TaskStatus(200, 5, running=10)
-                for n in range(10):
+                ts = TaskStatus(200, 30, running=TASK_SPREAD)
+                for n in range(TASK_SPREAD):
                     self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
                 # ending 2
                 fn = f"scene_{prefix}{name}_ed2"
-                ts = TaskStatus(200, 5, running=10)
-                for n in range(10):
+                ts = TaskStatus(200, 30, running=TASK_SPREAD)
+                for n in range(TASK_SPREAD):
                     self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
                 # others
                 fn = f"scene_{prefix}{name}"
-                ts = TaskStatus(200, 5, running=10)
-                for n in range(10):
+                ts = TaskStatus(200, 30, running=TASK_SPREAD)
+                for n in range(TASK_SPREAD):
                     self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG_BODY, fn, existings[EVENT_INT - EVENT_OP]), priority=2)
                 if element_id == "babyl0": # special exception (only for babyl right now)
                     for ss in range(1, 30):
                         fn = f"scene_babeel_01_ed{ss}"
-                        ts = TaskStatus(200, 5, running=10)
-                        for n in range(10):
+                        ts = TaskStatus(200, 5, running=TASK_SPREAD)
+                        for n in range(TASK_SPREAD):
                             self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
                         fn = f"scene_babeel_ed{ss}"
-                        ts = TaskStatus(200, 5, running=10)
-                        for n in range(10):
+                        ts = TaskStatus(200, 5, running=TASK_SPREAD)
+                        for n in range(TASK_SPREAD):
                             self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_ED, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
                 elif element_id == "solom0": # special exception (for evoker solomonis)
                     for i in range(0, ch_count+1):
                         fn = f"scene_{prefix}{name}_ep{i:01}"
-                        ts = TaskStatus(200, 5, running=10)
+                        ts = TaskStatus(200, 5, running=TASK_SPREAD)
                         didx = EVENT_CHAPTER_START+i-1 if i > 0 else EVENT_INT
-                        for n in range(10):
+                        for n in range(TASK_SPREAD):
                             self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, didx, IMG_BODY, fn, existings[didx - EVENT_OP]), priority=2)
             else: # no prefix mode, only used for arcarum
                 if element_id == "arca00": # special for main arca scene assets
@@ -3366,8 +3363,8 @@ class Updater():
                         print("Updated: arca00 for index: events")
                     return
                 fn = name
-                ts = TaskStatus(200, 5, running=10)
-                for n in range(10):
+                ts = TaskStatus(200, 5, running=TASK_SPREAD)
+                for n in range(TASK_SPREAD):
                     self.tasks.add(self.update_chapter, parameters=(ts, 'events', element_id, EVENT_INT, IMG_BODY, fn, existings[EVENT_ED - EVENT_OP]), priority=2)
 
     ### Event Thumbnail #################################################################################################################
