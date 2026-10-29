@@ -27,7 +27,7 @@ try:
 except:
     HTTP2_IMPORTED = False
 # Replacing print to ensure it plays nicely with tqdm
-import inspect
+import builtins
 __old_print__ = print
 def __new_print__(*args, **kwargs):
     # if tqdm.write raises error, use builtin print
@@ -36,7 +36,7 @@ def __new_print__(*args, **kwargs):
     except:
         __old_print__(*args, **kwargs)
 # replace print with __new_print__
-inspect.builtins.print = __new_print__
+builtins.print = __new_print__
 
 ### Constant variables
 VERSION = "4.4"
@@ -215,7 +215,13 @@ SCENE_BASE_LIST : list[str] = (
 
 # Additional tweaks to handle task bar progress
 class BetterTqdm(tqdm):
+    def __init__(self : BetterTqdm, *args, **kwargs) -> None:
+        self.pause_toggle : bool = False
+        super().__init__(*args, **kwargs)
+    
     def display(self : BetterTqdm, *args, **kwargs) -> bool:
+        if self.pause_toggle:
+            return
         res = super().display(*args, **kwargs)
         if self.total:
             sys.stderr.write(f"\u001b]9;4;1;{100 * self.n / self.total:.0f}\u001b\\")
@@ -225,12 +231,11 @@ class BetterTqdm(tqdm):
         return res
 
     def pause(self : BetterTqdm) -> None:
-        if self.disable:
-            self.disable = False
+        if self.pause_toggle:
+            self.pause_toggle = False
             self.refresh()
         else:
-            self.disable = True
-            self.clear()
+            self.pause_toggle = True
             sys.stderr.write(f"\u001b]9;4;4;{100 * self.n / self.total:.0f}\u001b\\")
             sys.stderr.flush()
 
@@ -382,6 +387,7 @@ class TaskManager():
             unit_divisor=1000,
             mininterval=2,
             dynamic_ncols=True,
+            file=sys.stdout,
             bar_format='{percentage:3.1f}%|\u001b[32m{bar}\u001b[0m{r_bar}'
         )
         try:
@@ -411,7 +417,7 @@ class TaskManager():
             return
         if self.pbar is not None:
             self.pbar.pause()
-        print("\nProcess PAUSED")
+        print("Process PAUSED")
         print(f"{self.finished} / {self.total} Tasks completed")
         if self.updater.modified:
             print("Pending Data is waiting to be saved")
