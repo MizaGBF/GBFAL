@@ -34,7 +34,7 @@ def __new_print__(*args, **kwargs):
     try:
         tqdm.write(*args, **kwargs)
     except:
-        __old_print__(*args, ** kwargs)
+        __old_print__(*args, **kwargs)
 # replace print with __new_print__
 inspect.builtins.print = __new_print__
 

@@ -2005,6 +2005,7 @@
                             "icon":"../GBFML/assets/webp/icon/arc_1.webp",
                             "target":"background",
                             "arg1":"",
+                            "arg2":true,
                             "pad":10
                         },
                         {
@@ -2012,6 +2013,7 @@
                             "icon":"../GBFML/assets/webp/icon/arc_2.webp",
                             "target":"background",
                             "arg1":"e",
+                            "arg2":true,
                             "pad":10
                         },
                         {
@@ -2019,6 +2021,7 @@
                             "icon":"../GBFML/assets/webp/icon/arc_3.webp",
                             "target":"background",
                             "arg1":"f",
+                            "arg2":true,
                             "pad":10
                         }
                     ]
@@ -2027,6 +2030,7 @@
                     "name":"Mains",
                     "target":"background",
                     "arg1":"main",
+                    "arg2":true,
                     "pad":10,
                     "reverse":1
                 },
@@ -2034,6 +2038,7 @@
                     "name":"Commons",
                     "target":"background",
                     "arg1":"common",
+                    "arg2":true,
                     "pad":10,
                     "reverse":1
                 },
@@ -2041,6 +2046,7 @@
                     "name":"Events",
                     "target":"background",
                     "arg1":"event",
+                    "arg2":true,
                     "pad":10,
                     "reverse":1
                 },

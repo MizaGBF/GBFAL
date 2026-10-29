@@ -444,6 +444,14 @@
         "3994573000": {
             "comment": "Raziel (MSQ Demon)",
             "base": ["_weapon", "_weapon_wing"]
+        },
+        "3990389000": {
+            "comment": "Wolf",
+            "base": ["_brown"]
+        },
+        "3994647000": {
+            "comment": "Cadel",
+            "base": ["_void"]
         }
     },
     
