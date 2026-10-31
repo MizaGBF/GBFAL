@@ -515,8 +515,6 @@ class TaskStatus():
 
     def bad(self : TaskStatus) -> None:
         self.err += 1
-        if self.err == self.max_err:
-            print("FINISHED")
 
     @property
     def complete(self : TaskStatus) -> bool:
