@@ -28,13 +28,9 @@ except:
     HTTP2_IMPORTED = False
 # Replacing print to ensure it plays nicely with tqdm
 import builtins
-__old_print__ = print
+old_print = print # accessible through old_print
 def __new_print__(*args, **kwargs):
-    # if tqdm.write raises error, use builtin print
-    try:
-        tqdm.write(*args, **kwargs)
-    except:
-        __old_print__(*args, **kwargs)
+    tqdm.write(*args)
 # replace print with __new_print__
 builtins.print = __new_print__
 
@@ -241,8 +237,8 @@ class BetterTqdm(tqdm):
 
     def close(self : BetterTqdm) -> None:
         super().close()
-        sys.stdout.write("\u001b]9;4;0\u001b\\")
-        sys.stdout.flush()
+        sys.stderr.write("\u001b]9;4;0\u001b\\")
+        sys.stderr.flush()
 
 # Handle tasks
 @dataclass(slots=True)
@@ -387,7 +383,6 @@ class TaskManager():
             unit_divisor=1000,
             mininterval=2,
             dynamic_ncols=True,
-            file=sys.stdout,
             bar_format='{percentage:3.1f}%|\u001b[32m{bar}\u001b[0m{r_bar}'
         )
         try:
@@ -520,6 +515,8 @@ class TaskStatus():
 
     def bad(self : TaskStatus) -> None:
         self.err += 1
+        if self.err == self.max_err:
+            print("FINISHED")
 
     @property
     def complete(self : TaskStatus) -> bool:
