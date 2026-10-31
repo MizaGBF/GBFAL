@@ -3090,6 +3090,11 @@ class Updater():
                 # note: this permits to set a low max_err value and still get a good coverage
                 # without making an enormous amount of requests. This whole thing is still bad tho.
                 ts.bad()
+                # additional check: Some chapters jump to index 30
+                # so we reset and jump if max_err is reached
+                if ts.err == ts.max_err and ts.index < 30:
+                    ts.index = 30
+                    ts.err = 0
         ts.finish()
         # all tasks for this chapter finished
         # the last one is in charge of cleaning it up
