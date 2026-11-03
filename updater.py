@@ -3664,24 +3664,25 @@ class Updater():
     async def check_fate(self : Updater, element_id : str, index : int, fid : str, nameA : str|None, epA_check : bool, nameB : str|None, epB_check : bool) -> None:
         ts : TaskStatus
         existing = self.generate_chapter_file_map(self.data['fate'].get(fid, [[], [], [], [], None])[index])
+        MAX_ERR : int = 30
         if nameA is not None:
             # nameA
-            ts = TaskStatus(200, 5, running=10)
+            ts = TaskStatus(200, MAX_ERR, running=10)
             for n in range(10):
                 self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG_BODY, nameA, existing), priority=2)
             if epA_check:
                 for q in range(1, 5):
-                    ts = TaskStatus(200, 5, running=10)
+                    ts = TaskStatus(200, MAX_ERR, running=10)
                     for n in range(10):
                         self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG_BODY, f"{nameA}_ep{q}", existing), priority=2)
         if nameB is not None:
             # nameB
-            ts = TaskStatus(200, 5, running=10)
+            ts = TaskStatus(200, MAX_ERR, running=10)
             for n in range(10):
                 self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG_BODY, nameB, existing), priority=2)
             if epB_check:
                 for q in range(1, 5):
-                    ts = TaskStatus(200, 5, running=10)
+                    ts = TaskStatus(200, MAX_ERR, running=10)
                     for n in range(10):
                         self.tasks.add(self.update_chapter, parameters=(ts, 'fate', fid, index, IMG_BODY, f"{nameB}_ep{q}", existing), priority=2)
 
