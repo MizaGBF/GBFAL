@@ -30,7 +30,8 @@ except:
 import builtins
 old_print = print # accessible through old_print
 def __new_print__(*args, **kwargs):
-    tqdm.write(*args)
+    with tqdm.external_write_mode(file=kwargs.get('file')):
+        old_print(*args, **kwargs)
 # replace print with __new_print__
 builtins.print = __new_print__
 
