@@ -452,6 +452,14 @@
         "3994647000": {
             "comment": "Cadel",
             "base": ["_void"]
+        },
+        "3040086000": {
+            "comment": "Forte",
+            "base": ["_dragon"]
+        },
+        "3990102000": {
+            "comment": "Dragons",
+            "main": ["_spear","_up_spear"]
         }
     },
     
