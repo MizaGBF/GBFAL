@@ -8371,7 +8371,11 @@
 "9103503":[["9103503"],["enemy_9103503_a.png","enemy_9103503_b.png","enemy_9103503_c.png"],["raid_appear_9103503.png"],[],[],[]],
 "9103513":[["9103513"],["enemy_9103513_a.png","enemy_9103513_b.png","enemy_9103513_c.png"],[],[],[],[]],
 "8105083":[["8105083"],["enemy_8105083_a.png","enemy_8105083_b.png"],["raid_appear_8105083.png"],["ehit_8105083.png"],["esp_8105083_01.png"],[]],
-"8105093":[["8105093"],["enemy_8105093_a.png","enemy_8105093_b.png"],[],[],[],["esp_8105093_04_all_a.png","esp_8105093_04_all_b.png","esp_8105093_05_all_a.png","esp_8105093_05_all_b.png","esp_8105093_05_all_c.png","esp_8105093_05_all_d.png"]]
+"8105093":[["8105093"],["enemy_8105093_a.png","enemy_8105093_b.png"],[],[],[],["esp_8105093_04_all_a.png","esp_8105093_04_all_b.png","esp_8105093_05_all_a.png","esp_8105093_05_all_b.png","esp_8105093_05_all_c.png","esp_8105093_05_all_d.png"]],
+"2200943":[["2200943"],["enemy_2200943_a.png","enemy_2200943_b.png"],["raid_appear_2200943.png"],[],[],[]],
+"2200953":[["2200953"],["enemy_2200953.png"],["raid_appear_2200953.png"],[],[],[]],
+"2200963":[["2200963"],["enemy_2200963_a.png","enemy_2200963_b.png","enemy_2200963_c.png"],["raid_appear_2200963.png"],[],[],[]],
+"9103573":[["9103573"],["enemy_9103573_a.png","enemy_9103573_b.png"],["raid_appear_9103573.png"],[],["esp_9103573_01.png"],[]]
 },
 "skins":
 {
@@ -27051,7 +27055,11 @@
 "2040463000":"/w Poppet_Hareloom /e dark /a ssr /n poppet hareloom /c acies /y ポペットバニット 2026-10-31",
 "1040519200":"/w Escorting_Arms /e wind /t gun /a ssr /n escorting arms /y エスコートアームズ 2026-10-31",
 "1040030000":"/w Ragnarok /e dark /t sabre /a ssr /n ragnarok /c grand /y ラグナロク 2026-10-31",
-"3994652000":"/$ /! /!!"
+"3994652000":"/n cruenta aranea /! /!!",
+"2200943":"/f insect-boss /x six-eyed butterfly /e water /n arcana papilio",
+"2200953":"/f insect-boss /x queen bee /e water /n fascina apis",
+"2200963":"/f insect-boss /x madam malmosquito /e water /n ferox culex",
+"9103573":"/f other-boss /e water /n cruenta aranea"
 },
 "evt_lookup":
 {

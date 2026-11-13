@@ -3978,7 +3978,7 @@
 "3994649000":"/x cadel /n primal beast cynthesis /b primal /y シンセシス",
 "3994650000":"/x bahamut /n bahamut versa",
 "3994651000":"/n sword veil mage /b harvin",
-"3994652000":null,
+"3994652000":"/n cruenta aranea",
 "3994654000":"/n seox /c eternals /b erune /s male /y シス nobuyuki hiyama 檜山修之",
 "3994655000":"/n rolan /b unknown /s male /y ローラン hiroshi kamiya 神谷浩史",
 "3994656000":"/n rolan /b unknown /s male /y ローラン hiroshi kamiya 神谷浩史",
@@ -4400,6 +4400,9 @@
 "2200903":"/e water /n rubble grub",
 "2200912":"/e fire /n mine crawler",
 "2200923":"/e wind /n madam malmosquito",
+"2200943":"/x six-eyed butterfly /e water /n arcana papilio",
+"2200953":"/x queen bee /e water /n fascina apis",
+"2200963":"/x madam malmosquito /e water /n ferox culex",
 "3100011":"/e water /n jawfish",
 "3100012":"/x jawfish /e water /n rivacuda",
 "3100021":"/x crusher /e water /n rampaging shell",
@@ -6941,5 +6944,6 @@
 "9103483":"/x agastia abomination battleship /e earth /n ultimus atrox",
 "9103493":"/e null /n the wind walker",
 "9103503":"/e dark /n zamalvoch",
-"9103513":"/e dark /n zamalvoch"
+"9103513":"/e dark /n zamalvoch",
+"9103573":"/e water /n cruenta aranea"
 }
